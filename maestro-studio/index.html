@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maestro Studio — Renaissance Art Prompt Engine</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;0,800;1,700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0a1a;
+      --bg2: #110d22;
+      --bg3: #150f2a;
+      --card: #1a1430;
+      --border: rgba(198,144,26,0.18);
+      --gold: #c6901a;
+      --gold-light: #e4b060;
+      --gold-bright: #f0c040;
+      --cream: #f5ecd7;
+      --muted: #9b8bb0;
+      --success: #4caf7d;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--cream);
+      line-height: 1.65;
+      overflow-x: hidden;
+    }
+
+    /* STARS EFFECT */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(1px 1px at 20% 15%, rgba(255,255,200,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 75% 10%, rgba(255,255,200,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 40% 60%, rgba(255,255,200,0.3) 0%, transparent 100%),
+        radial-gradient(1px 1px at 85% 45%, rgba(255,255,200,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 10% 80%, rgba(255,255,200,0.3) 0%, transparent 100%),
+        radial-gradient(1px 1px at 60% 90%, rgba(255,255,200,0.4) 0%, transparent 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* NAV */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(13,10,26,0.88);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 1.25rem;
+      color: var(--gold-light);
+    }
+
+    .nav-logo .icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--gold), #8b5e0a);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+    }
+
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--gold-light); }
+
+    .nav-cta {
+      background: linear-gradient(135deg, var(--gold), #a0730e);
+      color: #fff;
+      padding: 9px 20px;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(198,144,26,0.4); }
+
+    /* HERO */
+    .hero {
+      min-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 6rem 2rem 4rem;
+      position: relative;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 700px;
+      height: 700px;
+      background: radial-gradient(ellipse, rgba(198,144,26,0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(198,144,26,0.1);
+      border: 1px solid rgba(198,144,26,0.3);
+      color: var(--gold-light);
+      padding: 6px 16px;
+      border-radius: 100px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      margin-bottom: 1.75rem;
+      text-transform: uppercase;
+    }
+
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.4rem, 5.5vw, 4.2rem);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.5px;
+      margin-bottom: 1.25rem;
+      max-width: 780px;
+    }
+
+    .hero h1 span {
+      background: linear-gradient(135deg, var(--gold-bright), var(--gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 1.15rem;
+      color: var(--muted);
+      max-width: 540px;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-buttons { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold), #a0730e);
+      color: #fff;
+      padding: 14px 30px;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(198,144,26,0.45); }
+
+    .btn-outline-gold {
+      background: transparent;
+      color: var(--gold-light);
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      border: 1px solid rgba(198,144,26,0.4);
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .btn-outline-gold:hover { border-color: var(--gold); color: var(--gold-bright); }
+
+    .hero-ornament {
+      margin-top: 3rem;
+      color: rgba(198,144,26,0.3);
+      font-size: 1.5rem;
+      letter-spacing: 1rem;
+    }
+
+    /* SECTIONS */
+    section { padding: 5rem 2rem; position: relative; }
+
+    .container { max-width: 1100px; margin: 0 auto; }
+
+    .section-label {
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--gold);
+      margin-bottom: 0.75rem;
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 800;
+      margin-bottom: 1rem;
+      color: var(--cream);
+    }
+
+    .section-sub {
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 520px;
+      margin-bottom: 3rem;
+    }
+
+    /* GENERATOR */
+    #generator { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+    .gen-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      align-items: start;
+    }
+
+    @media (max-width: 768px) {
+      .gen-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+      .gallery-grid { grid-template-columns: 1fr 1fr !important; }
+      .features-grid { grid-template-columns: 1fr !important; }
+      .pricing-grid { grid-template-columns: 1fr !important; }
+    }
+
+    .gen-form {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .form-group { margin-bottom: 1.25rem; }
+
+    .form-group label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .form-group select {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(198,144,26,0.2);
+      border-radius: 8px;
+      color: var(--cream);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.93rem;
+      padding: 10px 14px;
+      outline: none;
+      transition: border-color 0.2s;
+      -webkit-appearance: none;
+      cursor: pointer;
+    }
+
+    .form-group select:focus { border-color: var(--gold); }
+    .form-group select option { background: #1a1430; }
+
+    .gen-btn {
+      width: 100%;
+      background: linear-gradient(135deg, var(--gold), #a0730e);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s;
+      margin-top: 0.25rem;
+    }
+
+    .gen-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(198,144,26,0.4); }
+
+    /* OUTPUT */
+    .gen-output {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      min-height: 420px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .output-empty {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--muted);
+      gap: 1rem;
+    }
+
+    .output-empty .icon-big { font-size: 2.8rem; opacity: 0.4; }
+
+    .output-active { display: none; flex-direction: column; gap: 1rem; flex: 1; }
+    .output-active.show { display: flex; }
+
+    .output-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.25rem;
+    }
+
+    .output-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+
+    .platform-tags {
+      display: flex;
+      gap: 6px;
+    }
+
+    .ptag {
+      background: rgba(198,144,26,0.1);
+      border: 1px solid rgba(198,144,26,0.25);
+      color: var(--gold-light);
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    .prompt-box {
+      background: rgba(198,144,26,0.05);
+      border: 1px solid rgba(198,144,26,0.2);
+      border-radius: 10px;
+      padding: 1.25rem;
+      font-size: 0.9rem;
+      color: var(--cream);
+      line-height: 1.75;
+      font-style: italic;
+      flex: 1;
+      min-height: 140px;
+    }
+
+    .output-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    .meta-box {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(198,144,26,0.1);
+      border-radius: 8px;
+      padding: 10px 12px;
+      text-align: center;
+    }
+
+    .meta-box .mval { font-weight: 700; font-size: 0.85rem; color: var(--gold-light); }
+    .meta-box .mlbl { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+    .output-actions { display: flex; gap: 0.75rem; }
+
+    .act-btn {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s;
+    }
+
+    .act-btn.copy {
+      background: linear-gradient(135deg, var(--gold), #a0730e);
+      color: #fff;
+      border: none;
+    }
+
+    .act-btn.copy:hover { box-shadow: 0 4px 16px rgba(198,144,26,0.4); }
+
+    .act-btn.another {
+      background: transparent;
+      border: 1px solid rgba(198,144,26,0.35);
+      color: var(--gold-light);
+    }
+
+    .act-btn.another:hover { border-color: var(--gold); }
+
+    /* GALLERY */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+    }
+
+    .gallery-card {
+      border-radius: 14px;
+      padding: 1.75rem;
+      position: relative;
+      overflow: hidden;
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      cursor: pointer;
+      transition: transform 0.25s;
+    }
+
+    .gallery-card:hover { transform: scale(1.02); }
+
+    .gallery-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: inherit;
+      z-index: 0;
+    }
+
+    .gallery-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 60%);
+      z-index: 1;
+    }
+
+    .gallery-content { position: relative; z-index: 2; }
+
+    .gallery-tag {
+      display: inline-block;
+      background: rgba(198,144,26,0.25);
+      border: 1px solid rgba(198,144,26,0.4);
+      color: var(--gold-bright);
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.5rem;
+    }
+
+    .gallery-prompt {
+      font-size: 0.78rem;
+      color: rgba(245,236,215,0.85);
+      line-height: 1.5;
+    }
+
+    /* FEATURES */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+
+    .feature-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .feature-card:hover { border-color: rgba(198,144,26,0.45); transform: translateY(-4px); }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      background: rgba(198,144,26,0.1);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .feature-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--cream); }
+    .feature-card p { color: var(--muted); font-size: 0.88rem; line-height: 1.65; }
+
+    /* PRICING */
+    #pricing { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      max-width: 700px;
+    }
+
+    .pricing-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      position: relative;
+      transition: transform 0.2s;
+    }
+
+    .pricing-card:hover { transform: translateY(-4px); }
+
+    .pricing-card.featured {
+      border-color: var(--gold);
+      background: linear-gradient(180deg, rgba(198,144,26,0.07) 0%, var(--card) 100%);
+    }
+
+    .popular-badge {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, var(--gold), #a0730e);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 4px 14px;
+      border-radius: 100px;
+      white-space: nowrap;
+    }
+
+    .pricing-tier { font-size: 0.75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 0.5rem; }
+    .pricing-price { font-size: 2.5rem; font-weight: 900; letter-spacing: -2px; color: var(--cream); margin-bottom: 0.2rem; }
+    .pricing-price span { font-size: 1rem; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+    .pricing-desc { color: var(--muted); font-size: 0.875rem; margin-bottom: 1.5rem; }
+
+    .pricing-features { list-style: none; margin-bottom: 1.75rem; }
+    .pricing-features li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.875rem;
+      color: var(--muted);
+      margin-bottom: 0.6rem;
+    }
+    .pricing-features li::before { content: '✦'; color: var(--gold); font-size: 0.7rem; }
+
+    .pricing-btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.925rem;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s;
+    }
+
+    .pricing-btn.outline {
+      background: transparent;
+      border: 1px solid rgba(198,144,26,0.35);
+      color: var(--gold-light);
+    }
+
+    .pricing-btn.outline:hover { border-color: var(--gold); }
+
+    .pricing-btn.solid {
+      background: linear-gradient(135deg, var(--gold), #a0730e);
+      color: #fff;
+    }
+
+    .pricing-btn.solid:hover { box-shadow: 0 6px 20px rgba(198,144,26,0.4); }
+
+    /* FOOTER */
+    footer {
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 2rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.875rem;
+    }
+
+    footer a { color: var(--gold-light); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    .footer-ornament { color: rgba(198,144,26,0.3); font-size: 1.2rem; letter-spacing: 0.75rem; margin-bottom: 1rem; }
+
+    /* ANIMATE */
+    .fade-up { animation: fadeUp 0.5s ease forwards; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+    .copied-toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(30px);
+      background: var(--gold);
+      color: #fff;
+      padding: 10px 24px;
+      border-radius: 100px;
+      font-size: 0.875rem;
+      font-weight: 700;
+      opacity: 0;
+      transition: all 0.3s;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    .copied-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+<div class="copied-toast" id="toast">✓ Prompt Copied!</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <span class="icon">🎨</span>
+    Maestro Studio
+  </div>
+  <ul class="nav-links">
+    <li><a href="#generator">Generator</a></li>
+    <li><a href="#gallery">Gallery</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+  </ul>
+  <a href="#generator" class="nav-cta">✦ Start Creating</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">✦ AI Renaissance Prompt Engine</div>
+  <h1>Create <span>Museum-Quality</span> Renaissance Art for Your Etsy Shop</h1>
+  <p>Generate stunning AI prompts for Midjourney, DALL-E 3, and Stable Diffusion in seconds — sell premium digital art with confidence.</p>
+  <div class="hero-buttons">
+    <a href="#generator" class="btn-gold">✦ Generate Your First Prompt</a>
+    <a href="#gallery" class="btn-outline-gold">View Sample Gallery</a>
+  </div>
+  <div class="hero-ornament">⸻ ✦ ⸻</div>
+</section>
+
+<!-- GENERATOR -->
+<section id="generator">
+  <div class="container">
+    <p class="section-label">✦ Prompt Engine</p>
+    <h2 class="section-title">Craft Your Masterpiece Prompt</h2>
+    <p class="section-sub">Select your vision below and let Maestro Studio compose the perfect AI art prompt — ready to paste into any image generator.</p>
+
+    <div class="gen-grid">
+      <!-- Form -->
+      <div class="gen-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Subject</label>
+            <select id="subject">
+              <option value="portrait">Portrait</option>
+              <option value="landscape">Landscape</option>
+              <option value="still_life">Still Life</option>
+              <option value="abstract">Abstract</option>
+              <option value="celestial">Celestial Scene</option>
+              <option value="biblical">Biblical Scene</option>
+              <option value="botanical">Botanical</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Art Style</label>
+            <select id="style">
+              <option value="renaissance">High Renaissance</option>
+              <option value="baroque">Baroque</option>
+              <option value="romantic">Romantic</option>
+              <option value="neoclassical">Neoclassical</option>
+              <option value="divine">Divine Geometry</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Medium</label>
+            <select id="medium">
+              <option value="oil">Oil Painting</option>
+              <option value="watercolor">Watercolor</option>
+              <option value="fresco">Fresco</option>
+              <option value="gold_leaf">Gold Leaf</option>
+              <option value="mixed">Mixed Media</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Mood</label>
+            <select id="mood">
+              <option value="ethereal">Ethereal</option>
+              <option value="dramatic">Dramatic</option>
+              <option value="peaceful">Peaceful</option>
+              <option value="mystical">Mystical</option>
+              <option value="triumphant">Triumphant</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Color Palette</label>
+          <select id="palette">
+            <option value="warm">Warm Golds &amp; Ambers</option>
+            <option value="cool">Cool Celestial Blues</option>
+            <option value="earth">Rich Earth Tones</option>
+            <option value="jewel">Jewel Tones</option>
+          </select>
+        </div>
+        <button class="gen-btn" onclick="generatePrompt()">✦ Generate Prompt</button>
+      </div>
+
+      <!-- Output -->
+      <div class="gen-output">
+        <div class="output-empty" id="genEmpty">
+          <div class="icon-big">🖼️</div>
+          <p>Select your options and click <strong>Generate Prompt</strong> to create a museum-quality AI art prompt.</p>
+        </div>
+        <div class="output-active fade-up" id="genResult">
+          <div class="output-header">
+            <div class="output-label">✦ Generated Prompt</div>
+            <div class="platform-tags">
+              <span class="ptag">MJ</span>
+              <span class="ptag">DALL-E</span>
+              <span class="ptag">SD</span>
+            </div>
+          </div>
+
+          <div class="prompt-box" id="promptText">Your prompt will appear here...</div>
+
+          <div class="output-meta">
+            <div class="meta-box">
+              <div class="mval" id="metaStyle">—</div>
+              <div class="mlbl">Style</div>
+            </div>
+            <div class="meta-box">
+              <div class="mval" id="metaMedium">—</div>
+              <div class="mlbl">Medium</div>
+            </div>
+            <div class="meta-box">
+              <div class="mval" id="metaMood">—</div>
+              <div class="mlbl">Mood</div>
+            </div>
+          </div>
+
+          <div class="output-actions">
+            <button class="act-btn copy" onclick="copyPrompt()">📋 Copy Prompt</button>
+            <button class="act-btn another" onclick="generatePrompt()">↻ Generate Another</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GALLERY -->
+<section id="gallery">
+  <div class="container">
+    <p class="section-label">✦ Sample Gallery</p>
+    <h2 class="section-title">Prompts That Sell on Etsy</h2>
+    <p class="section-sub">Real prompts crafted by Maestro Studio — each one optimized for digital print sales and instant download listings.</p>
+    <div class="gallery-grid">
+      <div class="gallery-card" style="background: linear-gradient(135deg, #2c1810, #5c3a1e, #8b5e2a);">
+        <div class="gallery-content">
+          <div class="gallery-tag">High Renaissance · Portrait</div>
+          <div class="gallery-prompt">"Noble Florentine nobleman, sfumato shadows, Venetian brocade, Leonardo da Vinci master style, golden ratio composition, museum quality oil on canvas, 8k --ar 2:3"</div>
+        </div>
+      </div>
+      <div class="gallery-card" style="background: linear-gradient(135deg, #0c1a3a, #1a2d6b, #2e4da0);">
+        <div class="gallery-content">
+          <div class="gallery-tag">Baroque · Celestial</div>
+          <div class="gallery-prompt">"Celestial angel choir, Caravaggio chiaroscuro, divine gold light rays, azure heavens, baroque grandeur, ornate gold frame composition, masterpiece detail"</div>
+        </div>
+      </div>
+      <div class="gallery-card" style="background: linear-gradient(135deg, #1a0a2e, #3d1a5c, #6b3399);">
+        <div class="gallery-content">
+          <div class="gallery-tag">Divine Geometry · Abstract</div>
+          <div class="gallery-prompt">"Sacred geometry mandala, fibonacci spiral, gold leaf sacred symbols, deep purple cosmos, mystical Renaissance mathematics, spiritual artwork, 8k ultra detail"</div>
+        </div>
+      </div>
+      <div class="gallery-card" style="background: linear-gradient(135deg, #0a2218, #1a4a30, #2d7a50);">
+        <div class="gallery-content">
+          <div class="gallery-tag">Romantic · Botanical</div>
+          <div class="gallery-prompt">"Lush Renaissance botanical garden, rare heirloom roses, gilded manuscript border, warm afternoon light through arched windows, Flemish detail, ethereal atmosphere"</div>
+        </div>
+      </div>
+      <div class="gallery-card" style="background: linear-gradient(135deg, #2e1a08, #6b4a15, #c6901a);">
+        <div class="gallery-content">
+          <div class="gallery-tag">Neoclassical · Biblical</div>
+          <div class="gallery-prompt">"The Annunciation in golden hour light, white marble columns, lapis lazuli sky, Raphael composition, divine grace radiating outward, warm gold leaf accents, peaceful triumphant mood"</div>
+        </div>
+      </div>
+      <div class="gallery-card" style="background: linear-gradient(135deg, #1a0a10, #4a1530, #8b2a55);">
+        <div class="gallery-content">
+          <div class="gallery-tag">Baroque · Still Life</div>
+          <div class="gallery-prompt">"Dutch Golden Age vanitas still life, jeweled goblet, pearlescent oysters, crimson roses, velvet tablecloth, candlelight chiaroscuro, museum-quality oil painting, rich jewel tones"</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="container">
+    <p class="section-label">✦ Why Maestro Studio</p>
+    <h2 class="section-title">Built for Etsy Artists</h2>
+    <p class="section-sub">Every feature is designed to help you create, sell, and scale your digital art shop faster.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🛒</div>
+        <h3>Etsy-Optimized Prompts</h3>
+        <p>Every prompt is crafted with Etsy digital print buyers in mind — wall art, printables, and decor that actually sells. Includes aspect ratio tags for common print sizes.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Multiple AI Platforms</h3>
+        <p>Each generated prompt is compatible with Midjourney, DALL-E 3, and Stable Diffusion — so you're never locked into one tool.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📋</div>
+        <h3>One-Click Copy</h3>
+        <p>Copy any prompt instantly and paste it directly into your AI image generator. No reformatting, no guessing — just beautiful art, fast.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="container">
+    <p class="section-label">✦ Simple Pricing</p>
+    <h2 class="section-title">Invest in Your Art</h2>
+    <p class="section-sub">Start free and upgrade when you're ready to scale your Etsy empire.</p>
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <div class="pricing-tier">Free Studio</div>
+        <div class="pricing-price">Free</div>
+        <div class="pricing-desc">Perfect for exploring</div>
+        <ul class="pricing-features">
+          <li>5 prompts per day</li>
+          <li>All subjects &amp; styles</li>
+          <li>Copy to clipboard</li>
+          <li>3 platforms supported</li>
+        </ul>
+        <button class="pricing-btn outline" onclick="document.getElementById('generator').scrollIntoView()">Start Creating Free</button>
+      </div>
+      <div class="pricing-card featured">
+        <div class="popular-badge">✦ Best Value</div>
+        <div class="pricing-tier">Pro Studio</div>
+        <div class="pricing-price">$7<span>/mo</span></div>
+        <div class="pricing-desc">For serious Etsy sellers</div>
+        <ul class="pricing-features">
+          <li>Unlimited prompts</li>
+          <li>Commercial license included</li>
+          <li>Prompt history &amp; favorites</li>
+          <li>Batch generate (10 at once)</li>
+          <li>Priority support</li>
+        </ul>
+        <button class="pricing-btn solid">Upgrade to Pro</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-ornament">⸻ ✦ ⸻</div>
+  <p>© 2026 Maestro Studio · <a href="https://artistrystore.com">Artistry Store</a> · <a href="#">Privacy Policy</a> · <a href="#">Terms of Service</a></p>
+</footer>
+
+<script>
+  const promptTemplates = {
+    portrait: {
+      renaissance: "A noble {mood} Renaissance portrait, dramatic chiaroscuro lighting, rich velvet robes, Venetian palace background, sfumato technique, 16th century Italian master style, {medium_desc}, museum quality, 8k --ar 2:3 --style raw",
+      baroque: "Baroque portrait with divine golden light rays, celestial robes, cherubs in background, Caravaggio dramatic shadows, ornate gold frame composition, {mood} atmosphere, {medium_desc}, masterpiece quality --ar 2:3",
+      romantic: "Romantic era portrait, soft luminous skin, windswept hair, emotional gaze, Turner-inspired atmospheric lighting, {mood} mood, {medium_desc}, art nouveau flourishes --ar 2:3",
+      neoclassical: "Neoclassical formal portrait, marble columns background, Greco-Roman robes, dignified posture, David-style composition, {mood} gravitas, {medium_desc}, museum masterpiece --ar 2:3",
+      divine: "Sacred divine portrait, golden halo of sacred geometry, fibonacci spiral composition, divine light emanating, {mood} celestial energy, {medium_desc}, spiritual Renaissance artwork --ar 2:3"
+    },
+    landscape: {
+      renaissance: "Vast Renaissance landscape, rolling Tuscan hills, cypress trees, sfumato atmospheric haze, golden afternoon light, Leonardo background perspective, {mood}, {medium_desc}, 8k --ar 16:9",
+      baroque: "Dramatic Baroque landscape, storm-lit skies, Claude Lorrain golden light, ancient ruins, {mood} atmosphere, theatrical chiaroscuro, {medium_desc} --ar 16:9",
+      romantic: "Sublime Romantic landscape, dramatic mountain peaks, churning storm clouds, tiny human figure dwarfed by nature, Caspar David Friedrich style, {mood}, {medium_desc} --ar 16:9",
+      neoclassical: "Serene Neoclassical Arcadian landscape, Greek temple ruins, calm reflecting pool, golden hour light, Poussin composition, {mood} pastoral scene, {medium_desc} --ar 16:9",
+      divine: "Celestial divine landscape, heavenly light breaking through clouds, sacred geometry horizon, rainbow covenant in sky, {mood} transcendence, {medium_desc}, ethereal detail --ar 16:9"
+    },
+    still_life: {
+      renaissance: "Renaissance still life, gilded chalice, rich fruits, manuscript scroll, candlelight, Flemish detail, {mood} symbolism, {medium_desc}, museum quality --ar 4:5",
+      baroque: "Dutch Golden Age vanitas still life, crystal goblet, pearlescent shells, crimson roses, hourglass, {mood} chiaroscuro, {medium_desc}, exquisite detail --ar 4:5",
+      romantic: "Romantic still life, exotic flowers overflowing, crystal vase, warm afternoon sunlight, impressionistic brushwork, {mood} abundance, {medium_desc} --ar 4:5",
+      neoclassical: "Neoclassical still life, marble pedestal, classical urn, laurel wreath, {mood} serenity, pure clean light, {medium_desc}, museum composition --ar 4:5",
+      divine: "Sacred still life, illuminated scripture, prayer beads, divine light, candle flame, gold leaf accents, {mood} contemplation, {medium_desc}, spiritual artwork --ar 4:5"
+    },
+    abstract: {
+      renaissance: "Abstract Renaissance fusion, flowing drapery forms, sfumato color transitions, classical geometry dissolved into color fields, {mood}, {medium_desc}, museum quality --ar 1:1",
+      baroque: "Abstract Baroque explosion, dramatic swirling gold and shadow, Bernini energy captured in form, {mood} dynamism, {medium_desc}, contemporary Renaissance --ar 1:1",
+      romantic: "Abstract Romantic expression, Turner-esque light dissolving form, emotional color fields, stormy yet {mood}, {medium_desc}, deeply felt abstraction --ar 1:1",
+      neoclassical: "Abstract Neoclassical, pure geometric harmony, Greek golden ratio proportions, cool dignified palette, {mood} order from chaos, {medium_desc} --ar 1:1",
+      divine: "Sacred geometry abstract, Metatron's cube, flower of life, golden spiral, divine proportion, {mood} cosmic energy, {medium_desc}, 8k ultra detail --ar 1:1"
+    },
+    celestial: {
+      renaissance: "Celestial Renaissance scene, sun and moon in sacred dance, stars as gilded ornaments, sfumato heavens, {mood} cosmic order, {medium_desc}, masterpiece --ar 2:3",
+      baroque: "Baroque celestial vision, angels parting storm clouds, divine light flooding cosmos, {mood} revelation, Caravaggio contrast, {medium_desc}, grand scale --ar 2:3",
+      romantic: "Romantic celestial night, Turner moonlight on water, {mood} astronomy wonder, comets and nebulae, luminous atmospheric effect, {medium_desc} --ar 2:3",
+      neoclassical: "Neoclassical celestial allegory, Apollo's chariot crossing dawn sky, perfect Olympian composition, {mood} divine order, {medium_desc}, classical mythology --ar 2:3",
+      divine: "Divine celestial vision, sacred geometry cosmos, all-seeing eye in triangle, golden ratio spiral galaxy, {mood} transcendence, {medium_desc}, spiritual masterpiece --ar 2:3"
+    },
+    biblical: {
+      renaissance: "Renaissance biblical scene, divine golden light rays, figures in classical drapery, Raphael composition mastery, {mood} reverence, {medium_desc}, Sistine Chapel quality --ar 2:3",
+      baroque: "Baroque biblical moment, Caravaggio dramatic chiaroscuro, {mood} spiritual intensity, divine light cutting through darkness, {medium_desc}, masterwork scale --ar 2:3",
+      romantic: "Romantic biblical landscape, vast spiritual scenery, small holy figures in immense nature, {mood} awe, Turner light effects, {medium_desc} --ar 16:9",
+      neoclassical: "Neoclassical biblical narrative, marble architecture, dignified classical figures, {mood} solemnity, David-style heroic composition, {medium_desc} --ar 16:9",
+      divine: "Divine biblical vision, sacred geometry halos, golden ratio composition, celestial light source, {mood} holy atmosphere, {medium_desc}, deeply spiritual artwork --ar 2:3"
+    },
+    botanical: {
+      renaissance: "Renaissance botanical illustration, rare heirloom blooms, gilded manuscript border, warm studio light, Flemish precision, {mood} garden abundance, {medium_desc} --ar 4:5",
+      baroque: "Baroque floral explosion, Dutch Golden Age flower painting, overflowing bouquet, jeweled insects, {mood} lushness, Flemish master detail, {medium_desc} --ar 4:5",
+      romantic: "Romantic botanical garden scene, wild climbing roses, morning mist, {mood} nature poetry, Impressionist light, {medium_desc}, dreamy atmosphere --ar 4:5",
+      neoclassical: "Neoclassical botanical study, perfect scientific precision, golden section composition, {mood} order in nature, {medium_desc}, museum herbarium quality --ar 4:5",
+      divine: "Sacred botanical garden, Eden-like abundance, golden divine light through leaves, sacred flower symbolism, {mood} paradise, {medium_desc}, spiritual nature art --ar 4:5"
+    }
+  };
+
+  const paletteDesc = {
+    warm: "golden ochre palette, burnt sienna, ivory white, warm amber tones",
+    cool: "cerulean blue palette, midnight indigo, silver moonlight, cool celestial hues",
+    earth: "rich earth tones, terracotta, sage green, warm umber, natural pigments",
+    jewel: "jewel tone palette, deep emerald, sapphire, ruby crimson, rich saturated colors"
+  };
+
+  const mediumDesc = {
+    oil: "oil on canvas, thick impasto brushwork",
+    watercolor: "delicate watercolor washes, luminous transparency",
+    fresco: "fresco technique, mineral pigments, matte finish",
+    gold_leaf: "gold leaf embellishments, illuminated manuscript style",
+    mixed: "mixed media, layered textures, contemporary Renaissance technique"
+  };
+
+  const styleLabels = { renaissance: "High Renaissance", baroque: "Baroque", romantic: "Romantic", neoclassical: "Neoclassical", divine: "Divine Geometry" };
+  const mediumLabels = { oil: "Oil Painting", watercolor: "Watercolor", fresco: "Fresco", gold_leaf: "Gold Leaf", mixed: "Mixed Media" };
+  const moodLabels = { ethereal: "Ethereal", dramatic: "Dramatic", peaceful: "Peaceful", mystical: "Mystical", triumphant: "Triumphant" };
+
+  const moodVariations = {
+    ethereal: "ethereal, luminous, otherworldly",
+    dramatic: "dramatically lit, intense, powerful",
+    peaceful: "serene, tranquil, softly lit",
+    mystical: "mystical, arcane, spiritual energy",
+    triumphant: "triumphant, glorious, uplifting"
+  };
+
+  const etsy_tags = [
+    "trending on ArtStation, prints available, digital download ready",
+    "perfect for Etsy digital prints, wall art bestseller, instant download",
+    "Etsy-ready digital print, high resolution, gallery wall art",
+    "printable wall art, fine art print quality, limited edition aesthetic"
+  ];
+
+  function generatePrompt() {
+    const subject = document.getElementById('subject').value;
+    const style = document.getElementById('style').value;
+    const medium = document.getElementById('medium').value;
+    const mood = document.getElementById('mood').value;
+    const palette = document.getElementById('palette').value;
+
+    const templateGroup = promptTemplates[subject] || promptTemplates.portrait;
+    const base = templateGroup[style] || templateGroup.renaissance;
+
+    const moodText = moodVariations[mood] || mood;
+    const medText = mediumDesc[medium] || mediumDesc.oil;
+    const palText = paletteDesc[palette] || paletteDesc.warm;
+    const etsyTag = etsy_tags[Math.floor(Math.random() * etsy_tags.length)];
+
+    let finalPrompt = base
+      .replace(/{mood}/g, moodText)
+      .replace(/{medium_desc}/g, medText);
+
+    finalPrompt += `, ${palText}, ${etsyTag}`;
+
+    document.getElementById('promptText').textContent = finalPrompt;
+    document.getElementById('metaStyle').textContent = styleLabels[style] || style;
+    document.getElementById('metaMedium').textContent = mediumLabels[medium] || medium;
+    document.getElementById('metaMood').textContent = moodLabels[mood] || mood;
+
+    document.getElementById('genEmpty').style.display = 'none';
+    const result = document.getElementById('genResult');
+    result.classList.add('show');
+    result.classList.remove('fade-up');
+    void result.offsetWidth;
+    result.classList.add('fade-up');
+  }
+
+  function copyPrompt() {
+    const text = document.getElementById('promptText').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const toast = document.getElementById('toast');
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2200);
+    }).catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      const toast = document.getElementById('toast');
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2200);
+    });
+  }
+</script>
+</body>
+</html>
