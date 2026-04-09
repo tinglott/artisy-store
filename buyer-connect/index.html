@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sacred Cycles — Buyer Connect</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,600&family=Outfit:wght@300;400;500;600&family=Cinzel:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #0F1A14;
+  --forest: #1E3A24;
+  --sage: #4A7C59;
+  --sage-mid: #6B9E7A;
+  --sage-pale: #A8C9B2;
+  --gold: #C8963E;
+  --gold-light: #E8BB72;
+  --gold-pale: #F5E4C0;
+  --cream: #FAF6EE;
+  --warm: #F2EDE2;
+  --blush: #C49A8A;
+  --mist: #E8EDE9;
+  --border: rgba(74,124,89,0.18);
+  --shadow: 0 4px 24px rgba(15,26,20,0.08);
+  --r: 14px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  min-height: 100vh;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.4;
+}
+
+.app { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: 260px;
+  background: var(--forest);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.sidebar-top {
+  padding: 28px 24px 22px;
+  border-bottom: 1px solid rgba(168,201,178,0.12);
+}
+
+.logo-mark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.logo-hex {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+
+.logo-text {
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--cream);
+  line-height: 1.4;
+}
+
+.logo-sub { color: var(--sage-pale); font-size: 9px; letter-spacing: 0.12em; margin-top: 1px; }
+
+.sidebar-stat {
+  background: rgba(168,201,178,0.08);
+  border: 1px solid rgba(168,201,178,0.12);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ss-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  color: var(--gold-light);
+}
+
+.ss-label { font-size: 10px; color: var(--sage-pale); margin-top: 2px; }
+
+.ss-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #4ADE80;
+  box-shadow: 0 0 6px #4ADE80;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+.nav { padding: 16px 0; flex: 1; }
+
+.nav-group-label {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(168,201,178,0.4);
+  padding: 10px 24px 6px;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 24px;
+  cursor: pointer;
+  color: rgba(250,246,238,0.6);
+  font-size: 13px;
+  font-weight: 400;
+  transition: all 0.15s;
+  border-left: 2px solid transparent;
+  position: relative;
+}
+
+.nav-link:hover { color: var(--cream); background: rgba(168,201,178,0.07); }
+
+.nav-link.active {
+  color: var(--gold-light);
+  border-left-color: var(--gold);
+  background: rgba(200,150,62,0.08);
+}
+
+.nav-icon { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; }
+
+.nav-badge {
+  margin-left: auto;
+  background: var(--gold);
+  color: var(--ink);
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+}
+
+.sidebar-bottom {
+  padding: 16px 24px;
+  border-top: 1px solid rgba(168,201,178,0.1);
+}
+
+.credit-bar {
+  background: rgba(168,201,178,0.06);
+  border: 1px solid rgba(168,201,178,0.1);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.cb-label { font-size: 9px; color: var(--sage-pale); margin-bottom: 6px; letter-spacing: 0.08em; }
+.cb-track { height: 4px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden; }
+.cb-fill { height: 100%; background: linear-gradient(90deg, var(--sage-mid), var(--gold-light)); border-radius: 4px; width: 72%; }
+.cb-nums { display: flex; justify-content: space-between; margin-top: 4px; font-size: 9px; color: rgba(168,201,178,0.5); }
+
+.user-row {
+  display: flex; align-items: center; gap: 10px;
+}
+
+.user-avi {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--sage-mid), var(--blush));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 600; color: var(--forest);
+  flex-shrink: 0;
+}
+
+.user-name { font-size: 12px; color: var(--cream); font-weight: 500; }
+.user-plan { font-size: 10px; color: var(--gold-light); margin-top: 1px; }
+
+.main { margin-left: 260px; flex: 1; display: flex; flex-direction: column; }
+
+.topbar {
+  background: rgba(250,246,238,0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 32px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.topbar-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  color: var(--forest);
+}
+
+.topbar-title em { font-style: italic; color: var(--sage); }
+
+.topbar-spacer { flex: 1; }
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 8px 16px;
+  font-size: 12px;
+  color: var(--ink);
+  width: 260px;
+  font-family: 'Outfit', sans-serif;
+  transition: border-color 0.2s;
+}
+
+.search-bar:focus-within { border-color: var(--sage-mid); outline: none; }
+.search-bar input { border: none; outline: none; background: transparent; font-family: inherit; font-size: 12px; flex: 1; color: var(--ink); }
+.search-bar input::placeholder { color: #aaa; }
+
+.tb-btn {
+  padding: 8px 18px;
+  border-radius: 24px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+  transition: all 0.2s;
+  border: none;
+}
+
+.tb-btn-outline {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--forest);
+}
+
+.tb-btn-outline:hover { background: var(--mist); }
+
+.tb-btn-primary {
+  background: var(--forest);
+  color: var(--cream);
+}
+
+.tb-btn-primary:hover { background: var(--sage); }
+
+.content { padding: 28px 32px; flex: 1; }
+
+.tab-nav {
+  display: flex;
+  gap: 4px;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 24px;
+  width: fit-content;
+}
+
+.tab {
+  padding: 8px 20px;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  color: #888;
+  transition: all 0.2s;
+  border: none;
+  background: transparent;
+  font-family: 'Outfit', sans-serif;
+}
+
+.tab.active {
+  background: var(--forest);
+  color: var(--cream);
+}
+
+.tab:hover:not(.active) { background: var(--mist); color: var(--ink); }
+
+.hero-banner {
+  background: linear-gradient(120deg, var(--forest) 0%, #2A5C35 60%, #1E3A24 100%);
+  border-radius: 20px;
+  padding: 32px 36px;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hero-banner::before {
+  content: '';
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 300px; height: 300px;
+  border: 1px solid rgba(200,150,62,0.15);
+  border-radius: 50%;
+}
+
+.hero-banner::after {
+  content: '';
+  position: absolute;
+  bottom: -40px; right: 40px;
+  width: 200px; height: 200px;
+  border: 1px solid rgba(200,150,62,0.08);
+  border-radius: 50%;
+}
+
+.hero-text { position: relative; z-index: 1; }
+
+.hero-eyebrow {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--gold-light);
+  margin-bottom: 8px;
+}
+
+.hero-headline {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px;
+  color: var(--cream);
+  margin-bottom: 8px;
+  line-height: 1.25;
+}
+
+.hero-headline em { font-style: italic; color: var(--gold-light); }
+
+.hero-sub {
+  font-size: 13px;
+  color: rgba(250,246,238,0.65);
+  max-width: 440px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.hero-actions { display: flex; gap: 10px; align-items: center; }
+
+.btn-gold {
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 13px;
+  padding: 10px 22px;
+  border-radius: 24px;
+  border: none;
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+  transition: all 0.2s;
+}
+
+.btn-gold:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(200,150,62,0.3); }
+
+.btn-ghost {
+  color: rgba(250,246,238,0.75);
+  font-size: 12px;
+  background: transparent;
+  border: 1px solid rgba(250,246,238,0.2);
+  border-radius: 24px;
+  padding: 10px 18px;
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+  transition: all 0.2s;
+}
+
+.btn-ghost:hover { background: rgba(255,255,255,0.08); color: var(--cream); }
+
+.hero-stats {
+  display: flex;
+  gap: 28px;
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.hero-stat { text-align: center; }
+
+.hs-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 30px;
+  color: var(--gold-light);
+  line-height: 1;
+}
+
+.hs-label { font-size: 10px; color: rgba(168,201,178,0.7); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.08em; }
+
+.grid-3col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 18px; }
+.grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+.grid-32 { display: grid; grid-template-columns: 3fr 2fr; gap: 18px; margin-bottom: 18px; }
+
+.panel {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 22px;
+  box-shadow: var(--shadow);
+}
+
+.ph {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+.ph-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--forest);
+}
+
+.ph-sub { font-size: 11px; color: #888; margin-top: 2px; }
+
+.ph-act {
+  font-size: 11px;
+  color: var(--sage);
+  background: var(--mist);
+  border: none;
+  border-radius: 20px;
+  padding: 5px 12px;
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+  transition: all 0.2s;
+}
+
+.ph-act:hover { background: rgba(74,124,89,0.12); }
+
+.lead-list { display: flex; flex-direction: column; gap: 10px; }
+
+.lead-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--cream);
+  cursor: pointer;
+  transition: all 0.18s;
+  position: relative;
+}
+
+.lead-card:hover {
+  border-color: var(--sage-mid);
+  background: white;
+  box-shadow: 0 4px 16px rgba(74,124,89,0.08);
+  transform: translateX(2px);
+}
+
+.lead-avi {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.la-1 { background: linear-gradient(135deg, #A8C9B2, #6B9E7A); color: white; }
+.la-2 { background: linear-gradient(135deg, #E8C98A, #C8963E); color: white; }
+.la-3 { background: linear-gradient(135deg, #C49A8A, #A0746A); color: white; }
+.la-4 { background: linear-gradient(135deg, #9AB8C2, #5A8A9A); color: white; }
+.la-5 { background: linear-gradient(135deg, #B2A8C9, #7A6A9E); color: white; }
+
+.lead-info { flex: 1; min-width: 0; }
+
+.lead-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+
+.lead-meta {
+  font-size: 11px;
+  color: #777;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.lead-dot { color: #ccc; }
+
+.lead-tags {
+  display: flex;
+  gap: 5px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.lead-tag {
+  font-size: 9px;
+  padding: 2px 7px;
+  border-radius: 8px;
+  letter-spacing: 0.04em;
+}
+
+.lt-wellness { background: rgba(74,124,89,0.1); color: var(--sage); }
+.lt-stress { background: rgba(196,154,138,0.15); color: #8A5A4A; }
+.lt-sleep { background: rgba(90,138,154,0.12); color: #3A6A7A; }
+.lt-faith { background: rgba(200,150,62,0.12); color: #8A6020; }
+.lt-buyer { background: rgba(74,222,128,0.12); color: #1A7A40; }
+
+.lead-right { text-align: right; flex-shrink: 0; }
+
+.lead-score {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.score-hot { color: var(--gold); }
+.score-warm { color: var(--sage); }
+.score-cool { color: var(--blush); }
+
+.lead-score-label { font-size: 9px; color: #aaa; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.08em; }
+
+.lead-tier-badge {
+  display: inline-block;
+  font-size: 9px;
+  padding: 3px 8px;
+  border-radius: 10px;
+  margin-top: 5px;
+  font-weight: 500;
+}
+
+.ltb-hot { background: rgba(200,150,62,0.12); color: #8A6020; border: 1px solid rgba(200,150,62,0.2); }
+.ltb-warm { background: rgba(74,124,89,0.1); color: var(--sage); border: 1px solid rgba(74,124,89,0.15); }
+.ltb-cool { background: rgba(196,154,138,0.1); color: #8A5A4A; border: 1px solid rgba(196,154,138,0.18); }
+
+.gen-panel {
+  background: linear-gradient(160deg, var(--forest), #2A5035);
+  border-radius: var(--r);
+  padding: 24px;
+  color: var(--cream);
+}
+
+.gen-eyebrow {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold-light);
+  margin-bottom: 6px;
+}
+
+.gen-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 17px;
+  color: var(--cream);
+  margin-bottom: 6px;
+}
+
+.gen-sub {
+  font-size: 11px;
+  color: rgba(250,246,238,0.55);
+  line-height: 1.6;
+  margin-bottom: 18px;
+}
+
+.gen-field {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(168,201,178,0.15);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+  color: var(--cream);
+  font-size: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.gen-field:hover { background: rgba(255,255,255,0.11); }
+.gen-field-label { color: rgba(250,246,238,0.5); font-size: 10px; display: block; margin-bottom: 2px; }
+.gen-field span { font-weight: 500; }
+.gen-field-icon { font-size: 12px; opacity: 0.5; }
+
+.gen-divider {
+  height: 1px;
+  background: rgba(168,201,178,0.1);
+  margin: 14px 0;
+}
+
+.gen-output {
+  background: rgba(0,0,0,0.2);
+  border: 1px solid rgba(168,201,178,0.1);
+  border-radius: 10px;
+  padding: 14px;
+  font-size: 12px;
+  color: rgba(250,246,238,0.8);
+  line-height: 1.7;
+  min-height: 80px;
+  font-style: italic;
+  position: relative;
+}
+
+.gen-output-label {
+  position: absolute;
+  top: -8px; left: 12px;
+  background: var(--forest);
+  font-size: 9px;
+  color: var(--gold-light);
+  padding: 0 6px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.outreach-list { display: flex; flex-direction: column; gap: 8px; }
+
+.outreach-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--cream);
+  font-size: 12px;
+  transition: all 0.15s;
+  cursor: pointer;
+}
+
+.outreach-row:hover { background: white; border-color: var(--sage-pale); }
+
+.or-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+.or-name { font-weight: 600; color: var(--ink); flex: 1; }
+.or-platform { font-size: 10px; color: #888; flex: 0.7; }
+.or-msg { font-size: 11px; color: #666; flex: 2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.or-status {
+  font-size: 10px;
+  padding: 3px 9px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.os-sent { background: rgba(74,124,89,0.1); color: var(--sage); }
+.os-opened { background: rgba(200,150,62,0.12); color: var(--gold); }
+.os-replied { background: rgba(74,222,128,0.12); color: #1A7A40; }
+.os-pending { background: rgba(0,0,0,0.05); color: #888; }
+.os-enrolled { background: rgba(74,124,89,0.18); color: var(--forest); font-weight: 600; }
+
+.pipeline {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.pipe-col {
+  background: var(--warm);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.pipe-col-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.pipe-label { font-size: 11px; font-weight: 600; color: var(--forest); }
+.pipe-count {
+  font-size: 10px;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 2px 7px;
+  color: #666;
+}
+
+.pipe-item {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.pipe-item:hover { box-shadow: 0 3px 12px rgba(0,0,0,0.06); transform: translateY(-1px); }
+.pipe-item-name { font-weight: 600; color: var(--ink); margin-bottom: 2px; }
+.pipe-item-detail { color: #888; }
+
+.pipe-item-tier {
+  display: inline-block;
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  margin-top: 5px;
+  font-weight: 500;
+}
+
+.pit-essential { background: rgba(74,124,89,0.1); color: var(--sage); }
+.pit-complete { background: rgba(200,150,62,0.1); color: var(--gold); }
+.pit-premium { background: rgba(196,154,138,0.15); color: var(--blush); }
+
+.pipe-total {
+  font-size: 10px;
+  color: #888;
+  text-align: center;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border);
+  margin-top: 4px;
+}
+
+.metrics-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.metric-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: var(--shadow);
+}
+
+.mc-value {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--forest);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.mc-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #888; margin-bottom: 4px; }
+.mc-delta { font-size: 11px; }
+.mc-delta.up { color: var(--sage); }
+.mc-delta.gold { color: var(--gold); }
+
+.ai-insight {
+  background: linear-gradient(135deg, #F5F0E8, #EDE8DC);
+  border: 1px solid rgba(200,150,62,0.2);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.ai-icon {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.ai-text { font-size: 12px; color: var(--ink); line-height: 1.6; }
+.ai-text strong { color: var(--forest); }
+
+.platform-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+
+.platform-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  border: 1px solid var(--border);
+  background: white;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'Outfit', sans-serif;
+}
+
+.platform-chip.active { background: var(--forest); color: var(--cream); border-color: var(--forest); }
+.platform-chip:hover:not(.active) { background: var(--mist); }
+
+.kw-cloud { display: flex; flex-wrap: wrap; gap: 7px; }
+
+.kw-pill {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  border: 1px solid var(--border);
+  background: var(--cream);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.kw-pill.active { background: var(--sage); color: white; border-color: var(--sage); }
+.kw-pill:hover:not(.active) { background: var(--mist); }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.metrics-row { animation: fadeUp 0.4s ease both; }
+.hero-banner { animation: fadeUp 0.35s ease both; }
+.panel, .gen-panel { animation: fadeUp 0.45s ease both; }
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(74,124,89,0.25); border-radius: 10px; }
+
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+.typing-text {
+  overflow: hidden;
+  white-space: nowrap;
+  display: inline-block;
+  animation: typing 2.5s steps(60) 0.5s both;
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<aside class="sidebar">
+  <div class="sidebar-top">
+    <div class="logo-mark">
+      <div class="logo-hex">✦</div>
+      <div>
+        <div class="logo-text">SACRED CYCLES</div>
+        <div class="logo-sub">Buyer Connect</div>
+      </div>
+    </div>
+    <div class="sidebar-stat">
+      <div>
+        <div class="ss-num">47</div>
+        <div class="ss-label">Warm leads today</div>
+      </div>
+      <div>
+        <div class="ss-dot"></div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <div class="nav-group-label">Discover</div>
+    <div class="nav-link active">
+      <span class="nav-icon">◈</span> Buyer Radar
+      <span class="nav-badge">12</span>
+    </div>
+    <div class="nav-link">
+      <span class="nav-icon">✦</span> Lead Generator
+    </div>
+    <div class="nav-link">
+      <span class="nav-icon">◯</span> Audience Signals
+    </div>
+
+    <div class="nav-group-label">Connect</div>
+    <div class="nav-link">
+      <span class="nav-icon">✉</span> Outreach Composer
+      <span class="nav-badge">5</span>
+    </div>
+    <div class="nav-link">
+      <span class="nav-icon">◎</span> Follow-up Queue
+    </div>
+    <div class="nav-link">
+      <span class="nav-icon">⊙</span> Enrollment Pipeline
+    </div>
+
+    <div class="nav-group-label">Products</div>
+    <div class="nav-link">
+      <span class="nav-icon">▷</span> Sacred Cycles 8-Wk
+    </div>
+    <div class="nav-link">
+      <span class="nav-icon">☽</span> Still Waters™
+    </div>
+    <div class="nav-link">
+      <span class="nav-icon">⬡</span> Nervous System Reset™
+    </div>
+
+    <div class="nav-group-label">Reports</div>
+    <div class="nav-link">
+      <span class="nav-icon">◇</span> Conversion Analytics
+    </div>
+    <div class="nav-link">
+      <span class="nav-icon">⊡</span> Revenue Attribution
+    </div>
+  </nav>
+
+  <div class="sidebar-bottom">
+    <div class="credit-bar">
+      <div class="cb-label">AI CREDITS THIS MONTH</div>
+      <div class="cb-track"><div class="cb-fill"></div></div>
+      <div class="cb-nums"><span>720 used</span><span>1,000 total</span></div>
+    </div>
+    <div class="user-row">
+      <div class="user-avi">T</div>
+      <div>
+        <div class="user-name">T. Lott Creative</div>
+        <div class="user-plan">✦ Pro Plan</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<main class="main">
+
+  <div class="topbar">
+    <div class="topbar-title">Buyer <em>Radar</em></div>
+    <div class="topbar-spacer"></div>
+    <div class="search-bar">
+      <span style="color:#aaa; font-size:14px;">🔍</span>
+      <input type="text" placeholder="Search leads, keywords, platforms…">
+    </div>
+    <button class="tb-btn tb-btn-outline">⚙ Filters</button>
+    <button class="tb-btn tb-btn-primary">+ Run New Scan</button>
+  </div>
+
+  <div class="content">
+
+    <div class="metrics-row">
+      <div class="metric-card">
+        <div class="mc-label">Leads Identified</div>
+        <div class="mc-value">284</div>
+        <div class="mc-delta up">↑ 42 this week</div>
+      </div>
+      <div class="metric-card">
+        <div class="mc-label">Outreach Sent</div>
+        <div class="mc-value">118</div>
+        <div class="mc-delta up">↑ 67% open rate</div>
+      </div>
+      <div class="metric-card">
+        <div class="mc-label">Enrolled (MTD)</div>
+        <div class="mc-value">31</div>
+        <div class="mc-delta gold">$9,847 revenue</div>
+      </div>
+      <div class="metric-card">
+        <div class="mc-label">Conversion Rate</div>
+        <div class="mc-value">26%</div>
+        <div class="mc-delta up">↑ 8pts vs last mo</div>
+      </div>
+    </div>
+
+    <div class="hero-banner">
+      <div class="hero-text">
+        <div class="hero-eyebrow">✦ AI-Powered Buyer Intelligence</div>
+        <div class="hero-headline">Find real women ready to<br><em>heal, enroll, and invest.</em></div>
+        <div class="hero-sub">Sacred Cycles Buyer Connect scans TikTok, Instagram, Facebook comments, and email lists — identifying high-intent buyers signaling stress, burnout, sleep struggles, and spiritual seeking. Then it writes the outreach for you.</div>
+        <div class="hero-actions">
+          <button class="btn-gold" onclick="runScan()">✦ Scan for Buyers Now</button>
+          <button class="btn-ghost">Watch how it works →</button>
+        </div>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hs-num">92%</div>
+          <div class="hs-label">Intent accuracy</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hs-num">3.4×</div>
+          <div class="hs-label">Conversion lift</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hs-num">48h</div>
+          <div class="hs-label">Avg. to enroll</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-nav">
+      <button class="tab active" onclick="setTab(this)">Hot Leads</button>
+      <button class="tab" onclick="setTab(this)">Outreach Queue</button>
+      <button class="tab" onclick="setTab(this)">Pipeline</button>
+      <button class="tab" onclick="setTab(this)">Keyword Signals</button>
+    </div>
+
+    <div class="grid-32">
+
+      <div class="panel">
+        <div class="ph">
+          <div>
+            <div class="ph-title">🔥 Hot Buyer Leads</div>
+            <div class="ph-sub">Sorted by purchase intent score · updated 12 min ago</div>
+          </div>
+          <button class="ph-act">Export all</button>
+        </div>
+
+        <div class="platform-row">
+          <div class="platform-chip active">All</div>
+          <div class="platform-chip">🎵 TikTok</div>
+          <div class="platform-chip">📸 Instagram</div>
+          <div class="platform-chip">📘 Facebook</div>
+          <div class="platform-chip">✉️ Email List</div>
+        </div>
+
+        <div class="ai-insight">
+          <div class="ai-icon">✦</div>
+          <div class="ai-text"><strong>AI Insight:</strong> Women commenting "I can't turn my brain off at night" and "I've been so stressed lately" on wellness content are showing 3.8× higher enrollment intent. <strong>12 new matches</strong> found in the last hour.</div>
+        </div>
+
+        <div class="lead-list">
+
+          <div class="lead-card">
+            <div class="lead-avi la-1">M</div>
+            <div class="lead-info">
+              <div class="lead-name">Monique B.</div>
+              <div class="lead-meta">
+                <span>🎵 TikTok</span>
+                <span class="lead-dot">·</span>
+                <span>12.4K followers</span>
+                <span class="lead-dot">·</span>
+                <span>Commented 3× on wellness posts</span>
+              </div>
+              <div class="lead-tags">
+                <span class="lead-tag lt-stress">Burnout signals</span>
+                <span class="lead-tag lt-sleep">Sleep issues</span>
+                <span class="lead-tag lt-buyer">High buyer intent</span>
+              </div>
+            </div>
+            <div class="lead-right">
+              <div class="lead-score score-hot">94</div>
+              <div class="lead-score-label">Intent score</div>
+              <div class="lead-tier-badge ltb-hot">Premium match</div>
+            </div>
+          </div>
+
+          <div class="lead-card">
+            <div class="lead-avi la-2">T</div>
+            <div class="lead-info">
+              <div class="lead-name">Tasha R.</div>
+              <div class="lead-meta">
+                <span>📸 Instagram</span>
+                <span class="lead-dot">·</span>
+                <span>Engaged with 5 reels</span>
+                <span class="lead-dot">·</span>
+                <span>Saved your post</span>
+              </div>
+              <div class="lead-tags">
+                <span class="lead-tag lt-wellness">Wellness seeker</span>
+                <span class="lead-tag lt-faith">Faith-based</span>
+                <span class="lead-tag lt-buyer">High buyer intent</span>
+              </div>
+            </div>
+            <div class="lead-right">
+              <div class="lead-score score-hot">89</div>
+              <div class="lead-score-label">Intent score</div>
+              <div class="lead-tier-badge ltb-hot">Complete Kit match</div>
+            </div>
+          </div>
+
+          <div class="lead-card">
+            <div class="lead-avi la-3">S</div>
+            <div class="lead-info">
+              <div class="lead-name">Simone A.</div>
+              <div class="lead-meta">
+                <span>✉️ Email List</span>
+                <span class="lead-dot">·</span>
+                <span>Opened 4 of last 5 emails</span>
+                <span class="lead-dot">·</span>
+                <span>Clicked pricing page</span>
+              </div>
+              <div class="lead-tags">
+                <span class="lead-tag lt-stress">High pressure</span>
+                <span class="lead-tag lt-wellness">Nervous system</span>
+              </div>
+            </div>
+            <div class="lead-right">
+              <div class="lead-score score-hot">87</div>
+              <div class="lead-score-label">Intent score</div>
+              <div class="lead-tier-badge ltb-hot">Essential match</div>
+            </div>
+          </div>
+
+          <div class="lead-card">
+            <div class="lead-avi la-4">D</div>
+            <div class="lead-info">
+              <div class="lead-name">Dana W.</div>
+              <div class="lead-meta">
+                <span>📘 Facebook</span>
+                <span class="lead-dot">·</span>
+                <span>Commented "I need this"</span>
+                <span class="lead-dot">·</span>
+                <span>Tagged a friend</span>
+              </div>
+              <div class="lead-tags">
+                <span class="lead-tag lt-sleep">Sleep ritual interest</span>
+                <span class="lead-tag lt-faith">Spiritual seeker</span>
+              </div>
+            </div>
+            <div class="lead-right">
+              <div class="lead-score score-warm">78</div>
+              <div class="lead-score-label">Intent score</div>
+              <div class="lead-tier-badge ltb-warm">Warm lead</div>
+            </div>
+          </div>
+
+          <div class="lead-card">
+            <div class="lead-avi la-5">K</div>
+            <div class="lead-info">
+              <div class="lead-name">Kezia T.</div>
+              <div class="lead-meta">
+                <span>🎵 TikTok</span>
+                <span class="lead-dot">·</span>
+                <span>Liked 8 posts</span>
+                <span class="lead-dot">·</span>
+                <span>Follows 14 wellness creators</span>
+              </div>
+              <div class="lead-tags">
+                <span class="lead-tag lt-wellness">Wellness-curious</span>
+                <span class="lead-tag lt-stress">Cortisol content</span>
+              </div>
+            </div>
+            <div class="lead-right">
+              <div class="lead-score score-warm">71</div>
+              <div class="lead-score-label">Intent score</div>
+              <div class="lead-tier-badge ltb-warm">Warm lead</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="gen-panel">
+        <div class="gen-eyebrow">✦ AI Outreach Composer</div>
+        <div class="gen-title">Generate Personalized DMs & Emails</div>
+        <div class="gen-sub">Select a lead and product tier. The AI writes a natural, high-converting outreach message in your brand voice.</div>
+
+        <div class="gen-field" onclick="selectField(this, 'Monique B. · TikTok · Score 94')">
+          <div>
+            <span class="gen-field-label">Selected Lead</span>
+            <span id="lead-sel">Monique B. · TikTok · Score 94</span>
+          </div>
+          <span class="gen-field-icon">▾</span>
+        </div>
+
+        <div class="gen-field" onclick="selectField(this, 'Premium Transformation — $897')">
+          <div>
+            <span class="gen-field-label">Product / Tier</span>
+            <span id="prod-sel">Premium Transformation — $897</span>
+          </div>
+          <span class="gen-field-icon">▾</span>
+        </div>
+
+        <div class="gen-field" onclick="selectField(this, 'DM · Warm · First touch')">
+          <div>
+            <span class="gen-field-label">Message Type</span>
+            <span id="msg-sel">DM · Warm · First touch</span>
+          </div>
+          <span class="gen-field-icon">▾</span>
+        </div>
+
+        <div class="gen-divider"></div>
+
+        <div class="gen-output" id="gen-out">
+          <span class="gen-output-label">AI DRAFT</span>
+          <span id="out-text">Hey Monique 🌿 I saw your comment about not being able to turn your brain off at night — I felt that deeply. That's exactly why I created Sacred Cycles. It's an 8-week nervous system reset specifically for high-capacity women carrying invisible pressure. The Still Waters night ritual alone has helped women fall asleep without the mental spiral. Would it be okay if I shared how it works?</span>
+        </div>
+
+        <div style="margin-top: 12px; display: flex; gap: 8px;">
+          <button class="btn-gold" style="flex:1; font-size:12px;" onclick="generateOutreach()">↺ Regenerate</button>
+          <button style="flex:1; padding:10px; border-radius:20px; border:1px solid rgba(168,201,178,0.2); background:rgba(255,255,255,0.08); color:rgba(250,246,238,0.8); cursor:pointer; font-family:Outfit,sans-serif; font-size:12px;" onclick="copyMsg()">⧉ Copy & Send</button>
+        </div>
+
+        <div style="margin-top: 14px; padding: 10px 12px; background: rgba(0,0,0,0.15); border-radius: 8px;">
+          <div style="font-size: 9px; color: rgba(168,201,178,0.5); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 5px;">Message Stats Prediction</div>
+          <div style="display:flex; gap:16px;">
+            <div><div style="font-size:16px; font-family:'Playfair Display',serif; color:var(--gold-light);">74%</div><div style="font-size:9px; color:rgba(250,246,238,0.4);">Open rate</div></div>
+            <div><div style="font-size:16px; font-family:'Playfair Display',serif; color:var(--gold-light);">38%</div><div style="font-size:9px; color:rgba(250,246,238,0.4);">Reply rate</div></div>
+            <div><div style="font-size:16px; font-family:'Playfair Display',serif; color:var(--gold-light);">22%</div><div style="font-size:9px; color:rgba(250,246,238,0.4);">Enroll est.</div></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="panel" style="margin-bottom:18px;">
+      <div class="ph">
+        <div>
+          <div class="ph-title">📬 Outreach Tracker</div>
+          <div class="ph-sub">Last 7 days · 118 messages sent</div>
+        </div>
+        <button class="ph-act">View all</button>
+      </div>
+
+      <div class="outreach-list">
+        <div class="outreach-row">
+          <span class="or-icon">🌸</span>
+          <span class="or-name">Monique B.</span>
+          <span class="or-platform">🎵 TikTok DM</span>
+          <span class="or-msg">"Hey Monique 🌿 I saw your comment about not being able to turn your brain off…"</span>
+          <span class="or-status os-replied">💬 Replied</span>
+        </div>
+        <div class="outreach-row">
+          <span class="or-icon">✨</span>
+          <span class="or-name">Tasha R.</span>
+          <span class="or-platform">📸 Instagram DM</span>
+          <span class="or-msg">"Tasha! I noticed you saved my Sacred Cycles post — wanted to reach out…"</span>
+          <span class="or-status os-enrolled">✅ Enrolled</span>
+        </div>
+        <div class="outreach-row">
+          <span class="or-icon">🌿</span>
+          <span class="or-name">Dana W.</span>
+          <span class="or-platform">📘 Facebook</span>
+          <span class="or-msg">"Dana, you tagged your friend on my post about the Still Waters night ritual…"</span>
+          <span class="or-status os-opened">👁 Opened</span>
+        </div>
+        <div class="outreach-row">
+          <span class="or-icon">🌙</span>
+          <span class="or-name">Simone A.</span>
+          <span class="or-platform">✉️ Email</span>
+          <span class="or-msg">"You've been on my list for a while and I've noticed you opening every email…"</span>
+          <span class="or-status os-sent">→ Sent</span>
+        </div>
+        <div class="outreach-row">
+          <span class="or-icon">🔮</span>
+          <span class="or-name">Kezia T.</span>
+          <span class="or-platform">🎵 TikTok DM</span>
+          <span class="or-msg">"I see you've been engaging with a lot of nervous system content lately…"</span>
+          <span class="or-status os-pending">⏳ Scheduled</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="ph">
+        <div>
+          <div class="ph-title">⬡ Enrollment Pipeline</div>
+          <div class="ph-sub">Current buyer journey · 47 active leads</div>
+        </div>
+        <button class="ph-act">Full view</button>
+      </div>
+
+      <div class="pipeline">
+        <div class="pipe-col">
+          <div class="pipe-col-head">
+            <span class="pipe-label">🔍 Identified</span>
+            <span class="pipe-count">18</span>
+          </div>
+          <div class="pipe-item">
+            <div class="pipe-item-name">Jamila K.</div>
+            <div class="pipe-item-detail">TikTok · burnout signals</div>
+            <span class="pipe-item-tier pit-essential">Essential</span>
+          </div>
+          <div class="pipe-item">
+            <div class="pipe-item-name">Renée O.</div>
+            <div class="pipe-item-detail">Instagram · saved 3 posts</div>
+            <span class="pipe-item-tier pit-complete">Complete Kit</span>
+          </div>
+          <div class="pipe-item">
+            <div class="pipe-item-name">Amara D.</div>
+            <div class="pipe-item-detail">Facebook · commented twice</div>
+            <span class="pipe-item-tier pit-essential">Essential</span>
+          </div>
+          <div class="pipe-total">+15 more leads</div>
+        </div>
+
+        <div class="pipe-col">
+          <div class="pipe-col-head">
+            <span class="pipe-label">✉ Contacted</span>
+            <span class="pipe-count">14</span>
+          </div>
+          <div class="pipe-item">
+            <div class="pipe-item-name">Dana W.</div>
+            <div class="pipe-item-detail">FB DM sent · opened</div>
+            <span class="pipe-item-tier pit-complete">Complete Kit</span>
+          </div>
+          <div class="pipe-item">
+            <div class="pipe-item-name">Kezia T.</div>
+            <div class="pipe-item-detail">TikTok DM sent</div>
+            <span class="pipe-item-tier pit-essential">Essential</span>
+          </div>
+          <div class="pipe-item">
+            <div class="pipe-item-name">Simone A.</div>
+            <div class="pipe-item-detail">Email sent · opened</div>
+            <span class="pipe-item-tier pit-essential">Essential</span>
+          </div>
+          <div class="pipe-total">+11 more leads</div>
+        </div>
+
+        <div class="pipe-col">
+          <div class="pipe-col-head">
+            <span class="pipe-label">💬 Replied</span>
+            <span class="pipe-count">9</span>
+          </div>
+          <div class="pipe-item">
+            <div class="pipe-item-name">Monique B.</div>
+            <div class="pipe-item-detail">Asking about pricing</div>
+            <span class="pipe-item-tier pit-premium">Premium</span>
+          </div>
+          <div class="pipe-item">
+            <div class="pipe-item-name">Layla M.</div>
+            <div class="pipe-item-detail">Wants payment plan info</div>
+            <span class="pipe-item-tier pit-complete">Complete Kit</span>
+          </div>
+          <div class="pipe-item">
+            <div class="pipe-item-name">Christine B.</div>
+            <div class="pipe-item-detail">Asked about the app</div>
+            <span class="pipe-item-tier pit-essential">Essential</span>
+          </div>
+          <div class="pipe-total">+6 more leads</div>
+        </div>
+
+        <div class="pipe-col">
+          <div class="pipe-col-head">
+            <span class="pipe-label">✅ Enrolled</span>
+            <span class="pipe-count">6</span>
+          </div>
+          <div class="pipe-item">
+            <div class="pipe-item-name">Tasha R.</div>
+            <div class="pipe-item-detail">Complete Kit · $397</div>
+            <span class="pipe-item-tier pit-complete">Complete Kit</span>
+          </div>
+          <div class="pipe-item">
+            <div class="pipe-item-name">Naomi S.</div>
+            <div class="pipe-item-detail">Premium · $897</div>
+            <span class="pipe-item-tier pit-premium">Premium</span>
+          </div>
+          <div class="pipe-item">
+            <div class="pipe-item-name">Patricia V.</div>
+            <div class="pipe-item-detail">Essential · $197</div>
+            <span class="pipe-item-tier pit-essential">Essential</span>
+          </div>
+          <div class="pipe-total">+3 more this week</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+</div>
+
+<script>
+function setTab(el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+document.querySelectorAll('.platform-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.platform-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+  });
+});
+
+document.querySelectorAll('.nav-link').forEach(link => {
+  link.addEventListener('click', () => {
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    link.classList.add('active');
+  });
+});
+
+const messages = [
+  "Hey Monique 🌿 I saw your comment about not being able to turn your brain off at night — I felt that deeply. That's exactly why I created Sacred Cycles. It's an 8-week nervous system reset specifically for high-capacity women carrying invisible pressure. The Still Waters night ritual alone has helped women fall asleep without the mental spiral. Would it be okay if I shared how it works?",
+  "Monique, your comment about burnout caught my attention because it's something I hear constantly from high-capacity women. Sacred Cycles is the 8-week program I built to release that pressure systematically — not through more hustle, but through healing the nervous system first. I'd love to walk you through what's inside. Is that okay? 🌿",
+  "I noticed you've been engaging with stress and burnout content lately 🌙 I created Sacred Cycles specifically for women who feel like they carry the weight of everything — work, family, spirit, self. Our Premium Transformation includes 3 private coaching calls so we can design your healing protocol together. Would this be a good fit for where you are right now?",
+  "Hey 💛 Your energy comes through even through the screen — and I want to share something I think could genuinely shift things for you. Sacred Cycles is a complete mind-spirit renewal program: breathwork, crystal healing, sound therapy, and my Still Waters night ritual to decompress before bed. No fluff. Just real nervous system work. Want the full details?"
+];
+
+let msgIndex = 0;
+
+function generateOutreach() {
+  const el = document.getElementById('out-text');
+  el.style.opacity = '0';
+  setTimeout(() => {
+    msgIndex = (msgIndex + 1) % messages.length;
+    el.textContent = messages[msgIndex];
+    el.style.opacity = '1';
+  }, 300);
+}
+
+function runScan() {
+  const btn = event.target;
+  btn.textContent = '⟳ Scanning…';
+  btn.style.opacity = '0.7';
+  setTimeout(() => {
+    btn.textContent = '✦ 12 new leads found!';
+    btn.style.background = 'linear-gradient(135deg, #4A7C59, #6B9E7A)';
+    btn.style.color = 'white';
+    btn.style.opacity = '1';
+    setTimeout(() => {
+      btn.textContent = '✦ Scan for Buyers Now';
+      btn.style.background = '';
+      btn.style.color = '';
+    }, 3000);
+  }, 1800);
+}
+
+function copyMsg() {
+  const text = document.getElementById('out-text').textContent;
+  navigator.clipboard.writeText(text).catch(() => {});
+  const btn = event.target;
+  btn.textContent = '✓ Copied!';
+  setTimeout(() => { btn.textContent = '⧉ Copy & Send'; }, 2000);
+}
+
+document.querySelectorAll('.lead-card').forEach((card, i) => {
+  card.addEventListener('click', () => {
+    const name = card.querySelector('.lead-name').textContent;
+    const score = card.querySelector('.lead-score').textContent;
+    document.getElementById('lead-sel').textContent = name + ' · Score ' + score;
+    generateOutreach();
+  });
+});
+</script>
+</body>
+</html>
