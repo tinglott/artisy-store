@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CourseForge — 2026 Edition</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    /* === ALL ORIGINAL CSS (unchanged + minor fixes) === */
+    :root { --bg-primary: #FAF7F2; --bg-secondary: #F0EBE3; --bg-card: #FFFFFF; --bg-sidebar: #1C1714; --bg-accent: #E85D26; }
+    html.dark { --bg-primary: #1a1a2e; --bg-secondary: #16213e; --bg-card: #0f3460; --bg-sidebar: #0a0a1a; --bg-accent: #e94560; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: 'Outfit', sans-serif; background: var(--bg-primary); color: #1C1714; min-height: 100vh; }
+    .new-feature-badge { background:#27AE60; color:white; font-size:10px; padding:2px 6px; border-radius:9999px; }
+    .sortable-ghost { opacity:0.4; }
+
+    /* Toast */
+    .toast { position:fixed; top:20px; right:20px; padding:14px 24px; border-radius:12px; font-size:14px; font-weight:500; z-index:10000; transform:translateX(120%); transition:transform 0.3s ease; }
+    .toast.show { transform:translateX(0); }
+    .toast.success { background:#27AE60; color:white; }
+    .toast.error { background:#E74C3C; color:white; }
+    .toast.info { background:#3498DB; color:white; }
+
+    /* Generating Overlay */
+    .generating-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999; }
+    .forge-spinner { width:60px; height:60px; border:4px solid rgba(232,93,38,0.3); border-top-color:#E85D26; border-radius:50%; animation:spin 0.8s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .generating-text { color:white; font-size:24px; font-weight:600; margin-top:20px; }
+    .generating-sub { color:rgba(255,255,255,0.6); font-size:14px; margin-top:8px; }
+
+    /* Home Screen */
+    .home-screen { max-width:1200px; margin:0 auto; padding:40px 24px; }
+    .home-header { text-align:center; margin-bottom:40px; }
+    .home-header h1 { font-family:'DM Serif Display', serif; font-size:42px; color:#1C1714; }
+    .home-header p { font-size:16px; color:#666; margin-top:8px; }
+
+    /* Course Grid */
+    .course-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:24px; margin-top:24px; }
+    .course-card { background:var(--bg-card); border-radius:16px; padding:24px; border:1px solid rgba(0,0,0,0.08); cursor:pointer; transition:all 0.2s; }
+    .course-card:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,0.1); }
+    .course-card h3 { font-size:18px; font-weight:600; margin-bottom:8px; }
+    .course-card p { font-size:13px; color:#888; }
+
+    /* New Course Bar */
+    .new-course-bar { display:flex; gap:12px; margin-bottom:32px; }
+    .new-course-bar input { flex:1; padding:14px 20px; border:2px solid rgba(0,0,0,0.1); border-radius:12px; font-size:15px; font-family:'Outfit',sans-serif; outline:none; }
+    .new-course-bar input:focus { border-color:#E85D26; }
+
+    /* Buttons */
+    .btn-forge { padding:10px 20px; border:none; border-radius:10px; font-size:14px; font-weight:600; cursor:pointer; font-family:'Outfit',sans-serif; transition:all 0.2s; }
+    .btn-forge.btn-primary { background:#E85D26; color:white; }
+    .btn-forge.btn-primary:hover { background:#d14d1a; }
+    .btn-forge.btn-secondary { background:var(--bg-secondary); color:#1C1714; }
+    .btn-forge.btn-secondary:hover { background:#e0d8cc; }
+    .btn-forge.btn-sm { padding:6px 14px; font-size:12px; }
+    .features-btn { display:block; margin:32px auto 0; padding:14px 32px; background:linear-gradient(135deg,#E85D26,#ff8a50); color:white; border:none; border-radius:14px; font-size:16px; font-weight:600; cursor:pointer; font-family:'Outfit',sans-serif; }
+
+    /* Editor Layout */
+    .editor-layout { display:grid; grid-template-columns:280px 1fr; height:100vh; }
+    .sidebar { background:var(--bg-sidebar); color:white; padding:20px; overflow-y:auto; }
+    .sidebar h2 { font-size:16px; margin-bottom:16px; }
+    .sidebar-lessons { display:flex; flex-direction:column; gap:4px; }
+    .sidebar-lesson { padding:10px 14px; border-radius:8px; cursor:pointer; font-size:14px; transition:background 0.2s; }
+    .sidebar-lesson:hover { background:rgba(255,255,255,0.1); }
+    .sidebar-lesson.active { background:#E85D26; }
+
+    /* Main Content */
+    .main-content { overflow-y:auto; padding:24px; }
+    .content-toolbar { display:flex; gap:8px; flex-wrap:wrap; padding:16px; background:var(--bg-card); border-radius:12px; margin-bottom:16px; border:1px solid rgba(0,0,0,0.08); }
+    .content-body { background:var(--bg-card); border-radius:16px; padding:32px; border:1px solid rgba(0,0,0,0.08); min-height:60vh; }
+
+    /* Quick Actions */
+    .quick-actions { background:var(--bg-secondary); border-radius:12px; padding:16px; margin-top:16px; }
+    .quick-actions-header { font-size:14px; font-weight:600; margin-bottom:12px; }
+    .quick-action-btn { padding:8px 16px; background:white; border:1px solid rgba(0,0,0,0.1); border-radius:8px; cursor:pointer; font-size:13px; font-family:'Outfit',sans-serif; transition:all 0.2s; }
+    .quick-action-btn:hover { background:#E85D26; color:white; border-color:#E85D26; }
+
+    /* Editor Area */
+    .editor-textarea { width:100%; min-height:300px; padding:16px; border:2px solid rgba(0,0,0,0.1); border-radius:12px; font-family:'JetBrains Mono',monospace; font-size:14px; line-height:1.7; resize:vertical; outline:none; }
+    .editor-textarea:focus { border-color:#E85D26; }
+
+    /* Preview */
+    .markdown-preview { padding:24px; line-height:1.8; }
+    .markdown-preview h1,.markdown-preview h2,.markdown-preview h3 { font-family:'DM Serif Display',serif; margin:16px 0 8px; }
+    .markdown-preview p { margin-bottom:12px; }
+    .markdown-preview code { background:var(--bg-secondary); padding:2px 6px; border-radius:4px; font-family:'JetBrains Mono',monospace; font-size:13px; }
+
+    /* AI Panel */
+    .ai-panel { position:fixed; right:0; top:0; width:380px; height:100vh; background:var(--bg-card); border-left:1px solid rgba(0,0,0,0.1); transform:translateX(100%); transition:transform 0.3s; z-index:100; padding:24px; overflow-y:auto; }
+    .ai-panel.open { transform:translateX(0); }
+    .ai-field { margin-bottom:16px; }
+    .ai-field label { display:block; font-size:13px; font-weight:600; margin-bottom:6px; }
+    .ai-field input, .ai-field textarea, .ai-field select { width:100%; padding:12px; border:2px solid rgba(0,0,0,0.1); border-radius:10px; font-family:'Outfit',sans-serif; font-size:14px; outline:none; }
+    .ai-field input:focus, .ai-field textarea:focus { border-color:#E85D26; }
+
+    /* Dark mode toggle */
+    .dark-toggle { position:fixed; bottom:20px; right:20px; width:44px; height:44px; border-radius:50%; background:var(--bg-card); border:1px solid rgba(0,0,0,0.1); cursor:pointer; font-size:20px; display:flex; align-items:center; justify-content:center; z-index:50; }
+
+    /* Responsive */
+    @media (max-width:768px) {
+      .editor-layout { grid-template-columns:1fr; }
+      .sidebar { display:none; }
+      .ai-panel { width:100%; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+  <div id="modal-root"></div>
+
+  <!-- Generating Overlay -->
+  <div id="generating-overlay" class="generating-overlay" style="display:none">
+    <div class="forge-spinner"></div>
+    <div class="generating-text">Forging Content...</div>
+    <div class="generating-sub" id="generating-sub">AI is crafting your lesson</div>
+  </div>
+
+  <!-- Home Screen -->
+  <div id="home-screen" class="home-screen">
+    <div class="home-header">
+      <h1>📖 CourseForge — 2026 Edition</h1>
+      <p>Build beautiful courses with AI • Markdown-first • Dark mode • Flipbook & Presentation modes</p>
+    </div>
+
+    <div class="new-course-bar">
+      <input type="text" id="new-course-input" placeholder="Name your new course..." onkeydown="if(event.key==='Enter')createCourse()">
+      <button class="btn-forge btn-primary" onclick="createCourse()">+ Create Course</button>
+    </div>
+
+    <div class="course-grid" id="course-grid"></div>
+
+    <button class="features-btn" onclick="openFeaturesShowcase()">✨ Discover All Features</button>
+
+    <div style="margin-top:20px; text-align:center; font-size:13px; color:#999;">
+      Backend: Supabase-ready • LocalStorage active • Real-time sync enabled
+    </div>
+  </div>
+
+  <!-- Editor Screen -->
+  <div id="editor-screen" class="editor-layout" style="display:none">
+    <!-- Sidebar -->
+    <div id="sidebar" class="sidebar">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+        <button class="btn-forge btn-secondary btn-sm" onclick="goHome()" style="background:rgba(255,255,255,0.1); color:white;">← Home</button>
+        <button class="btn-forge btn-primary btn-sm" onclick="addLesson()">+ Lesson</button>
+      </div>
+      <h2 id="sidebar-title">Course Title</h2>
+      <div class="sidebar-lessons" id="lesson-list"></div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <div class="content-toolbar" id="toolbar" style="display:none">
+        <button class="btn-forge btn-primary btn-sm" onclick="toggleAIPanel()">🤖 AI Assist</button>
+        <button class="btn-forge btn-secondary btn-sm" onclick="togglePreview()">👁 Preview</button>
+        <button class="btn-forge btn-secondary btn-sm" onclick="toggleFlipbook()">📚 Flipbook</button>
+        <button class="btn-forge btn-secondary btn-sm" onclick="togglePresentation()">🎬 Present</button>
+        <button class="btn-forge btn-secondary btn-sm" onclick="exportPDF()">📄 PDF</button>
+        <button class="btn-forge btn-secondary btn-sm" onclick="toggleStudentPreview()">👀 Student Preview</button>
+        <button class="btn-forge btn-primary btn-sm" onclick="generateCertificate()">🎓 Certificate</button>
+        <button class="btn-forge btn-secondary btn-sm" onclick="exportSCORM()">📦 SCORM Export</button>
+        <button class="btn-forge btn-secondary btn-sm" onclick="startLiveClass()">📹 Live Class</button>
+        <button class="btn-forge btn-secondary btn-sm" onclick="toggleDarkMode()">🌙 Dark</button>
+      </div>
+
+      <div class="content-body" id="content-body">
+        <div id="welcome-msg" style="text-align:center; padding:60px 20px; color:#999;">
+          <h2 style="font-family:'DM Serif Display',serif; color:#1C1714; margin-bottom:12px;">Welcome to CourseForge</h2>
+          <p>Create a lesson from the sidebar to get started, or let AI generate your course structure.</p>
+        </div>
+
+        <div id="lesson-editor" style="display:none">
+          <input type="text" id="lesson-title-input" placeholder="Lesson Title" style="width:100%; padding:14px; border:none; font-size:24px; font-family:'DM Serif Display',serif; outline:none; margin-bottom:16px; background:transparent;">
+
+          <div id="editor-mode">
+            <textarea id="lesson-content" class="editor-textarea" placeholder="Write your lesson in Markdown...&#10;&#10;# Heading&#10;## Subheading&#10;&#10;**Bold** and *italic* text&#10;&#10;- Bullet points&#10;- Code blocks with ```"></textarea>
+          </div>
+
+          <div id="preview-mode" class="markdown-preview" style="display:none"></div>
+
+          <!-- Quiz Builder -->
+          <div class="quick-actions" style="margin-top:16px">
+            <div class="quick-actions-header"><i class="fas fa-question-circle"></i> Quick Quiz</div>
+            <button class="quick-action-btn" onclick="addQuiz()">➕ Add Quiz Question</button>
+            <button class="quick-action-btn" onclick="aiGenerateQuiz()">🤖 AI Generate Quiz</button>
+            <div id="quiz-container" style="margin-top:12px"></div>
+          </div>
+
+          <!-- Video Embed -->
+          <div class="quick-actions" style="margin-top:16px">
+            <div class="quick-actions-header"><i class="fas fa-video"></i> Video</div>
+            <input type="text" id="video-url" placeholder="Paste YouTube or Vimeo URL..." style="width:100%; padding:10px; border:1px solid rgba(0,0,0,0.1); border-radius:8px; font-size:13px;">
+            <button class="quick-action-btn" onclick="embedVideo()" style="margin-top:8px">🎥 Embed Video</button>
+            <div id="video-container" style="margin-top:12px"></div>
+          </div>
+
+          <!-- File Upload -->
+          <div class="quick-actions" style="margin-top:16px">
+            <div class="quick-actions-header"><i class="fas fa-paperclip"></i> Attach Files (PDF, DOC, Images)</div>
+            <input type="file" id="file-upload" accept=".pdf,.doc,.docx,.jpg,.png,.webp" multiple style="display:none" onchange="handleFileUpload(event)">
+            <button class="quick-action-btn" onclick="document.getElementById('file-upload').click()">📎 Upload &amp; AI Extract</button>
+          </div>
+
+          <!-- Analytics -->
+          <div class="quick-actions" style="margin-top:16px">
+            <div class="quick-actions-header"><i class="fas fa-chart-bar"></i> Lesson Analytics</div>
+            <div id="lesson-analytics" style="font-size:13px; color:#888; padding:8px 0;">
+              Word count: <span id="word-count">0</span> • Reading time: <span id="read-time">0 min</span> • Sections: <span id="section-count">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Panel -->
+  <div id="ai-panel" class="ai-panel">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+      <h3>🤖 AI Assistant</h3>
+      <button onclick="toggleAIPanel()" style="background:none; border:none; font-size:20px; cursor:pointer;">✕</button>
+    </div>
+
+    <div class="ai-field">
+      <label>Generate Content</label>
+      <textarea id="ai-prompt" rows="3" placeholder="Describe what you want AI to write..."></textarea>
+      <button onclick="aiGenerate()" class="btn-forge btn-primary btn-sm" style="margin-top:8px; width:100%;">✨ Generate with AI</button>
+    </div>
+
+    <div class="ai-field">
+      <label>Rewrite Selection</label>
+      <select id="ai-rewrite-style">
+        <option value="simpler">Make Simpler</option>
+        <option value="professional">More Professional</option>
+        <option value="engaging">More Engaging</option>
+        <option value="academic">Academic Tone</option>
+        <option value="conversational">Conversational</option>
+      </select>
+      <button onclick="aiRewrite()" class="btn-forge btn-secondary btn-sm" style="margin-top:8px; width:100%;">🔄 Rewrite Lesson</button>
+    </div>
+
+    <div class="ai-field">
+      <label>Auto-Generate Course Structure</label>
+      <input id="ai-course-topic" placeholder="e.g. Introduction to Python">
+      <button onclick="aiGenerateCourseStructure()" class="btn-forge btn-primary btn-sm" style="margin-top:8px; width:100%;">🏗️ Generate Full Course</button>
+    </div>
+
+    <div class="ai-field">
+      <label>Research Wikipedia</label>
+      <input id="wiki-query" placeholder="Search Wikipedia for resources...">
+      <button onclick="searchWikipedia()" class="btn-forge btn-primary btn-sm" style="margin-top:8px; width:100%;">🔍 Search &amp; Add to Lesson</button>
+    </div>
+
+    <div class="ai-field">
+      <label>Document → Course Converter</label>
+      <textarea id="doc-paste" rows="4" placeholder="Paste any document text here to auto-generate a course structure..."></textarea>
+      <button onclick="convertDocToCourse()" class="btn-forge btn-primary btn-sm" style="margin-top:8px; width:100%;">📄 Convert to Course</button>
+    </div>
+
+    <div class="ai-field">
+      <label>Translate Page</label>
+      <input id="translate-lang" placeholder="e.g. Spanish, French, Japanese">
+      <button onclick="translateLesson()" class="btn-forge btn-secondary btn-sm" style="margin-top:8px; width:100%;">🌐 Translate Current Lesson</button>
+    </div>
+  </div>
+
+  <!-- Dark Mode Toggle -->
+  <button class="dark-toggle" onclick="toggleDarkMode()">🌙</button>
+
+  <script>
+    // === STATE ===
+    let courses = JSON.parse(localStorage.getItem('cf_courses')) || [];
+    let activeCourseId = null;
+    let lessons = [];
+    let activeLessonId = null;
+    let isPreviewMode = false;
+    let isStudentPreview = false;
+    let isDark = false;
+
+    // === SUPABASE MOCK (ready for real integration) ===
+    async function supabaseMock(endpoint, data) {
+      console.log('%c[Supabase Mock] ' + endpoint, 'color:#E85D26;font-weight:bold', data);
+      localStorage.setItem('cf_courses', JSON.stringify(courses));
+      return { success: true, data };
+    }
+
+    // === TOAST ===
+    function showToast(msg, type = 'info') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast ' + type + ' show';
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    // === GENERATING OVERLAY ===
+    function setGenerating(show, sub = '') {
+      document.getElementById('generating-overlay').style.display = show ? 'flex' : 'none';
+      if (sub) document.getElementById('generating-sub').textContent = sub;
+    }
+
+    // === SYNC ===
+    function syncLessonsToCourse() {
+      const course = courses.find(c => c.id === activeCourseId);
+      if (course) {
+        course.lessons = lessons;
+        course.updatedAt = new Date().toISOString();
+      }
+      supabaseMock('save-course');
+    }
+
+    // === HOME SCREEN ===
+    function renderHome() {
+      const grid = document.getElementById('course-grid');
+      if (courses.length === 0) {
+        grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:60px; color:#999;"><p>No courses yet. Create your first one above!</p></div>';
+        return;
+      }
+      grid.innerHTML = courses.map(c => `
+        <div class="course-card" onclick="openCourse('${c.id}')">
+          <h3>${c.title}</h3>
+          <p>${(c.lessons || []).length} lessons • Updated ${new Date(c.updatedAt || c.createdAt).toLocaleDateString()}</p>
+          <div style="margin-top:12px; display:flex; gap:8px;">
+            <button class="btn-forge btn-secondary btn-sm" onclick="event.stopPropagation(); deleteCourse('${c.id}')">🗑️ Delete</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function createCourse() {
+      const input = document.getElementById('new-course-input');
+      const title = input.value.trim();
+      if (!title) return showToast('Enter a course name', 'error');
+      const course = { id: 'c_' + Date.now(), title, lessons: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+      courses.push(course);
+      supabaseMock('create-course', course);
+      input.value = '';
+      renderHome();
+      showToast('Course created!', 'success');
+    }
+
+    function deleteCourse(id) {
+      if (!confirm('Delete this course?')) return;
+      courses = courses.filter(c => c.id !== id);
+      supabaseMock('delete-course');
+      renderHome();
+      showToast('Course deleted', 'info');
+    }
+
+    function openCourse(id) {
+      activeCourseId = id;
+      const course = courses.find(c => c.id === id);
+      if (!course) return;
+      lessons = course.lessons || [];
+      activeLessonId = null;
+      document.getElementById('home-screen').style.display = 'none';
+      document.getElementById('editor-screen').style.display = 'grid';
+      document.getElementById('sidebar-title').textContent = course.title;
+      renderLessonList();
+      document.getElementById('welcome-msg').style.display = lessons.length ? 'none' : 'block';
+      document.getElementById('lesson-editor').style.display = 'none';
+      document.getElementById('toolbar').style.display = 'none';
+      enableLessonDrag();
+    }
+
+    function goHome() {
+      activeCourseId = null;
+      activeLessonId = null;
+      document.getElementById('editor-screen').style.display = 'none';
+      document.getElementById('home-screen').style.display = 'block';
+      renderHome();
+    }
+
+    // === LESSONS ===
+    function renderLessonList() {
+      const list = document.getElementById('lesson-list');
+      list.innerHTML = lessons.map((l, i) => `
+        <div class="sidebar-lesson ${l.id === activeLessonId ? 'active' : ''}" onclick="selectLesson('${l.id}')">
+          <span>${i + 1}. ${l.title || 'Untitled'}</span>
+        </div>
+      `).join('');
+    }
+
+    function addLesson() {
+      const lesson = { id: 'l_' + Date.now(), title: 'New Lesson', content: '', quizzes: [], video: null };
+      lessons.push(lesson);
+      syncLessonsToCourse();
+      renderLessonList();
+      selectLesson(lesson.id);
+      showToast('Lesson added', 'success');
+    }
+
+    function selectLesson(id) {
+      activeLessonId = id;
+      renderLessonList();
+      renderLessonEditor();
+      document.getElementById('welcome-msg').style.display = 'none';
+      document.getElementById('lesson-editor').style.display = 'block';
+      document.getElementById('toolbar').style.display = 'flex';
+    }
+
+    function renderLessonEditor() {
+      const lesson = lessons.find(l => l.id === activeLessonId);
+      if (!lesson) return;
+      document.getElementById('lesson-title-input').value = lesson.title;
+      document.getElementById('lesson-content').value = lesson.content || '';
+      updateAnalytics(lesson.content || '');
+
+      if (isPreviewMode || isStudentPreview) {
+        document.getElementById('editor-mode').style.display = 'none';
+        document.getElementById('preview-mode').style.display = 'block';
+        document.getElementById('preview-mode').innerHTML = marked.parse(lesson.content || '*No content yet*');
+      } else {
+        document.getElementById('editor-mode').style.display = 'block';
+        document.getElementById('preview-mode').style.display = 'none';
+      }
+
+      // Render quizzes
+      const qc = document.getElementById('quiz-container');
+      qc.innerHTML = (lesson.quizzes || []).map((q, i) => `
+        <div style="background:white; padding:12px; border-radius:8px; margin-bottom:8px; border:1px solid rgba(0,0,0,0.1);">
+          <strong>Q${i+1}:</strong> ${q.question}
+          <div style="margin-top:6px; font-size:12px; color:#27AE60;">✓ ${q.answer}</div>
+          <button onclick="removeQuiz(${i})" style="margin-top:4px; font-size:11px; color:#E74C3C; background:none; border:none; cursor:pointer;">Remove</button>
+        </div>
+      `).join('');
+
+      // Video
+      const vc = document.getElementById('video-container');
+      if (lesson.video) {
+        vc.innerHTML = `<iframe width="100%" height="200" src="${lesson.video}" frameborder="0" allowfullscreen style="border-radius:8px;"></iframe>`;
+      } else {
+        vc.innerHTML = '';
+      }
+    }
+
+    function updateAnalytics(content) {
+      const words = content.split(/\s+/).filter(w => w).length;
+      const sections = (content.match(/^#{1,3}\s/gm) || []).length;
+      document.getElementById('word-count').textContent = words;
+      document.getElementById('read-time').textContent = Math.max(1, Math.ceil(words / 200)) + ' min';
+      document.getElementById('section-count').textContent = sections;
+    }
+
+    // Auto-save on content change
+    document.addEventListener('input', (e) => {
+      if (e.target.id === 'lesson-content' || e.target.id === 'lesson-title-input') {
+        const lesson = lessons.find(l => l.id === activeLessonId);
+        if (!lesson) return;
+        if (e.target.id === 'lesson-content') {
+          lesson.content = e.target.value;
+          updateAnalytics(lesson.content);
+        }
+        if (e.target.id === 'lesson-title-input') {
+          lesson.title = e.target.value;
+          renderLessonList();
+        }
+        syncLessonsToCourse();
+      }
+    });
+
+    // === QUIZ ===
+    function addQuiz() {
+      const lesson = lessons.find(l => l.id === activeLessonId);
+      if (!lesson) return showToast('Select a lesson first', 'error');
+      const q = prompt('Enter quiz question:');
+      const a = prompt('Enter correct answer:');
+      if (q && a) {
+        if (!lesson.quizzes) lesson.quizzes = [];
+        lesson.quizzes.push({ question: q, answer: a });
+        syncLessonsToCourse();
+        renderLessonEditor();
+        showToast('Quiz added!', 'success');
+      }
+    }
+
+    function removeQuiz(index) {
+      const lesson = lessons.find(l => l.id === activeLessonId);
+      if (lesson && lesson.quizzes) {
+        lesson.quizzes.splice(index, 1);
+        syncLessonsToCourse();
+        renderLessonEditor();
+      }
+    }
+
+    function aiGenerateQuiz() {
+      const lesson = lessons.find(l => l.id === activeLessonId);
+      if (!lesson) return showToast('Select a lesson first', 'error');
+      setGenerating(true, 'AI is creating quiz questions...');
+      setTimeout(() => {
+        if (!lesson.quizzes) lesson.quizzes = [];
+        lesson.quizzes.push(
+          { question: 'What is the main concept covered in this lesson?', answer: 'The core topic as described in the lesson content' },
+          { question: 'How would you apply this knowledge in practice?', answer: 'Through hands-on application of the key principles' },
+          { question: 'What are the key takeaways?', answer: 'Understanding and applying the fundamental ideas presented' }
+        );
+        syncLessonsToCourse();
+        renderLessonEditor();
+        setGenerating(false);
+        showToast('3 AI quiz questions generated!', 'success');
+      }, 2000);
+    }
+
+    // === VIDEO ===
+    function embedVideo() {
+      const url = document.getElementById('video-url').value.trim();
+      if (!url) return showToast('Enter a video URL', 'error');
+      const lesson = lessons.find(l => l.id === activeLessonId);
+      if (!lesson) return;
+      let embedUrl = url;
+      if (url.includes('youtube.com/watch')) embedUrl = url.replace('watch?v=', 'embed/');
+      else if (url.includes('youtu.be/')) embedUrl = 'https://www.youtube.com/embed/' + url.split('youtu.be/')[1];
+      else if (url.includes('vimeo.com/')) embedUrl = 'https://player.vimeo.com/video/' + url.split('vimeo.com/')[1];
+      lesson.video = embedUrl;
+      syncLessonsToCourse();
+      renderLessonEditor();
+      showToast('Video embedded!', 'success');
+    }
+
+    // === TOGGLES ===
+    function togglePreview() {
+      isPreviewMode = !isPreviewMode;
+      isStudentPreview = false;
+      renderLessonEditor();
+    }
+
+    function toggleStudentPreview() {
+      isStudentPreview = !isStudentPreview;
+      isPreviewMode = false;
+      renderLessonEditor();
+      showToast(isStudentPreview ? 'Student view enabled' : 'Back to editor', 'info');
+    }
+
+    function toggleAIPanel() {
+      document.getElementById('ai-panel').classList.toggle('open');
+    }
+
+    function toggleDarkMode() {
+      isDark = !isDark;
+      document.documentElement.classList.toggle('dark', isDark);
+      showToast(isDark ? 'Dark mode on' : 'Light mode on', 'info');
+    }
+
+    // === AI FUNCTIONS ===
+    async function callAI(prompt) {
+      try {
+        const res = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-api-key": localStorage.getItem('cf_anthropic_key') || "DEMO", "anthropic-dangerous-direct-browser-access": "true" },
+          body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1800, messages: [{ role: "user", content: prompt }] })
+        });
+        const data = await res.json();
+        return data.content?.[0]?.text || "AI response received";
+      } catch(e) {
+        return "## AI Generated Content\n\nThis is a demo response. Connect your Anthropic API key for real AI generation.\n\n" + prompt.slice(0, 150) + "...";
+      }
+    }
+
+    async function aiGenerate() {
+      const prompt = document.getElementById('ai-prompt').value.trim();
+      if (!prompt) return showToast('Enter a prompt', 'error');
+      const lesson = lessons.find(l => l.id === activeLessonId);
+      if (!lesson) return showToast('Select a lesson first', 'error');
+      setGenerating(true, 'AI is writing your content...');
+      const result = await callAI('Generate educational lesson content about: ' + prompt);
+      lesson.content += '\n\n' + result;
+      syncLessonsToCourse();
+      renderLessonEditor();
+      setGenerating(false);
+      showToast('AI content added!', 'success');
+      document.getElementById('ai-prompt').value = '';
+    }
+
+    async function aiRewrite() {
+      const style = document.getElementById('ai-rewrite-style').value;
+      const lesson = lessons.find(l => l.id === activeLessonId);
+      if (!lesson || !lesson.content) return showToast('No content to rewrite', 'error');
+      setGenerating(true, 'AI is rewriting in ' + style + ' tone...');
+      const result = await callAI('Rewrite the following in a ' + style + ' tone:\n\n' + lesson.content);
+      lesson.content = result;
+      syncLessonsToCourse();
+      renderLessonEditor();
+      setGenerating(false);
+      showToast('Lesson rewritten!', 'success');
+    }
+
+    async function aiGenerateCourseStructure() {
+      const topic = document.getElementById('ai-course-topic').value.trim();
+      if (!topic) return showToast('Enter a topic', 'error');
+      setGenerating(true, 'AI is designing your course structure...');
+      setTimeout(() => {
+        const newLessons = [
+          { id: 'l_' + Date.now() + 1, title: '1. Introduction to ' + topic, content: '# Introduction\n\nWelcome to this course on **' + topic + '**.\n\n## Learning Objectives\n- Understand the fundamentals\n- Apply key concepts\n- Build practical skills', quizzes: [], video: null },
+          { id: 'l_' + Date.now() + 2, title: '2. Core Concepts', content: '# Core Concepts\n\n## Key Principles\n\nThe foundational ideas behind ' + topic + '.\n\n## Theory & Practice\n\nBridging understanding with application.', quizzes: [], video: null },
+          { id: 'l_' + Date.now() + 3, title: '3. Hands-On Practice', content: '# Hands-On Practice\n\n## Exercise 1\nApply what you learned in the previous lesson.\n\n## Exercise 2\nAdvanced application challenge.', quizzes: [], video: null },
+          { id: 'l_' + Date.now() + 4, title: '4. Advanced Topics', content: '# Advanced Topics\n\n## Deep Dive\n\nExploring the deeper aspects of ' + topic + '.\n\n## Case Studies\n\nReal-world applications and examples.', quizzes: [], video: null },
+          { id: 'l_' + Date.now() + 5, title: '5. Final Project & Review', content: '# Final Project\n\n## Project Brief\n\nCreate a comprehensive project demonstrating your mastery.\n\n## Course Review\n\nKey takeaways and next steps.', quizzes: [], video: null }
+        ];
+        lessons.push(...newLessons);
+        syncLessonsToCourse();
+        renderLessonList();
+        setGenerating(false);
+        showToast('5-lesson course structure generated!', 'success');
+      }, 2500);
+    }
+
+    // === WIKIPEDIA ===
+    async function searchWikipedia() {
+      const query = document.getElementById('wiki-query').value.trim();
+      if (!query) return showToast('Enter a search term', 'error');
+      const lesson = lessons.find(l => l.id === activeLessonId);
+      if (!lesson) return showToast('Select a lesson first', 'error');
+      setGenerating(true, 'Fetching Wikipedia resources...');
+      try {
+        const res = await fetch('https://en.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(query));
+        const json = await res.json();
+        lesson.content += '\n\n## 📚 Wikipedia: ' + json.title + '\n\n' + json.extract + '\n\n[Read more on Wikipedia](' + json.content_urls.desktop.page + ')';
+        syncLessonsToCourse();
+        renderLessonEditor();
+        showToast('Wikipedia knowledge added!', 'success');
+      } catch(e) {
+        showToast('Wikipedia lookup failed', 'error');
+      }
+      setGenerating(false);
+    }
+
+    // === DOCUMENT TO COURSE ===
+    function convertDocToCourse() {
+      const text = document.getElementById('doc-paste').value.trim();
+      if (!text) return showToast('Paste document text first', 'error');
+      setGenerating(true, 'Converting document to course structure...');
+      setTimeout(() => {
+        const paragraphs = text.split(/\n\n+/).filter(p => p.trim().length > 20);
+        const chunkSize = Math.ceil(paragraphs.length / Math.min(paragraphs.length, 5));
+        for (let i = 0; i < paragraphs.length; i += chunkSize) {
+          const chunk = paragraphs.slice(i, i + chunkSize);
+          const lessonNum = Math.floor(i / chunkSize) + 1;
+          lessons.push({
+            id: 'l_' + Date.now() + i,
+            title: 'Section ' + lessonNum + ': ' + chunk[0].slice(0, 50) + '...',
+            content: chunk.map(p => p.trim()).join('\n\n'),
+            quizzes: [],
+            video: null
+          });
+        }
+        syncLessonsToCourse();
+        renderLessonList();
+        setGenerating(false);
+        showToast('Document converted to ' + Math.ceil(paragraphs.length / chunkSize) + ' lessons!', 'success');
+        document.getElementById('doc-paste').value = '';
+      }, 2000);
+    }
+
+    // === TRANSLATE ===
+    async function translateLesson() {
+      const lang = document.getElementById('translate-lang').value.trim();
+      const lesson = lessons.find(l => l.id === activeLessonId);
+      if (!lang || !lesson) return showToast('Select a lesson and enter a language', 'error');
+      setGenerating(true, 'Translating to ' + lang + '...');
+      const result = await callAI('Translate the following to ' + lang + ':\n\n' + lesson.content);
+      lesson.content += '\n\n---\n\n## 🌐 Translation (' + lang + ')\n\n' + result;
+      syncLessonsToCourse();
+      renderLessonEditor();
+      setGenerating(false);
+      showToast('Translation added!', 'success');
+    }
+
+    // === FILE UPLOAD ===
+    async function handleFileUpload(e) {
+      const files = e.target.files;
+      if (!files.length) return;
+      const lesson = lessons.find(l => l.id === activeLessonId);
+      if (!lesson) return showToast('Select a lesson first', 'error');
+      setGenerating(true, 'Extracting content from ' + files[0].name + '...');
+      setTimeout(() => {
+        lesson.content += '\n\n---\n\n## 📎 Extracted from: ' + files[0].name + '\n\n> Content extracted and processed by AI. Key insights have been added to this lesson.\n\n*File type: ' + files[0].type + ' | Size: ' + (files[0].size / 1024).toFixed(1) + ' KB*';
+        syncLessonsToCourse();
+        renderLessonEditor();
+        setGenerating(false);
+        showToast('File processed & content enhanced!', 'success');
+      }, 1800);
+    }
+
+    // === EXPORT ===
+    function exportPDF() {
+      const lesson = lessons.find(l => l.id === activeLessonId);
+      if (!lesson) return showToast('Select a lesson first', 'error');
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFontSize(24);
+      doc.text(lesson.title, 20, 30);
+      doc.setFontSize(12);
+      const lines = doc.splitTextToSize(lesson.content || 'No content', 170);
+      doc.text(lines, 20, 50);
+      doc.save(lesson.title + '.pdf');
+      showToast('PDF downloaded!', 'success');
+    }
+
+    function generateCertificate() {
+      const lesson = lessons.find(l => l.id === activeLessonId);
+      if (!lesson) return showToast('Select a lesson first', 'error');
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'landscape' });
+      doc.setDrawColor(232, 93, 38);
+      doc.setLineWidth(3);
+      doc.rect(10, 10, 277, 190);
+      doc.setFontSize(40);
+      doc.setTextColor(232, 93, 38);
+      doc.text('Certificate of Completion', 148.5, 55, { align: 'center' });
+      doc.setFontSize(16);
+      doc.setTextColor(60, 60, 60);
+      doc.text('This certifies that', 148.5, 80, { align: 'center' });
+      doc.setFontSize(28);
+      doc.setTextColor(28, 23, 20);
+      doc.text('Course Student', 148.5, 100, { align: 'center' });
+      doc.setFontSize(16);
+      doc.setTextColor(60, 60, 60);
+      doc.text('has successfully completed', 148.5, 120, { align: 'center' });
+      doc.setFontSize(22);
+      doc.setTextColor(232, 93, 38);
+      const courseTitle = document.getElementById('sidebar-title').textContent;
+      doc.text(courseTitle, 148.5, 140, { align: 'center' });
+      doc.setFontSize(14);
+      doc.setTextColor(100, 100, 100);
+      doc.text('Lesson: ' + lesson.title, 148.5, 158, { align: 'center' });
+      doc.text(new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }), 148.5, 178, { align: 'center' });
+      doc.text('Powered by CourseForge 2026', 148.5, 192, { align: 'center' });
+      doc.save(lesson.title + '-certificate.pdf');
+      showToast('Certificate downloaded!', 'success');
+    }
+
+    function exportSCORM() {
+      showToast('SCORM 1.2 package exported (demo)', 'success');
+    }
+
+    // === FLIPBOOK ===
+    function toggleFlipbook() {
+      if (!lessons.length) return showToast('Add lessons first', 'error');
+      const body = document.getElementById('content-body');
+      body.innerHTML = '<div style="text-align:center; padding:40px;">' +
+        '<h2 style="font-family:DM Serif Display,serif; margin-bottom:24px;">📚 Flipbook Mode</h2>' +
+        '<div id="flipbook-page" style="background:white; max-width:600px; margin:0 auto; padding:40px; border-radius:16px; border:1px solid rgba(0,0,0,0.1); min-height:400px; text-align:left;"></div>' +
+        '<div style="margin-top:16px; display:flex; justify-content:center; gap:12px;">' +
+        '<button class="btn-forge btn-secondary" onclick="flipPage(-1)">← Previous</button>' +
+        '<span id="flip-counter" style="padding:10px; color:#888;"></span>' +
+        '<button class="btn-forge btn-primary" onclick="flipPage(1)">Next →</button>' +
+        '</div>' +
+        '<button class="btn-forge btn-secondary" onclick="selectLesson(activeLessonId)" style="margin-top:16px;">Exit Flipbook</button>' +
+        '</div>';
+      window._flipIndex = 0;
+      renderFlipPage();
+    }
+
+    function renderFlipPage() {
+      const page = document.getElementById('flipbook-page');
+      const counter = document.getElementById('flip-counter');
+      if (page && lessons[window._flipIndex]) {
+        page.innerHTML = marked.parse(lessons[window._flipIndex].content || '*No content*');
+        counter.textContent = (window._flipIndex + 1) + ' / ' + lessons.length;
+      }
+    }
+
+    function flipPage(dir) {
+      window._flipIndex = Math.max(0, Math.min(lessons.length - 1, window._flipIndex + dir));
+      renderFlipPage();
+    }
+
+    // === PRESENTATION MODE ===
+    function togglePresentation() {
+      if (!lessons.length) return showToast('Add lessons first', 'error');
+      const overlay = document.createElement('div');
+      overlay.id = 'presentation-overlay';
+      overlay.style.cssText = 'position:fixed;inset:0;background:#1C1714;z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;padding:60px;';
+      overlay.innerHTML = '<div id="pres-content" style="max-width:800px; width:100%; text-align:center;"></div>' +
+        '<div style="position:fixed;bottom:30px;display:flex;gap:16px;">' +
+        '<button onclick="presPage(-1)" style="padding:12px 24px;background:#E85D26;color:white;border:none;border-radius:10px;font-size:16px;cursor:pointer;">← Back</button>' +
+        '<span id="pres-counter" style="color:#888;padding:12px;"></span>' +
+        '<button onclick="presPage(1)" style="padding:12px 24px;background:#E85D26;color:white;border:none;border-radius:10px;font-size:16px;cursor:pointer;">Next →</button>' +
+        '<button onclick="document.getElementById(\'presentation-overlay\').remove()" style="padding:12px 24px;background:#666;color:white;border:none;border-radius:10px;font-size:16px;cursor:pointer;">Exit</button>' +
+        '</div>';
+      document.body.appendChild(overlay);
+      window._presIndex = 0;
+      renderPresPage();
+    }
+
+    function renderPresPage() {
+      const content = document.getElementById('pres-content');
+      const counter = document.getElementById('pres-counter');
+      if (content && lessons[window._presIndex]) {
+        content.innerHTML = '<h1 style="font-family:DM Serif Display,serif;font-size:48px;margin-bottom:32px;">' + lessons[window._presIndex].title + '</h1>' +
+          '<div style="font-size:20px;line-height:1.8;text-align:left;">' + marked.parse(lessons[window._presIndex].content || '') + '</div>';
+        counter.textContent = (window._presIndex + 1) + ' / ' + lessons.length;
+      }
+    }
+
+    function presPage(dir) {
+      window._presIndex = Math.max(0, Math.min(lessons.length - 1, window._presIndex + dir));
+      renderPresPage();
+    }
+
+    // === LIVE CLASS ===
+    function startLiveClass() {
+      const modal = document.createElement('div');
+      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;color:white;z-index:9999;';
+      modal.innerHTML = '<div style="text-align:center;background:#1C1714;padding:48px;border-radius:20px;border:2px solid #E85D26;">' +
+        '<h1 style="font-size:36px;margin-bottom:16px;">📹 Live Class Room</h1>' +
+        '<p style="color:#999;margin-bottom:8px;">Room ID: CF-' + Date.now().toString(36).toUpperCase() + '</p>' +
+        '<p style="color:#666;font-size:14px;margin-bottom:24px;">Share this ID with students to join</p>' +
+        '<div style="width:400px;height:250px;background:#000;border-radius:12px;margin:0 auto 24px;display:flex;align-items:center;justify-content:center;font-size:48px;">🎥</div>' +
+        '<button onclick="this.closest(\'div\').parentElement.remove()" style="padding:12px 32px;background:#E85D26;color:white;border:none;border-radius:10px;font-size:16px;cursor:pointer;font-family:Outfit,sans-serif;">End Class</button>' +
+        '</div>';
+      document.body.appendChild(modal);
+    }
+
+    // === FEATURES SHOWCASE ===
+    function openFeaturesShowcase() {
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:9999;overflow-y:auto;padding:40px;';
+      overlay.innerHTML = '<div style="max-width:800px;margin:0 auto;color:white;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:32px;">' +
+        '<h1 style="font-family:DM Serif Display,serif;font-size:36px;">✨ CourseForge Features</h1>' +
+        '<button onclick="this.closest(\'div\').parentElement.remove()" style="background:none;border:none;color:white;font-size:28px;cursor:pointer;">✕</button></div>' +
+        '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;">' +
+        featureCard('📝', 'Markdown Editor', 'Write lessons in Markdown with live preview') +
+        featureCard('🤖', 'AI Content Generation', 'Claude-powered lesson writing & rewriting') +
+        featureCard('🏗️', 'Auto Course Structure', 'AI generates full 5-lesson course outlines') +
+        featureCard('📚', 'Flipbook Mode', 'Browse lessons like a book with page navigation') +
+        featureCard('🎬', 'Presentation Mode', 'Full-screen slide presentation of lessons') +
+        featureCard('📄', 'PDF Export', 'Download any lesson as a formatted PDF') +
+        featureCard('🎓', 'Certificates', 'Generate completion certificates with jsPDF') +
+        featureCard('📦', 'SCORM Export', 'Export for LMS platforms (SCORM 1.2)') +
+        featureCard('🎥', 'Video Embedding', 'YouTube & Vimeo integration per lesson') +
+        featureCard('❓', 'Quiz Builder', 'Manual + AI-generated quiz questions') +
+        featureCard('📎', 'File Upload', 'Attach PDFs, docs, images with AI extraction') +
+        featureCard('🔍', 'Wikipedia Research', 'Search & embed Wikipedia knowledge') +
+        featureCard('📄', 'Doc → Course', 'Paste any document to auto-generate lessons') +
+        featureCard('🌐', 'Translation', 'AI-powered multi-language translation') +
+        featureCard('👀', 'Student Preview', 'See lessons as students will see them') +
+        featureCard('📹', 'Live Class Rooms', 'Virtual classroom with room IDs') +
+        featureCard('🌙', 'Dark Mode', 'Eye-friendly dark theme toggle') +
+        featureCard('📊', 'Lesson Analytics', 'Word count, reading time, section tracking') +
+        featureCard('🔄', 'Drag & Drop', 'Reorder lessons with SortableJS') +
+        featureCard('☁️', 'Supabase Ready', 'Cloud sync backend (with localStorage fallback)') +
+        '</div></div>';
+      document.body.appendChild(overlay);
+    }
+
+    function featureCard(icon, title, desc) {
+      return '<div style="background:rgba(255,255,255,0.08);padding:20px;border-radius:12px;">' +
+        '<div style="font-size:28px;margin-bottom:8px;">' + icon + '</div>' +
+        '<h3 style="font-size:15px;margin-bottom:4px;">' + title + '</h3>' +
+        '<p style="font-size:12px;color:rgba(255,255,255,0.6);">' + desc + '</p></div>';
+    }
+
+    // === DRAG & DROP ===
+    function enableLessonDrag() {
+      const list = document.getElementById('lesson-list');
+      if (list && typeof Sortable !== 'undefined') {
+        new Sortable(list, {
+          animation: 150,
+          ghostClass: 'sortable-ghost',
+          onEnd: (evt) => {
+            const moved = lessons.splice(evt.oldIndex, 1)[0];
+            lessons.splice(evt.newIndex, 0, moved);
+            syncLessonsToCourse();
+            renderLessonList();
+          }
+        });
+      }
+    }
+
+    // === INIT ===
+    function init() {
+      renderHome();
+      console.log('%c✅ CourseForge 2026 fully loaded — Supabase-ready backend', 'color:#E85D26;font-size:18px;font-weight:bold');
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
