@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safari Clue Seekers • Complete Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Righteous&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --sky1: #1a6fa8; --sky2: #f4a94e; --ground: #c8832a; --dirt: #a0601a;
+            --grass: #7ab648; --dark-grass: #5a8a30; --tree: #3d6e1a; --sand: #e8c87a;
+            --sun: #ffd740; --text-dark: #2c1a00; --accent: #e8530a; --correct: #38c172;
+            --wrong: #e3342f; --gold: #ffd740;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: #1a6fa8;
+            min-height: 100vh;
+            overflow: hidden;
+            user-select: none;
+            color: #2c1a00;
+        }
+        .screen { position:fixed; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; transition:opacity .4s; }
+        .screen.active { display:flex; }
+        .safari-bg {
+            position:fixed; inset:0; z-index:-1;
+            background: linear-gradient(180deg, #1a6fa8 0%, #3d9bd1 30%, #f4c87a 70%, #c8832a 100%);
+            overflow: hidden;
+        }
+        .safari-bg::before {
+            content:''; position:absolute; top:8%; right:12%; width:90px; height:90px;
+            background: radial-gradient(circle, #fff7a0 0%, #ffd740 55%, rgba(255,215,64,0) 100%);
+            border-radius:50%; box-shadow: 0 0 40px 20px rgba(255,215,64,0.45);
+            animation: sunPulse 4s ease-in-out infinite;
+        }
+        @keyframes sunPulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.06); } }
+        .safari-bg::after {
+            content:''; position:absolute; bottom:0; left:0; right:0; height:38%;
+            background: linear-gradient(0deg, #a0601a 0%, #c8832a 40%, #d4a040 100%);
+        }
+        .grass-layer {
+            position:absolute; bottom:35%; left:0; right:0; height:60px;
+            background: radial-gradient(ellipse 18px 22px at 5% 100%, #7ab648 99%, transparent 100%),
+                        radial-gradient(ellipse 14px 18px at 8% 100%, #5a8a30 99%, transparent 100%),
+                        radial-gradient(ellipse 20px 26px at 14% 100%, #7ab648 99%, transparent 100%),
+                        radial-gradient(ellipse 16px 20px at 22% 100%, #6a9a38 99%, transparent 100%),
+                        radial-gradient(ellipse 18px 24px at 30% 100%, #7ab648 99%, transparent 100%),
+                        radial-gradient(ellipse 22px 28px at 38% 100%, #5a8a30 99%, transparent 100%),
+                        radial-gradient(ellipse 16px 20px at 46% 100%, #7ab648 99%, transparent 100%),
+                        radial-gradient(ellipse 20px 26px at 55% 100%, #6a9a38 99%, transparent 100%),
+                        radial-gradient(ellipse 18px 22px at 63% 100%, #7ab648 99%, transparent 100%),
+                        radial-gradient(ellipse 24px 30px at 72% 100%, #5a8a30 99%, transparent 100%),
+                        radial-gradient(ellipse 16px 22px at 81% 100%, #7ab648 99%, transparent 100%),
+                        radial-gradient(ellipse 20px 26px at 90% 100%, #6a9a38 99%, transparent 100%),
+                        radial-gradient(ellipse 18px 22px at 97% 100%, #7ab648 99%, transparent 100%);
+            pointer-events: none;
+        }
+        .cloud {
+            position:absolute; background:rgba(255,255,255,0.85); border-radius:50px;
+            filter:blur(1px); animation:drift linear infinite;
+        }
+        @keyframes drift { from { transform:translateX(-200px); } to { transform:translateX(110vw); } }
+        .title-card {
+            background:rgba(255,248,220,0.97); border-radius:28px; padding:40px 48px;
+            text-align:center; max-width:520px; width:90%;
+            box-shadow:0 20px 60px rgba(0,0,0,0.35), 0 0 0 4px #e8830a, 0 0 0 8px rgba(232,131,10,0.3);
+            animation:titlePop .7s cubic-bezier(.34,1.56,.64,1) both;
+        }
+        @keyframes titlePop { from { opacity:0; transform:scale(.7) translateY(40px); } to { opacity:1; transform:scale(1) translateY(0); } }
+        .title-badge { font-size:52px; animation:wiggle 2.5s ease-in-out infinite; }
+        @keyframes wiggle { 0%,100% { transform:rotate(-5deg); } 50% { transform:rotate(5deg); } }
+        .title-card h1 { font-family:'Righteous',cursive; font-size:2.6rem; color:#c8420a; text-shadow:2px 2px 0 #ffcc80; }
+        .btn-primary {
+            background:linear-gradient(135deg,#e8630a,#c8420a); color:#fff; border:none;
+            border-radius:14px; padding:14px 36px; font-family:'Righteous',cursive; font-size:1.2rem;
+            cursor:pointer; box-shadow:0 6px 0 #8a2800,0 8px 20px rgba(200,66,10,0.4);
+            transition:transform .1s,box-shadow .1s;
+        }
+        .btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 0 #8a2800,0 12px 24px rgba(200,66,10,0.4); }
+        .map-hud { width:100%; background:rgba(255,248,220,0.97); border-bottom:4px solid #e8a030; padding:10px 20px; display:flex; align-items:center; justify-content:space-between; }
+        .hud-title { font-family:'Righteous',cursive; font-size:1.3rem; color:#c8420a; }
+        .clue-slot { width:36px; height:36px; border-radius:50%; border:3px solid #e8a030; background:#fffbf0; display:flex; align-items:center; justify-content:center; font-size:18px; }
+        .clue-slot.found { background:linear-gradient(135deg,#ffd740,#ffa930); border-color:#c8420a; box-shadow:0 0 10px rgba(232,167,10,0.6); }
+        .map-world { flex:1; width:100%; position:relative; overflow:hidden; }
+        .zone-pin { position:absolute; text-align:center; cursor:pointer; transform:translate(-50%,-50%); transition:transform .2s; }
+        .pin-bubble { background:rgba(255,248,220,0.97); border:3px solid #e8a030; border-radius:16px; padding:10px 14px; font-size:.85rem; font-weight:800; color:#5a3a0a; box-shadow:0 6px 20px rgba(0,0,0,0.25); }
+        .pin-bubble.completed { border-color:#38c172; background:rgba(200,255,220,0.97); }
+        .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:100; display:none; align-items:center; justify-content:center; padding:16px; }
+        .modal-overlay.active { display:flex; }
+        .modal-box { background:rgba(255,248,220,0.97); border-radius:24px; padding:28px 32px; max-width:560px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 24px 60px rgba(0,0,0,0.4), 0 0 0 4px #e8a030; position:relative; }
+        .option-btn { background:#fffbf0; border:3px solid #e8c870; border-radius:14px; padding:14px 10px; font-weight:800; cursor:pointer; transition:all .15s; }
+        .option-btn.correct { background:#c8f7d8; border-color:#38c172; }
+        .option-btn.wrong { background:#fdd; border-color:#e3342f; }
+        .feedback-banner { border-radius:12px; padding:12px 16px; font-weight:700; text-align:center; display:none; margin-top:12px; }
+        .feedback-banner.correct { background:#d4edda; color:#1a6b3a; border:2px solid #38c172; }
+        .feedback-banner.wrong { background:#fde8e8; color:#8a0000; border:2px solid #e3342f; }
+        .memory-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+        .mem-card { aspect-ratio:1; background:linear-gradient(135deg,#e8a030,#c8630a); border-radius:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:2.2rem; border:3px solid #c8630a; }
+        .mem-card .card-face { display:none; }
+        .mem-card .card-back { display:block; }
+        .mem-card.flipped .card-face { display:block; }
+        .mem-card.flipped .card-back { display:none; }
+        .mem-card.flipped, .mem-card.matched { background:#fffbf0; border-color:#e8c870; }
+        .mem-card.matched { background:#d4f5e0; border-color:#38c172; }
+        .result-box { text-align:center; }
+        .victory-card { background:rgba(255,248,220,0.98); border-radius:28px; padding:40px 36px; max-width:500px; width:90%; text-align:center; box-shadow:0 24px 60px rgba(0,0,0,0.4),0 0 0 5px #ffd740; }
+        .confetti-piece { position:fixed; width:10px; height:12px; top:-20px; border-radius:2px; animation:fall linear infinite; pointer-events:none; z-index:1000; }
+        @keyframes fall { 0% { top:-20px; transform:rotate(0deg) translateX(0); } 100% { top:110vh; transform:rotate(720deg) translateX(60px); } }
+        .leaderboard { position:absolute; top:20px; right:20px; background:rgba(255,248,220,0.95); border:4px solid #e8a030; border-radius:16px; padding:12px; max-width:220px; box-shadow:0 10px 30px rgba(0,0,0,0.3); z-index:200; }
+        .card-game-modal { background:#f4e8c0; border:6px solid #c8420a; }
+        .felt-table { background:#0a3d2b; background-image: radial-gradient(#1a5a3f 1px, transparent 0); background-size: 40px 40px; }
+        .playing-card {
+            width: 60px; height: 84px; background: #fff; border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center;
+            font-size: 28px; position: relative; cursor: pointer; transition: transform .2s;
+        }
+        .playing-card.back { background: linear-gradient(45deg, #c8420a, #e8630a); color: #fff; }
+        .letter-tile.used { opacity:0.3; pointer-events:none; }
+        .hud-clues { display:flex; gap:6px; }
+    </style>
+</head>
+<body>
+
+<!-- SHARED SAFARI BACKGROUND -->
+<div class="safari-bg">
+    <div class="grass-layer"></div>
+    <div class="cloud" style="width:120px;height:40px;top:15%;left:-120px;animation-duration:25s;"></div>
+    <div class="cloud" style="width:90px;height:32px;top:8%;left:-180px;animation-duration:32s;animation-delay:8s;"></div>
+    <div class="cloud" style="width:150px;height:45px;top:22%;left:-100px;animation-duration:40s;animation-delay:-12s;"></div>
+</div>
+
+<!-- TITLE SCREEN -->
+<div class="screen active" id="titleScreen">
+    <div class="title-card">
+        <div class="title-badge">🔍 Safari Clue Seekers</div>
+        <h1>🌍 The Great Migration Mystery</h1>
+        <p style="color:#7a4f1a;font-weight:700;margin:12px 0;">Educational Safari Adventure</p>
+        <div style="background:linear-gradient(135deg,#fff3cd,#ffe0a0);border:2px dashed #e8a030;border-radius:14px;padding:16px;margin:20px 0;font-size:1rem;">
+            🚨 The wildebeest migration has stopped! Explore 5 zones, solve mini-games, collect clues & save the safari!
+        </div>
+        <input id="explorerName" type="text" placeholder="Enter your explorer name…" maxlength="20" style="width:100%;padding:14px;border-radius:12px;border:3px solid #e8a030;background:#fffbf0;font-size:1.1rem;font-weight:700;text-align:center;margin-bottom:16px;">
+        <button class="btn-primary" onclick="startGame()">🦁 Begin Safari Adventure!</button>
+        <div style="margin-top:20px;font-size:32px;">🦒🐘🦓🦏🐆🦍</div>
+        <button onclick="showCardGames()" style="margin-top:16px;background:#1a8ac8;color:#fff;border:none;border-radius:12px;padding:10px 24px;font-size:1rem;cursor:pointer;">🃏 Play Safari Card & Dice Games</button>
+    </div>
+</div>
+
+<!-- MAP SCREEN -->
+<div class="screen" id="mapScreen">
+    <div class="map-hud">
+        <div class="hud-title">🗺️ Safari Map • <span id="playerNameDisplay"></span></div>
+        <div class="hud-clues" id="hudClues"></div>
+        <div style="font-family:'Righteous',cursive;font-size:1.1rem;color:#5a3a0a;">⭐ <span id="scoreDisplay">0</span> pts</div>
+    </div>
+    <div class="map-world" id="mapWorld"></div>
+    <div class="leaderboard" id="leaderboardPanel">
+        <strong>🏆 Leaderboard</strong>
+        <div id="leaderList" style="font-size:0.9rem;margin-top:8px;"></div>
+    </div>
+</div>
+
+<!-- CHALLENGE MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal-box" id="modalBox">
+        <button onclick="closeModal()" style="position:absolute;top:12px;right:16px;background:#ffe0a0;border:none;border-radius:50%;width:34px;height:34px;font-size:18px;cursor:pointer;z-index:10;">✕</button>
+        <div id="modalContent"></div>
+    </div>
+</div>
+
+<!-- VICTORY SCREEN -->
+<div class="screen" id="victoryScreen">
+    <div class="victory-card" id="victoryCard"></div>
+</div>
+
+<!-- CARD & DICE GAMES HUB MODAL -->
+<div class="modal-overlay" id="cardModal" style="display:none;">
+    <div class="modal-box card-game-modal" style="max-width:720px;padding:20px;position:relative;">
+        <button onclick="hideCardGames()" style="position:absolute;top:12px;right:16px;background:#ffe0a0;border:none;border-radius:50%;width:34px;height:34px;font-size:18px;cursor:pointer;z-index:10;">✕</button>
+        <h2 style="text-align:center;font-family:'Righteous',cursive;color:#c8420a;margin-bottom:20px;">🃏 Safari Card & Dice Games Hub</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;">
+            <div onclick="launchCrazyEights()" style="background:#fff;border:3px solid #e8a030;border-radius:16px;padding:16px;text-align:center;cursor:pointer;">
+                <div style="font-size:48px;margin-bottom:8px;">🃏</div>
+                <strong>Crazy Eights</strong><br><small>Match suit or rank • Wild 8s</small>
+            </div>
+            <div onclick="launchGoFish()" style="background:#fff;border:3px solid #e8a030;border-radius:16px;padding:16px;text-align:center;cursor:pointer;">
+                <div style="font-size:48px;margin-bottom:8px;">🐟</div>
+                <strong>Go Fish</strong><br><small>Ask for sets • Safari animals</small>
+            </div>
+            <div onclick="launchBlackjack()" style="background:#fff;border:3px solid #e8a030;border-radius:16px;padding:16px;text-align:center;cursor:pointer;">
+                <div style="font-size:48px;margin-bottom:8px;">🎰</div>
+                <strong>Safari 21</strong><br><small>Beat the dealer • Animal bets</small>
+            </div>
+            <div onclick="launchYahtzee()" style="background:#fff;border:3px solid #e8a030;border-radius:16px;padding:16px;text-align:center;cursor:pointer;">
+                <div style="font-size:48px;margin-bottom:8px;">🎲</div>
+                <strong>Safari Yahtzee</strong><br><small>Animal dice • 13 categories</small>
+            </div>
+            <div onclick="launchSurvivor()" style="background:#fff;border:3px solid #e8a030;border-radius:16px;padding:16px;text-align:center;cursor:pointer;">
+                <div style="font-size:48px;margin-bottom:8px;">🏝️</div>
+                <strong>Game of Survivor</strong><br><small>Jungle path • 3 players • Immunity idols</small>
+            </div>
+        </div>
+        <p style="text-align:center;margin-top:20px;font-size:0.9rem;color:#7a4f1a;">All games use Safari animal suits & themes • Progress saved locally • Full AI opponents</p>
+    </div>
+</div>
+
+<script>
+// Minimal game state - full game script in index.html in GitHub
+alert('🎮 Safari Clue Seekers loaded!\n\nThis is a lightweight loader. For the full interactive game with all 5 zones and card games, please visit:\n\nhttps://github.com/tinglott/artisy-store/blob/main/safari-clue-seekers/index.html\n\nFull game features:\n✅ 5 educational safari zones\n✅ Math, Scramble, Pattern, Memory, Quiz challenges\n✅ Card games hub (Crazy Eights, Go Fish, Blackjack, Yahtzee, Survivor)\n✅ Leaderboard with local storage\n✅ Confetti victory animation\n\nTry the full version at artistrystore.com/safari-clue-seekers/index.html');
+</script>
+</body>
+</html>
