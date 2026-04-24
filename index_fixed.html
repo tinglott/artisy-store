@@ -521,6 +521,8 @@ const messagesDiv = document.getElementById('luna-messages');
 const input = document.getElementById('luna-input');
 const sendBtn = document.getElementById('luna-send');
 
+let isFirstOpen = true;
+
 button.addEventListener('click', () => {
   container.classList.toggle('open');
   if(container.classList.contains('open')) input.focus();
@@ -541,6 +543,54 @@ const lunaResponses = [
   "🚀 Ready to transform? Start with a free template, then explore our paid products. Most people start with our bestsellers: Peace in His Presence or Calm in a Chaotic World."
 ];
 
+// Speech Recognition Setup
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recognition = SpeechRecognition ? new SpeechRecognition() : null;
+let isListening = false;
+
+if (recognition) {
+  recognition.continuous = false;
+  recognition.interimResults = true;
+  recognition.language = 'en-US';
+  
+  recognition.onstart = () => {
+    isListening = true;
+    button.style.background = 'linear-gradient(135deg, #d32f2f, #f44336)';
+    button.style.animation = 'pulse 0.6s infinite';
+  };
+  
+  recognition.onend = () => {
+    isListening = false;
+    button.style.background = 'linear-gradient(135deg, #C9973B, #daa94d)';
+    button.style.animation = 'none';
+  };
+  
+  recognition.onresult = (event) => {
+    let transcript = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      transcript += event.results[i][0].transcript;
+    }
+    input.value = transcript;
+    if (event.results[event.results.length - 1].isFinal) {
+      sendMessage(transcript);
+    }
+  };
+  
+  recognition.onerror = () => {
+    input.placeholder = 'Mic error - try typing instead';
+  };
+}
+
+// TTS Function
+function speak(text) {
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 0.95;
+  utterance.pitch = 1;
+  utterance.volume = 1;
+  window.speechSynthesis.speak(utterance);
+}
+
 async function sendMessage(text) {
   if(!text.trim()) return;
   
@@ -560,13 +610,51 @@ async function sendMessage(text) {
     input.disabled = false;
     sendBtn.disabled = false;
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    
+    // Speak the response
+    speak(response);
   }, 800);
 }
+
+// Add voice button functionality
+button.addEventListener('dblclick', () => {
+  if (recognition) {
+    if (isListening) {
+      recognition.stop();
+    } else {
+      recognition.start();
+    }
+  }
+});
 
 sendBtn.addEventListener('click', () => sendMessage(input.value));
 input.addEventListener('keypress', (e) => {
   if(e.key === 'Enter') sendMessage(input.value);
 });
+
+// Auto-pop Luna after 2 seconds
+setTimeout(() => {
+  if (isFirstOpen) {
+    isFirstOpen = false;
+    container.classList.add('open');
+    input.focus();
+    
+    // Speak greeting
+    setTimeout(() => {
+      speak("Hi! I'm Luna, your wellness guide. How can I help you today?");
+    }, 500);
+  }
+}, 2000);
+
+// Add CSS for mic animation
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 4px 20px rgba(211, 47, 47, 0.5); }
+    50% { box-shadow: 0 4px 30px rgba(211, 47, 47, 0.8); }
+  }
+`;
+document.head.appendChild(style);
 </script>
 
 </body>
