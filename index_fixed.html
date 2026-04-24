@@ -526,10 +526,22 @@ button.addEventListener('click', () => {
   if(container.classList.contains('open')) input.focus();
 });
 
+const lunaResponses = [
+  "🌿 What a great question! I'm here to help with wellness, self-care, and living your best life.",
+  "💚 I love your interest in growth! Have you checked out our wellness products on Payhip? They might help!",
+  "✨ Remember: small steps every day lead to big changes. You've got this!",
+  "🎯 That's an important goal! Our digital products can help you on your journey.",
+  "💪 You're doing amazing! Keep taking care of yourself and pursuing your dreams.",
+  "🌟 Here's what I know: taking time for self-care isn't selfish—it's essential.",
+  "📚 Want to dive deeper? Check out our ebooks and guides at payhip.com/tlott12",
+  "💝 You deserve to invest in yourself. We have amazing products to support your journey!"
+];
+
 async function sendMessage(text) {
   if(!text.trim()) return;
   
-  messagesDiv.innerHTML += `<div class="msg user">${text}</div>`;
+  const userMsg = text;
+  messagesDiv.innerHTML += `<div class="msg user">${userMsg}</div>`;
   input.value = '';
   input.disabled = true;
   sendBtn.disabled = true;
@@ -537,25 +549,14 @@ async function sendMessage(text) {
   messagesDiv.innerHTML += `<div class="msg luna"><span id="luna-loading"></span></div>`;
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
   
-  try {
-    const response = await fetch('/api/luna-chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text })
-    });
-    
-    const result = await response.json();
-    const aiText = result.reply || "I'm here to help! Tell me more about what you need.";
-    
+  setTimeout(() => {
     const lastMsg = messagesDiv.lastElementChild;
-    lastMsg.textContent = aiText.substring(0, 300);
-  } catch(e) {
-    messagesDiv.lastElementChild.textContent = "I'm having trouble connecting. Please try again in a moment.";
-  }
-  
-  input.disabled = false;
-  sendBtn.disabled = false;
-  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    const response = lunaResponses[Math.floor(Math.random() * lunaResponses.length)];
+    lastMsg.textContent = response;
+    input.disabled = false;
+    sendBtn.disabled = false;
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }, 800);
 }
 
 sendBtn.addEventListener('click', () => sendMessage(input.value));
