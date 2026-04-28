@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Words of Life - Interactive Flipbook by T. Lott</title>
+<style>
+*{{margin:0;padding:0;box-sizing:border-box}}
+:root{{--primary:#1a1a2e;--accent:#e94560;--gold:#f4a261;--bg:#0f0f23;--page:#fefae0}}
+body{{font-family:'Georgia',serif;background:var(--bg);color:#fff;min-height:100vh;overflow-x:hidden}}
+.header{{background:linear-gradient(135deg,var(--primary),#16213e);padding:20px;text-align:center;border-bottom:3px solid var(--gold)}}
+.header h1{{font-size:1.8rem;color:var(--gold);text-shadow:0 2px 10px rgba(244,162,97,0.3)}}
+.header p{{color:#ccc;font-style:italic;margin-top:5px}}
+.book-container{{max-width:800px;margin:30px auto;perspective:1500px;padding:0 20px}}
+.book{{position:relative;width:100%;min-height:500px;transform-style:preserve-3d}}
+.page{{background:var(--page);color:#333;padding:40px;border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,0.5);min-height:450px;position:relative;transition:transform 0.6s ease;transform-origin:left center}}
+.page-content{{font-size:1.1rem;line-height:1.8;white-space:pre-wrap;font-family:'Georgia',serif}}
+.page-number{{position:absolute;bottom:15px;right:20px;color:#999;font-size:0.85rem}}
+.controls{{display:flex;justify-content:center;gap:15px;margin:25px auto;flex-wrap:wrap;max-width:800px;padding:0 20px}}
+.btn{{padding:12px 28px;border:none;border-radius:25px;cursor:pointer;font-size:1rem;font-weight:600;transition:all 0.3s}}
+.btn-nav{{background:linear-gradient(135deg,var(--accent),#c73852);color:#fff}}
+.btn-nav:hover{{transform:translateY(-2px);box-shadow:0 5px 20px rgba(233,69,96,0.4)}}
+.btn-nav:disabled{{opacity:0.4;cursor:not-allowed;transform:none}}
+.btn-audio{{background:linear-gradient(135deg,var(--gold),#e76f51);color:#fff}}
+.btn-audio:hover{{transform:translateY(-2px);box-shadow:0 5px 20px rgba(244,162,97,0.4)}}
+.btn-audio.playing{{animation:pulse 1.5s infinite}}
+@keyframes pulse{{0%,100%{{box-shadow:0 0 0 0 rgba(244,162,97,0.5)}}50%{{box-shadow:0 0 0 15px rgba(244,162,97,0)}}}}
+.progress{{max-width:800px;margin:0 auto 20px;padding:0 20px}}
+.progress-bar{{height:6px;background:#1a1a2e;border-radius:3px;overflow:hidden}}
+.progress-fill{{height:100%;background:linear-gradient(90deg,var(--accent),var(--gold));transition:width 0.3s;border-radius:3px}}
+.progress-text{{text-align:center;color:#888;font-size:0.85rem;margin-top:5px}}
+.toc{{max-width:800px;margin:20px auto;padding:0 20px}}
+.toc-toggle{{color:var(--gold);cursor:pointer;font-size:1rem;text-decoration:underline}}
+.toc-list{{display:none;background:var(--primary);border-radius:8px;padding:15px;margin-top:10px;max-height:300px;overflow-y:auto}}
+.toc-list.open{{display:block}}
+.toc-item{{padding:8px 12px;color:#ccc;cursor:pointer;border-radius:4px;transition:background 0.2s}}
+.toc-item:hover{{background:rgba(233,69,96,0.2);color:#fff}}
+.footer{{text-align:center;padding:30px;color:#666;font-size:0.85rem;border-top:1px solid #1a1a2e;margin-top:40px}}
+.footer a{{color:var(--gold);text-decoration:none}}
+.badge{{display:inline-block;background:var(--accent);color:#fff;padding:3px 10px;border-radius:12px;font-size:0.75rem;margin-left:8px}}
+@media(max-width:600px){{.page{{padding:25px;min-height:350px}}.page-content{{font-size:1rem;line-height:1.7}}.header h1{{font-size:1.4rem}}}}
+</style>
+</head>
+<body>
+<div class="header">
+<h1>📖 Words of Life</h1>
+<p>by T. Lott <span class="badge">Interactive Flipbook</span></p>
+</div>
+<div class="toc">
+<span class="toc-toggle" onclick="toggleTOC()">📑 Table of Contents</span>
+<div class="toc-list" id="tocList"></div>
+</div>
+<div class="progress">
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+<div class="progress-text" id="progressText">Page 1 of 1</div>
+</div>
+<div class="book-container">
+<div class="book">
+<div class="page">
+<div class="page-content" id="pageContent">Loading...</div>
+<div class="page-number" id="pageNum"></div>
+</div>
+</div>
+</div>
+<div class="controls">
+<button class="btn btn-nav" id="prevBtn" onclick="prevPage()">◀ Previous</button>
+<button class="btn btn-audio" id="audioBtn" onclick="toggleAudio()">🔊 Read Aloud</button>
+<button class="btn btn-nav" id="nextBtn" onclick="nextPage()">Next ▶</button>
+</div>
+<div class="footer">
+<p>© T. Lott Creative | <a href="https://payhip.com/tlott12" target="_blank">Browse All Books</a> | <a href="https://hi.switchy.io/uQRk" target="_blank">Shop Full Collection</a></p>
+<p style="margin-top:8px">Created with ❤️ by a 23-year RN & Author</p>
+</div>
+<script>
+// PAGES DATA - replaced during generation
+const PAGES = [{"title": "Words of Life", "text": "Words of Life\n                            Scripture & Poetry for the Soul\n                                       A Devotional Collection\n\n\n\n\nFULFILLING\nJohn 10:10 \u2014 \"I have come that they may have life, and have it to the full.\"\n\nNot half a life, not just enough to cope,\nBut rivers deep and skies stretched wide with hope.\nHe came to fill the hollow and the lean,\nTo color every corner left unseen.\nSo breathe it in \u2014 this life He freely gives,\nAbundant, full, the truest way to live.\n\n\n\nKINDNESS\nEphesians 4:32 \u2014 \"Be kind and compassionate to one another, forgiving each other, just as in Christ\nGod forgave you.\"\n\nA gentle word can stop a falling tear,\nA tender act can chase away the fear.\nKindness costs so little, yet gives much,\nA heart made soft by heaven's patient touch.\nSo let it flow the way Christ showed us how \u2014\nA grace extended freely, here and now.\n\n\n\nQUIET\nPsalm 46:10 \u2014 \"Be still, and know that I am God.\"\n\n\n\n\n                                              Words of Life \u2014 1"}, {"title": "In the hush between the noise and the race,", "text": "In the hush between the noise and the race,\nHe waits for us to slow and seek His face.\nThe quiet is not empty \u2014 it is full\nOf holy things too tender for the pull\nOf busy hands and loud and restless days.\nBe still. Breathe deep. Let stillness be your praise.\n\n\n\nLIFESTYLE\nColossians 3:17 \u2014 \"And whatever you do, whether in word or deed, do it all in the name of the Lord\nJesus.\"\n\nIt's not the Sunday songs alone that count,\nBut how we live from valley up to mount.\nEach meal, each step, each word we choose to say \u2014\nA holy offering laid down every day.\nLet every season, simple or sublime,\nReflect a life surrendered, wholly Thine.\n\n\n\nACCEPTANCE\nRomans 15:7 \u2014 \"Accept one another, then, just as Christ accepted you, in order to bring praise to God.\"\n\nHe saw us broken, wandering, and lost,\nAnd welcomed us without a thought of cost.\nNo mask required, no need to first be whole \u2014\nHe opened wide His arms to every soul.\nSo may we learn to see with Heaven's eyes,\nAnd welcome one another \u2014 no disguise.\n\n\n\nLOVELINESS\nPhilippians 4:8 \u2014 \"Whatever is lovely... think about such things.\"\n\nTrain your gaze on what is beautiful and true,\nOn sunsets lit by grace and morning dew.\nLoveliness is not a shallow thing \u2014\nIt's found in every gift that He would bring.\nA laughing child, a humble, honest prayer \u2014\nLoveliness blooms wherever He is there.\n\n\n\n\n                                              Words of Life \u2014 2"}, {"title": "ARTISTRY", "text": "ARTISTRY\nPsalm 139:14 \u2014 \"I praise you because I am fearfully and wonderfully made.\"\n\nHe took the clay and breathed it into form,\nEach curve of ear and eye, a holy norm.\nNo two alike beneath the sculptor's hand \u2014\nA masterpiece by love alone was planned.\nYou are His art, still crafted, never done,\nA living poem penned beneath the sun.\n\n\n\nMAGICAL\nMark 10:27 \u2014 \"With man this is impossible, but not with God; all things are possible with God.\"\n\nHe speaks and seas divide, and dead men rise,\nHe turns the ordinary to surprise.\nThe water into wine, the blind now see \u2014\nHis wonders are not tricks but love set free.\nSo dare to dream what seems too large to hold;\nWith God, the best of stories yet be told.\n\n\n\nLONG-TERM\nJeremiah 29:11 \u2014 \"For I know the plans I have for you, declares the Lord, plans to prosper you and not\nto harm you, plans to give you hope and a future.\"\n\nHe does not think in moments, days, or years,\nBut blueprints drawn through decades, hopes and tears.\nWhat feels too slow is working, root and stem,\nDeep preparations for Jerusalem.\nTrust the long arc bending toward the light \u2014\nHis plans don't fail; they ripen in His time, just right.\n\n\n\nASSURANCE\nHebrews 11:1 \u2014 \"Now faith is confidence in what we hope for and assurance about what we do not see.\"\n\nWe cannot see tomorrow's shape or name,\nYet faith declares His promises the same.\nAssurance isn't certainty of facts \u2014\nIt's trusting in the God who never lacks.\nSo stand on what He's said and rest in this:\n\n\n\n                                             Words of Life \u2014 3"}, {"title": "No promise made by God has gone amiss.", "text": "No promise made by God has gone amiss.\n\n\n\nLOVE\n1 John 4:8 \u2014 \"Whoever does not love does not know God, because God is love.\"\n\nBefore the world was spoken into being,\nBefore a single eye had gift of seeing,\nThere was a Love that needed nothing more\nYet chose to give and overflow and pour.\nHe is not like love \u2014 He is love itself,\nA boundless treasure, not put on a shelf.\n\n\n\nBEAUTY\nPsalm 27:4 \u2014 \"One thing I ask... to gaze on the beauty of the Lord.\"\n\nStrip every earthly beauty down to bones,\nPeel back the roses and the rolling tones,\nAnd still His beauty dwarfs them all with ease \u2014\nA glory mortal eyes can barely seize.\nYet He invites us: come and look and stay,\nAnd gaze upon His face and not look away.\n\n\n\nPATIENCE\nRomans 8:25 \u2014 \"But if we hope for what we do not yet have, we wait for it patiently.\"\n\nThe seed does not begrudge the frozen ground;\nIt waits in faith for what has not been found.\nSo we are taught to linger, trust, and grow\nInstead of pushing rivers we can't row.\nPatience is not passive \u2014 it is strong,\nA quiet trust that waits the whole song long.\n\n\n\nPEACE\nJohn 14:27 \u2014 \"Peace I leave with you; my peace I give you. Not as the world gives do I give to you.\"\n\nThe world sells quiet as the absence of noise,\nAnd calm as simply loss of all our ploys.\nBut His peace passes what our minds can grasp \u2014\n\n\n\n                                              Words of Life \u2014 4"}, {"title": "A steadiness no storm can make to lapse.", "text": "A steadiness no storm can make to lapse.\nHe gives it freely, not on credit due;\nHis peace is not for some \u2014 it's meant for you.\n\n\n\nBELIEF\nMark 9:23 \u2014 \"Everything is possible for one who believes.\"\n\nIt starts as small as mustard, dry and still,\nBut planted deep, it grows against the hill.\nBelief is not a feeling, bright or warm \u2014\nIt's anchoring to truth inside the storm.\nSo speak it when you're weary, say it plain:\nI believe \u2014 and say it once again.\n\n\n\nPERSEVERANCE\nJames 1:4 \u2014 \"Let perseverance finish its work so that you may be mature and complete, not lacking\nanything.\"\n\nDon't stop before the breakthrough has its say,\nDon't fold the tent when dawn is one more day.\nThe race is not the fastest who will win,\nBut those who rise each time they trip and spin.\nPersevere \u2014 the testing builds the gold,\nAnd stories that persevere are worth the told.\n\n\n\nBLESSING\nNumbers 6:24-26 \u2014 \"The Lord bless you and keep you; the Lord make his face shine on you and be\ngracious to you.\"\n\nHe lifts His face and lets it shine on you,\nHis favor like the morning breaking through.\nA blessing is not luck or fortune's whim \u2014\nIt's being fully held and kept by Him.\nSo walk in it, receive it, let it rest\nUpon your life \u2014 His favor, yours, expressed.\n\n\n\nPRAISE\nPsalm 150:6 \u2014 \"Let everything that has breath praise the Lord.\"\n\n\n\n                                            Words of Life \u2014 5"}, {"title": "Not just the sweet notes lifted in a choir,", "text": "Not just the sweet notes lifted in a choir,\nNot just the songs that set the heart on fire \u2014\nBut every breath drawn in and given back\nIs praise that fills the air in joy and lack.\nThe sun that rises doesn't need to sing\nYet praises by its shining everything.\n\n\n\nBOLDNESS\nActs 4:31 \u2014 \"And they were all filled with the Holy Spirit and spoke the word of God boldly.\"\n\nNot loud, not brash, not striving to be seen,\nBut rooted in a power from unseen.\nBoldness born of God is still and sure,\nIt speaks the truth when silence is the lure.\nFilled with Holy fire, we need not fear \u2014\nThe same Spirit that raised Christ is here.\n\n\n\nPRAYER\nPhilippians 4:6 \u2014 \"Do not be anxious about anything, but in every situation, by prayer and petition...\npresent your requests to God.\"\n\nIt is the sacred line that reaches through\nThe ceiling and the sky and breaks on through.\nHe doesn't need our perfect words, or long \u2014\nA whispered name is still a holy song.\nSo bring it all: the broken and the bright,\nThe prayers that have no words still find the light.\n\n\n\nCOMFORT\n2 Corinthians 1:3-4 \u2014 \"The Father of compassion and the God of all comfort, who comforts us in all our\ntroubles.\"\n\nHe is not distant when the grief runs deep;\nHe knows the weight of sorrow and of weep.\nHe draws the closest when our strength has gone\nAnd whispers in the dark: you are not alone.\nThe comfort that He gives is not a band-aid placed \u2014\nIt's presence, peace, and grace on grace on grace.\n\n\n\n\n                                              Words of Life \u2014 6"}, {"title": "PROMISES", "text": "PROMISES\n2 Corinthians 1:20 \u2014 \"For no matter how many promises God has made, they are 'Yes' in Christ.\"\n\nHe has not spoken one word He won't keep,\nNot one vow made to wither in our sleep.\nHis promises are ancient, tried, and true \u2014\nAnd every single one is yes for you.\nSo hold them up in faith and let them stand;\nHis Word won't waver \u2014 it's still in His hand.\n\n\n\nCOMPASSION\nLamentations 3:22-23 \u2014 \"Because of the Lord's great love we are not consumed, for his compassions\nnever fail. They are new every morning.\"\n\nThe mercy that He gives does not run dry,\nNot spent by noon or faded with the sky.\nEach morning, compassion rises fresh and new,\nA tender mercy waiting just for you.\nSo do not fear the weight of yesterday \u2014\nHis pity starts again with break of day.\n\n\n\nPROTECTION\nPsalm 91:11 \u2014 \"For he will command his angels concerning you to guard you in all your ways.\"\n\nYou are not unattended in this world,\nWith heaven's watchful banners wide unfurled.\nAngels commanded by the Living God\nWalk every road and path your feet have trod.\nSo go in peace \u2014 no place too dark or wide\nTo be beyond the reach of One who guards inside.\n\n\n\nCONFIDENCE\nPhilippians 1:6 \u2014 \"He who began a good work in you will carry it on to completion.\"\n\nYou are not half-done and then left behind;\nHe doesn't start and leave the work unlined.\nThe same hand that first planted in your heart\nIs committed to complete what He did start.\nSo stand with confidence \u2014 not in your own \u2014\n\n\n\n                                            Words of Life \u2014 7"}, {"title": "But in the God whose goodness has been shown.", "text": "But in the God whose goodness has been shown.\n\n\n\nPROVISION\nPhilippians 4:19 \u2014 \"And my God will meet all your needs according to the riches of his glory in Christ\nJesus.\"\n\nHe doesn't ration mercy, food, or grace\nAs though the storeroom only has one place.\nHis riches are as wide as glory's shore,\nAnd every need you bring, He has still more.\nSo worry not the how and why and when \u2014\nThe God who feeds the sparrow knows your name and then.\n\n\n\nCONTENTMENT\nPhilippians 4:11 \u2014 \"I have learned, in whatever state I am, to be content.\"\n\nIt was not born in Paul on easy ground,\nBut learned through chains and shipwreck, lost and found.\nContentment is a practice, not a gift \u2014\nA daily choosing God above the drift.\nTo say enough and mean it, full and free:\nThis is the peace that passes what I see.\n\n\n\nPURPOSE\nEphesians 2:10 \u2014 \"For we are God's handiwork, created in Christ Jesus to do good works, which God\nprepared in advance for us to do.\"\n\nYou were not placed by accident or chance\nUpon this earth to simply drift and glance.\nBefore you drew a breath or said a word,\nA purpose for your living had been stirred.\nGood works prepared, a path laid out ahead \u2014\nNot destination, but the way you're led.\n\n\n\nCOURAGE\nJoshua 1:9 \u2014 \"Be strong and courageous. Do not be afraid; do not be discouraged, for the Lord your\nGod will be with you wherever you go.\"\n\nIt is not fearlessness that He commands,\n\n\n                                              Words of Life \u2014 8"}, {"title": "But going forth while trembling in His hands.", "text": "But going forth while trembling in His hands.\nCourage is the yes when every nerve says no,\nThe step of faith that braves the undertow.\nBe strong \u2014 not in your own depleted store,\nBut in the God who goes with you before.\n\n\n\nREFRESHMENT\nIsaiah 40:31 \u2014 \"But those who hope in the Lord will renew their strength. They will soar on wings like\neagles.\"\n\nWhen every ounce of energy has drained,\nAnd every mile has left you more than strained,\nHope is the well that doesn't run to dry \u2014\nDrink deeply and be lifted to the sky.\nLike eagles riding thermals, high and free,\nHis strength refreshes what ours could not be.\n\n\n\nRELAXATION\nMatthew 11:28 \u2014 \"Come to me, all you who are weary and burdened, and I will give you rest.\"\n\nThere is no need to earn the rest He gives,\nNo list to check before the tired soul lives.\nHe simply says: come, lay the burden here,\nLet go the grip of striving, doubt, and fear.\nTrue rest is not a hammock or a nap \u2014\nIt's peace found folded in His faithful lap.\n\n\n\nDELIVERANCE\nPsalm 34:17 \u2014 \"The righteous cry out, and the Lord hears them; he delivers them from all their\ntroubles.\"\n\nHe hears the cry that has no proper words,\nThe groan that rises higher than the birds.\nDeliverance is not a distant act \u2014\nIt moves when Heaven hears and He reacts.\nSo cry out from the pit, however deep \u2014\nThe One who hears is One who does not sleep.\n\n\n\n\n                                             Words of Life \u2014 9"}, {"title": "RELIABILITY", "text": "RELIABILITY\nHebrews 13:8 \u2014 \"Jesus Christ is the same yesterday and today and forever.\"\n\nHe doesn't shift with seasons, moods, or age,\nNot different on the good or bitter page.\nThe God of Abraham still answers prayer,\nThe God of Moses still meets us in the air.\nSo lean on Him without the fear of change \u2014\nHis faithfulness is not within time's range.\n\n\n\nOVERCOMING DEPRESSION\nPsalm 34:18 \u2014 \"The Lord is close to the brokenhearted and saves those who are crushed in spirit.\"\n\nWhen the grey sits heavy like a stone,\nAnd getting up feels like a feat unknown,\nHe is not far \u2014 He presses close and near\nTo those whose spirits feel too crushed to hear.\nYou are not forgotten in the fog \u2014\nHe finds you there and lifts what weighs like logs.\n\n\n\nRELIEF\nMatthew 5:4 \u2014 \"Blessed are those who mourn, for they will be comforted.\"\n\nWhat a strange beatitude, that mourning wins \u2014\nThat sorrow is the place where grace begins.\nHe does not pass the weeping soul on by;\nHe stops and stoops and meets the open cry.\nRelief is not the absence of the ache \u2014\nIt's being held inside it, wide awake.\n\n\n\nENCOURAGEMENT\n1 Thessalonians 5:11 \u2014 \"Therefore encourage one another and build each other up, just as in fact you are\ndoing.\"\n\nA word well timed can hold a crumbling wall,\nCan lift a soul who's certain they will fall.\nEncouragement is not an empty cheer \u2014\nIt's speaking truth that says: I see you here.\nSo build each other up with honest grace;\n\n\n\n                                             Words of Life \u2014 10"}, {"title": "The Church was meant to be a building place.", "text": "The Church was meant to be a building place.\n\n\n\nRESTORATION\nJoel 2:25 \u2014 \"I will restore to you the years that the swarming locust has eaten.\"\n\nWhat the locust stripped and years consumed in grief,\nGod promises to give again, in full relief.\nNot just a patch or partial what-was-there,\nBut years returned, made whole beyond compare.\nSo do not count the losses as the end \u2014\nHe is the God of restoring, not just mend.\n\n\n\nETERNITY\nJohn 3:16 \u2014 \"For God so loved the world that he gave his one and only Son, that whoever believes in him\nshall not perish but have eternal life.\"\n\nHe stretched eternity into a frame of flesh\nSo we could live beyond what time can thresh.\nA life that doesn't end \u2014 not fairy tale \u2014\nBut promised in the Word that cannot fail.\nSo live this day with eternity in view;\nWhat waits ahead is more than all we knew.\n\n\n\nREWARD\nGalatians 6:9 \u2014 \"Let us not become weary in doing good, for at the proper time we will reap a harvest if\nwe do not give up.\"\n\nThe harvest doesn't come the same day you sow,\nBut that doesn't mean the seed refused to grow.\nDo good without the applause or the stage,\nIn season or out, through every coming age.\nThe reward is sure, though slow to meet the eye \u2014\nKeep sowing on and let the Harvest draw nigh.\n\n\n\nFAITH\nHebrews 11:6 \u2014 \"Without faith it is impossible to please God, because anyone who comes to him must\nbelieve that he exists and that he rewards those who earnestly seek him.\"\n\nIt is the currency of Heaven's trading floor,\n\n\n                                              Words of Life \u2014 11"}, {"title": "The thing that opens what we're seeking for.", "text": "The thing that opens what we're seeking for.\nFaith is not a feeling, bright or sure \u2014\nIt is a choice to lean when things obscure.\nSo seek Him earnestly, with heart laid bare;\nHe rewards the ones who trust He's always there.\n\n\n\nSAFETY\nProverbs 18:10 \u2014 \"The name of the Lord is a fortified tower; the righteous run to it and are safe.\"\n\nWhen danger looms and shadows start to press,\nThere is a tower built for our distress.\nHis name is not just title, word, or sound \u2014\nIt is a fortress planted in the ground.\nSo run \u2014 not from your trouble, toward the strong \u2014\nInside His name is where you most belong.\n\n\n\nSALVATION\nRomans 10:9 \u2014 \"If you declare with your mouth, 'Jesus is Lord,' and believe in your heart that God\nraised him from the dead, you will be saved.\"\n\nIt isn't earned through striving, years, or deeds,\nNot bought with gold or polished Sunday creeds.\nA simple turning, a confessing word,\nThe heart that says: I trust You, risen Lord.\nSalvation is the gift too large to hold \u2014\nAnd yet it fits the heart and heals the soul.\n\n\n\nFEARLESS\nIsaiah 41:10 \u2014 \"So do not fear, for I am with you; do not be dismayed, for I am your God. I will\nstrengthen you and help you.\"\n\nFear is not the absence of the trembling hand \u2014\nIt's taking it and choosing still to stand.\nHe doesn't say: don't feel it, push it down;\nHe says: I'm here, no need to drown.\nFearless is the soul that knows God's near \u2014\nNot lacking fear, but freed from being ruled by fear.\n\n\n\n\n                                              Words of Life \u2014 12"}, {"title": "SATISFACTION", "text": "SATISFACTION\nPsalm 107:9 \u2014 \"For he satisfies the thirsty and fills the hungry with good things.\"\n\nThe hunger that no table seems to fill,\nThe thirst that lingers even after still \u2014\nHe sees it and He meets it, deep and wide,\nWith good things that the world cannot provide.\nSo bring your emptiness \u2014 it is no shame;\nHe made the hungry soul so He could claim.\n\n\n\nFREEDOM\nJohn 8:36 \u2014 \"So if the Son sets you free, you will be free indeed.\"\n\nNot free to wander reckless in the wrong,\nBut free to be at last who we belong.\nThe chains He breaks are not just iron bars \u2014\nThey're guilt and shame and wounds and all our scars.\nHe doesn't just unlock the cell and say: goodbye;\nHe walks us out and teaches us to fly.\n\n\n\nSTRENGTH\nPsalm 28:7 \u2014 \"The Lord is my strength and my shield; my heart trusts in him, and he helps me.\"\n\nNot gym-built, gritted, white-knuckled in resolve,\nBut Heaven-given strength that can dissolve\nThe tallest fear, the deepest aching doubt \u2014\nA strength that sings when mine has all run out.\nHe is the shield I lift and strength I lean,\nThe most reliable I've ever seen.\n\n\n\nFRIENDSHIP\nJohn 15:13 \u2014 \"Greater love has no one than this: to lay down one's life for one's friends.\"\n\nHe didn't just call servants to His side;\nHe called us friends and let that name abide.\nAnd friendship in His language meant the cross \u2014\nNo calculation of the love's own cost.\nSo friendship is a holy, weighty word;\nHe showed us what it meant and we were stirred.\n\n\n\n                                              Words of Life \u2014 13"}, {"title": "STRESS RELEASE", "text": "STRESS RELEASE\n1 Peter 5:7 \u2014 \"Cast all your anxiety on him because he cares for you.\"\n\nHe doesn't say: carry it better, be more strong;\nHe says: give it here, you've held it far too long.\nCast it \u2014 like a fisherman throws the line,\nWith full release, a letting go, a sign.\nHe cares \u2014 that's not a greeting, it's a vow:\nHe cares for you especially right now.\n\n\n\nGOODNESS\nPsalm 23:6 \u2014 \"Surely your goodness and love will follow me all the days of my life.\"\n\nNot goodness as a concept, vague and thin,\nBut goodness like a shepherd from within.\nIt follows us \u2014 it hunts us down with grace \u2014\nThrough every stumbling, every tangled place.\nThe goodness of the Lord is not in doubt;\nHe wears it and He wraps us all throughout.\n\n\n\nSUPPORT\nIsaiah 41:13 \u2014 \"For I am the Lord your God who takes hold of your right hand and says to you, Do not\nfear; I will help you.\"\n\nHe doesn't cheer you from across the field;\nHe takes your hand and helps the wound to heal.\nSupport is not a slogan or a sign \u2014\nIt's presence gripping tight when we decline.\nHis hand is not a symbol \u2014 it is real;\nHe holds us upright, helps us onward, still.\n\n\n\nGRACE\nEphesians 2:8 \u2014 \"For it is by grace you have been saved, through faith \u2014 and this is not from\nyourselves, it is the gift of God.\"\n\nWe bring nothing to the altar but our need,\nAnd that is all that grace requires to proceed.\nNo merit earned, no qualifying score \u2014\nHe gives because He is and has the more.\nGrace is the great unsettling of the proud\n\n\n                                             Words of Life \u2014 14"}, {"title": "And the great welcoming of the bowed.", "text": "And the great welcoming of the bowed.\n\n\n\nSUSTENANCE\nDeuteronomy 8:3 \u2014 \"Man does not live on bread alone but on every word that comes from the mouth of\nthe Lord.\"\n\nThe bread we bake is good but cannot stay;\nIt feeds the morning but not the whole day.\nHe offered manna not just for the stomach's fill\nBut words that nourish deeper, deeper still.\nSo feast on what He's spoken, let it in;\nThe Word sustains from surface to within.\n\n\n\nTHANKFULNESS\n1 Thessalonians 5:18 \u2014 \"Give thanks in all circumstances; for this is God's will for you in Christ Jesus.\"\n\nNot just in sunshine, harvest, and the bright,\nBut thanks that lifts its voice into the night.\nThankfulness is trained, not just felt in bliss \u2014\nIt says: even here, there's something not to miss.\nSo count the grace in grain and grief the same;\nThankfulness is one way we hallow His name.\n\n\n\nGUIDANCE\nProverbs 3:6 \u2014 \"In all your ways submit to him, and he will make your paths straight.\"\n\nWe need not walk the winding paths alone,\nNor guess at turns or grope through the unknown.\nSubmit each road to Him before you go \u2014\nHe knows the fastest route to what's for you to know.\nHis guidance is not bossy, tight, or vague \u2014\nIt's wisdom offered freely, step by step.\n\n\n\nTRUST\nProverbs 3:5 \u2014 \"Trust in the Lord with all your heart and lean not on your own understanding.\"\nOur understanding sees a foot ahead;\nHis vision spans from living to the dead.\n\n\n\n                                              Words of Life \u2014 15"}, {"title": "So leaning on our own is leaning thin \u2014", "text": "So leaning on our own is leaning thin \u2014\nA fragile reed against the might of Him.\nTrust is the falling backward, eyes closed wide,\nKnowing He has always caught and will not hide.\n\n\n\nGUILT FREE\nRomans 8:1 \u2014 \"Therefore, there is now no condemnation for those who are in Christ Jesus.\"\n\nThe gavel fell and the verdict still was read:\nNo condemnation for the ones He's led.\nThe guilt that used to cling like winter grey\nWas nailed upon the cross and rolled away.\nSo walk without the weight of what is done;\nYou're guilt-free, clean, and kept beneath the Son.\n\n\n\nHEALTH\n3 John 1:2 \u2014 \"Dear friend, I pray that you may enjoy good health and that all may go well with you,\neven as your soul is getting along well.\"\n\nHe prays for all of you \u2014 body, mind, and soul,\nNot just the spiritual part but every whole.\nHealth is not our goal alone to chase;\nHe bends toward it with prayers of grace.\nSo tend the body, tend the spirit too \u2014\nWholeness is the vision God has for you.\n\n\n\nHOPE\nRomans 15:13 \u2014 \"May the God of hope fill you with all joy and peace as you trust in him, so that you\nmay overflow with hope.\"\n\nHe is not just the one who gives us hope \u2014\nHe is the God of hope on whom we rope.\nHe fills not stingy, trickle-by, but full \u2014\nWith joy and peace that break the downward pull.\nOverflowing \u2014 not enough to barely cope;\nHe is the endless source and spring of hope.\n\n\n\nIDENTITY\n\n                                             Words of Life \u2014 16"}, {"title": "You do not build your worth from what you earn,", "text": "1 Peter 2:9 \u2014 \"But you are a chosen people, a royal priesthood, a holy nation, God's special possession.\"\n\nYou do not build your worth from what you earn,\nOr the applause of those who rarely turn.\nYou were chosen, royal, set apart, and named\nBefore the broken world could leave you shamed.\nYour identity is held in Heaven's word:\nGod's own \u2014 beloved, chosen, and assured.\n\n\n\nWHOLENESS\nJohn 10:10 \u2014 \"I have come that they may have life, and have it to the full.\"\nNot managing the pieces of a split,\nNot limping through with ill-assembled kit.\nHe came for full \u2014 the laughter and the cry,\nThe healed-up places and the reasons why.\nWholeness is not perfect, polished, and complete \u2014\nIt's living fully through the bitter and the sweet.\n\n\n\nGREATNESS\nMatthew 23:11 \u2014 \"The greatest among you will be your servant.\"\n\nHe flipped the ladder and the climbing strife;\nHe said that serving is the greatest life.\nGreatness is not the platform or the stage,\nNot the applause or the historical page.\nIt is the towel and the basin, lowly, true \u2014\nThe greatest thing is emptying yourself for you.\n\n\n\nINSPIRATION\n2 Timothy 3:16 \u2014 \"All Scripture is God-breathed and is useful for teaching, rebuking, correcting and\ntraining in righteousness.\"\n\nHe breathed into the Word and it came alive,\nNot ink alone \u2014 His very breath to thrive.\nAnd what He breathed to them still breathes today\nAnd meets us in the reading and the pray.\nSo open it and let the living air\nOf God-breathed truth fill everything that's there.\n\n\n\n\n                                              Words of Life \u2014 17"}, {"title": "JOY", "text": "JOY\nNehemiah 8:10 \u2014 \"Do not grieve, for the joy of the Lord is your strength.\"\n\nNot happiness, that fairweather, fickle thing,\nBut joy \u2014 the deep unshakeable spring.\nIt does not need the circumstance to smile;\nIt holds through fire, desert, and the trial.\nThe joy of the Lord is not a grin or mood \u2014\nIt is a well that fuels and sows and does us good.\n\n\n\nWORRY LESS\nMatthew 6:34 \u2014 \"Therefore do not worry about tomorrow, for tomorrow will worry about itself. Each\nday has enough trouble of its own.\"\n\nTomorrow is a country you can't visit yet,\nAnd worrying is the price of the unpaid debt.\nHe says: stay here, in this day, in this light;\nEnough is in the now to make it right.\nSo lay the future at the altar's feet,\nAnd live today in full \u2014 here is complete.\n\n\n\n\n                                             Words of Life \u2014 18"}];
+const TITLE = "Words of Life";
+
+// ===== AUDIO PLAYBACK SYSTEM =====
+const EMBEDDED_AUDIO_URL = 'data:audio/mpeg;base64,//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=';
+let audioElement = null;
+let audioController = {
+    isPlaying: false,
+    
+    init: function() {
+        if (!audioElement) {
+            audioElement = new Audio(EMBEDDED_AUDIO_URL);
+            audioElement.addEventListener('ended', () => {
+                this.isPlaying = false;
+                this.updateButton();
+            });
+            audioElement.addEventListener('play', () => {
+                this.isPlaying = true;
+                this.updateButton();
+            });
+            audioElement.addEventListener('pause', () => {
+                this.isPlaying = false;
+                this.updateButton();
+            });
+        }
+    },
+    
+    toggle: function() {
+        this.init();
+        if (this.isPlaying) {
+            audioElement.pause();
+        } else {
+            audioElement.currentTime = 0;
+            audioElement.play();
+        }
+    },
+    
+    stop: function() {
+        if (audioElement) {
+            audioElement.pause();
+            audioElement.currentTime = 0;
+        }
+        this.isPlaying = false;
+        this.updateButton();
+    },
+    
+    updateButton: function() {
+        const btn = document.getElementById('audioBtn');
+        if (btn) {
+            if (this.isPlaying) {
+                btn.classList.add('playing');
+                btn.innerHTML = '⏸️ Pause Reading';
+            } else {
+                btn.classList.remove('playing');
+                btn.innerHTML = '🔊 Read Aloud';
+            }
+        }
+    }
+};
+
+function toggleAudio() {
+    audioController.toggle();
+}
+
+function stopAudio() {
+    audioController.stop();
+}
+// ===== END AUDIO SYSTEM =====
+
+let currentPage = 0;
+let speaking = false;
+let utterance = null;
+
+function renderPage() {{
+  const p = PAGES[currentPage];
+  document.getElementById('pageContent').innerText = p.text;
+  document.getElementById('pageNum').innerText = `Page ${{currentPage + 1}} of ${{PAGES.length}}`;
+  document.getElementById('progressText').innerText = `Page ${{currentPage + 1}} of ${{PAGES.length}}`;
+  document.getElementById('progressFill').style.width = `${{((currentPage + 1) / PAGES.length) * 100}}%`;
+  document.getElementById('prevBtn').disabled = currentPage === 0;
+  document.getElementById('nextBtn').disabled = currentPage === PAGES.length - 1;
+  if (speaking) {{ stopAudio(); toggleAudio(); }}
+}}
+
+function nextPage() {{ if (currentPage < PAGES.length - 1) {{ currentPage++; renderPage(); }} }}
+function prevPage() {{ if (currentPage > 0) {{ currentPage--; renderPage(); }} }}
+function goToPage(i) {{ currentPage = i; renderPage(); document.getElementById('tocList').classList.remove('open'); }}
+
+function toggleAudio() {{
+  if (speaking) {{ stopAudio(); return; }}
+  utterance = new SpeechSynthesisUtterance(PAGES[currentPage].text);
+  utterance.rate = 0.9;
+  utterance.pitch = 1;
+  utterance.onend = () => {{ speaking = false; document.getElementById('audioBtn').classList.remove('playing'); document.getElementById('audioBtn').innerText = '🔊 Read Aloud'; if (currentPage < PAGES.length - 1) {{ nextPage(); toggleAudio(); }} }};
+  speechSynthesis.speak(utterance);
+  speaking = true;
+  document.getElementById('audioBtn').classList.add('playing');
+  document.getElementById('audioBtn').innerText = '⏸ Pause';
+}}
+
+function stopAudio() {{ speechSynthesis.cancel(); speaking = false; document.getElementById('audioBtn').classList.remove('playing'); document.getElementById('audioBtn').innerText = '🔊 Read Aloud'; }}
+
+function toggleTOC() {{ document.getElementById('tocList').classList.toggle('open'); }}
+
+function buildTOC() {{
+  const list = document.getElementById('tocList');
+  PAGES.forEach((p, i) => {{
+    const div = document.createElement('div');
+    div.className = 'toc-item';
+    div.innerText = p.title || `Page ${{i + 1}}`;
+    div.onclick = () => goToPage(i);
+    list.appendChild(div);
+  }});
+}}
+
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {{
+  if (e.key === 'ArrowRight' || e.key === ' ') nextPage();
+  if (e.key === 'ArrowLeft') prevPage();
+}});
+
+// Touch swipe
+let touchStartX = 0;
+document.addEventListener('touchstart', (e) => {{ touchStartX = e.changedTouches[0].screenX; }});
+document.addEventListener('touchend', (e) => {{
+  const diff = e.changedTouches[0].screenX - touchStartX;
+  if (Math.abs(diff) > 50) {{ diff < 0 ? nextPage() : prevPage(); }}
+}});
+
+buildTOC();
+renderPage();
+
+
+    <script>
+    // Enhanced Audio Control System
+    (function() {
+        let audioState = {
+            isPlaying: false,
+            hasSpoken: false
+        };
+        
+        const originalToggleAudio = window.toggleAudio;
+        window.toggleAudio = function() {
+            const audioBtn = document.getElementById('audioBtn');
+            
+            if (audioState.isPlaying) {
+                window.stopAudio();
+                audioBtn.innerHTML = '🔊 Read Aloud';
+                audioState.isPlaying = false;
+            } else {
+                if (originalToggleAudio) {
+                    originalToggleAudio();
+                    audioState.isPlaying = true;
+                    audioState.hasSpoken = true;
+                    audioBtn.innerHTML = '⏸️ Pause';
+                }
+            }
+        };
+        
+        // Enhanced stop function
+        const originalStopAudio = window.stopAudio;
+        window.stopAudio = function() {
+            if (originalStopAudio) {
+                originalStopAudio();
+            }
+            audioState.isPlaying = false;
+            const audioBtn = document.getElementById('audioBtn');
+            if (audioBtn) {
+                audioBtn.innerHTML = '🔊 Read Aloud';
+                audioBtn.classList.remove('playing');
+            }
+        };
+        
+        // Ensure button styling
+        document.addEventListener('DOMContentLoaded', function() {
+            const audioBtn = document.getElementById('audioBtn');
+            if (audioBtn) {
+                audioBtn.style.transition = 'all 0.3s ease';
+                audioBtn.addEventListener('mouseenter', function() {
+                    if (!audioState.isPlaying) {
+                        this.style.transform = 'scale(1.05)';
+                    }
+                });
+                audioBtn.addEventListener('mouseleave', function() {
+                    this.style.transform = 'scale(1)';
+                });
+            }
+        });
+    })();
+    </script>
+    
+</script>
+</body>
+</html>

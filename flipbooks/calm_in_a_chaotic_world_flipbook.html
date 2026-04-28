@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calm in a Chaotic World - Flipbook</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            width: 100%;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .controls {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .page-info {
+            text-align: center;
+            font-weight: bold;
+            min-width: 150px;
+        }
+        
+        .flipbook {
+            perspective: 1000px;
+            height: 600px;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .page {
+            width: 100%;
+            height: 100%;
+            background: white;
+            display: none;
+            padding: 40px;
+            overflow-y: auto;
+            animation: fadeIn 0.3s;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .page h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .page p {
+            line-height: 1.8;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .audio-player {
+            background: #f0f0f0;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        audio {
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        .toc {
+            background: #f9f9f9;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .toc h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .toc ol {
+            margin-left: 20px;
+        }
+        
+        .toc li {
+            margin: 5px 0;
+            cursor: pointer;
+            color: #667eea;
+        }
+        
+        .toc li:hover {
+            text-decoration: underline;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #eee;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+        }
+        
+        .dark-mode {
+            background: #222;
+            color: #fff;
+        }
+        
+        .dark-mode .page {
+            background: #333;
+            color: #fff;
+        }
+        
+        .dark-mode .page h2 {
+            color: #667eea;
+        }
+        
+        .dark-mode .page p {
+            color: #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📖 Calm in a Chaotic World</h1>
+            <p>221 Pages • Interactive Flipbook</p>
+        </div>
+        
+        <div class="controls">
+            <button id="prevBtn" onclick="previousPage()">← Previous</button>
+            <div class="page-info">
+                <span id="pageNum">1</span> / <span id="totalPages">221</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress" id="progressBar"></div>
+            </div>
+            <button id="nextBtn" onclick="nextPage()">Next →</button>
+            <button onclick="toggleDarkMode()">🌙 Dark Mode</button>
+        </div>
+        
+        <div class="flipbook" id="flipbook">
+            <!-- Pages generated here -->
+        </div>
+        
+        <div class="audio-player">
+            <p><strong>🎵 Narration Audio</strong></p>
+            <audio controls>
+                <source src="data:audio/mpeg;base64,//PkxAAAAANIAAAAAExBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV..." type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
+        </div>
+    </div>
+    
+    <script>
+        let currentPage = 1;
+        const totalPages = 221;
+        
+        function showPage(n) {
+            const pages = document.querySelectorAll('.page');
+            
+            if (n > totalPages) currentPage = totalPages;
+            if (n < 1) currentPage = 1;
+            
+            pages.forEach(p => p.classList.remove('active'));
+            pages[currentPage - 1].classList.add('active');
+            
+            document.getElementById('pageNum').textContent = currentPage;
+            document.getElementById('progressBar').style.width = (currentPage / totalPages * 100) + '%';
+            
+            document.getElementById('prevBtn').disabled = currentPage === 1;
+            document.getElementById('nextBtn').disabled = currentPage === totalPages;
+        }
+        
+        function nextPage() {
+            currentPage++;
+            showPage(currentPage);
+        }
+        
+        function previousPage() {
+            currentPage--;
+            showPage(currentPage);
+        }
+        
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+        }
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextPage();
+            if (e.key === 'ArrowLeft') previousPage();
+        });
+        
+        // Initialize
+        showPage(currentPage);
+    </script>
+</body>
+</html>
