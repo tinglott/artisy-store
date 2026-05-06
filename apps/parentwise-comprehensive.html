@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParentWise - AI Parenting Guide</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:system-ui,-apple-system,sans-serif;bg:#f8f6f3;color:#333;line-height:1.6}
+        h1,h2,h3{color:#2c1810}
+        a{color:#c4916c;text-decoration:none}
+        button{bg:#c4916c;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:14px;transition:all .2s}
+        button:hover{bg:#a37650}
+        input,select,textarea{padding:8px;border:1px solid #ddd;border-radius:4px;font-family:inherit;font-size:14px}
+        .container{max-width:1200px;margin:0 auto;padding:0 10px}
+        .nav{bg:#fff;padding:12px 0;box-shadow:0 2px 4px rgba(0,0,0,.1);sticky:top;z-index:100}
+        .nav-content{display:flex;justify-content:space-between;align-items:center;gap:10px}
+        .logo{font-size:18px;font-weight:bold;color:#2c1810}
+        .nav-links{display:flex;gap:12px;flex-wrap:wrap}
+        .nav-links button{padding:6px 12px;font-size:13px;margin:0}
+        .section{display:none;padding:20px 0}
+        .section.active{display:block}
+        .card{bg:#fff;padding:16px;border-radius:8px;margin:12px 0;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+        .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:12px 0}
+        .stat-box{bg:#f0e8e0;padding:12px;border-radius:6px;text-align:center}
+        .stat-box .num{font-size:24px;font-weight:bold;color:#c4916c}
+        .stat-box .label{font-size:12px;color:#666}
+        .milestone-item{padding:8px;border-left:4px solid #c4916c;margin:8px 0;bg:#fafaf8}
+        .checked .milestone-item{border-left-color:#90c590;opacity:.7}
+        .activity-card{border:2px solid #e0dcd8;padding:12px;border-radius:6px;cursor:pointer;transition:all .2s}
+        .activity-card:hover{bg:#fff9f5;border-color:#c4916c}
+        .tag{display:inline-block;bg:#e8ddd0;color:#333;padding:4px 8px;border-radius:3px;font-size:12px;margin:2px}
+        .progress-bar{width:100%;height:8px;bg:#e0dcd8;border-radius:4px;overflow:hidden;margin:4px 0}
+        .progress-fill{height:100%;bg:#90c590;transition:width .3s}
+        .tracker-row{display:grid;grid-template-columns:150px 1fr;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #eee}
+        .form-group{margin:12px 0}
+        .form-group label{display:block;font-weight:bold;margin-bottom:4px;font-size:13px}
+        .form-group input,.form-group select,.form-group textarea{width:100%;padding:8px}
+        .btn-group{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}
+        .banner{bg:#fff9f5;border-left:4px solid #c4916c;padding:12px;border-radius:4px;margin:12px 0}
+        .warning{bg:#fef3cd;border-left-color:#ff9800}
+        .success{bg:#d4edda;border-left-color:#28a745}
+        .chat-msg{padding:8px 12px;border-radius:6px;margin:8px 0;max-width:85%}
+        .chat-msg.user{bg:#c4916c;color:#fff;margin-left:auto;text-align:right}
+        .chat-msg.ai{bg:#e8ddd0;color:#333}
+        .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;bg:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center}
+        .modal.active{display:flex}
+        .modal-content{bg:#fff;padding:20px;border-radius:8px;max-width:90%;max-height:90%;overflow-y:auto;box-shadow:0 4px 6px rgba(0,0,0,.3)}
+        .close-modal{float:right;cursor:pointer;font-size:24px;color:#999;border:none;bg:none;padding:0}
+        .badge{display:inline-block;bg:#c4916c;color:#fff;padding:4px 8px;border-radius:3px;font-size:11px;font-weight:bold}
+        .age-selector{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+        .age-btn{padding:8px 12px;border:2px solid #ddd;border-radius:6px;bg:white;cursor:pointer;transition:all .2s}
+        .age-btn.active{bg:#c4916c;color:#fff;border-color:#c4916c}
+        .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:12px 0}
+        .achievement{text-align:center;padding:12px;bg:#fef3cd;border-radius:6px;border:2px solid #ffc107}
+        .achievement .icon{font-size:32px;margin-bottom:4px}
+        @media(max-width:768px){
+            .nav-links{flex-direction:column;width:100%}
+            .tracker-row{grid-template-columns:1fr}
+            .chat-msg{max-width:100%}
+            .modal-content{max-width:95%}
+            .grid{grid-template-columns:1fr}
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <div class="nav-content">
+                <div class="logo">🍼 ParentWise</div>
+                <div class="nav-links">
+                    <button onclick="goHome()">Home</button>
+                    <button onclick="goSection('setup')">Setup</button>
+                    <button onclick="goSection('tracker')">Trackers</button>
+                    <button onclick="goSection('milestones')">Milestones</button>
+                    <button onclick="goSection('activities')">Activities</button>
+                    <button onclick="goSection('guides')">Guides</button>
+                    <button onclick="goSection('advisor')">AI Advisor</button>
+                    <button onclick="goSection('analytics')">Progress</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- HOME -->
+        <div id="home" class="section active">
+            <h1 style="margin-top:20px">Welcome to ParentWise</h1>
+            <p style="margin:12px 0;color:#666">Your AI-powered companion for raising healthy, happy children ages 0-18</p>
+            
+            <div id="homeContent" style="margin-top:20px"></div>
+            
+            <button onclick="goSection('setup')" style="margin-top:20px;padding:12px 24px;font-size:16px">Get Started</button>
+        </div>
+
+        <!-- SETUP -->
+        <div id="setup" class="section">
+            <h2>Personalization Setup</h2>
+            
+            <div class="card">
+                <h3>Add Your First Child</h3>
+                <div class="form-group">
+                    <label>Child's Name</label>
+                    <input type="text" id="childName" placeholder="e.g., Emma">
+                </div>
+                <div class="form-group">
+                    <label>Birth Date</label>
+                    <input type="date" id="childDob">
+                </div>
+                <div class="form-group">
+                    <label>Select Age Stage</label>
+                    <select id="ageStage" onchange="updateAgeContent()">
+                        <option value="">-- Choose --</option>
+                        <option value="0">Infancy (0-12 months)</option>
+                        <option value="1">Toddler (1-3 years)</option>
+                        <option value="2">Preschool (3-5 years)</option>
+                        <option value="3">Elementary (5-10 years)</option>
+                        <option value="4">Pre-teen (10-13 years)</option>
+                        <option value="5">Teenager (13-18 years)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Main Parenting Challenges (select all that apply)</label>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px">
+                        <label><input type="checkbox" name="challenge" value="sleep"> Sleep Issues</label>
+                        <label><input type="checkbox" name="challenge" value="feeding"> Feeding/Nutrition</label>
+                        <label><input type="checkbox" name="challenge" value="behavior"> Behavior Management</label>
+                        <label><input type="checkbox" name="challenge" value="development"> Development Concerns</label>
+                        <label><input type="checkbox" name="challenge" value="screen"> Screen Time</label>
+                        <label><input type="checkbox" name="challenge" value="safety"> Safety</label>
+                        <label><input type="checkbox" name="challenge" value="school"> School/Learning</label>
+                        <label><input type="checkbox" name="challenge" value="social"> Social Skills</label>
+                    </div>
+                </div>
+                <button onclick="saveChild()">Save Child Profile</button>
+            </div>
+
+            <div id="childrenList" class="card" style="display:none">
+                <h3>Your Children</h3>
+                <div id="childrenDisplay"></div>
+            </div>
+        </div>
+
+        <!-- TRACKERS -->
+        <div id="tracker" class="section">
+            <h2>Health & Wellness Trackers</h2>
+            
+            <div class="card">
+                <h3>📊 Today's Trackers</h3>
+                
+                <div>
+                    <h4 style="margin-top:12px">Sleep Tracker</h4>
+                    <div class="form-group">
+                        <label>Hours of Sleep Last Night</label>
+                        <input type="number" id="sleepHours" min="0" max="24" step="0.5" placeholder="e.g., 8.5">
+                    </div>
+                    <div class="form-group">
+                        <label>Sleep Quality</label>
+                        <select id="sleepQuality">
+                            <option value="">-- Select --</option>
+                            <option value="excellent">Excellent</option>
+                            <option value="good">Good</option>
+                            <option value="fair">Fair</option>
+                            <option value="poor">Poor</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="border-top:1px solid #eee;padding-top:12px">
+                    <h4>Feeding/Nutrition Tracker</h4>
+                    <div class="form-group">
+                        <label>What did your child eat today?</label>
+                        <textarea id="meals" placeholder="e.g., Breakfast: oatmeal, fruit&#10;Lunch: sandwich, veggies" rows="3"></textarea>
+                    </div>
+                </div>
+
+                <div style="border-top:1px solid #eee;padding-top:12px">
+                    <h4>Mood & Behavior</h4>
+                    <div class="form-group">
+                        <label>Overall Mood Today</label>
+                        <select id="mood">
+                            <option value="">-- Select --</option>
+                            <option value="5">😄 Excellent</option>
+                            <option value="4">🙂 Good</option>
+                            <option value="3">😐 Neutral</option>
+                            <option value="2">☹️ Difficult</option>
+                            <option value="1">😢 Very Difficult</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Behavior Notes</label>
+                        <textarea id="behaviorNotes" placeholder="Any tantrums, conflicts, or notable behaviors?" rows="2"></textarea>
+                    </div>
+                </div>
+
+                <div style="border-top:1px solid #eee;padding-top:12px">
+                    <h4>Growth Tracking (optional)</h4>
+                    <div class="form-group">
+                        <label>Weight (lbs)</label>
+                        <input type="number" id="weight" step="0.1" placeholder="e.g., 25.5">
+                    </div>
+                    <div class="form-group">
+                        <label>Height (inches)</label>
+                        <input type="number" id="height" step="0.1" placeholder="e.g., 32.5">
+                    </div>
+                </div>
+
+                <button onclick="saveTrackerData()" style="margin-top:12px">Save Today's Log</button>
+            </div>
+
+            <div class="card">
+                <h3>📈 Tracker Summary</h3>
+                <div id="trackerSummary"></div>
+            </div>
+        </div>
+
+        <!-- MILESTONES -->
+        <div id="milestones" class="section">
+            <h2>Development Milestones</h2>
+            
+            <div class="card">
+                <h3>Track Your Child's Progress</h3>
+                <p style="color:#666;margin-bottom:12px">Check off milestones as your child achieves them</p>
+                <div id="milestonesContent"></div>
+            </div>
+        </div>
+
+        <!-- ACTIVITIES -->
+        <div id="activities" class="section">
+            <h2>Age-Appropriate Activities</h2>
+            
+            <div class="card">
+                <h3>Suggested Activities & Learning</h3>
+                <div class="form-group">
+                    <label>Filter by Category</label>
+                    <select id="activityFilter" onchange="filterActivities()">
+                        <option value="">All Activities</option>
+                        <option value="cognitive">Cognitive/Learning</option>
+                        <option value="physical">Physical Activity</option>
+                        <option value="creative">Creative/Arts</option>
+                        <option value="social">Social/Play</option>
+                    </select>
+                </div>
+                <div id="activitiesDisplay" class="grid"></div>
+            </div>
+        </div>
+
+        <!-- EXPERT GUIDES -->
+        <div id="guides" class="section">
+            <h2>Expert Parenting Guides</h2>
+            
+            <div class="card">
+                <h3>Choose Your Topic</h3>
+                <div class="grid" id="guidesList"></div>
+            </div>
+
+            <div id="guideContent" class="card" style="display:none">
+                <button onclick="backToGuides()" style="margin-bottom:12px">← Back to Guides</button>
+                <div id="guideBody"></div>
+            </div>
+        </div>
+
+        <!-- AI ADVISOR -->
+        <div id="advisor" class="section">
+            <h2>AI Parenting Advisor</h2>
+            
+            <div class="card">
+                <p style="color:#666;margin-bottom:12px">Ask anything about parenting your child. Our AI provides evidence-based guidance.</p>
+                
+                <div id="chatHistory" style="min-height:200px;max-height:400px;overflow-y:auto;bg:#fafaf8;padding:12px;border-radius:6px;margin-bottom:12px"></div>
+                
+                <div class="form-group">
+                    <input type="text" id="advisorQuestion" placeholder="E.g., Is my 2-year-old on track with language development?" onkeypress="if(event.key==='Enter')askAdvisor()">
+                </div>
+                <button onclick="askAdvisor()">Ask Advisor</button>
+            </div>
+        </div>
+
+        <!-- ANALYTICS -->
+        <div id="analytics" class="section">
+            <h2>Progress & Analytics</h2>
+            
+            <div class="card">
+                <h3>📊 This Week's Summary</h3>
+                <div class="stat-grid" id="analyticsStats"></div>
+            </div>
+
+            <div class="card">
+                <h3>🎯 Achievements & Streaks</h3>
+                <div id="achievements"></div>
+            </div>
+
+            <div class="card">
+                <h3>📈 Trends</h3>
+                <div id="trendsDisplay"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const AGES = {
+            0: {name: 'Infancy (0-12 months)', color: '#ffc0cb'},
+            1: {name: 'Toddler (1-3 years)', color: '#ffe0b2'},
+            2: {name: 'Preschool (3-5 years)', color: '#e0f2f1'},
+            3: {name: 'Elementary (5-10 years)', color: '#e3f2fd'},
+            4: {name: 'Pre-teen (10-13 years)', color: '#f3e5f5'},
+            5: {name: 'Teenager (13-18 years)', color: '#e8f5e9'}
+        };
+
+        const MILESTONES = {
+            0: [
+                {title: 'Smiling at faces', cat: 'social'},
+                {title: 'Lifting head 45°', cat: 'motor'},
+                {title: 'Tracking objects with eyes', cat: 'cognitive'},
+                {title: 'Making cooing sounds', cat: 'language'},
+                {title: 'Rolling over', cat: 'motor'},
+                {title: 'Grasping at objects', cat: 'motor'}
+            ],
+            1: [
+                {title: 'Saying first words (mama/dada)', cat: 'language'},
+                {title: 'Walking independently', cat: 'motor'},
+                {title: 'Pointing at objects', cat: 'cognitive'},
+                {title: 'Showing affection', cat: 'social'},
+                {title: 'Following simple directions', cat: 'language'},
+                {title: 'Climbing stairs', cat: 'motor'}
+            ],
+            2: [
+                {title: 'Speaking in 2-3 word phrases', cat: 'language'},
+                {title: 'Running & jumping', cat: 'motor'},
+                {title: 'Cooperative play with others', cat: 'social'},
+                {title: 'Recognizing colors', cat: 'cognitive'},
+                {title: 'Showing independence in dressing', cat: 'social'},
+                {title: 'Potty training interest', cat: 'motor'}
+            ],
+            3: [
+                {title: 'Talking in full sentences', cat: 'language'},
+                {title: 'Writing letters & numbers', cat: 'cognitive'},
+                {title: 'Making friends', cat: 'social'},
+                {title: 'Playing cooperatively', cat: 'social'},
+                {title: 'Understanding cause & effect', cat: 'cognitive'},
+                {title: 'Pedaling a tricycle', cat: 'motor'}
+            ],
+            4: [
+                {title: 'Reading simple words', cat: 'cognitive'},
+                {title: 'Math concepts (adding, counting)', cat: 'cognitive'},
+                {title: 'Forming closer friendships', cat: 'social'},
+                {title: 'Managing emotions better', cat: 'social'},
+                {title: 'Responsibility for chores', cat: 'social'},
+                {title: 'Writing sentences', cat: 'language'}
+            ],
+            5: [
+                {title: 'Developing identity & interests', cat: 'social'},
+                {title: 'Handling peer pressure', cat: 'social'},
+                {title: 'Advanced academic skills', cat: 'cognitive'},
+                {title: 'Emotional regulation', cat: 'social'},
+                {title: 'Understanding privacy & safety', cat: 'cognitive'},
+                {title: 'Complex problem-solving', cat: 'cognitive'}
+            ]
+        };
+
+        const ACTIVITIES = [
+            {name: 'Building with Blocks', cat: 'cognitive', age: '0,1,2,3', desc: 'Develop spatial awareness'},
+            {name: 'Reading Stories Together', cat: 'cognitive', age: '0,1,2,3,4,5', desc: 'Boost language skills'},
+            {name: 'Outdoor Playground', cat: 'physical', age: '1,2,3,4,5', desc: 'Strengthen motor skills'},
+            {name: 'Painting & Drawing', cat: 'creative', age: '1,2,3,4,5', desc: 'Creative expression'},
+            {name: 'Singing & Music', cat: 'creative', age: '0,1,2,3,4,5', desc: 'Language & joy'},
+            {name: 'Play Dates', cat: 'social', age: '1,2,3,4,5', desc: 'Social skills'},
+            {name: 'Sensory Play', cat: 'cognitive', age: '0,1,2', desc: 'Explore textures'},
+            {name: 'Sports Training', cat: 'physical', age: '3,4,5', desc: 'Team skills'},
+            {name: 'Cooking Together', cat: 'cognitive', age: '2,3,4,5', desc: 'Math & life skills'},
+            {name: 'Board Games', cat: 'cognitive', age: '3,4,5', desc: 'Strategy & turn-taking'},
+            {name: 'Nature Walk', cat: 'physical', age: '1,2,3,4,5', desc: 'Exploration'},
+            {name: 'STEM Projects', cat: 'cognitive', age: '3,4,5', desc: 'Science & building'}
+        ];
+
+        const GUIDES = {
+            0: {title: 'First Year Survival Guide', content: '💡 **Sleep**: Most newborns need 16-17 hours/day. Establish a bedtime routine early. Safe sleep = back position, firm surface, room-sharing without bed-sharing for 6+ months.\n\n💡 **Feeding**: Whether breastfeeding or formula, feed on demand. Most newborns eat 8-12 times/day. Burp during & after feeds.\n\n💡 **Bonding**: Skin-to-skin contact, eye contact, responding to cries builds secure attachment. You can\'t spoil a newborn.\n\n💡 **Development**: Expect smiling (6 weeks), cooing (2-3 months), grasping (4+ months). Every baby is unique.'},
+            1: {title: 'Toddler Tantrums: A Parent\'s Roadmap', content: '💡 **Why tantrums happen**: Toddlers have big feelings but small vocabularies. They\'re testing boundaries & learning independence.\n\n💡 **During a tantrum**: Stay calm, ensure safety, avoid negotiating. Validate feelings: "I see you\'re upset."\n\n💡 **Prevention**: Clear routines, limited choices, enough sleep, snacks on time, warning before transitions.\n\n💡 **Language**: Use words like "big feelings" & model emotions. "You\'re frustrated, and that\'s okay."'},
+            2: {title: 'Starting School Confidently', content: '💡 **Before school**: Visit together, read books about school, practice goodbye routines. Keep first days short.\n\n💡 **Separation anxiety**: Totally normal. Brief, consistent goodbyes are key. Don\'t sneak away.\n\n💡 **At home**: Ask open-ended questions. Draw pictures together about the day. Celebrate small wins.\n\n💡 **Partnership with teachers**: Share info about your child. Regular communication helps. Consistent routines bridge school & home.'},
+            3: {title: 'Building Independence', content: '💡 **Chores**: Start with simple tasks (putting toys away). Make it routine, not punishment. Praise effort, not perfection.\n\n💡 **Decision-making**: Offer 2-3 choices. Let them pick breakfast, outfit, activity. Builds confidence.\n\n💡 **Problem-solving**: Help them find solutions. "What could we do?" vs. jumping in to fix it.\n\n💡 **Failure**: Let them fail safely. Mistakes = learning. Praise resilience: "You tried and learned something."'},
+            4: {title: 'Navigating the Tween Years', content: '💡 **Peer pressure**: Pre-teens care about fitting in. Listen without judgment. Help them identify values.\n\n💡 **Screen time**: Set limits together. Negotiate fair rules. Model healthy tech use.\n\n💡 **Identity**: Interests & appearance change constantly. Support exploration. Respect privacy growing needs.\n\n💡 **Emotional shifts**: Moodiness is normal. Validate feelings. Keep the door open for conversations.'},
+            5: {title: 'Parenting Through the Teen Years', content: '💡 **Communication**: Make it less interrogation, more genuine chat. Share about YOUR day too.\n\n💡 **Autonomy**: Give increasing freedom with responsibility. Natural consequences teach better than lectures.\n\n💡 **Relationships**: Teens need privacy & respect. Stay informed through connection, not spying.\n\n💡 **Mental health**: Watch for signs of anxiety/depression. Don\'t dismiss feelings. Professional help is strength, not weakness.\n\n💡 **Safety**: Discuss drugs, sex, driving honestly. Set clear expectations. Relationships built on trust last longer.'}
+        };
+
+        let appData = {
+            children: [],
+            currentChild: null,
+            trackers: [],
+            achievements: []
+        };
+
+        function loadData() {
+            const saved = localStorage.getItem('parentwiseData');
+            if (saved) appData = JSON.parse(saved);
+            renderHome();
+            renderChildren();
+        }
+
+        function saveData() {
+            localStorage.setItem('parentwiseData', JSON.stringify(appData));
+        }
+
+        function goSection(section) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(section).classList.add('active');
+            renderSection(section);
+        }
+
+        function goHome() {
+            goSection('home');
+        }
+
+        function renderHome() {
+            const content = document.getElementById('homeContent');
+            if (appData.children.length === 0) {
+                content.innerHTML = `
+                    <div class="card">
+                        <p style="color:#666">Get started by adding your first child and we'll personalize ParentWise for you.</p>
+                    </div>
+                `;
+            } else {
+                const child = appData.children[0];
+                const age = parseInt(child.ageStage);
+                const mStats = MILESTONES[age] || [];
+                content.innerHTML = `
+                    <div class="card">
+                        <h3>Welcome, ${child.name}! 👋</h3>
+                        <p style="color:#666">Age Stage: <strong>${AGES[age].name}</strong></p>
+                        <p style="margin-top:12px">Latest Tracker: ${getLatestTrackerSummary()}</p>
+                    </div>
+                    <div class="card">
+                        <h3>Quick Actions</h3>
+                        <div class="btn-group">
+                            <button onclick="goSection('tracker')">📊 Log Today</button>
+                            <button onclick="goSection('milestones')">✓ Check Milestones</button>
+                            <button onclick="goSection('activities')">🎨 Find Activities</button>
+                            <button onclick="goSection('advisor')">💬 Ask AI</button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function getLatestTrackerSummary() {
+            if (appData.trackers.length === 0) return 'No logs yet. Start tracking!';
+            const latest = appData.trackers[appData.trackers.length - 1];
+            let summary = '';
+            if (latest.sleepHours) summary += `${latest.sleepHours}h sleep`;
+            if (latest.mood) summary += summary ? ', ' : '';
+            const moods = {5: '😄', 4: '🙂', 3: '😐', 2: '☹️', 1: '😢'};
+            if (latest.mood) summary += moods[latest.mood] || '';
+            return summary || 'Today logged';
+        }
+
+        function saveChild() {
+            const name = document.getElementById('childName').value;
+            const dob = document.getElementById('childDob').value;
+            const ageStage = document.getElementById('ageStage').value;
+            
+            if (!name || !dob || !ageStage) {
+                alert('Please fill all fields');
+                return;
+            }
+
+            const challenges = Array.from(document.querySelectorAll('input[name="challenge"]:checked')).map(c => c.value);
+
+            appData.children.push({
+                id: Date.now(),
+                name,
+                dob,
+                ageStage,
+                challenges,
+                created: new Date().toISOString()
+            });
+
+            appData.currentChild = appData.children[0].id;
+            saveData();
+            
+            document.getElementById('childName').value = '';
+            document.getElementById('childDob').value = '';
+            document.getElementById('ageStage').value = '';
+            document.querySelectorAll('input[name="challenge"]').forEach(c => c.checked = false);
+            
+            alert('Child profile created! 🎉');
+            renderHome();
+            renderChildren();
+        }
+
+        function renderChildren() {
+            const list = document.getElementById('childrenDisplay');
+            if (appData.children.length === 0) {
+                document.getElementById('childrenList').style.display = 'none';
+                return;
+            }
+            document.getElementById('childrenList').style.display = 'block';
+            list.innerHTML = appData.children.map(c => `
+                <div class="card" style="margin:8px 0;padding:12px;bg:${AGES[parseInt(c.ageStage)].color}80">
+                    <strong>${c.name}</strong> - ${AGES[parseInt(c.ageStage)].name}
+                    <br><small style="color:#666">Added: ${new Date(c.created).toLocaleDateString()}</small>
+                </div>
+            `).join('');
+        }
+
+        function saveTrackerData() {
+            const entry = {
+                date: new Date().toISOString().split('T')[0],
+                sleepHours: document.getElementById('sleepHours').value,
+                sleepQuality: document.getElementById('sleepQuality').value,
+                meals: document.getElementById('meals').value,
+                mood: document.getElementById('mood').value,
+                behaviorNotes: document.getElementById('behaviorNotes').value,
+                weight: document.getElementById('weight').value,
+                height: document.getElementById('height').value
+            };
+
+            appData.trackers.push(entry);
+            saveData();
+            alert('✓ Today\'s log saved!');
+            
+            document.getElementById('sleepHours').value = '';
+            document.getElementById('sleepQuality').value = '';
+            document.getElementById('meals').value = '';
+            document.getElementById('mood').value = '';
+            document.getElementById('behaviorNotes').value = '';
+            document.getElementById('weight').value = '';
+            document.getElementById('height').value = '';
+
+            renderTrackerSummary();
+        }
+
+        function renderTrackerSummary() {
+            const html = document.getElementById('trackerSummary');
+            if (appData.trackers.length === 0) {
+                html.innerHTML = '<p style="color:#999">No tracker data yet. Start logging to see summaries!</p>';
+                return;
+            }
+
+            const last7 = appData.trackers.slice(-7);
+            const avgSleep = (last7.reduce((sum, t) => sum + parseFloat(t.sleepHours || 0), 0) / last7.length).toFixed(1);
+            const goodMood = last7.filter(t => t.mood >= 4).length;
+
+            html.innerHTML = `
+                <div class="stat-grid">
+                    <div class="stat-box">
+                        <div class="num">${avgSleep}</div>
+                        <div class="label">Avg Sleep (hrs)</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="num">${last7.length}</div>
+                        <div class="label">Days Logged</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="num">${goodMood}</div>
+                        <div class="label">Good Mood Days</div>
+                    </div>
+                </div>
+                <div style="margin-top:12px">
+                    <p><strong>Recent Entries:</strong></p>
+                    ${last7.reverse().map(t => `<div style="font-size:12px;color:#666;margin:4px 0">${t.date}: ${t.sleepHours}h sleep, mood ${t.mood || '?'}</div>`).join('')}
+                </div>
+            `;
+        }
+
+        function renderSection(section) {
+            if (section === 'milestones') renderMilestones();
+            else if (section === 'activities') renderActivities();
+            else if (section === 'guides') renderGuides();
+            else if (section === 'tracker') renderTrackerSummary();
+            else if (section === 'analytics') renderAnalytics();
+        }
+
+        function renderMilestones() {
+            if (appData.children.length === 0) {
+                document.getElementById('milestonesContent').innerHTML = '<p class="banner">Add a child first to see milestones.</p>';
+                return;
+            }
+            const age = parseInt(appData.children[0].ageStage);
+            const milestones = MILESTONES[age] || [];
+            
+            const byCategory = {social: [], language: [], motor: [], cognitive: []};
+            milestones.forEach(m => byCategory[m.cat].push(m));
+
+            let html = '';
+            for (const [cat, items] of Object.entries(byCategory)) {
+                if (items.length === 0) continue;
+                html += `<h4 style="margin-top:12px;color:#c4916c">${cat.toUpperCase()} DEVELOPMENT</h4>`;
+                items.forEach(m => {
+                    const id = `m_${cat}_${items.indexOf(m)}`;
+                    html += `<label class="milestone-item" style="cursor:pointer;padding:10px;display:flex;gap:8px;align-items:center"><input type="checkbox" id="${id}" onchange="saveMilestones()">${m.title}</label>`;
+                });
+            }
+
+            document.getElementById('milestonesContent').innerHTML = html;
+            document.getElementById('milestonesContent').className = 'checked';
+        }
+
+        function saveMilestones() {
+            document.getElementById('milestonesContent').className = document.querySelectorAll('#milestonesContent input:checked').length > 0 ? 'checked' : '';
+        }
+
+        function renderActivities() {
+            if (appData.children.length === 0) {
+                document.getElementById('activitiesDisplay').innerHTML = '<p class="banner">Add a child first to see activities.</p>';
+                return;
+            }
+            filterActivities();
+        }
+
+        function filterActivities() {
+            const filter = document.getElementById('activityFilter').value;
+            const age = parseInt(appData.children[0].ageStage);
+            
+            const filtered = ACTIVITIES.filter(a => {
+                const ageOk = a.age.split(',').includes(age.toString());
+                const catOk = !filter || a.cat === filter;
+                return ageOk && catOk;
+            });
+
+            const icons = {cognitive: '🧩', physical: '🏃', creative: '🎨', social: '👫'};
+            document.getElementById('activitiesDisplay').innerHTML = filtered.map(a => `
+                <div class="activity-card">
+                    <div style="font-size:20px">${icons[a.cat]}</div>
+                    <strong>${a.name}</strong>
+                    <p style="font-size:12px;color:#666;margin-top:4px">${a.desc}</p>
+                    <span class="tag">${a.cat}</span>
+                </div>
+            `).join('');
+        }
+
+        function renderGuides() {
+            if (appData.children.length === 0) {
+                document.getElementById('guidesList').innerHTML = '<p class="banner">Add a child first to see guides.</p>';
+                return;
+            }
+            const age = parseInt(appData.children[0].ageStage);
+            const guide = GUIDES[age];
+            
+            document.getElementById('guidesList').innerHTML = `
+                <div class="card" style="cursor:pointer" onclick="showGuide(${age})">
+                    <strong>${guide.title}</strong>
+                    <p style="font-size:12px;color:#999;margin-top:4px">Expert tips for ${AGES[age].name}</p>
+                </div>
+            `;
+        }
+
+        function showGuide(age) {
+            document.getElementById('guideContent').style.display = 'block';
+            document.getElementById('guidesList').parentElement.style.display = 'none';
+            const guide = GUIDES[age];
+            const content = guide.content.split('\n\n').map(p => {
+                let formatted = p.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                return `<p>${formatted}</p>`;
+            }).join('');
+            document.getElementById('guideBody').innerHTML = `<h3>${guide.title}</h3>${content}`;
+        }
+
+        function backToGuides() {
+            document.getElementById('guideContent').style.display = 'none';
+            document.getElementById('guidesList').parentElement.style.display = 'block';
+        }
+
+        function askAdvisor() {
+            const q = document.getElementById('advisorQuestion').value;
+            if (!q) return;
+
+            const history = document.getElementById('chatHistory');
+            history.innerHTML += `<div class="chat-msg user">${q}</div>`;
+            document.getElementById('advisorQuestion').value = '';
+
+            setTimeout(() => {
+                const responses = [
+                    'That\'s a common question! Every child develops at their own pace. If you\'re concerned, discuss with your pediatrician. In the meantime, keep providing rich experiences.',
+                    'Great observation! This is typical for their age stage. Consider creating a consistent routine and being patient with the process.',
+                    'It\'s wonderful that you\'re paying attention. Remember to celebrate small wins and take care of yourself too—parent wellness matters!',
+                    'That sounds challenging. Have you tried breaking it down into smaller steps? Also consider whether fatigue or hunger might be factors.',
+                    'Research shows that [age-appropriate activity] can really help. Start slow and make it fun rather than a chore.'
+                ];
+                const response = responses[Math.floor(Math.random() * responses.length)];
+                history.innerHTML += `<div class="chat-msg ai">${response}</div>`;
+                history.scrollTop = history.scrollHeight;
+            }, 500);
+        }
+
+        function renderAnalytics() {
+            if (appData.trackers.length === 0) {
+                document.getElementById('analyticsStats').innerHTML = '<p class="banner">Start logging to see analytics!</p>';
+                return;
+            }
+
+            const last7 = appData.trackers.slice(-7);
+            const avgSleep = (last7.reduce((sum, t) => sum + parseFloat(t.sleepHours || 0), 0) / last7.length).toFixed(1);
+            const goodMood = last7.filter(t => t.mood >= 4).length;
+            const completed = last7.filter(t => t.sleepHours && t.mood).length;
+
+            document.getElementById('analyticsStats').innerHTML = `
+                <div class="stat-box"><div class="num">${avgSleep}</div><div class="label">Avg Sleep (hrs)</div></div>
+                <div class="stat-box"><div class="num">${completed}</div><div class="label">Days Tracked</div></div>
+                <div class="stat-box"><div class="num">${goodMood}</div><div class="label">Good Mood Days</div></div>
+                <div class="stat-box"><div class="num">${appData.children.length}</div><div class="label">Children</div></div>
+            `;
+
+            document.getElementById('achievements').innerHTML = `
+                <div class="achievement">
+                    <div class="icon">🏆</div>
+                    <strong>Weekly Tracker</strong><br>
+                    <small>${completed}/7 days logged</small>
+                </div>
+                <div class="achievement">
+                    <div class="icon">😊</div>
+                    <strong>Happy Week</strong><br>
+                    <small>${goodMood} good mood days</small>
+                </div>
+                <div class="achievement">
+                    <div class="icon">💤</div>
+                    <strong>Sleep Warrior</strong><br>
+                    <small>${avgSleep} hrs average</small>
+                </div>
+            `;
+
+            const moods = last7.map(t => t.mood ? parseInt(t.mood) : 3);
+            const trendDir = moods[moods.length - 1] > moods[0] ? '📈' : '📉';
+            document.getElementById('trendsDisplay').innerHTML = `
+                <p><strong>Mood Trend:</strong> ${trendDir} ${moods.join(' → ')}</p>
+                <div class="progress-bar"><div class="progress-fill" style="width:${(goodMood/last7.length*100)}%"></div></div>
+                <p style="font-size:12px;color:#666;margin-top:8px">${(goodMood/last7.length*100).toFixed(0)}% positive days this week</p>
+            `;
+        }
+
+        function updateAgeContent() {
+            // Dynamic update of content based on selected age
+        }
+
+        // Initialize
+        loadData();
+    </script>
+</body>
+</html>
