@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>90s Nostalgia Playlist</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, #2a2420 0%, #1a1815 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header {
+            background: linear-gradient(135deg, #3d3a35 0%, #2a2420 100%);
+            color: #d4af37;
+            padding: 30px 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+        h1 { font-family: 'Playfair Display', serif; font-size: 2.5em; margin-bottom: 5px; }
+        .subtitle { font-size: 0.9em; opacity: 0.9; }
+        .mood-selector {
+            display: flex;
+            gap: 10px;
+            margin: 25px 0;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .mood-btn {
+            padding: 10px 20px;
+            border: 2px solid #d4af37;
+            background: transparent;
+            color: #d4af37;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+        .mood-btn.active {
+            background: #d4af37;
+            color: #1a1815;
+            font-weight: bold;
+        }
+        .mood-btn:hover { background: #d4af37; color: #1a1815; }
+        .tabs {
+            display: flex;
+            gap: 20px;
+            margin: 25px 0;
+            border-bottom: 2px solid #d4af37;
+            padding-bottom: 0;
+        }
+        .tab-btn {
+            padding: 12px 20px;
+            background: transparent;
+            color: #666;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        .tab-btn.active {
+            color: #d4af37;
+            border-bottom-color: #d4af37;
+        }
+        .song-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+        .song-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: all 0.3s;
+        }
+        .song-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.25); }
+        .song-header {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .vinyl {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, #333, #666, #333);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            animation: spin 3s linear infinite;
+            flex-shrink: 0;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .song-info h3 { font-size: 1.1em; margin-bottom: 5px; color: #d4af37; }
+        .song-info p { font-size: 0.9em; color: #666; }
+        .mood-tag {
+            display: inline-block;
+            background: #f0f0f0;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 8px;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .btn-play, .btn-heart {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+        .btn-play {
+            background: #d4af37;
+            color: #1a1815;
+            font-weight: bold;
+        }
+        .btn-play:hover { background: #c99b1a; }
+        .btn-heart {
+            background: #f0f0f0;
+            color: #d4af37;
+            font-size: 1.2em;
+        }
+        .btn-heart.saved { background: #d4af37; }
+        .youtube-player {
+            width: 100%;
+            height: 0;
+            padding-bottom: 56.25%;
+            position: relative;
+            margin: 15px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            display: none;
+        }
+        .youtube-player.active { display: block; }
+        .youtube-player iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .memory-panel {
+            background: linear-gradient(135deg, #3d3a35 0%, #2a2420 100%);
+            color: #d4af37;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 25px;
+            font-style: italic;
+            line-height: 1.6;
+        }
+        .favorites-count {
+            display: inline-block;
+            background: #d4af37;
+            color: #1a1815;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .loading { text-align: center; color: #d4af37; font-size: 1.2em; padding: 40px; }
+        .error { color: #e74c3c; padding: 15px; background: #f5f5f5; border-radius: 8px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Music<span style="color: #d4af37;">Memory</span></h1>
+            <p class="subtitle">1990s Hits • Mood Filters • Memory Prompts</p>
+            <div class="mood-selector">
+                <span style="color: #d4af37; font-weight: bold;">How are you feeling?</span>
+                <button class="mood-btn active" data-mood="all">All Moods</button>
+                <button class="mood-btn" data-mood="energetic">Energetic</button>
+                <button class="mood-btn" data-mood="chill">Chill</button>
+                <button class="mood-btn" data-mood="workout">Workout</button>
+                <button class="mood-btn" data-mood="party">Party</button>
+                <button class="mood-btn" data-mood="study">Study</button>
+                <span class="favorites-count" id="favCount">♥ 0 Favorites</span>
+            </div>
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="songs">🎵 Songs</button>
+                <button class="tab-btn" data-tab="favorites">❤️ Favorites</button>
+                <button class="tab-btn" data-tab="soundscapes">🌊 Soundscapes</button>
+            </div>
+        </header>
+
+        <div id="error" class="error" style="display: none;"></div>
+        
+        <div id="loading" class="loading">Loading classic songs from YouTube...</div>
+        
+        <div id="content" style="display: none;">
+            <div class="song-list" id="songList"></div>
+        </div>
+
+        <div class="memory-panel">
+            <strong>💫 Memory Prompt:</strong>
+            <p id="memoryPrompt" style="margin-top: 10px;">Play a song to receive a warm memory prompt...</p>
+        </div>
+    </div>
+
+    <script>
+        // YouTube Classic Songs Database (with actual YouTube IDs)
+        const classicSongs = [
+            { title: "Smells Like Teen Spirit", artist: "Nirvana", year: 1991, youtubeId: "hTWKbfoikeg", mood: "energetic", era: "N/A", memory: "Enjoy this classic from 1991." },
+            { title: "...Baby One More Time", artist: "Britney Spears", year: 1998, youtubeId: "C-u5UJrxcZ0", mood: "party", era: "N/A", memory: "Enjoy this classic from 1998." },
+            { title: "I Want It That Way", artist: "Backstreet Boys", year: 1999, youtubeId: "4fndeDfaWCg", mood: "chill", era: "N/A", memory: "Enjoy this classic from 1999." },
+            { title: "Just", artist: "Radiohead", year: 1995, youtubeId: "JO3I4mKTNzs", mood: "study", era: "N/A", memory: "Enjoy this classic from 1995." },
+            { title: "Bitter Sweet Symphony", artist: "The Verve", year: 1997, youtubeId: "jfR6eDLh9P8", mood: "chill", era: "N/A", memory: "Enjoy this classic from 1997." },
+            { title: "Creep", artist: "Radiohead", year: 1992, youtubeId: "XFkzRNyygfk", mood: "study", era: "N/A", memory: "Enjoy this classic from 1992." },
+            { title: "No Scrubs", artist: "TLC", year: 1999, youtubeId: "FrLequ6dQKE", mood: "energetic", era: "N/A", memory: "Enjoy this classic from 1999." },
+            { title: "Black Hole Sun", artist: "Soundgarden", year: 1994, youtubeId: "3mbBbFH9fAg", mood: "workout", era: "N/A", memory: "Enjoy this classic from 1994." },
+            { title: "Sabotage", artist: "Beastie Boys", year: 1994, youtubeId: "z5U81zsPAN0", mood: "workout", era: "N/A", memory: "Enjoy this classic from 1994." },
+            { title: "Waterfalls", artist: "TLC", year: 1994, youtubeId: "8WYHDke1oE4", mood: "chill", era: "N/A", memory: "Enjoy this classic from 1994." },
+            { title: "Plush", artist: "Stone Temple Pilots", year: 1992, youtubeId: "j9fxXd3O3dI", mood: "chill", era: "N/A", memory: "Enjoy this classic from 1992." },
+            { title: "Fake Plastic Trees", artist: "Radiohead", year: 1995, youtubeId: "n6nKj8z-A0A", mood: "study", era: "N/A", memory: "Enjoy this classic from 1995." },
+            { title: "Under the Bridge", artist: "Red Hot Chili Peppers", year: 1991, youtubeId: "lwlogyj7nFE", mood: "party", era: "N/A", memory: "Enjoy this classic from 1991." },
+            { title: "Losing My Religion", artist: "R.E.M.", year: 1991, youtubeId: "xwtdhWltSIU", mood: "energetic", era: "N/A", memory: "Enjoy this classic from 1991." },
+            { title: "The Scientist", artist: "Coldplay", year: 2002, youtubeId: "RB-RcX5DS5A", mood: "study", era: "N/A", memory: "Enjoy this classic from 2002." },
+        ];
+
+        const memoryPrompts = {
+            happy: [
+                "Think of a time when you laughed so hard your sides hurt. Who made you laugh?",
+                "Recall a birthday celebration that meant the world to you.",
+                "Remember a joyful moment with someone you love—what were you doing?"
+            ],
+            calm: [
+                "Close your eyes and imagine a peaceful place from your past.",
+                "Think of a sunset you'll never forget.",
+                "Recall a quiet moment with someone special."
+            ],
+            nostalgic: [
+                "What was your favorite song in your teenage years? Why did it matter?",
+                "Remember a school dance or special event from long ago.",
+                "Think of an old friend—where are they now, and what was special about them?"
+            ],
+            energized: [
+                "Recall a time when you felt truly alive and powerful.",
+                "Remember a celebration or party that was unforgettable.",
+                "Think of an accomplishment you're still proud of today."
+            ],
+            comforting: [
+                "Remember someone who always made you feel safe and loved.",
+                "Recall a warm hug or embrace that meant everything.",
+                "Think of a time when you felt truly at peace."
+            ]
+        };
+
+        let selectedMood = "all";
+        let favorites = JSON.parse(localStorage.getItem("musicMemoryFavorites")) || [];
+
+        // Get YouTube embed URL
+        function getYouTubeEmbedUrl(videoId) {
+            return `https://www.youtube.com/embed/${videoId}?enablejsapi=1&controls=1&modestbranding=1`;
+        }
+
+        // Render songs
+        function renderSongs(songs) {
+            const songList = document.getElementById("songList");
+            songList.innerHTML = songs.map((song, idx) => `
+                <div class="song-card">
+                    <div class="song-header">
+                        <div class="vinyl">🎵</div>
+                        <div class="song-info">
+                            <h3>${song.title}</h3>
+                            <p>${song.artist} • ${song.year}</p>
+                            <span class="mood-tag">${song.mood}</span>
+                        </div>
+                    </div>
+                    <div class="youtube-player" id="player-${idx}">
+                        <iframe src="${getYouTubeEmbedUrl(song.youtubeId)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                    <div class="controls">
+                        <button class="btn-play" onclick="playYoutube(${idx})">▶ Play</button>
+                        <button class="btn-heart ${favorites.includes(song.title) ? 'saved' : ''}" onclick="toggleFavorite('${song.title}')" title="Save to favorites">❤</button>
+                    </div>
+                    <script>
+                        function playYoutube(idx) {
+                            // Hide all players
+                            document.querySelectorAll('.youtube-player').forEach(p => p.classList.remove('active'));
+                            // Show this one
+                            document.getElementById('player-' + idx).classList.add('active');
+                            // Show memory prompt
+                            updateMemoryPrompt('${song.mood}');
+                            // Scroll to player
+                            document.getElementById('player-' + idx).scrollIntoView({ behavior: 'smooth' });
+                        }
+                        window.playYoutube = playYoutube;
+                    </script>
+                </div>
+            `).join("");
+        }
+
+        // Toggle favorite
+        function toggleFavorite(title) {
+            const idx = favorites.indexOf(title);
+            if (idx > -1) {
+                favorites.splice(idx, 1);
+            } else {
+                favorites.push(title);
+            }
+            localStorage.setItem("musicMemoryFavorites", JSON.stringify(favorites));
+            updateFavorites();
+            renderCurrentTab();
+        }
+
+        // Update favorites count
+        function updateFavorites() {
+            document.getElementById("favCount").textContent = `♥ ${favorites.length} Favorite${favorites.length !== 1 ? 's' : ''}`;
+        }
+
+        // Update memory prompt
+        function updateMemoryPrompt(mood) {
+            const prompts = memoryPrompts[mood] || memoryPrompts.calm;
+            const prompt = prompts[Math.floor(Math.random() * prompts.length)];
+            document.getElementById("memoryPrompt").textContent = prompt;
+        }
+
+        // Filter and render
+        function renderCurrentTab() {
+            const songList = document.getElementById("songList");
+            const currentTab = document.querySelector(".tab-btn.active").dataset.tab;
+
+            let toRender = classicSongs;
+
+            if (selectedMood !== "all") {
+                toRender = toRender.filter(s => s.mood === selectedMood);
+            }
+
+            if (currentTab === "favorites") {
+                toRender = toRender.filter(s => favorites.includes(s.title));
+                if (toRender.length === 0) {
+                    songList.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">No favorites yet. Heart a song to save it! ❤</div>`;
+                    return;
+                }
+            }
+
+            renderSongs(toRender);
+        }
+
+        // Event listeners
+        document.querySelectorAll(".mood-btn").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                document.querySelectorAll(".mood-btn").forEach(b => b.classList.remove("active"));
+                e.target.classList.add("active");
+                selectedMood = e.target.dataset.mood;
+                renderCurrentTab();
+            });
+        });
+
+        document.querySelectorAll(".tab-btn").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+                e.target.classList.add("active");
+                renderCurrentTab();
+            });
+        });
+
+        // Initialize
+        window.onload = () => {
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("content").style.display = "block";
+            updateFavorites();
+            renderCurrentTab();
+        };
+
+        // Make functions global
+        window.toggleFavorite = toggleFavorite;
+        window.updateMemoryPrompt = updateMemoryPrompt;
+    </script>
+</body>
+</html>
