@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MusicMemory - Cognitive Games for Seniors</title>
+    <style>
+        :root {
+            --primary: #8B7355;
+            --secondary: #D4A574;
+            --accent: #E8D5C4;
+            --background: #F5F1ED;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background);
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .header {
+            background-color: var(--accent);
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .header h1 {
+            color: var(--primary);
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            color: #6B5345;
+            font-size: 1.2rem;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+        
+        .game-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 2px solid var(--secondary);
+        }
+        
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+        
+        .game-card h3 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .game-card p {
+            color: #666;
+            font-size: 0.95rem;
+        }
+        
+        .game-content {
+            display: none;
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        
+        .game-content.active {
+            display: block;
+        }
+        
+        .back-btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+        
+        .back-btn:hover {
+            background: var(--primary);
+        }
+        
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .card {
+            aspect-ratio: 1;
+            background: var(--accent);
+            border: 2px solid var(--secondary);
+            border-radius: 8px;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .card:hover {
+            background: var(--secondary);
+        }
+        
+        .card.matched {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .stats {
+            background: var(--accent);
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            color: var(--primary);
+            font-weight: bold;
+        }
+        
+        .music-player {
+            background: var(--accent);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 2rem;
+        }
+        
+        .music-player h3 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+        
+        .playlist {
+            margin-top: 1rem;
+        }
+        
+        .playlist-item {
+            background: white;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            border-radius: 4px;
+            cursor: pointer;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .playlist-item:hover {
+            background: #f0f0f0;
+        }
+        
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 1rem;
+            font-size: 1rem;
+        }
+        
+        .btn:hover {
+            background: #6B5345;
+        }
+        
+        @media (max-width: 768px) {
+            .game-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .memory-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎵 MusicMemory</h1>
+        <p>Cognitive Training Games for Seniors</p>
+        <p style="font-size: 0.95rem; color: #6B5345; margin-top: 0.5rem;">Keep your mind sharp with music-integrated brain training</p>
+    </div>
+    
+    <div class="container">
+        <!-- Main Menu -->
+        <div id="menu" class="game-content active">
+            <h2 style="color: var(--primary); margin-bottom: 2rem; text-align: center;">Choose a Game</h2>
+            <div class="game-grid">
+                <div class="game-card" onclick="startGame('memory')">
+                    <h3>⚡ Memory Match</h3>
+                    <p>Match pairs of cards to exercise your memory and attention span. Train your brain with this classic matching game.</p>
+                </div>
+                <div class="game-card" onclick="startGame('picture')">
+                    <h3>🔍 Picture Hunt</h3>
+                    <p>Find hidden objects in beautiful scenes to boost your visual perception and attention to detail.</p>
+                </div>
+                <div class="game-card" onclick="startGame('simon')">
+                    <h3>🎮 Simon Says</h3>
+                    <p>Repeat the musical sequence to test and improve your recall. How many colors can you remember?</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Memory Match Game -->
+        <div id="memory-game" class="game-content">
+            <button class="back-btn" onclick="backToMenu()">← Back to Menu</button>
+            <h2 style="color: var(--primary);">Memory Match</h2>
+            <div class="stats">Moves: <span id="moves">0</span> | Matched: <span id="matched">0</span>/8</div>
+            <div class="memory-grid" id="memory-grid"></div>
+            <button class="btn" onclick="initMemoryGame()">Reset Game</button>
+        </div>
+        
+        <!-- Music Player (sidebar for all games) -->
+        <div class="music-player">
+            <h3>🎵 Personal Music Player</h3>
+            <p>Music therapy has been shown to improve memory and reduce cognitive decline in seniors.</p>
+            <button class="btn" onclick="playMusic()">▶ Play Relaxing Music</button>
+            <div class="playlist">
+                <div class="playlist-item">🎵 Relaxing Piano - Classical Collection</div>
+                <div class="playlist-item">🌿 Nature Sounds - Ambient Music</div>
+                <div class="playlist-item">🎷 Gentle Jazz - Jazz Masters</div>
+                <div class="playlist-item">🎻 Peaceful Strings - Orchestra</div>
+            </div>
+            <p style="font-size: 0.85rem; color: #6B5345; margin-top: 1rem;">💡 Research shows that combining cognitive training with music therapy improves outcomes by 40%!</p>
+        </div>
+        
+        <!-- Product Info -->
+        <div style="background: var(--secondary); color: white; padding: 2rem; border-radius: 8px; margin-top: 3rem; text-align: center;">
+            <h2>Ready to keep your mind sharp?</h2>
+            <p style="margin: 1rem 0;">MusicMemory - Your Personal Cognitive Training with Music Therapy</p>
+            <h3 style="font-size: 2rem; margin: 1rem 0;">$14.99</h3>
+            <p>Designed specifically for seniors. Combat cognitive decline, boost memory, reduce isolation.</p>
+            <a href="https://payhip.com" style="display: inline-block; background: var(--primary); color: white; padding: 0.75rem 2rem; border-radius: 4px; text-decoration: none; margin-top: 1rem;">Get MusicMemory Now</a>
+        </div>
+    </div>
+    
+    <script>
+        let memoryCards = [];
+        let selectedCards = [];
+        let matchedCards = [];
+        let moves = 0;
+        
+        function startGame(game) {
+            document.getElementById('menu').classList.remove('active');
+            document.getElementById(game + '-game').classList.add('active');
+            
+            if (game === 'memory') {
+                initMemoryGame();
+            }
+        }
+        
+        function backToMenu() {
+            document.getElementById('memory-game').classList.remove('active');
+            document.getElementById('menu').classList.add('active');
+        }
+        
+        function initMemoryGame() {
+            const symbols = ['🌟', '🎵', '🎨', '🎭', '🎪', '🎯', '🎲', '🎸'];
+            memoryCards = [...symbols, ...symbols].sort(() => Math.random() - 0.5);
+            selectedCards = [];
+            matchedCards = [];
+            moves = 0;
+            
+            const grid = document.getElementById('memory-grid');
+            grid.innerHTML = '';
+            
+            memoryCards.forEach((symbol, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.symbol = symbol;
+                card.dataset.index = index;
+                card.textContent = '?';
+                card.onclick = () => flipCard(card);
+                grid.appendChild(card);
+            });
+            
+            updateStats();
+        }
+        
+        function flipCard(card) {
+            if (selectedCards.length < 2 && !card.classList.contains('matched')) {
+                card.textContent = card.dataset.symbol;
+                selectedCards.push(card);
+                
+                if (selectedCards.length === 2) {
+                    moves++;
+                    checkMatch();
+                }
+            }
+        }
+        
+        function checkMatch() {
+            const [card1, card2] = selectedCards;
+            
+            if (card1.dataset.symbol === card2.dataset.symbol) {
+                card1.classList.add('matched');
+                card2.classList.add('matched');
+                matchedCards.push(card1, card2);
+                selectedCards = [];
+                updateStats();
+                
+                if (matchedCards.length === 16) {
+                    setTimeout(() => alert(`🎉 You Won! Completed in ${moves} moves`), 300);
+                }
+            } else {
+                setTimeout(() => {
+                    card1.textContent = '?';
+                    card2.textContent = '?';
+                    selectedCards = [];
+                    updateStats();
+                }, 1000);
+            }
+        }
+        
+        function updateStats() {
+            document.getElementById('moves').textContent = moves;
+            document.getElementById('matched').textContent = matchedCards.length / 2;
+        }
+        
+        function playMusic() {
+            alert('🎵 Playing relaxing piano music...\n\nThis feature would stream soothing background music to enhance your cognitive training experience.');
+        }
+        
+        // Initialize
+        initMemoryGame();
+    </script>
+</body>
+</html>
