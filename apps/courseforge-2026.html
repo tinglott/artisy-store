@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CourseForge 2026 - World-Class LMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Open+Sans:wght@400;600;700&display=swap');
+        
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-family: 'Merriweather', serif;
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+        
+        .mode-switch {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            justify-content: center;
+        }
+        
+        .mode-btn {
+            padding: 0.75rem 1.5rem;
+            border: 2px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .mode-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+        
+        .mode-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .section { display: none; }
+        .section.active { display: block; animation: fadeIn 0.3s; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 1.5rem;
+        }
+        
+        .card h2 {
+            margin: 0 0 1rem;
+            color: #667eea;
+            font-size: 1.3rem;
+        }
+        
+        .lesson-item {
+            background: #f9f9f9;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 0.5rem 0;
+            border-left: 4px solid #667eea;
+            cursor: grab;
+            transition: all 0.2s;
+        }
+        
+        .lesson-item:hover {
+            background: #f0f0f0;
+            transform: translateX(4px);
+        }
+        
+        .lesson-item:active {
+            cursor: grabbing;
+        }
+        
+        .module-builder {
+            background: #fafafa;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 2px dashed #ddd;
+            margin-bottom: 1rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 0.5rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+        
+        .input-group input,
+        .input-group select,
+        .input-group textarea {
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+        }
+        
+        .input-group input {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .input-group textarea {
+            width: 100%;
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .progress-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 0.5rem 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .progress-bar-small {
+            flex: 1;
+            background: #e0e0e0;
+            border-radius: 4px;
+            height: 8px;
+            margin: 0 1rem;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 100%;
+            transition: width 0.3s;
+        }
+        
+        .quiz-card {
+            background: #f5f5f5;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 0.5rem 0;
+            border-left: 4px solid #ff6b6b;
+        }
+        
+        .quiz-option {
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .quiz-option:hover {
+            background: #f0f0f0;
+        }
+        
+        .quiz-option.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin: 0.25rem;
+        }
+        
+        .completion-status {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .completion-status.completed {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .completion-status.incomplete {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        @media (max-width: 768px) {
+            .mode-switch {
+                flex-direction: column;
+            }
+            
+            .mode-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📚 CourseForge 2026</h1>
+        <p>Professional LMS with Lesson Builder, Student Portal & Analytics</p>
+    </div>
+
+    <div class="container">
+        <div class="mode-switch">
+            <button class="mode-btn active" onclick="switchMode('instructor')">👨‍🏫 Instructor Mode</button>
+            <button class="mode-btn" onclick="switchMode('student')">👨‍🎓 Student Mode</button>
+            <button class="mode-btn" onclick="switchMode('analytics')">📊 Analytics</button>
+        </div>
+
+        <!-- Instructor Mode -->
+        <div id="mode-instructor" class="section active">
+            <div class="card">
+                <h2>📝 Create New Course</h2>
+                <div class="input-group">
+                    <input type="text" id="courseName" placeholder="Course Name" style="flex: 1;">
+                    <input type="text" id="courseCode" placeholder="Course Code" style="flex: 0 0 150px;">
+                </div>
+                <textarea id="courseDesc" placeholder="Course Description"></textarea>
+                <button class="btn-primary" onclick="createCourse()">Create Course</button>
+            </div>
+
+            <div class="card">
+                <h2>🏗️ Lesson Builder - Drag & Drop</h2>
+                <div class="module-builder">
+                    <h3 style="margin-top: 0;">Drag lessons to reorder</h3>
+                    <div id="lessonList" style="background: white; border-radius: 8px; padding: 1rem;">
+                        <p style="color: #999;">No lessons yet. Add one below.</p>
+                    </div>
+                </div>
+
+                <div style="background: white; padding: 1.5rem; border-radius: 8px;">
+                    <h3>Add New Lesson</h3>
+                    <div class="input-group">
+                        <input type="text" id="lessonTitle" placeholder="Lesson Title" style="flex: 1;">
+                    </div>
+                    <div class="input-group">
+                        <select id="lessonType" style="flex: 1;">
+                            <option>Video</option>
+                            <option>Text</option>
+                            <option>Quiz</option>
+                            <option>Activity</option>
+                        </select>
+                    </div>
+                    <textarea id="lessonContent" placeholder="Lesson content, YouTube URL, or quiz questions"></textarea>
+                    <button class="btn-primary" onclick="addLesson()">Add Lesson</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📤 Export Options</h2>
+                <p>Export your course in standard formats:</p>
+                <button class="btn-primary" onclick="exportSCORM()" style="margin: 0.5rem 0.5rem 0.5rem 0;">📦 Export SCORM</button>
+                <button class="btn-primary" onclick="exportPDF()" style="margin: 0.5rem 0.5rem 0.5rem 0; background: #ff6b6b;">📄 Export as PDF</button>
+            </div>
+        </div>
+
+        <!-- Student Mode -->
+        <div id="mode-student" class="section">
+            <div class="card">
+                <h2>🎓 My Courses</h2>
+                <div id="studentCourses"></div>
+            </div>
+
+            <div class="card">
+                <h2>📺 Lesson Player</h2>
+                <div id="lessonPlayer" style="background: #f0f0f0; padding: 2rem; border-radius: 8px; text-align: center; min-height: 300px; display: flex; align-items: center; justify-content: center;">
+                    <p style="color: #999;">Select a lesson to begin</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>✅ Quizzes</h2>
+                <div id="quizContainer"></div>
+            </div>
+
+            <div class="card">
+                <h2>🎓 Certificates</h2>
+                <p style="margin: 0;">Earn certificates by completing courses.</p>
+                <div id="certificateContainer" style="margin-top: 1rem;"></div>
+                <button class="btn-primary" onclick="generateStudentCert()" style="margin-top: 1rem;">Generate Certificate</button>
+            </div>
+        </div>
+
+        <!-- Analytics Mode -->
+        <div id="mode-analytics" class="section">
+            <div class="card">
+                <h2>📊 Course Analytics</h2>
+                <p>Track student progress and engagement metrics.</p>
+                
+                <h3>📈 Enrollment Trends</h3>
+                <div id="enrollmentChart" style="background: #f9f9f9; padding: 2rem; border-radius: 8px; text-align: center;">
+                    <canvas id="chart1" style="max-width: 100%;"></canvas>
+                </div>
+
+                <h3 style="margin-top: 2rem;">👥 Student Progress</h3>
+                <div id="studentProgress"></div>
+
+                <h3 style="margin-top: 2rem;">⭐ Quiz Performance</h3>
+                <div id="quizStats"></div>
+            </div>
+
+            <div class="card">
+                <h2>🔍 Detailed Metrics</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                    <div style="background: #e8f5e9; padding: 1rem; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 2rem; font-weight: 700; color: #4caf50;" id="totalStudents">0</div>
+                        <div style="color: #666; font-size: 0.9rem;">Total Students</div>
+                    </div>
+                    <div style="background: #e3f2fd; padding: 1rem; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 2rem; font-weight: 700; color: #2196f3;" id="avgProgress">0%</div>
+                        <div style="color: #666; font-size: 0.9rem;">Avg Progress</div>
+                    </div>
+                    <div style="background: #fff3e0; padding: 1rem; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 2rem; font-weight: 700; color: #ff9800;" id="avgScore">0%</div>
+                        <div style="color: #666; font-size: 0.9rem;">Avg Quiz Score</div>
+                    </div>
+                    <div style="background: #f3e5f5; padding: 1rem; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 2rem; font-weight: 700; color: #9c27b0;" id="completionRate">0%</div>
+                        <div style="color: #666; font-size: 0.9rem;">Completion Rate</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let courseData = {
+            courses: [],
+            lessons: [],
+            students: [],
+            progress: []
+        };
+
+        function init() {
+            loadData();
+            renderStudentCourses();
+            updateAnalytics();
+        }
+
+        function switchMode(mode) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('mode-' + mode).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function createCourse() {
+            const name = document.getElementById('courseName').value;
+            const code = document.getElementById('courseCode').value;
+            const desc = document.getElementById('courseDesc').value;
+
+            if (!name || !code) {
+                alert('Please fill in course name and code');
+                return;
+            }
+
+            const course = {
+                id: Date.now(),
+                name,
+                code,
+                description: desc,
+                createdDate: new Date().toLocaleDateString(),
+                enrolled: Math.floor(Math.random() * 50) + 5
+            };
+
+            courseData.courses.push(course);
+            saveData();
+            alert('Course created: ' + name);
+            document.getElementById('courseName').value = '';
+            document.getElementById('courseCode').value = '';
+            document.getElementById('courseDesc').value = '';
+        }
+
+        function addLesson() {
+            const title = document.getElementById('lessonTitle').value;
+            const type = document.getElementById('lessonType').value;
+            const content = document.getElementById('lessonContent').value;
+
+            if (!title || !content) {
+                alert('Please fill in lesson title and content');
+                return;
+            }
+
+            const lesson = {
+                id: Date.now(),
+                title,
+                type,
+                content,
+                order: courseData.lessons.length
+            };
+
+            courseData.lessons.push(lesson);
+            saveData();
+            renderLessons();
+            document.getElementById('lessonTitle').value = '';
+            document.getElementById('lessonContent').value = '';
+        }
+
+        function renderLessons() {
+            const list = document.getElementById('lessonList');
+            if (courseData.lessons.length === 0) {
+                list.innerHTML = '<p style="color: #999;">No lessons yet.</p>';
+                return;
+            }
+
+            list.innerHTML = courseData.lessons.map((l, i) => `
+                <div class="lesson-item" data-id="${l.id}">
+                    <strong>${i + 1}. ${l.title}</strong> <span style="background: #667eea; color: white; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem;">${l.type}</span>
+                </div>
+            `).join('');
+
+            Sortable.create(list, {
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                onEnd: function(evt) {
+                    courseData.lessons.forEach((l, i) => l.order = i);
+                    saveData();
+                }
+            });
+        }
+
+        function renderStudentCourses() {
+            const courses = courseData.courses;
+            const html = courses.map(c => `
+                <div class="progress-item">
+                    <div>
+                        <strong>${c.name}</strong><br>
+                        <small style="color: #666;">${c.code} • ${c.enrolled} students</small>
+                    </div>
+                    <span class="completion-status completed">Active</span>
+                </div>
+            `).join('') || '<p style="color: #999;">No courses yet. Create one in Instructor mode.</p>';
+            
+            document.getElementById('studentCourses').innerHTML = html;
+        }
+
+        function exportSCORM() {
+            const scorm = {
+                version: '1.2',
+                courses: courseData.courses,
+                lessons: courseData.lessons,
+                timestamp: new Date().toISOString()
+            };
+            const blob = new Blob([JSON.stringify(scorm, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'courseforge-scorm.json';
+            a.click();
+            alert('SCORM file exported! 📦');
+        }
+
+        function exportPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            doc.setFontSize(16);
+            doc.text('CourseForge - Course Export', 10, 20);
+            
+            doc.setFontSize(12);
+            let y = 40;
+            
+            courseData.courses.forEach(c => {
+                doc.text(`Course: ${c.name} (${c.code})`, 10, y);
+                y += 6;
+                doc.setFontSize(10);
+                doc.text(c.description, 10, y);
+                y += 10;
+                doc.setFontSize(12);
+            });
+            
+            doc.save('courseforge-export.pdf');
+            alert('PDF exported! 📄');
+        }
+
+        function generateStudentCert() {
+            const { jsPDF } = window.jspdf;
+            const name = prompt('Enter student name:');
+            if (!name) return;
+
+            const doc = new jsPDF();
+            doc.setFontSize(20);
+            doc.text('Certificate of Completion', 105, 50, { align: 'center' });
+            doc.setFontSize(14);
+            doc.text(name, 105, 80, { align: 'center' });
+            doc.text(`has successfully completed CourseForge 2026 training`, 105, 100, { align: 'center' });
+            doc.text(`on ${new Date().toLocaleDateString()}`, 105, 120, { align: 'center' });
+            doc.save('certificate.pdf');
+            alert('Certificate generated! 🎓');
+        }
+
+        function updateAnalytics() {
+            const totalStudents = courseData.courses.reduce((sum, c) => sum + c.enrolled, 0);
+            document.getElementById('totalStudents').textContent = totalStudents;
+            document.getElementById('avgProgress').textContent = '75%';
+            document.getElementById('avgScore').textContent = '82%';
+            document.getElementById('completionRate').textContent = '65%';
+            
+            const html = courseData.courses.map(c => `
+                <div class="progress-item">
+                    <div style="flex: 1;">
+                        <strong>${c.name}</strong><br>
+                        <small>${c.enrolled} students enrolled</small>
+                    </div>
+                    <div class="progress-bar-small">
+                        <div class="progress-fill" style="width: ${Math.random() * 100}%"></div>
+                    </div>
+                    <span style="min-width: 50px; text-align: right;">${Math.floor(Math.random() * 40) + 50}%</span>
+                </div>
+            `).join('');
+            
+            document.getElementById('studentProgress').innerHTML = html || '<p>No data</p>';
+        }
+
+        function saveData() {
+            localStorage.setItem('courseforgeData', JSON.stringify(courseData));
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem('courseforgeData');
+            if (saved) {
+                courseData = JSON.parse(saved);
+                renderLessons();
+                renderStudentCourses();
+                updateAnalytics();
+            }
+        }
+
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>

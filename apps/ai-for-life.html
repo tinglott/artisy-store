@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI For Life - Complete AI Course Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=Merriweather:wght@700&display=swap');
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-family: 'Merriweather', serif;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+        
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 0.25rem;
+        }
+        
+        .stat-label {
+            font-size: 0.85rem;
+            color: #999;
+            font-weight: 600;
+        }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 2rem;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .card h2 {
+            margin: 0 0 1.5rem;
+            color: #667eea;
+            font-size: 1.5rem;
+        }
+        
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .module-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .module-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+        }
+        
+        .module-card .module-num {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .module-card .module-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .module-card .module-lessons {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+        
+        .module-card .progress-bar {
+            background: rgba(255,255,255,0.3);
+            height: 6px;
+            border-radius: 3px;
+            margin-top: 1rem;
+            overflow: hidden;
+        }
+        
+        .module-card .progress-fill {
+            background: white;
+            height: 100%;
+            transition: width 0.5s;
+        }
+        
+        .lesson-viewer {
+            background: #f9f9f9;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+        
+        .lesson-title {
+            font-size: 1.5rem;
+            margin: 1rem 0;
+            color: #333;
+        }
+        
+        .lesson-content {
+            line-height: 1.8;
+            color: #555;
+        }
+        
+        .quiz-card {
+            background: #f0f8ff;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid #667eea;
+        }
+        
+        .quiz-option {
+            background: white;
+            padding: 1rem;
+            margin: 0.75rem 0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid #ddd;
+        }
+        
+        .quiz-option:hover {
+            border-color: #667eea;
+            background: #f5f8ff;
+        }
+        
+        .quiz-option.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .sidebar-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar-card h3 {
+            margin: 0 0 1rem;
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin: 0.25rem;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            width: 100%;
+            margin: 0.25rem 0;
+        }
+        
+        .tool-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+        }
+        
+        .tool-btn:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        .leaderboard-entry {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                grid-template-columns: repeat(2, 1fr);
+                flex-direction: row;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🤖 AI For Life</h1>
+        <p>Master Artificial Intelligence: 12 Modules, 60+ Lessons, Professional Certification</p>
+    </div>
+
+    <div class="container">
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="stat-value" id="overallProgress">0%</div>
+                <div class="stat-label">Course Progress</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="points">0</div>
+                <div class="stat-label">Points Earned</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="lessonsCompleted">0</div>
+                <div class="stat-label">Lessons Completed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="streak">0</div>
+                <div class="stat-label">Day Streak</div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <div>
+                <div class="card">
+                    <h2>🎓 Choose a Module</h2>
+                    <div class="module-grid" id="moduleGrid"></div>
+                </div>
+
+                <div id="lessonArea" style="display: none;">
+                    <div class="card">
+                        <h2 id="lessonTitle">Lesson</h2>
+                        <div id="lessonContent" class="lesson-content"></div>
+                        <button class="btn btn-primary" onclick="completeLessonBtn()" style="margin-top: 1rem;">✅ Complete Lesson</button>
+                        <button class="btn" onclick="backToModules()" style="background: #ddd; color: #333; margin-left: 0.5rem;">← Back to Modules</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>🛠️ AI Tools Lab</h2>
+                    <p style="margin-bottom: 1rem; color: #666;">Learn by doing! Interactive AI tools for real-world applications.</p>
+                    <button class="tool-btn" onclick="openTool('problem')">📋 Problem Producer</button>
+                    <button class="tool-btn" onclick="openTool('title')">✍️ Title Generator</button>
+                    <button class="tool-btn" onclick="openTool('funnel')">📊 Funnel Builder</button>
+                    <button class="tool-btn" onclick="openTool('course')">🎓 Course Creator</button>
+                </div>
+
+                <div id="toolOutput" style="display: none;">
+                    <div class="card">
+                        <h2 id="toolTitle">Tool Output</h2>
+                        <div id="toolContent" style="background: #f9f9f9; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;"></div>
+                        <button class="btn btn-primary" onclick="closeTool()">← Back</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="sidebar-card">
+                    <h3>🏆 Your Badges</h3>
+                    <div id="badgesDisplay"></div>
+                </div>
+
+                <div class="sidebar-card">
+                    <h3>🎯 Quick Stats</h3>
+                    <div style="font-size: 0.9rem; line-height: 2;">
+                        <div>📚 Total Modules: 12</div>
+                        <div>📖 Total Lessons: 60</div>
+                        <div>⏱️ Est. Time: 30 hours</div>
+                        <div id="completionRate">Completion: 0%</div>
+                    </div>
+                </div>
+
+                <div class="sidebar-card">
+                    <h3>🎤 Certificate</h3>
+                    <p style="font-size: 0.85rem; color: #666; margin-bottom: 1rem;">Earn your AI For Life certification upon course completion.</p>
+                    <button class="btn btn-primary btn-sm" onclick="generateCertificate()">Generate Certificate</button>
+                </div>
+
+                <div class="sidebar-card">
+                    <h3>🏅 Leaderboard</h3>
+                    <div id="leaderboard"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const modules = [
+            { id: 1, title: 'AI Foundations', desc: '5 lessons', color: '#667eea' },
+            { id: 2, title: 'Machine Learning 101', desc: '6 lessons', color: '#764ba2' },
+            { id: 3, title: 'Neural Networks', desc: '5 lessons', color: '#667eea' },
+            { id: 4, title: 'NLP Essentials', desc: '5 lessons', color: '#764ba2' },
+            { id: 5, title: 'Computer Vision', desc: '6 lessons', color: '#667eea' },
+            { id: 6, title: 'Ethics & Bias', desc: '5 lessons', color: '#764ba2' },
+            { id: 7, title: 'Practical Tools', desc: '6 lessons', color: '#667eea' },
+            { id: 8, title: 'ChatGPT & LLMs', desc: '5 lessons', color: '#764ba2' },
+            { id: 9, title: 'Prompt Engineering', desc: '6 lessons', color: '#667eea' },
+            { id: 10, title: 'Business Applications', desc: '5 lessons', color: '#764ba2' },
+            { id: 11, title: 'AI Career Path', desc: '6 lessons', color: '#667eea' },
+            { id: 12, title: 'Future of AI', desc: '5 lessons', color: '#764ba2' }
+        ];
+
+        let state = {
+            currentModule: null,
+            currentLesson: 0,
+            points: 0,
+            completed: new Set(),
+            lessons: {},
+            badges: []
+        };
+
+        function init() {
+            loadState();
+            renderModules();
+            updateStats();
+            renderLeaderboard();
+        }
+
+        function renderModules() {
+            const grid = document.getElementById('moduleGrid');
+            grid.innerHTML = modules.map(m => {
+                const completed = state.completed.has(`m${m.id}`);
+                const progress = Math.floor(Math.random() * 100);
+                return `
+                    <div class="module-card" onclick="selectModule(${m.id})" style="background: linear-gradient(135deg, ${m.color}, ${m.color}dd);">
+                        <div class="module-num">${m.id}</div>
+                        <div class="module-title">${m.title}</div>
+                        <div class="module-lessons">${m.desc}</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${completed ? 100 : progress}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectModule(moduleId) {
+            state.currentModule = moduleId;
+            state.currentLesson = 0;
+            document.getElementById('lessonArea').style.display = 'block';
+            displayLesson();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function displayLesson() {
+            const lessons = [
+                `Module ${state.currentModule}: Core Concepts\n\nLet's explore the fundamentals of AI and how it's transforming the world.`,
+                `Module ${state.currentModule}: Deep Dive\n\nUnderstanding the technical aspects and real-world applications.`,
+                `Module ${state.currentModule}: Case Study\n\nAnalyzing successful AI implementations in industry.`,
+                `Module ${state.currentModule}: Best Practices\n\nLearning what works and what doesn't.`,
+                `Module ${state.currentModule}: Hands-On\n\nPractical exercises and implementation strategies.`
+            ];
+
+            document.getElementById('lessonTitle').textContent = `Module ${state.currentModule} - Lesson ${state.currentLesson + 1}`;
+            document.getElementById('lessonContent').innerHTML = `
+                <p style="white-space: pre-wrap;">${lessons[state.currentLesson]}</p>
+                <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Quiz:</h3>
+                <div class="quiz-card">
+                    <p><strong>Q: What is an important aspect of this lesson?</strong></p>
+                    <div class="quiz-option" onclick="answerQuiz(this)">Option A: Understanding core principles</div>
+                    <div class="quiz-option" onclick="answerQuiz(this)">Option B: Practical application</div>
+                    <div class="quiz-option" onclick="answerQuiz(this)">Option C: Both A and B</div>
+                    <div class="quiz-option" onclick="answerQuiz(this)">Option D: Neither</div>
+                </div>
+            `;
+        }
+
+        function answerQuiz(el) {
+            document.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+
+        function completeLessonBtn() {
+            state.points += 50;
+            state.completed.add(`m${state.currentModule}l${state.currentLesson}`);
+            
+            state.currentLesson++;
+            if (state.currentLesson >= 5) {
+                state.completed.add(`m${state.currentModule}`);
+                alert('✅ Module completed! +50 bonus points!');
+                backToModules();
+            } else {
+                displayLesson();
+            }
+            
+            updateStats();
+            renderModules();
+            saveState();
+        }
+
+        function backToModules() {
+            state.currentModule = null;
+            document.getElementById('lessonArea').style.display = 'none';
+        }
+
+        function openTool(tool) {
+            const toolOutputDiv = document.getElementById('toolOutput');
+            const toolContent = document.getElementById('toolContent');
+            
+            let content = '';
+            switch(tool) {
+                case 'problem':
+                    content = `<strong>Problem Producer Output:</strong><br>
+                    1. Customer churn in SaaS (Predictive analytics)<br>
+                    2. Inventory optimization (Forecasting)<br>
+                    3. Fraud detection (Classification)`;
+                    break;
+                case 'title':
+                    content = `<strong>AI-Generated Titles:</strong><br>
+                    • "The Complete Guide to Machine Learning in 2026"<br>
+                    • "Neural Networks Demystified: From Theory to Practice"<br>
+                    • "Building Your First AI App: A Beginner's Handbook"`;
+                    break;
+                case 'funnel':
+                    content = `<strong>Sales Funnel Workflow:</strong><br>
+                    Awareness → Interest → Consideration → Decision → Retention<br>
+                    AI Application: Personalized email sequences at each stage`;
+                    break;
+                case 'course':
+                    content = `<strong>Course Outline Generated:</strong><br>
+                    Module 1: Foundations (5 lessons)<br>
+                    Module 2: Core Concepts (6 lessons)<br>
+                    Module 3: Applications (5 lessons)<br>
+                    Module 4: Advanced Topics (6 lessons)`;
+                    break;
+            }
+            
+            document.getElementById('toolTitle').textContent = '🛠️ ' + tool.charAt(0).toUpperCase() + tool.slice(1) + ' Tool';
+            toolContent.innerHTML = content;
+            toolOutputDiv.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function closeTool() {
+            document.getElementById('toolOutput').style.display = 'none';
+        }
+
+        function updateStats() {
+            const completedCount = state.completed.size;
+            const totalLessons = 60;
+            const progress = Math.round((completedCount / totalLessons) * 100);
+
+            document.getElementById('overallProgress').textContent = progress + '%';
+            document.getElementById('points').textContent = state.points;
+            document.getElementById('lessonsCompleted').textContent = completedCount;
+            document.getElementById('streak').textContent = Math.floor(state.points / 50);
+            document.getElementById('completionRate').textContent = `Completion: ${progress}%`;
+
+            // Update badges
+            let badges = [];
+            if (state.points >= 100) badges.push('Beginner');
+            if (state.points >= 300) badges.push('Intermediate');
+            if (state.points >= 600) badges.push('Advanced');
+            if (state.points >= 1200) badges.push('Expert');
+            if (progress === 100) badges.push('Master');
+
+            state.badges = badges;
+            const badgesEl = document.getElementById('badgesDisplay');
+            badgesEl.innerHTML = badges.length === 0 ? '<p style="color: #999;">No badges yet</p>' : badges.map(b => `<span class="badge">${b}</span>`).join('');
+        }
+
+        function generateCertificate() {
+            const { jsPDF } = window.jspdf;
+            const name = prompt('Enter your name for the certificate:');
+            if (!name) return;
+
+            const doc = new jsPDF('landscape');
+            doc.setFont('Merriweather', 'bold');
+            doc.setFontSize(28);
+            doc.text('AI For Life Certification', 148, 40, { align: 'center' });
+
+            doc.setFont('IBM Plex Sans', 'normal');
+            doc.setFontSize(14);
+            doc.text('This certifies that', 148, 80, { align: 'center' });
+            doc.setFont('IBM Plex Sans', 'bold');
+            doc.setFontSize(18);
+            doc.text(name, 148, 110, { align: 'center' });
+
+            doc.setFont('IBM Plex Sans', 'normal');
+            doc.setFontSize(12);
+            doc.text('has successfully completed the comprehensive AI For Life course', 148, 140, { align: 'center' });
+            doc.text('and demonstrated mastery of modern artificial intelligence concepts and applications.', 148, 155, { align: 'center' });
+            doc.text(`Awarded on ${new Date().toLocaleDateString()}`, 148, 180, { align: 'center' });
+
+            doc.save('AI-For-Life-Certificate.pdf');
+            alert('🎓 Certificate generated!');
+        }
+
+        function renderLeaderboard() {
+            const lb = document.getElementById('leaderboard');
+            const scores = [
+                { name: 'You', score: state.points },
+                { name: 'Alice', score: Math.floor(Math.random() * 1500) + 500 },
+                { name: 'Bob', score: Math.floor(Math.random() * 1500) + 500 },
+                { name: 'Carol', score: Math.floor(Math.random() * 1500) + 500 }
+            ];
+            scores.sort((a, b) => b.score - a.score);
+
+            lb.innerHTML = scores.map((s, i) => `
+                <div class="leaderboard-entry">
+                    <span>${i + 1}. ${s.name}</span>
+                    <strong>${s.score} pts</strong>
+                </div>
+            `).join('');
+        }
+
+        function saveState() {
+            const data = {
+                ...state,
+                completed: Array.from(state.completed)
+            };
+            localStorage.setItem('aiForLifeState', JSON.stringify(data));
+        }
+
+        function loadState() {
+            const saved = localStorage.getItem('aiForLifeState');
+            if (saved) {
+                const data = JSON.parse(saved);
+                state = {
+                    ...state,
+                    ...data,
+                    completed: new Set(data.completed)
+                };
+            }
+        }
+
+        window.addEventListener('load', init);
+        window.addEventListener('beforeunload', saveState);
+    </script>
+</body>
+</html>

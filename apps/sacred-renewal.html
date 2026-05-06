@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sacred Renewal - Wellness & Breathwork Companion</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Lato:wght@400;600;700&display=swap');
+        
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Lato', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 2rem;
+        }
+        
+        .header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            margin: 0.5rem 0;
+        }
+        
+        .disclaimer {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+            color: #856404;
+        }
+        
+        .tab-nav {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+        
+        .tab-btn:hover {
+            background: rgba(255,255,255,0.4);
+            transform: translateY(-2px);
+        }
+        
+        .tab-btn.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            margin-bottom: 1.5rem;
+        }
+        
+        .card h2 {
+            margin: 0 0 1rem;
+            color: #667eea;
+            font-size: 1.5rem;
+        }
+        
+        .exercise-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            width: calc(50% - 0.5rem);
+        }
+        
+        .exercise-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+        
+        .heart-monitor {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+            position: relative;
+            background: #f0f0f0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .heart-monitor.beating {
+            animation: heartbeat 1.2s infinite;
+        }
+        
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.1); }
+            50% { transform: scale(1); }
+        }
+        
+        .thought-box {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 0.5rem 0;
+            border-left: 3px solid #667eea;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .thought-box:hover {
+            background: #e9ecef;
+            transform: translateX(4px);
+        }
+        
+        .thought-box.todo { border-left-color: #ff6b6b; }
+        .thought-box.insight { border-left-color: #4ecdc4; }
+        .thought-box.emotional { border-left-color: #f07b3f; }
+        .thought-box.creative { border-left-color: #b19cd9; }
+        
+        .category-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+        }
+        
+        .metric-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 0.5rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+        
+        .input-group input,
+        .input-group select,
+        .input-group textarea {
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+        }
+        
+        .input-group textarea {
+            width: 100%;
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+        
+        @media (max-width: 768px) {
+            .exercise-btn {
+                width: 100%;
+            }
+            
+            .tab-nav {
+                flex-direction: column;
+            }
+            
+            .tab-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✨ Sacred Renewal</h1>
+            <p>Breathwork, Cognitive Clarity & Wellness Journey</p>
+        </div>
+
+        <div class="disclaimer">
+            <strong>⚕️ Medical Disclaimer:</strong> This app is not medical advice. Please consult a healthcare professional before beginning any new breathing exercises, especially if you have respiratory conditions. This tool is for wellness exploration and relaxation purposes only.
+        </div>
+
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('breath')">🫁 Breath & Movement</button>
+            <button class="tab-btn" onclick="switchTab('cognitive')">🧠 Cognitive Offload</button>
+            <button class="tab-btn" onclick="switchTab('dashboard')">📊 Unified Dashboard</button>
+        </div>
+
+        <!-- Tab 1: Breath & Movement -->
+        <div id="tab-breath" class="tab-content active">
+            <div class="card">
+                <h2>🫁 Heart Rate Monitor Simulation</h2>
+                <div class="heart-monitor beating" id="heartMonitor">♥️</div>
+                <p style="text-align: center; margin-top: 1rem; color: #666;">
+                    Heart Rate: <span id="hrValue">72</span> BPM
+                </p>
+            </div>
+
+            <div class="card">
+                <h2>🧘 Guided Breathing Exercises</h2>
+                <div style="display: flex; flex-wrap: wrap; justify-content: center;">
+                    <button class="exercise-btn" onclick="startExercise('4-7-8')">4-7-8 Breathing</button>
+                    <button class="exercise-btn" onclick="startExercise('box')">Box Breathing</button>
+                    <button class="exercise-btn" onclick="startExercise('belly')">Belly Breathing</button>
+                    <button class="exercise-btn" onclick="startExercise('alternate')">Alternate Nostril</button>
+                    <button class="exercise-btn" onclick="startExercise('counted')">Counted Breathing</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📝 Session Log</h2>
+                <div class="input-group">
+                    <input type="date" id="sessionDate" style="flex: 1;">
+                    <input type="time" id="sessionDuration" placeholder="Duration (mins)" style="flex: 1;">
+                </div>
+                <div class="input-group">
+                    <select id="exerciseType" style="flex: 1;">
+                        <option>Select Exercise Type</option>
+                        <option>4-7-8 Breathing</option>
+                        <option>Box Breathing</option>
+                        <option>Belly Breathing</option>
+                        <option>Alternate Nostril</option>
+                        <option>Meditation</option>
+                        <option>Yoga</option>
+                    </select>
+                </div>
+                <textarea id="sessionNotes" placeholder="How did you feel? Any observations?"></textarea>
+                <button class="btn-primary" onclick="logSession()" style="margin-top: 1rem;">Log Session</button>
+                <div id="sessionsList" style="margin-top: 1.5rem;"></div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Cognitive Offload -->
+        <div id="tab-cognitive" class="tab-content">
+            <div class="card">
+                <h2>🧠 Neural Librarian - Thought Triage</h2>
+                <p style="color: #666; margin-bottom: 1rem;">Dump your thoughts here. Categorize them. Clear your mental load.</p>
+                
+                <textarea id="thoughtInput" placeholder="Type or paste your thoughts here..." style="width: 100%; padding: 1rem; border: 1px solid #ddd; border-radius: 6px; min-height: 100px; font-family: inherit;"></textarea>
+                
+                <div class="input-group" style="margin-top: 1rem;">
+                    <select id="thoughtCategory" style="flex: 1;">
+                        <option value="todo">📋 To Do</option>
+                        <option value="insight">💡 Insights</option>
+                        <option value="emotional">❤️ Emotional</option>
+                        <option value="creative">🎨 Creative</option>
+                    </select>
+                    <button class="btn-primary" onclick="addThought()">Add Thought</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📚 My Thoughts Library</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                    <div>
+                        <h3 style="color: #ff6b6b; margin: 0 0 0.5rem;">📋 To Do</h3>
+                        <div id="category-todo"></div>
+                    </div>
+                    <div>
+                        <h3 style="color: #4ecdc4; margin: 0 0 0.5rem;">💡 Insights</h3>
+                        <div id="category-insight"></div>
+                    </div>
+                    <div>
+                        <h3 style="color: #f07b3f; margin: 0 0 0.5rem;">❤️ Emotional</h3>
+                        <div id="category-emotional"></div>
+                    </div>
+                    <div>
+                        <h3 style="color: #b19cd9; margin: 0 0 0.5rem;">🎨 Creative</h3>
+                        <div id="category-creative"></div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="clearAllThoughts()" style="margin-top: 1rem; background: #ff6b6b;">Clear All Thoughts</button>
+        </div>
+
+        <!-- Tab 3: Dashboard -->
+        <div id="tab-dashboard" class="tab-content">
+            <div class="dashboard-grid">
+                <div class="metric-card">
+                    <div class="metric-label">Resonance Points</div>
+                    <div class="metric-value" id="resonancePoints">0</div>
+                    <div class="metric-label">Total Earned</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Clarity Score</div>
+                    <div class="metric-value" id="clarityScore">0</div>
+                    <div class="metric-label">Out of 100</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Session Streak</div>
+                    <div class="metric-value" id="sessionStreak">0</div>
+                    <div class="metric-label">Days</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Total Sessions</div>
+                    <div class="metric-value" id="totalSessions">0</div>
+                    <div class="metric-label">Completed</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📈 Progress Graph</h2>
+                <canvas id="progressChart" style="max-width: 100%;"></canvas>
+            </div>
+
+            <div class="card">
+                <h2>🎓 Certifications</h2>
+                <p style="color: #666; margin-bottom: 1rem;">Unlock certificates as you complete your wellness journey.</p>
+                <button class="btn-primary" onclick="generateCertificate()">Generate 30-Day Clarity Certificate</button>
+                <div id="certificateInfo" style="margin-top: 1rem; padding: 1rem; background: #f0f0f0; border-radius: 6px; display: none;">
+                    <p id="certText"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize
+        function init() {
+            loadAllData();
+            renderThoughts();
+            updateDashboard();
+            startHeartRateSimulation();
+        }
+
+        // Heart Rate Monitor
+        function startHeartRateSimulation() {
+            setInterval(() => {
+                const hr = Math.floor(Math.random() * 30) + 60;
+                document.getElementById('hrValue').textContent = hr;
+            }, 2000);
+        }
+
+        // Breathing Exercises
+        function startExercise(type) {
+            const exercises = {
+                '4-7-8': 'Inhale for 4 counts, hold for 7, exhale for 8. Repeat 4 times.',
+                'box': 'Inhale 4, Hold 4, Exhale 4, Hold 4. Repeat 5 times.',
+                'belly': 'Breathe deeply into your belly. Feel it expand and contract.',
+                'alternate': 'Close right nostril, inhale left. Switch, exhale right. Repeat.',
+                'counted': 'Inhale slowly for 5 counts, exhale for 5. Repeat 10 times.'
+            };
+            alert('🧘 ' + type + ' Breathing\n\n' + exercises[type] + '\n\nClick OK when complete to log.');
+        }
+
+        // Session Logging
+        function logSession() {
+            const date = document.getElementById('sessionDate').value;
+            const duration = document.getElementById('sessionDuration').value;
+            const type = document.getElementById('exerciseType').value;
+            const notes = document.getElementById('sessionNotes').value;
+
+            if (!date || !type) {
+                alert('Please fill in date and exercise type');
+                return;
+            }
+
+            const session = { date, duration, type, notes, timestamp: Date.now() };
+            let sessions = JSON.parse(localStorage.getItem('sessions') || '[]');
+            sessions.push(session);
+            localStorage.setItem('sessions', JSON.stringify(sessions));
+
+            document.getElementById('sessionNotes').value = '';
+            renderSessions();
+            updateDashboard();
+            alert('Session logged! 🎉');
+        }
+
+        function renderSessions() {
+            const sessions = JSON.parse(localStorage.getItem('sessions') || '[]');
+            const list = document.getElementById('sessionsList');
+            list.innerHTML = sessions.map(s => `
+                <div style="background: #f9f9f9; padding: 0.75rem; border-radius: 6px; margin: 0.5rem 0;">
+                    <strong>${s.type}</strong> - ${s.date}<br>
+                    <small style="color: #666;">${s.notes}</small>
+                </div>
+            `).reverse().slice(0, 5).join('');
+        }
+
+        // Cognitive Offload
+        function addThought() {
+            const text = document.getElementById('thoughtInput').value;
+            const category = document.getElementById('thoughtCategory').value;
+
+            if (!text.trim()) {
+                alert('Please enter a thought');
+                return;
+            }
+
+            const thought = { text, category, id: Date.now() };
+            let thoughts = JSON.parse(localStorage.getItem('thoughts') || '[]');
+            thoughts.push(thought);
+            localStorage.setItem('thoughts', JSON.stringify(thoughts));
+
+            document.getElementById('thoughtInput').value = '';
+            renderThoughts();
+            updateDashboard();
+        }
+
+        function renderThoughts() {
+            const thoughts = JSON.parse(localStorage.getItem('thoughts') || '[]');
+            const categories = ['todo', 'insight', 'emotional', 'creative'];
+            
+            categories.forEach(cat => {
+                const catThoughts = thoughts.filter(t => t.category === cat);
+                const html = catThoughts.map(t => `
+                    <div class="thought-box ${t.category}">
+                        <p style="margin: 0 0 0.5rem;">${t.text}</p>
+                        <button onclick="deleteThought(${t.id})" style="background: none; border: none; color: #999; cursor: pointer; font-size: 0.85rem;">Delete</button>
+                    </div>
+                `).join('');
+                document.getElementById('category-' + cat).innerHTML = html || '<p style="color: #999; margin: 0;">No items yet</p>';
+            });
+        }
+
+        function deleteThought(id) {
+            let thoughts = JSON.parse(localStorage.getItem('thoughts') || '[]');
+            thoughts = thoughts.filter(t => t.id !== id);
+            localStorage.setItem('thoughts', JSON.stringify(thoughts));
+            renderThoughts();
+            updateDashboard();
+        }
+
+        function clearAllThoughts() {
+            if (confirm('Clear all thoughts? This cannot be undone.')) {
+                localStorage.removeItem('thoughts');
+                renderThoughts();
+                updateDashboard();
+            }
+        }
+
+        // Dashboard
+        function updateDashboard() {
+            const sessions = JSON.parse(localStorage.getItem('sessions') || '[]');
+            const thoughts = JSON.parse(localStorage.getItem('thoughts') || '[]');
+            
+            const resonance = sessions.length * 5 + thoughts.length * 2;
+            const clarity = Math.min(100, Math.floor((sessions.length * 8) + (thoughts.filter(t => t.category === 'insight').length * 5)));
+            
+            document.getElementById('resonancePoints').textContent = resonance;
+            document.getElementById('clarityScore').textContent = clarity;
+            document.getElementById('sessionStreak').textContent = sessions.length;
+            document.getElementById('totalSessions').textContent = sessions.length;
+        }
+
+        function generateCertificate() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const name = prompt('Enter your name for the certificate:');
+            if (!name) return;
+
+            doc.setFont('Playfair Display', 'bold');
+            doc.setFontSize(24);
+            doc.text('Sacred Renewal Certificate', 105, 40, { align: 'center' });
+
+            doc.setFont('Lato', 'normal');
+            doc.setFontSize(14);
+            doc.text(`This certifies that`, 105, 80, { align: 'center' });
+            doc.setFont('Lato', 'bold');
+            doc.setFontSize(16);
+            doc.text(name, 105, 100, { align: 'center' });
+            doc.setFont('Lato', 'normal');
+            doc.setFontSize(14);
+            doc.text(`has completed 30 days of mindful breathing and wellness practice`, 105, 120, { align: 'center' });
+            doc.text(`Awarded on ${new Date().toLocaleDateString()}`, 105, 140, { align: 'center' });
+
+            doc.save('sacred-renewal-certificate.pdf');
+            alert('Certificate generated! 🎓');
+        }
+
+        // Tab Navigation
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Load all data
+        function loadAllData() {
+            renderSessions();
+            renderThoughts();
+        }
+
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>

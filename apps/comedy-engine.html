@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comedy Engine - Standup Script Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Righteous:wght@400&family=Raleway:wght@400;600;700&display=swap');
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Raleway', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: linear-gradient(135deg, #e94560 0%, #ff6b6b 100%);
+            color: white;
+        }
+        
+        .header h1 {
+            font-family: 'Righteous', cursive;
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .card h2 {
+            margin: 0 0 1.5rem;
+            color: #e94560;
+            font-family: 'Righteous';
+            font-size: 1.5rem;
+        }
+        
+        .persona-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .persona-btn {
+            padding: 1rem;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        
+        .persona-btn:hover {
+            border-color: #e94560;
+            color: #e94560;
+            transform: translateY(-2px);
+        }
+        
+        .persona-btn.active {
+            background: linear-gradient(135deg, #e94560, #ff6b6b);
+            color: white;
+            border-color: #e94560;
+            box-shadow: 0 6px 16px rgba(233, 69, 96, 0.4);
+        }
+        
+        .style-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .style-btn {
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+        }
+        
+        .style-btn:hover {
+            border-color: #ff6b6b;
+            color: #ff6b6b;
+        }
+        
+        .style-btn.active {
+            background: linear-gradient(135deg, #e94560, #ff6b6b);
+            color: white;
+            border-color: #e94560;
+        }
+        
+        .topic-input {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .topic-chip {
+            background: #f0f0f0;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+        
+        .topic-chip:hover {
+            background: #e0e0e0;
+        }
+        
+        .topic-chip.selected {
+            background: linear-gradient(135deg, #e94560, #ff6b6b);
+            color: white;
+            border-color: #e94560;
+        }
+        
+        .custom-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #e94560, #ff6b6b);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(233, 69, 96, 0.4);
+        }
+        
+        .script-output {
+            background: #f5f5f5;
+            border-left: 4px solid #e94560;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 1.8;
+        }
+        
+        .joke-item {
+            background: #f9f9f9;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 0.5rem 0;
+            border-left: 3px solid #e94560;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .joke-item:hover {
+            background: #f0f0f0;
+            transform: translateX(4px);
+        }
+        
+        .emoji-reaction {
+            position: fixed;
+            font-size: 2rem;
+            pointer-events: none;
+            animation: float-up 2s ease-out forwards;
+        }
+        
+        @keyframes float-up {
+            0% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-200px) scale(0.5);
+                opacity: 0;
+            }
+        }
+        
+        .performance-container {
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            text-align: center;
+            color: white;
+        }
+        
+        .audience-reactions {
+            font-size: 3rem;
+            margin: 1rem 0;
+            letter-spacing: 10px;
+            animation: bounce 1s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #ddd;
+        }
+        
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #999;
+            border-bottom: 3px solid transparent;
+            font-size: 1rem;
+        }
+        
+        .tab-btn.active {
+            color: #e94560;
+            border-bottom-color: #e94560;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2rem; }
+            .persona-grid { grid-template-columns: 1fr 1fr; }
+            .style-grid { grid-template-columns: repeat(3, 1fr); }
+            .tabs { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎤 Comedy Engine</h1>
+        <p>AI-Powered Standup Comedy Script Generator & Performance Studio</p>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2>🎭 Select Comedian Persona</h2>
+            <div class="persona-grid">
+                <button class="persona-btn active" onclick="setPersona('rex')">
+                    🦁 Rex<br><small>Confident & Edgy</small>
+                </button>
+                <button class="persona-btn" onclick="setPersona('maya')">
+                    👩 Maya<br><small>Observational</small>
+                </button>
+                <button class="persona-btn" onclick="setPersona('benny')">
+                    👨 Benny<br><small>Dad Jokes</small>
+                </button>
+                <button class="persona-btn" onclick="setPersona('sam')">
+                    🌙 Sam<br><small>Dark Humor</small>
+                </button>
+            </div>
+
+            <h2>🎨 Select Comedy Style</h2>
+            <div class="style-grid">
+                <button class="style-btn active" onclick="setStyle('observational')">🔍 Observational</button>
+                <button class="style-btn" onclick="setStyle('self')">🤦 Self-Deprecating</button>
+                <button class="style-btn" onclick="setStyle('political')">🗳️ Political</button>
+                <button class="style-btn" onclick="setStyle('oneliners')">⚡ One-Liners</button>
+                <button class="style-btn" onclick="setStyle('storytelling')">📖 Storytelling</button>
+                <button class="style-btn" onclick="setStyle('absurdist')">🌀 Absurdist</button>
+                <button class="style-btn" onclick="setStyle('roast')">🔥 Roast</button>
+                <button class="style-btn" onclick="setStyle('clean')">✨ Clean/Family</button>
+            </div>
+
+            <h2>🏷️ Pick Comedy Topics</h2>
+            <div class="topic-input" id="topicChips">
+                <div class="topic-chip" onclick="toggleTopic(this)">Relationships</div>
+                <div class="topic-chip" onclick="toggleTopic(this)">Work Life</div>
+                <div class="topic-chip" onclick="toggleTopic(this)">Travel</div>
+                <div class="topic-chip" onclick="toggleTopic(this)">Technology</div>
+                <div class="topic-chip" onclick="toggleTopic(this)">Food</div>
+                <div class="topic-chip" onclick="toggleTopic(this)">Sports</div>
+                <div class="topic-chip" onclick="toggleTopic(this)">Getting Old</div>
+                <div class="topic-chip" onclick="toggleTopic(this)">Social Media</div>
+            </div>
+
+            <input type="text" class="custom-input" id="customTopic" placeholder="Or enter custom topic...">
+
+            <button class="btn btn-primary" onclick="generateScript()">✨ Generate Comedy Script</button>
+        </div>
+
+        <div class="card">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('script')">📜 Generated Script</button>
+                <button class="tab-btn" onclick="switchTab('perform')">🎤 Perform Live</button>
+                <button class="tab-btn" onclick="switchTab('jokes')">😂 Joke Lab</button>
+                <button class="tab-btn" onclick="switchTab('history')">📚 History</button>
+            </div>
+
+            <div id="tab-script" class="tab-content active">
+                <h2>📜 Your Comedy Script</h2>
+                <div id="scriptOutput" class="script-output">
+                    Generate a script to see it here...
+                </div>
+                <button class="btn btn-primary" onclick="exportScript()">📥 Export as PDF</button>
+                <button class="btn btn-primary" onclick="saveToJokes()" style="background: linear-gradient(135deg, #667eea, #764ba2); margin-left: 0.5rem;">💾 Save to Joke Lab</button>
+                <button class="btn btn-primary" onclick="copyToClipboard()" style="background: linear-gradient(135deg, #4CAF50, #66BB6A); margin-left: 0.5rem;">📋 Copy to Clipboard</button>
+            </div>
+
+            <div id="tab-perform" class="tab-content">
+                <h2>🎤 Perform Live</h2>
+                <p style="margin-bottom: 1rem;">Click the button below to perform your script with animated audience reactions and synthesized voice!</p>
+                <button class="btn btn-primary" onclick="performLive()">🎤 Perform My Script</button>
+                <div id="performanceArea"></div>
+            </div>
+
+            <div id="tab-jokes" class="tab-content">
+                <h2>😂 Saved Jokes</h2>
+                <button class="btn btn-primary" onclick="clearJokes()" style="background: #ff6b6b; margin-bottom: 1rem;">🗑️ Clear All</button>
+                <div id="jokesList">
+                    <p style="color: #999;">No saved jokes yet. Save some from your scripts!</p>
+                </div>
+            </div>
+
+            <div id="tab-history" class="tab-content">
+                <h2>📚 Script History</h2>
+                <div id="historyList">
+                    <p style="color: #999;">No history yet. Generate some scripts!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let state = {
+            persona: 'rex',
+            style: 'observational',
+            topics: [],
+            savedJokes: [],
+            history: [],
+            currentScript: ''
+        };
+
+        const comedyTemplates = {
+            rex: {
+                observational: [
+                    "You ever notice how people change when they get on an airplane? Suddenly we're all experts in luggage management. 'I can fit THIS in the overhead!' Yeah buddy, and I can fit a car in a shoebox too.",
+                    "Dating apps have made us all liars. 'Adventurous' means 'I once took a different route to work'. 'Spontaneous' means 'I called in sick to sleep in'.",
+                    "Why do grocery stores rearrange products? It's not organization, it's psychological warfare. I've been going to the same store for 5 years and I still can't find the eggs."
+                ],
+                self: [
+                    "I'm not lazy, I'm energy efficient. My doctor told me I need to exercise more. So now I feel guilty when I'm sitting down.",
+                    "I tried meal prepping once. Spent 3 hours cooking. Ate all of it in 2 days. Now I'm just angry at vegetables.",
+                    "I'm really bad at adulting. I got excited about buying dish soap yesterday. That was my whole day. The highlight was comparing prices."
+                ],
+                political: [
+                    "Politicians campaign for votes with promises. It's like Tinder but less honest. At least on Tinder people accept they're getting ghosted.",
+                    "Breaking news has become a 24/7 experience. I just want to order a sandwich without hearing about some crisis. Let me eat my food in peace!"
+                ]
+            },
+            maya: {
+                observational: [
+                    "Have you noticed people who say 'honestly' before everything? Like we were expecting dishonesty? 'Honestly, I had cereal for breakfast.' Oh really? You're usually lying about breakfast?",
+                    "Coffee shops have invented a hundred sizes nobody asked for. Tall, Grande, Venti... it's not coffee, it's a language lesson. Just say SMALL MEDIUM LARGE.",
+                    "Self-checkouts are a psychological experiment. 'Unexpected item in bagging area.' Yeah, it's my DIGNITY."
+                ],
+                self: [
+                    "I'm at the age where 'sleeping wrong' is a legitimate injury. I turned my head in my sleep and now I'm going to physical therapy.",
+                    "I spent 20 minutes looking for my glasses. They were on my head. This is my life now."
+                ]
+            },
+            benny: {
+                observational: [
+                    "Why did the coffee file a police report? It got mugged! ...I'll see myself out.",
+                    "I told my wife she was drawing her eyebrows too high. She looked surprised. All the time.",
+                    "What do you call a fish wearing a bowtie? Sofishticated!"
+                ]
+            },
+            sam: {
+                observational: [
+                    "Life is just a series of bad decisions with interesting consequences. We're all just pretending to have a plan.",
+                    "Adulting is 90% pretending you know what's happening and 10% actual competence. Most of us are failing both percentages.",
+                    "We're all just living on a rock in space, refreshing social media. This is fine."
+                ],
+                self: [
+                    "I've achieved my life goals: I woke up today. Everything else is bonus content.",
+                    "My therapist asked what my worst fear is. I said, 'Mediocrity.' So I lowered my expectations to make therapy easier."
+                ]
+            }
+        };
+
+        function setPersona(persona) {
+            state.persona = persona;
+            document.querySelectorAll('.persona-btn').forEach(b => b.classList.remove('active'));
+            event.target.closest('.persona-btn').classList.add('active');
+        }
+
+        function setStyle(style) {
+            state.style = style;
+            document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function toggleTopic(el) {
+            el.classList.toggle('selected');
+            const topic = el.textContent;
+            if (state.topics.includes(topic)) {
+                state.topics = state.topics.filter(t => t !== topic);
+            } else {
+                state.topics.push(topic);
+            }
+        }
+
+        function generateScript() {
+            const customTopic = document.getElementById('customTopic').value;
+            if (customTopic) {
+                state.topics.push(customTopic);
+            }
+
+            const templates = comedyTemplates[state.persona]?.[state.style] || comedyTemplates[state.persona]?.observational || [];
+            let script = `🎤 ${state.persona.toUpperCase()}'S ${state.style.toUpperCase()} COMEDY SCRIPT\n\n`;
+            script += `Topics: ${state.topics.join(', ') || 'General'}\n\n`;
+            script += '---\n\n';
+
+            const selectedJokes = templates.sort(() => Math.random() - 0.5).slice(0, 5);
+            selectedJokes.forEach((joke, i) => {
+                script += `[${i + 1}] ${joke}\n\n`;
+            });
+
+            script += '---\n\n[Tips: Pause after jokes for laughter, make eye contact, use hand gestures!]';
+
+            state.currentScript = script;
+            document.getElementById('scriptOutput').textContent = script;
+            
+            state.history.push({ script, persona: state.persona, style: state.style, timestamp: new Date().toLocaleString() });
+            localStorage.setItem('comedyHistory', JSON.stringify(state.history));
+            updateHistory();
+        }
+
+        function performLive() {
+            if (!state.currentScript) {
+                alert('Generate a script first!');
+                return;
+            }
+
+            const performArea = document.getElementById('performanceArea');
+            performArea.innerHTML = `
+                <div class="performance-container">
+                    <div style="font-size: 1.5rem; margin-bottom: 1rem;">🎤 LIVE PERFORMANCE NOW 🎤</div>
+                    <div class="audience-reactions">👏 😂 🎉 🤣 👏</div>
+                    <button class="btn btn-primary" onclick="stopPerformance()" style="margin-top: 1rem;">Stop Performance</button>
+                </div>
+            `;
+
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(state.currentScript.replace(/\[.*?\]/g, ''));
+                utterance.rate = 0.85;
+                speechSynthesis.speak(utterance);
+            }
+
+            // Animated reactions
+            setInterval(() => {
+                const emojis = ['👏', '😂', '🎉', '🤣', '💀', '🔥'];
+                const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+                const reaction = document.createElement('div');
+                reaction.className = 'emoji-reaction';
+                reaction.textContent = emoji;
+                reaction.style.left = Math.random() * 80 + 10 + '%';
+                reaction.style.bottom = '20px';
+                document.body.appendChild(reaction);
+                setTimeout(() => reaction.remove(), 2000);
+            }, 500);
+        }
+
+        function stopPerformance() {
+            speechSynthesis.cancel();
+            document.getElementById('performanceArea').innerHTML = '';
+        }
+
+        function saveToJokes() {
+            if (!state.currentScript) {
+                alert('Generate a script first!');
+                return;
+            }
+            state.savedJokes.push({ script: state.currentScript, date: new Date().toLocaleString() });
+            localStorage.setItem('savedJokes', JSON.stringify(state.savedJokes));
+            updateJokesList();
+            alert('✅ Saved to Joke Lab!');
+        }
+
+        function updateJokesList() {
+            const list = document.getElementById('jokesList');
+            if (state.savedJokes.length === 0) {
+                list.innerHTML = '<p style="color: #999;">No saved jokes yet.</p>';
+                return;
+            }
+            list.innerHTML = state.savedJokes.map((j, i) => `
+                <div class="joke-item">
+                    <small>${j.date}</small><br>
+                    ${j.script.substring(0, 100)}...
+                    <button class="btn btn-primary" onclick="deleteJoke(${i})" style="background: #ff6b6b; margin-top: 0.5rem; padding: 0.5rem 1rem; font-size: 0.85rem;">Delete</button>
+                </div>
+            `).join('');
+        }
+
+        function deleteJoke(i) {
+            state.savedJokes.splice(i, 1);
+            localStorage.setItem('savedJokes', JSON.stringify(state.savedJokes));
+            updateJokesList();
+        }
+
+        function updateHistory() {
+            const list = document.getElementById('historyList');
+            if (state.history.length === 0) {
+                list.innerHTML = '<p style="color: #999;">No history yet.</p>';
+                return;
+            }
+            list.innerHTML = state.history.map((h, i) => `
+                <div class="joke-item">
+                    <strong>${h.persona} - ${h.style}</strong><br>
+                    <small>${h.timestamp}</small><br>
+                    ${h.script.substring(0, 80)}...
+                </div>
+            `).reverse().join('');
+        }
+
+        function clearJokes() {
+            if (confirm('Delete all saved jokes?')) {
+                state.savedJokes = [];
+                localStorage.removeItem('savedJokes');
+                updateJokesList();
+            }
+        }
+
+        function exportScript() {
+            alert('Script exported! (In a real app, this would download as PDF)');
+        }
+
+        function copyToClipboard() {
+            navigator.clipboard.writeText(state.currentScript);
+            alert('✅ Copied to clipboard!');
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function init() {
+            state.savedJokes = JSON.parse(localStorage.getItem('savedJokes') || '[]');
+            state.history = JSON.parse(localStorage.getItem('comedyHistory') || '[]');
+            updateJokesList();
+            updateHistory();
+        }
+
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
