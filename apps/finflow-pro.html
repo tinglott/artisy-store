@@ -1,0 +1,1879 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinFlow Pro v3 • Wealth OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   CSS VARIABLES & RESET
+============================================================ */
+:root {
+  --bg: #0a0f1e;
+  --surface: #111827;
+  --surface2: #1f2937;
+  --border: #374151;
+  --primary: #6366f1;
+  --primary-light: #818cf8;
+  --primary-dim: rgba(99,102,241,0.15);
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --text: #f9fafb;
+  --text-muted: #9ca3af;
+  --gold: #fbbf24;
+  --sidebar-w: 240px;
+  --header-h: 64px;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --transition: 0.22s cubic-bezier(0.4,0,0.2,1);
+}
+[data-theme="light"] {
+  --bg: #f1f5f9;
+  --surface: #ffffff;
+  --surface2: #f8fafc;
+  --border: #e2e8f0;
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --shadow: 0 4px 24px rgba(0,0,0,0.1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;height:100%}
+body{
+  font-family:'Inter',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  height:100vh;
+  overflow:hidden;
+  transition:background var(--transition),color var(--transition);
+}
+button{cursor:pointer;border:none;background:none;font-family:inherit;color:inherit}
+input{font-family:inherit;color:inherit}
+a{text-decoration:none;color:inherit}
+ul{list-style:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+/* ============================================================
+   LAYOUT
+============================================================ */
+.app-shell{display:flex;height:100vh;overflow:hidden}
+/* SIDEBAR */
+.sidebar{
+  width:var(--sidebar-w);
+  min-width:var(--sidebar-w);
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  overflow-y:auto;
+  z-index:100;
+  transition:transform var(--transition),width var(--transition);
+}
+.sidebar-logo{
+  display:flex;align-items:center;gap:10px;
+  padding:20px 20px 16px;
+  border-bottom:1px solid var(--border);
+}
+.sidebar-logo .logo-icon{font-size:24px}
+.sidebar-logo .logo-text{
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:700;font-size:18px;
+  line-height:1;
+}
+.sidebar-logo .v-badge{
+  background:var(--primary);
+  color:#fff;
+  font-size:9px;font-weight:700;
+  padding:2px 5px;border-radius:4px;
+  margin-left:4px;vertical-align:top;margin-top:2px;
+}
+.nav-section{padding:12px 0}
+.nav-section-label{
+  font-size:10px;font-weight:600;
+  color:var(--text-muted);letter-spacing:0.1em;
+  text-transform:uppercase;
+  padding:4px 20px 8px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 20px;
+  font-size:14px;font-weight:500;
+  color:var(--text-muted);
+  border-radius:var(--radius-sm);
+  margin:0 8px;
+  cursor:pointer;
+  transition:all var(--transition);
+  position:relative;
+}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{
+  background:var(--primary-dim);
+  color:var(--primary-light);
+}
+.nav-item.active::before{
+  content:'';
+  position:absolute;left:0;top:50%;transform:translateY(-50%);
+  width:3px;height:60%;
+  background:var(--primary);
+  border-radius:0 2px 2px 0;
+}
+.nav-icon{font-size:18px;width:22px;text-align:center}
+.sidebar-footer{
+  margin-top:auto;
+  padding:16px 20px;
+  border-top:1px solid var(--border);
+}
+.user-card{
+  display:flex;align-items:center;gap:10px;
+}
+.user-avatar{
+  width:36px;height:36px;border-radius:50%;
+  background:linear-gradient(135deg,var(--primary),var(--primary-light));
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:13px;color:#fff;flex-shrink:0;
+}
+.user-name{font-size:13px;font-weight:600}
+.user-role{font-size:11px;color:var(--text-muted)}
+/* MAIN */
+.main-area{
+  flex:1;display:flex;flex-direction:column;
+  overflow:hidden;background:var(--bg);
+}
+/* HEADER */
+.topbar{
+  height:var(--header-h);min-height:var(--header-h);
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;
+  padding:0 24px;gap:12px;
+  z-index:50;
+}
+.topbar-title{
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:700;font-size:18px;flex:1;
+}
+.topbar-subtitle{font-size:12px;color:var(--text-muted);font-weight:400;margin-left:8px}
+.topbar-actions{display:flex;align-items:center;gap:8px}
+.icon-btn{
+  width:38px;height:38px;border-radius:var(--radius-sm);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;
+  transition:all var(--transition);
+  position:relative;
+  background:var(--surface2);
+  border:1px solid var(--border);
+}
+.icon-btn:hover{background:var(--primary-dim);border-color:var(--primary)}
+.icon-btn .badge{
+  position:absolute;top:-4px;right:-4px;
+  width:16px;height:16px;border-radius:50%;
+  background:var(--danger);
+  font-size:9px;font-weight:700;color:#fff;
+  display:flex;align-items:center;justify-content:center;
+}
+.fortress-btn.active{
+  background:rgba(239,68,68,0.15);
+  border-color:var(--danger);
+  color:var(--danger);
+}
+.theme-btn{font-size:18px}
+.hamburger{display:none;font-size:20px}
+/* CONTENT */
+.content-scroll{flex:1;overflow-y:auto;padding:24px}
+/* VIEWS */
+.view{display:none}
+.view.active{display:block}
+/* FORTRESS BANNER */
+.fortress-banner{
+  display:none;
+  align-items:center;gap:10px;
+  background:rgba(239,68,68,0.1);
+  border:1px solid rgba(239,68,68,0.3);
+  border-radius:var(--radius-sm);
+  padding:10px 16px;
+  margin-bottom:16px;
+  font-size:13px;font-weight:500;color:var(--danger);
+}
+.fortress-banner.show{display:flex}
+/* NUMBERS BLUR */
+body.fortress-mode .sensitive{
+  filter:blur(8px);
+  transition:filter var(--transition);
+  user-select:none;
+}
+/* ============================================================
+   COMPONENTS
+============================================================ */
+/* KPI CARDS */
+.kpi-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:16px;margin-bottom:24px;
+}
+@media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.kpi-grid{grid-template-columns:1fr}}
+.kpi-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px;
+  transition:transform var(--transition),box-shadow var(--transition);
+}
+.kpi-card:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.kpi-label{
+  font-size:11px;font-weight:600;
+  color:var(--text-muted);letter-spacing:0.08em;
+  text-transform:uppercase;margin-bottom:8px;
+  display:flex;align-items:center;gap:6px;
+}
+.kpi-value{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:28px;font-weight:700;
+  line-height:1;margin-bottom:6px;
+}
+.kpi-change{
+  font-size:12px;font-weight:500;
+  display:flex;align-items:center;gap:4px;
+}
+.kpi-change.up{color:var(--success)}
+.kpi-change.down{color:var(--danger)}
+.kpi-change.neutral{color:var(--text-muted)}
+/* PANELS */
+.panel{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px;
+  margin-bottom:24px;
+}
+.panel-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:16px;
+}
+.panel-title{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:15px;font-weight:700;
+  display:flex;align-items:center;gap:8px;
+}
+.panel-badge{
+  font-size:10px;font-weight:600;
+  padding:2px 8px;border-radius:20px;
+  background:var(--primary-dim);color:var(--primary-light);
+}
+.panel-action{
+  font-size:12px;font-weight:500;color:var(--primary-light);
+  cursor:pointer;transition:color var(--transition);
+}
+.panel-action:hover{color:var(--primary)}
+/* GRID 2 col */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:900px){.grid-2{grid-template-columns:1fr}}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:900px){.grid-3{grid-template-columns:1fr}}
+/* SVG CHART */
+.chart-wrap{
+  width:100%;height:180px;position:relative;
+  overflow:hidden;
+}
+.chart-wrap svg{width:100%;height:100%}
+.chart-labels{
+  display:flex;justify-content:space-between;
+  padding:6px 0 0;
+}
+.chart-label{font-size:10px;color:var(--text-muted)}
+/* BUDGET BARS */
+.budget-list{display:flex;flex-direction:column;gap:14px}
+.budget-item{}
+.budget-row{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:6px;
+}
+.budget-cat{font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px}
+.budget-amounts{font-size:12px;color:var(--text-muted)}
+.budget-amounts .spent{font-weight:600;color:var(--text)}
+.budget-bar-track{
+  height:8px;border-radius:4px;
+  background:var(--surface2);overflow:hidden;
+}
+.budget-bar-fill{
+  height:100%;border-radius:4px;
+  transition:width 1.2s cubic-bezier(0.4,0,0.2,1);
+  width:0%;
+}
+/* TRANSACTIONS */
+.tx-table{width:100%;border-collapse:collapse}
+.tx-table th{
+  font-size:11px;font-weight:600;color:var(--text-muted);
+  text-transform:uppercase;letter-spacing:0.06em;
+  padding:0 0 10px;text-align:left;
+  border-bottom:1px solid var(--border);
+}
+.tx-table td{
+  padding:12px 0;
+  border-bottom:1px solid var(--border);
+  font-size:13px;
+  vertical-align:middle;
+}
+.tx-table tr:last-child td{border-bottom:none}
+.tx-merchant{display:flex;align-items:center;gap:10px}
+.tx-icon{
+  width:34px;height:34px;border-radius:var(--radius-sm);
+  background:var(--surface2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+}
+.tx-desc{font-weight:500}
+.tx-subtext{font-size:11px;color:var(--text-muted)}
+.badge{
+  display:inline-flex;align-items:center;
+  font-size:10px;font-weight:600;
+  padding:3px 8px;border-radius:20px;
+  letter-spacing:0.04em;
+}
+.badge-groceries{background:rgba(16,185,129,0.15);color:var(--success)}
+.badge-income{background:rgba(99,102,241,0.15);color:var(--primary-light)}
+.badge-food{background:rgba(245,158,11,0.15);color:var(--warning)}
+.badge-transport{background:rgba(14,165,233,0.15);color:#38bdf8}
+.badge-utilities{background:rgba(168,85,247,0.15);color:#c084fc}
+.badge-entertainment{background:rgba(239,68,68,0.15);color:var(--danger)}
+.badge-health{background:rgba(16,185,129,0.15);color:var(--success)}
+.badge-savings{background:rgba(251,191,36,0.15);color:var(--gold)}
+.amount-pos{color:var(--success);font-weight:600;font-size:14px}
+.amount-neg{color:var(--danger);font-weight:600;font-size:14px}
+/* GOALS */
+.goals-list{display:flex;flex-direction:column;gap:16px}
+.goal-item{
+  background:var(--surface2);
+  border-radius:var(--radius-sm);
+  padding:14px;
+  cursor:pointer;
+  transition:all var(--transition);
+  border:1px solid transparent;
+}
+.goal-item:hover{border-color:var(--primary)}
+.goal-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.goal-name{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+.goal-emoji{font-size:18px}
+.goal-amounts{font-size:12px;color:var(--text-muted)}
+.goal-amounts .goal-curr{font-weight:700;color:var(--text)}
+.goal-bar-track{height:8px;border-radius:4px;background:var(--border);overflow:hidden;margin-bottom:6px}
+.goal-bar-fill{height:100%;border-radius:4px;transition:width 1.2s cubic-bezier(0.4,0,0.2,1);width:0%}
+.goal-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted)}
+/* AI ADVISOR */
+.ai-panel{background:linear-gradient(135deg,rgba(99,102,241,0.08),rgba(16,185,129,0.05));border-color:rgba(99,102,241,0.25)}
+.ai-insight{
+  display:flex;gap:12px;
+  background:var(--surface2);
+  border-radius:var(--radius-sm);
+  padding:14px;margin-bottom:16px;
+  border-left:3px solid var(--primary);
+}
+.ai-insight-icon{font-size:22px;flex-shrink:0;margin-top:1px}
+.ai-insight-text{font-size:13px;line-height:1.6;color:var(--text-muted)}
+.ai-insight-text strong{color:var(--text)}
+.ai-powered{font-size:10px;color:var(--primary-light);font-weight:600;letter-spacing:0.06em;text-transform:uppercase;margin-top:4px;display:block}
+.ai-chat-input{
+  display:flex;gap:8px;margin-top:12px;
+}
+.ai-input{
+  flex:1;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  padding:10px 14px;
+  font-size:13px;
+  color:var(--text);
+  outline:none;
+  transition:border-color var(--transition);
+}
+.ai-input:focus{border-color:var(--primary)}
+.ai-input::placeholder{color:var(--text-muted)}
+.btn-primary{
+  background:var(--primary);
+  color:#fff;
+  border-radius:var(--radius-sm);
+  padding:10px 18px;
+  font-size:13px;font-weight:600;
+  transition:all var(--transition);
+  white-space:nowrap;
+}
+.btn-primary:hover{background:var(--primary-light)}
+.btn-secondary{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  color:var(--text);
+  border-radius:var(--radius-sm);
+  padding:10px 18px;
+  font-size:13px;font-weight:600;
+  transition:all var(--transition);
+}
+.btn-secondary:hover{background:var(--border)}
+/* ACCOUNTS VIEW */
+.account-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:20px;
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:12px;
+  transition:all var(--transition);
+}
+.account-card:hover{border-color:var(--primary);transform:translateX(2px)}
+.account-left{display:flex;align-items:center;gap:14px}
+.account-logo{
+  width:46px;height:46px;border-radius:var(--radius-sm);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;font-weight:700;
+}
+.account-name{font-size:15px;font-weight:600;margin-bottom:3px}
+.account-num{font-size:12px;color:var(--text-muted)}
+.account-right{text-align:right}
+.account-balance{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:20px;font-weight:700;margin-bottom:4px;
+}
+.status-dot{
+  display:inline-block;width:7px;height:7px;border-radius:50%;
+  margin-right:4px;background:var(--success);
+}
+.status-label{font-size:11px;color:var(--text-muted)}
+/* DEBT VIEW */
+.debt-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:20px;margin-bottom:12px;
+}
+.debt-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.debt-name{font-size:15px;font-weight:600}
+.debt-apr{
+  font-size:11px;font-weight:700;
+  padding:3px 8px;border-radius:20px;
+}
+.apr-high{background:rgba(239,68,68,0.15);color:var(--danger)}
+.apr-med{background:rgba(245,158,11,0.15);color:var(--warning)}
+.apr-low{background:rgba(16,185,129,0.15);color:var(--success)}
+.debt-body{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.debt-stat .stat-label{font-size:11px;color:var(--text-muted);margin-bottom:4px}
+.debt-stat .stat-val{font-size:18px;font-weight:700;font-family:'Space Grotesk',sans-serif}
+/* INVESTMENTS VIEW */
+.inv-row{display:flex;align-items:center;padding:14px 0;border-bottom:1px solid var(--border)}
+.inv-row:last-child{border-bottom:none}
+.inv-ticker{
+  width:44px;height:44px;border-radius:var(--radius-sm);
+  background:var(--primary-dim);
+  color:var(--primary-light);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:11px;
+  margin-right:12px;flex-shrink:0;
+}
+.inv-info{flex:1}
+.inv-name{font-size:14px;font-weight:600}
+.inv-type{font-size:11px;color:var(--text-muted)}
+.inv-shares{font-size:12px;color:var(--text-muted);margin:0 16px}
+.inv-right{text-align:right}
+.inv-price{font-size:15px;font-weight:700}
+.inv-change{font-size:12px;font-weight:500;margin-top:2px}
+/* FULL AI CHAT */
+.chat-messages{
+  max-height:380px;overflow-y:auto;
+  display:flex;flex-direction:column;gap:14px;
+  padding:4px 0;margin-bottom:16px;
+}
+.chat-msg{display:flex;gap:10px;max-width:85%}
+.chat-msg.user{align-self:flex-end;flex-direction:row-reverse}
+.chat-bubble{
+  background:var(--surface2);
+  border-radius:var(--radius);
+  padding:12px 16px;
+  font-size:13px;line-height:1.6;
+}
+.chat-msg.user .chat-bubble{
+  background:var(--primary-dim);
+  border:1px solid rgba(99,102,241,0.3);
+  color:var(--text);
+}
+.chat-msg.ai .chat-bubble{
+  background:var(--surface2);
+  border:1px solid var(--border);
+}
+.chat-avatar{
+  width:32px;height:32px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;margin-top:2px;
+}
+.chat-avatar.ai-av{background:linear-gradient(135deg,var(--primary),var(--primary-light))}
+.chat-avatar.user-av{background:linear-gradient(135deg,#374151,#4b5563)}
+.typing-indicator{display:none;align-items:center;gap:6px;padding:12px 16px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius);width:fit-content;
+}
+.typing-indicator.show{display:flex}
+.typing-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--text-muted);
+  animation:typing 1.2s infinite;
+}
+.typing-dot:nth-child(2){animation-delay:0.2s}
+.typing-dot:nth-child(3){animation-delay:0.4s}
+@keyframes typing{0%,60%,100%{transform:translateY(0);opacity:0.4}30%{transform:translateY(-6px);opacity:1}}
+/* SETTINGS */
+.settings-section{margin-bottom:28px}
+.settings-title{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:14px;font-weight:700;
+  margin-bottom:14px;padding-bottom:8px;
+  border-bottom:1px solid var(--border);
+}
+.setting-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 0;border-bottom:1px solid var(--border);
+}
+.setting-row:last-child{border-bottom:none}
+.setting-info .setting-label{font-size:14px;font-weight:500;margin-bottom:2px}
+.setting-info .setting-desc{font-size:12px;color:var(--text-muted)}
+/* Toggle switch */
+.toggle{position:relative;display:inline-block;width:44px;height:24px}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{
+  position:absolute;cursor:pointer;
+  top:0;left:0;right:0;bottom:0;
+  background:var(--border);border-radius:24px;
+  transition:var(--transition);
+}
+.toggle-slider::before{
+  content:'';position:absolute;
+  height:18px;width:18px;
+  left:3px;bottom:3px;
+  background:#fff;border-radius:50%;
+  transition:var(--transition);
+}
+.toggle input:checked + .toggle-slider{background:var(--primary)}
+.toggle input:checked + .toggle-slider::before{transform:translateX(20px)}
+/* MODAL */
+.modal-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,0.7);
+  z-index:999;
+  align-items:center;justify-content:center;
+  backdrop-filter:blur(4px);
+}
+.modal-overlay.show{display:flex}
+.modal{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:28px;
+  width:100%;max-width:440px;
+  margin:20px;
+  box-shadow:var(--shadow);
+  animation:modalIn 0.25s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes modalIn{from{opacity:0;transform:scale(0.9) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:20px;
+}
+.modal-title{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700}
+.modal-close{font-size:20px;color:var(--text-muted);transition:color var(--transition)}
+.modal-close:hover{color:var(--text)}
+/* PLAID MODAL */
+.bank-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+.bank-opt{
+  background:var(--surface2);border:2px solid var(--border);
+  border-radius:var(--radius);padding:16px 10px;
+  text-align:center;cursor:pointer;
+  transition:all var(--transition);
+}
+.bank-opt:hover{border-color:var(--primary);background:var(--primary-dim)}
+.bank-opt .bank-emoji{font-size:28px;margin-bottom:6px;display:block}
+.bank-opt .bank-name{font-size:11px;font-weight:600;color:var(--text-muted)}
+/* FORM INPUTS */
+.form-group{margin-bottom:16px}
+.form-label{font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:0.06em}
+.form-input{
+  width:100%;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  padding:10px 14px;
+  font-size:14px;color:var(--text);
+  outline:none;
+  transition:border-color var(--transition);
+}
+.form-input:focus{border-color:var(--primary)}
+/* PROGRESS RING */
+.net-worth-ring{text-align:center;padding:10px 0}
+/* BUDGET EDIT */
+.budget-edit-input{
+  background:var(--surface2);border:1px solid var(--primary);
+  color:var(--text);border-radius:4px;
+  padding:2px 8px;font-size:12px;width:80px;
+  outline:none;
+}
+/* RESPONSIVE */
+@media(max-width:768px){
+  .sidebar{
+    position:fixed;left:0;top:0;bottom:0;
+    transform:translateX(-100%);z-index:200;
+  }
+  .sidebar.open{transform:translateX(0)}
+  .hamburger{display:flex}
+  .topbar-title-text{display:none}
+  .kpi-value{font-size:22px}
+  .debt-body{grid-template-columns:1fr 1fr}
+}
+@media(max-width:500px){
+  .content-scroll{padding:16px}
+  .panel{padding:14px}
+  .topbar{padding:0 14px}
+}
+/* ANIMATIONS */
+@keyframes fadeSlide{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.view.active{animation:fadeSlide 0.3s ease}
+/* NET WORTH VIEW extra */
+.asset-table{width:100%;border-collapse:collapse;margin-top:8px}
+.asset-table th{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;padding:0 0 10px;text-align:left;border-bottom:1px solid var(--border)}
+.asset-table td{padding:12px 0;border-bottom:1px solid var(--border);font-size:14px}
+.asset-table tr:last-child td{border-bottom:none}
+.asset-type-badge{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px}
+/* MONTH LABELS */
+.month-labels{display:flex;justify-content:space-between;padding:4px 4px 0;font-size:10px;color:var(--text-muted)}
+/* SCROLLBAR for chat */
+.chat-messages::-webkit-scrollbar{width:4px}
+.chat-messages::-webkit-scrollbar-thumb{background:var(--border)}
+/* Gradient text */
+.gradient-text{
+  background:linear-gradient(135deg,var(--primary-light),var(--gold));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+/* Inline edit highlight */
+.editable{cursor:pointer;border-bottom:1px dashed var(--border);padding-bottom:1px}
+.editable:hover{border-color:var(--primary-light);color:var(--primary-light)}
+/* Empty state */
+.empty-state{
+  text-align:center;padding:40px 20px;color:var(--text-muted);
+}
+.empty-state .empty-icon{font-size:48px;margin-bottom:12px;display:block}
+.empty-state p{font-size:14px}
+/* Score ring */
+.score-ring-wrap{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+.score-label{font-size:13px;color:var(--text-muted)}
+.score-value{font-family:'Space Grotesk',sans-serif;font-size:32px;font-weight:800}
+.score-tier{font-size:11px;font-weight:600;color:var(--success)}
+</style>
+</head>
+<body>
+<!-- ===== MODALS ===== -->
+<!-- Goal Fund Modal -->
+<div class="modal-overlay" id="goalModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="goalModalTitle">Add Funds</span>
+      <button class="modal-close" onclick="closeModal('goalModal')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Current Balance</label>
+      <div id="goalModalCurrent" style="font-size:20px;font-weight:700;font-family:'Space Grotesk',sans-serif;margin-bottom:4px">$0</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Add Amount ($)</label>
+      <input type="number" class="form-input" id="goalAddAmount" placeholder="e.g. 250" min="0">
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button class="btn-secondary" onclick="closeModal('goalModal')">Cancel</button>
+      <button class="btn-primary" onclick="addFundsToGoal()">Add Funds 💰</button>
+    </div>
+  </div>
+</div>
+
+<!-- Plaid Connect Modal -->
+<div class="modal-overlay" id="plaidModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">🏦 Connect Account</span>
+      <button class="modal-close" onclick="closeModal('plaidModal')">✕</button>
+    </div>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:4px">Powered by <strong style="color:var(--primary-light)">Plaid</strong> — 256-bit encryption</p>
+    <div class="bank-grid">
+      <div class="bank-opt" onclick="connectBank('Chase')"><span class="bank-emoji">🏦</span><span class="bank-name">Chase</span></div>
+      <div class="bank-opt" onclick="connectBank('Bank of America')"><span class="bank-emoji">🇺🇸</span><span class="bank-name">Bank of America</span></div>
+      <div class="bank-opt" onclick="connectBank('Wells Fargo')"><span class="bank-emoji">🐴</span><span class="bank-name">Wells Fargo</span></div>
+      <div class="bank-opt" onclick="connectBank('Citibank')"><span class="bank-emoji">🌐</span><span class="bank-name">Citibank</span></div>
+      <div class="bank-opt" onclick="connectBank('Robinhood')"><span class="bank-emoji">📈</span><span class="bank-name">Robinhood</span></div>
+      <div class="bank-opt" onclick="connectBank('Ally Bank')"><span class="bank-emoji">💻</span><span class="bank-name">Ally Bank</span></div>
+    </div>
+    <p style="font-size:11px;color:var(--text-muted);margin-top:16px;text-align:center">🔒 Your credentials are never stored by FinFlow Pro</p>
+  </div>
+</div>
+
+<!-- Budget Edit Modal -->
+<div class="modal-overlay" id="budgetModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="budgetModalTitle">Edit Budget</span>
+      <button class="modal-close" onclick="closeModal('budgetModal')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Spent This Month ($)</label>
+      <input type="number" class="form-input" id="budgetSpentInput" min="0">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Monthly Budget Limit ($)</label>
+      <input type="number" class="form-input" id="budgetLimitInput" min="0">
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button class="btn-secondary" onclick="closeModal('budgetModal')">Cancel</button>
+      <button class="btn-primary" onclick="saveBudgetEdit()">Save Changes ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== APP SHELL ===== -->
+<div class="app-shell">
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">💎</span>
+      <span class="logo-text">FinFlow Pro<span class="v-badge">v3</span></span>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Main</div>
+      <div class="nav-item active" onclick="showView('dashboard',this)"><span class="nav-icon">🏠</span>Dashboard</div>
+      <div class="nav-item" onclick="showView('networth',this)"><span class="nav-icon">📈</span>Net Worth</div>
+      <div class="nav-item" onclick="showView('budget',this)"><span class="nav-icon">🥧</span>Budget Tracker</div>
+      <div class="nav-item" onclick="showView('accounts',this)"><span class="nav-icon">🏦</span>Accounts</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Planning</div>
+      <div class="nav-item" onclick="showView('goals',this)"><span class="nav-icon">🎯</span>Goals & Savings</div>
+      <div class="nav-item" onclick="showView('debt',this)"><span class="nav-icon">⚡</span>Debt Crusher</div>
+      <div class="nav-item" onclick="showView('investments',this)"><span class="nav-icon">💹</span>Investments</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">AI & Tools</div>
+      <div class="nav-item" onclick="showView('ai',this)"><span class="nav-icon">🤖</span>AI Advisor</div>
+      <div class="nav-item" onclick="showView('settings',this)"><span class="nav-icon">⚙️</span>Settings</div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar">TL</div>
+        <div>
+          <div class="user-name">T. Lott</div>
+          <div class="user-role">Premium Member ✨</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN AREA -->
+  <div class="main-area">
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <button class="hamburger icon-btn" onclick="toggleSidebar()">☰</button>
+      <div class="topbar-title">
+        <span class="topbar-title-text" id="viewTitle">Dashboard</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-btn fortress-btn" id="fortressBtn" onclick="toggleFortress()" title="Invisible Fortress">🔒</button>
+        <button class="icon-btn theme-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+        <button class="icon-btn" title="Notifications">
+          🔔<span class="badge">3</span>
+        </button>
+        <div class="user-avatar" style="width:36px;height:36px;font-size:13px;flex-shrink:0">TL</div>
+      </div>
+    </header>
+
+    <!-- CONTENT SCROLL -->
+    <div class="content-scroll" id="contentScroll">
+
+      <!-- FORTRESS BANNER -->
+      <div class="fortress-banner" id="fortressBanner">
+        🔒 <strong>Invisible Fortress Active</strong> — Your data is hidden from prying eyes
+      </div>
+
+      <!-- ===================== DASHBOARD VIEW ===================== -->
+      <div class="view active" id="view-dashboard">
+        <!-- KPI CARDS -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">💎 Net Worth</div>
+            <div class="kpi-value sensitive" id="kpi-networth">$127,450</div>
+            <div class="kpi-change up">▲ <span class="sensitive">$2,340</span> this month</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">💵 Monthly Income</div>
+            <div class="kpi-value sensitive" style="color:var(--success)">$5,200</div>
+            <div class="kpi-change neutral">📅 May 2026</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">💸 Monthly Expenses</div>
+            <div class="kpi-value sensitive" style="color:var(--danger)">$3,847</div>
+            <div class="kpi-change down">▲ <span class="sensitive">$142</span> vs last month</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">🏆 Savings Rate</div>
+            <div class="kpi-value sensitive" style="color:var(--gold)">26%</div>
+            <div class="kpi-change up">▲ 3% vs target</div>
+          </div>
+        </div>
+
+        <!-- ROW 1: Chart + AI -->
+        <div class="grid-2">
+          <!-- NET WORTH CHART -->
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">📊 Net Worth Trend <span class="panel-badge">12 Months</span></div>
+              <span class="panel-action">View All</span>
+            </div>
+            <div class="chart-wrap">
+              <svg viewBox="0 0 600 160" preserveAspectRatio="none" id="nwChart">
+                <defs>
+                  <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#6366f1" stop-opacity="0.4"/>
+                    <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <!-- Grid lines -->
+                <line x1="0" y1="40" x2="600" y2="40" stroke="#374151" stroke-width="1" stroke-dasharray="4,4"/>
+                <line x1="0" y1="80" x2="600" y2="80" stroke="#374151" stroke-width="1" stroke-dasharray="4,4"/>
+                <line x1="0" y1="120" x2="600" y2="120" stroke="#374151" stroke-width="1" stroke-dasharray="4,4"/>
+                <!-- Area fill -->
+                <path d="M0,140 L0,120 C30,115 60,108 90,100 C120,92 150,85 180,78 C210,71 240,90 270,85 C300,80 330,70 360,62 C390,54 420,48 450,42 C480,36 510,30 540,25 C570,20 590,18 600,16 L600,140 Z" fill="url(#chartGrad)"/>
+                <!-- Line -->
+                <path d="M0,120 C30,115 60,108 90,100 C120,92 150,85 180,78 C210,71 240,90 270,85 C300,80 330,70 360,62 C390,54 420,48 450,42 C480,36 510,30 540,25 C570,20 590,18 600,16" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <!-- Dots -->
+                <circle cx="0" cy="120" r="4" fill="#6366f1"/>
+                <circle cx="600" cy="16" r="5" fill="#818cf8" stroke="#fff" stroke-width="2"/>
+                <!-- Current value label -->
+                <rect x="460" y="0" width="130" height="20" rx="4" fill="rgba(99,102,241,0.2)"/>
+                <text x="525" y="14" fill="#818cf8" font-size="11" font-weight="700" text-anchor="middle" font-family="Inter,sans-serif">$127,450 ▲</text>
+              </svg>
+            </div>
+            <div class="month-labels">
+              <span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span><span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span>
+            </div>
+          </div>
+
+          <!-- AI ADVISOR QUICK -->
+          <div class="panel ai-panel">
+            <div class="panel-header">
+              <div class="panel-title">🤖 AI Advisor <span class="panel-badge">Grok</span></div>
+              <span class="panel-action" onclick="showView('ai',document.querySelector('[onclick*=\"ai\"]'))">Full Chat →</span>
+            </div>
+            <div class="ai-insight">
+              <span class="ai-insight-icon">💡</span>
+              <div>
+                <div class="ai-insight-text">Your savings rate of <strong>26%</strong> is above the 20% recommended threshold. Consider redirecting <strong>$200/month</strong> to your Emergency Fund to reach your goal <strong>4 months earlier.</strong></div>
+                <span class="ai-powered">✦ Powered by Grok AI</span>
+              </div>
+            </div>
+            <div class="ai-chat-input">
+              <input type="text" class="ai-input" id="dashAiInput" placeholder="Ask FinFlow AI anything..." onkeydown="if(event.key==='Enter')sendDashAi()">
+              <button class="btn-primary" onclick="sendDashAi()">Ask →</button>
+            </div>
+            <div id="dashAiReply" style="margin-top:12px;font-size:13px;color:var(--text-muted);display:none;background:var(--surface2);border-radius:var(--radius-sm);padding:12px;border-left:3px solid var(--success);line-height:1.6"></div>
+          </div>
+        </div>
+
+        <!-- ROW 2: Budget + Transactions -->
+        <div class="grid-2">
+          <!-- BUDGET OVERVIEW -->
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">🥧 Budget Overview</div>
+              <span class="panel-action" onclick="showView('budget',null)">Edit →</span>
+            </div>
+            <div class="budget-list" id="dashBudgetList">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+
+          <!-- RECENT TRANSACTIONS -->
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">💳 Recent Transactions</div>
+              <span class="panel-action">View All →</span>
+            </div>
+            <table class="tx-table">
+              <thead><tr><th>Date</th><th>Description</th><th>Category</th><th style="text-align:right">Amount</th></tr></thead>
+              <tbody id="txTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ROW 3: Goals -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">🎯 Savings Goals</div>
+            <span class="panel-action" onclick="showView('goals',null)">View All →</span>
+          </div>
+          <div class="grid-3" id="dashGoalsGrid"></div>
+        </div>
+      </div>
+
+      <!-- ===================== NET WORTH VIEW ===================== -->
+      <div class="view" id="view-networth">
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">💎 Total Net Worth</div>
+            <div class="kpi-value sensitive gradient-text">$127,450</div>
+            <div class="kpi-change up">▲ $2,340 this month</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">🏦 Total Assets</div>
+            <div class="kpi-value sensitive" style="color:var(--success)">$158,950</div>
+            <div class="kpi-change up">▲ 8.2% YTD</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">💳 Total Liabilities</div>
+            <div class="kpi-value sensitive" style="color:var(--danger)">$31,500</div>
+            <div class="kpi-change down">▼ $450 paid off</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">📊 Debt Ratio</div>
+            <div class="kpi-value" style="color:var(--warning)">19.8%</div>
+            <div class="kpi-change neutral">Goal: under 20%</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">📈 Net Worth History</div>
+            <span class="panel-badge">Last 12 Months</span>
+          </div>
+          <div class="chart-wrap" style="height:220px">
+            <svg viewBox="0 0 600 200" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="chartGrad2" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#10b981" stop-opacity="0.35"/>
+                  <stop offset="100%" stop-color="#10b981" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <line x1="0" y1="50" x2="600" y2="50" stroke="#374151" stroke-width="1" stroke-dasharray="4,4"/>
+              <line x1="0" y1="100" x2="600" y2="100" stroke="#374151" stroke-width="1" stroke-dasharray="4,4"/>
+              <line x1="0" y1="150" x2="600" y2="150" stroke="#374151" stroke-width="1" stroke-dasharray="4,4"/>
+              <path d="M0,175 C30,170 60,162 90,152 C120,142 150,135 180,125 C210,115 240,132 270,128 C300,124 330,112 360,98 C390,84 420,74 450,62 C480,50 510,42 540,34 C570,26 590,22 600,18 L600,200 L0,200 Z" fill="url(#chartGrad2)"/>
+              <path d="M0,175 C30,170 60,162 90,152 C120,142 150,135 180,125 C210,115 240,132 270,128 C300,124 330,112 360,98 C390,84 420,74 450,62 C480,50 510,42 540,34 C570,26 590,22 600,18" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round"/>
+              <text x="10" y="170" fill="#9ca3af" font-size="10" font-family="Inter">$102K</text>
+              <text x="10" y="120" fill="#9ca3af" font-size="10" font-family="Inter">$112K</text>
+              <text x="10" y="70" fill="#9ca3af" font-size="10" font-family="Inter">$122K</text>
+              <text x="10" y="25" fill="#9ca3af" font-size="10" font-family="Inter">$132K</text>
+            </svg>
+          </div>
+          <div class="month-labels">
+            <span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span><span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="panel">
+            <div class="panel-title" style="margin-bottom:14px">✅ Assets</div>
+            <table class="asset-table">
+              <thead><tr><th>Asset</th><th>Type</th><th style="text-align:right">Value</th></tr></thead>
+              <tbody>
+                <tr><td><span class="asset-type-badge" style="background:var(--primary)"></span>Chase Checking</td><td><span class="badge badge-transport">Cash</span></td><td style="text-align:right" class="sensitive">$3,240</td></tr>
+                <tr><td><span class="asset-type-badge" style="background:var(--success)"></span>WF Savings</td><td><span class="badge badge-health">Cash</span></td><td style="text-align:right" class="sensitive">$12,450</td></tr>
+                <tr><td><span class="asset-type-badge" style="background:var(--gold)"></span>Robinhood</td><td><span class="badge badge-savings">Investments</span></td><td style="text-align:right" class="sensitive">$18,760</td></tr>
+                <tr><td><span class="asset-type-badge" style="background:#ec4899"></span>401(k)</td><td><span class="badge badge-income">Retirement</span></td><td style="text-align:right" class="sensitive">$64,500</td></tr>
+                <tr><td><span class="asset-type-badge" style="background:#8b5cf6"></span>Home Equity</td><td><span class="badge badge-utilities">Real Estate</span></td><td style="text-align:right" class="sensitive">$60,000</td></tr>
+                <tr><td><span style="font-weight:700">Total Assets</span></td><td></td><td style="text-align:right;font-weight:700;color:var(--success)" class="sensitive">$158,950</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="panel">
+            <div class="panel-title" style="margin-bottom:14px">❌ Liabilities</div>
+            <table class="asset-table">
+              <thead><tr><th>Liability</th><th>Type</th><th style="text-align:right">Balance</th></tr></thead>
+              <tbody>
+                <tr><td><span class="asset-type-badge" style="background:var(--danger)"></span>Credit Card</td><td><span class="badge badge-entertainment">Revolving</span></td><td style="text-align:right" class="sensitive">$4,200</td></tr>
+                <tr><td><span class="asset-type-badge" style="background:var(--warning)"></span>Car Loan</td><td><span class="badge badge-food">Installment</span></td><td style="text-align:right" class="sensitive">$11,300</td></tr>
+                <tr><td><span class="asset-type-badge" style="background:#f97316"></span>Student Loan</td><td><span class="badge badge-food">Installment</span></td><td style="text-align:right" class="sensitive">$16,000</td></tr>
+                <tr><td><span style="font-weight:700">Total Liabilities</span></td><td></td><td style="text-align:right;font-weight:700;color:var(--danger)" class="sensitive">$31,500</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== BUDGET VIEW ===================== -->
+      <div class="view" id="view-budget">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">🥧 Budget Tracker — May 2026</div>
+            <button class="btn-primary" style="padding:7px 14px;font-size:12px" onclick="resetBudget()">↺ Reset</button>
+          </div>
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Click any category to edit your budget. Changes save automatically.</p>
+          <div class="budget-list" id="fullBudgetList"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-title" style="margin-bottom:16px">📊 Spending Analysis</div>
+          <div class="grid-2">
+            <div style="text-align:center">
+              <svg viewBox="0 0 200 200" width="180" height="180" style="display:block;margin:0 auto">
+                <!-- Donut chart SVG -->
+                <circle cx="100" cy="100" r="70" fill="none" stroke="#1f2937" stroke-width="28"/>
+                <!-- Segments approximate -->
+                <circle cx="100" cy="100" r="70" fill="none" stroke="#6366f1" stroke-width="28" stroke-dasharray="73 367" stroke-dashoffset="0" transform="rotate(-90 100 100)"/>
+                <circle cx="100" cy="100" r="70" fill="none" stroke="#10b981" stroke-width="28" stroke-dasharray="57 367" stroke-dashoffset="-73" transform="rotate(-90 100 100)"/>
+                <circle cx="100" cy="100" r="70" fill="none" stroke="#f59e0b" stroke-width="28" stroke-dasharray="40 367" stroke-dashoffset="-130" transform="rotate(-90 100 100)"/>
+                <circle cx="100" cy="100" r="70" fill="none" stroke="#ef4444" stroke-width="28" stroke-dasharray="11 367" stroke-dashoffset="-170" transform="rotate(-90 100 100)"/>
+                <circle cx="100" cy="100" r="70" fill="none" stroke="#8b5cf6" stroke-width="28" stroke-dasharray="18 367" stroke-dashoffset="-181" transform="rotate(-90 100 100)"/>
+                <circle cx="100" cy="100" r="70" fill="none" stroke="#fbbf24" stroke-width="28" stroke-dasharray="111 367" stroke-dashoffset="-199" transform="rotate(-90 100 100)"/>
+                <text x="100" y="96" text-anchor="middle" fill="#f9fafb" font-size="13" font-weight="700" font-family="Space Grotesk">$3,200</text>
+                <text x="100" y="112" text-anchor="middle" fill="#9ca3af" font-size="9" font-family="Inter">budgeted</text>
+              </svg>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;justify-content:center">
+              <div style="display:flex;align-items:center;gap:10px"><span style="width:12px;height:12px;border-radius:3px;background:#6366f1;flex-shrink:0"></span><span style="font-size:13px">Housing — 37%</span></div>
+              <div style="display:flex;align-items:center;gap:10px"><span style="width:12px;height:12px;border-radius:3px;background:#10b981;flex-shrink:0"></span><span style="font-size:13px">Food — 15%</span></div>
+              <div style="display:flex;align-items:center;gap:10px"><span style="width:12px;height:12px;border-radius:3px;background:#f59e0b;flex-shrink:0"></span><span style="font-size:13px">Transport — 13%</span></div>
+              <div style="display:flex;align-items:center;gap:10px"><span style="width:12px;height:12px;border-radius:3px;background:#ef4444;flex-shrink:0"></span><span style="font-size:13px">Entertainment — 6%</span></div>
+              <div style="display:flex;align-items:center;gap:10px"><span style="width:12px;height:12px;border-radius:3px;background:#8b5cf6;flex-shrink:0"></span><span style="font-size:13px">Healthcare — 6%</span></div>
+              <div style="display:flex;align-items:center;gap:10px"><span style="width:12px;height:12px;border-radius:3px;background:#fbbf24;flex-shrink:0"></span><span style="font-size:13px">Savings — 29%</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== ACCOUNTS VIEW ===================== -->
+      <div class="view" id="view-accounts">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">🏦 Connected Accounts</div>
+            <button class="btn-primary" style="padding:8px 16px;font-size:13px" onclick="openModal('plaidModal')">+ Connect Account</button>
+          </div>
+          <div id="accountsList">
+            <div class="account-card">
+              <div class="account-left">
+                <div class="account-logo" style="background:rgba(0,90,255,0.15);color:#4f8ef7">🏦</div>
+                <div>
+                  <div class="account-name">Chase Checking</div>
+                  <div class="account-num">••••  ••••  ••••  4821</div>
+                </div>
+              </div>
+              <div class="account-right">
+                <div class="account-balance sensitive">$3,240.00</div>
+                <div class="status-label"><span class="status-dot"></span>Connected</div>
+              </div>
+            </div>
+            <div class="account-card">
+              <div class="account-left">
+                <div class="account-logo" style="background:rgba(220,50,50,0.15);color:#f87171">🐴</div>
+                <div>
+                  <div class="account-name">Wells Fargo Savings</div>
+                  <div class="account-num">••••  ••••  ••••  7295</div>
+                </div>
+              </div>
+              <div class="account-right">
+                <div class="account-balance sensitive">$12,450.00</div>
+                <div class="status-label"><span class="status-dot"></span>Connected</div>
+              </div>
+            </div>
+            <div class="account-card">
+              <div class="account-left">
+                <div class="account-logo" style="background:rgba(16,185,129,0.15);color:#34d399">📈</div>
+                <div>
+                  <div class="account-name">Robinhood</div>
+                  <div class="account-num">••••  ••••  ••••  3047</div>
+                </div>
+              </div>
+              <div class="account-right">
+                <div class="account-balance sensitive">$18,760.00</div>
+                <div class="status-label"><span class="status-dot"></span>Connected</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel" style="background:linear-gradient(135deg,rgba(99,102,241,0.08),rgba(16,185,129,0.05));border-color:rgba(99,102,241,0.25)">
+          <div class="panel-title" style="margin-bottom:8px">🔒 Bank-Grade Security</div>
+          <p style="font-size:13px;color:var(--text-muted);line-height:1.7">FinFlow Pro uses <strong style="color:var(--text)">256-bit AES encryption</strong> and connects via read-only APIs. We never store your banking credentials. All connections are secured via Plaid's infrastructure, trusted by thousands of financial apps.</p>
+        </div>
+      </div>
+
+      <!-- ===================== GOALS VIEW ===================== -->
+      <div class="view" id="view-goals">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">🎯 Savings Goals</div>
+            <button class="btn-primary" style="padding:8px 16px;font-size:13px" onclick="addNewGoal()">+ New Goal</button>
+          </div>
+          <div class="goals-list" id="fullGoalsList"></div>
+        </div>
+      </div>
+
+      <!-- ===================== DEBT VIEW ===================== -->
+      <div class="view" id="view-debt">
+        <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+          <div class="kpi-card">
+            <div class="kpi-label">💳 Total Debt</div>
+            <div class="kpi-value sensitive" style="color:var(--danger)">$31,500</div>
+            <div class="kpi-change down">3 active accounts</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">📅 Monthly Payment</div>
+            <div class="kpi-value sensitive">$847</div>
+            <div class="kpi-change neutral">All minimums covered</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">🏁 Debt Free</div>
+            <div class="kpi-value" style="color:var(--success)">14 mo</div>
+            <div class="kpi-change up">▲ Avalanche method</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">⚡ Debt Crusher — Avalanche Method</div>
+            <span class="panel-badge">Optimized</span>
+          </div>
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">The <strong style="color:var(--text)">Avalanche method</strong> targets highest-interest debt first, saving you the most money. Pay minimums on all, attack the top.</p>
+
+          <div class="debt-card">
+            <div class="debt-header">
+              <div class="debt-name">💳 Credit Card — Chase Freedom</div>
+              <span class="debt-apr apr-high">24.99% APR 🔥</span>
+            </div>
+            <div class="debt-body">
+              <div class="debt-stat"><div class="stat-label">Balance</div><div class="stat-val sensitive">$4,200</div></div>
+              <div class="debt-stat"><div class="stat-label">Min Payment</div><div class="stat-val sensitive">$84</div></div>
+              <div class="debt-stat"><div class="stat-label">Extra Payment</div><div class="stat-val" style="color:var(--primary)">+$300</div></div>
+            </div>
+            <div style="margin-top:14px">
+              <div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px;color:var(--text-muted)"><span>$0</span><span class="sensitive">$4,200 / $6,500</span></div>
+              <div class="budget-bar-track"><div class="budget-bar-fill" data-pct="65" style="background:var(--danger);width:65%"></div></div>
+            </div>
+          </div>
+
+          <div class="debt-card">
+            <div class="debt-header">
+              <div class="debt-name">🚗 Car Loan — Toyota Financial</div>
+              <span class="debt-apr apr-med">7.9% APR</span>
+            </div>
+            <div class="debt-body">
+              <div class="debt-stat"><div class="stat-label">Balance</div><div class="stat-val sensitive">$11,300</div></div>
+              <div class="debt-stat"><div class="stat-label">Min Payment</div><div class="stat-val sensitive">$340</div></div>
+              <div class="debt-stat"><div class="stat-label">Remaining</div><div class="stat-val">38 mo</div></div>
+            </div>
+            <div style="margin-top:14px">
+              <div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px;color:var(--text-muted)"><span>$0</span><span class="sensitive">$11,300 / $22,000</span></div>
+              <div class="budget-bar-track"><div class="budget-bar-fill" data-pct="49" style="background:var(--warning);width:49%"></div></div>
+            </div>
+          </div>
+
+          <div class="debt-card">
+            <div class="debt-header">
+              <div class="debt-name">🎓 Student Loan — Federal</div>
+              <span class="debt-apr apr-low">4.5% APR</span>
+            </div>
+            <div class="debt-body">
+              <div class="debt-stat"><div class="stat-label">Balance</div><div class="stat-val sensitive">$16,000</div></div>
+              <div class="debt-stat"><div class="stat-label">Min Payment</div><div class="stat-val sensitive">$423</div></div>
+              <div class="debt-stat"><div class="stat-label">Remaining</div><div class="stat-val">41 mo</div></div>
+            </div>
+            <div style="margin-top:14px">
+              <div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px;color:var(--text-muted)"><span>$0</span><span class="sensitive">$16,000 / $28,000</span></div>
+              <div class="budget-bar-track"><div class="budget-bar-fill" data-pct="57" style="background:var(--primary);width:57%"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== INVESTMENTS VIEW ===================== -->
+      <div class="view" id="view-investments">
+        <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+          <div class="kpi-card">
+            <div class="kpi-label">💼 Portfolio Value</div>
+            <div class="kpi-value sensitive">$83,260</div>
+            <div class="kpi-change up">▲ $3,420 today</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">📊 Day Change</div>
+            <div class="kpi-value" style="color:var(--success)">+4.1%</div>
+            <div class="kpi-change up">▲ Best day in 2mo</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">📅 YTD Return</div>
+            <div class="kpi-value sensitive" style="color:var(--success)">+18.3%</div>
+            <div class="kpi-change up">vs S&P 500 +11.2%</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">🏦 401(k)</div>
+            <div class="kpi-value sensitive">$64,500</div>
+            <div class="kpi-change up">▲ $840 this month</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">💹 Holdings</div>
+            <span class="panel-badge">Robinhood</span>
+          </div>
+          <div>
+            <div class="inv-row">
+              <div class="inv-ticker">AAPL</div>
+              <div class="inv-info"><div class="inv-name">Apple Inc.</div><div class="inv-type">Technology • Equity</div></div>
+              <div class="inv-shares sensitive">12 shares</div>
+              <div class="inv-right">
+                <div class="inv-price sensitive">$2,256.00</div>
+                <div class="inv-change" style="color:var(--success)">▲ +2.4% today</div>
+              </div>
+            </div>
+            <div class="inv-row">
+              <div class="inv-ticker" style="background:rgba(16,185,129,0.15);color:var(--success)">MSFT</div>
+              <div class="inv-info"><div class="inv-name">Microsoft Corp.</div><div class="inv-type">Technology • Equity</div></div>
+              <div class="inv-shares sensitive">8 shares</div>
+              <div class="inv-right">
+                <div class="inv-price sensitive">$3,360.00</div>
+                <div class="inv-change" style="color:var(--success)">▲ +1.8% today</div>
+              </div>
+            </div>
+            <div class="inv-row">
+              <div class="inv-ticker" style="background:rgba(251,191,36,0.15);color:var(--gold)">VOO</div>
+              <div class="inv-info"><div class="inv-name">Vanguard S&P 500 ETF</div><div class="inv-type">ETF • Diversified</div></div>
+              <div class="inv-shares sensitive">18 shares</div>
+              <div class="inv-right">
+                <div class="inv-price sensitive">$9,468.00</div>
+                <div class="inv-change" style="color:var(--success)">▲ +0.9% today</div>
+              </div>
+            </div>
+            <div class="inv-row">
+              <div class="inv-ticker" style="background:rgba(239,68,68,0.15);color:var(--danger)">TSLA</div>
+              <div class="inv-info"><div class="inv-name">Tesla Inc.</div><div class="inv-type">Automotive • Equity</div></div>
+              <div class="inv-shares sensitive">5 shares</div>
+              <div class="inv-right">
+                <div class="inv-price sensitive">$1,245.00</div>
+                <div class="inv-change" style="color:var(--danger)">▼ -1.2% today</div>
+              </div>
+            </div>
+            <div class="inv-row">
+              <div class="inv-ticker" style="background:rgba(168,85,247,0.15);color:#c084fc">QQQ</div>
+              <div class="inv-info"><div class="inv-name">Invesco QQQ Trust</div><div class="inv-type">ETF • NASDAQ 100</div></div>
+              <div class="inv-shares sensitive">7 shares</div>
+              <div class="inv-right">
+                <div class="inv-price sensitive">$2,432.00</div>
+                <div class="inv-change" style="color:var(--success)">▲ +1.4% today</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-title" style="margin-bottom:14px">🎯 Asset Allocation</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>US Equities</span><span class="sensitive">54%</span></div>
+              <div class="budget-bar-track"><div class="budget-bar-fill" data-pct="54" style="background:var(--primary)"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>ETFs / Index Funds</span><span class="sensitive">31%</span></div>
+              <div class="budget-bar-track"><div class="budget-bar-fill" data-pct="31" style="background:var(--success)"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>International</span><span class="sensitive">10%</span></div>
+              <div class="budget-bar-track"><div class="budget-bar-fill" data-pct="10" style="background:var(--warning)"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>Fixed Income</span><span class="sensitive">5%</span></div>
+              <div class="budget-bar-track"><div class="budget-bar-fill" data-pct="5" style="background:var(--text-muted)"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== AI ADVISOR VIEW ===================== -->
+      <div class="view" id="view-ai">
+        <div class="panel ai-panel" style="height:calc(100vh - 180px);min-height:500px;display:flex;flex-direction:column">
+          <div class="panel-header" style="flex-shrink:0">
+            <div class="panel-title">🤖 FinFlow AI Advisor <span class="panel-badge">Grok</span></div>
+            <span style="font-size:11px;color:var(--text-muted)">✦ Powered by Grok AI • Context-aware financial guidance</span>
+          </div>
+          <div class="chat-messages" id="chatMessages" style="flex:1;max-height:none">
+            <div class="chat-msg ai">
+              <div class="chat-avatar ai-av">🤖</div>
+              <div>
+                <div class="chat-bubble">
+                  👋 <strong>Hello T. Lott!</strong> I'm your FinFlow AI Advisor, powered by Grok. I have full context of your financial profile:<br><br>
+                  • Net Worth: <strong>$127,450</strong> (+$2,340 this month)<br>
+                  • Savings Rate: <strong>26%</strong> (above 20% target ✅)<br>
+                  • Debt: <strong>$31,500</strong> (19.8% debt ratio ✅)<br><br>
+                  How can I help you optimize your finances today?
+                </div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:4px;margin-left:4px">FinFlow AI • Just now</div>
+              </div>
+            </div>
+          </div>
+          <div class="chat-msg ai" id="typingWrap" style="flex-shrink:0;margin-bottom:8px;display:none">
+            <div class="chat-avatar ai-av">🤖</div>
+            <div class="typing-indicator show">
+              <div class="typing-dot"></div>
+              <div class="typing-dot"></div>
+              <div class="typing-dot"></div>
+            </div>
+          </div>
+          <div class="ai-chat-input" style="flex-shrink:0">
+            <input type="text" class="ai-input" id="aiInput" placeholder="Ask about budgeting, investing, debt payoff, savings goals..." onkeydown="if(event.key==='Enter')sendAiMessage()">
+            <button class="btn-primary" onclick="sendAiMessage()">Send →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== SETTINGS VIEW ===================== -->
+      <div class="view" id="view-settings">
+        <div class="panel">
+          <div class="settings-title">🎨 Appearance</div>
+          <div class="settings-section">
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Dark Mode</div>
+                <div class="setting-desc">Deep navy background, easy on the eyes</div>
+              </div>
+              <label class="toggle"><input type="checkbox" id="darkModeToggle" onchange="toggleThemeSettings()" checked><span class="toggle-slider"></span></label>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Invisible Fortress</div>
+                <div class="setting-desc">Blur all financial numbers for privacy</div>
+              </div>
+              <label class="toggle"><input type="checkbox" id="fortressToggle" onchange="toggleFortressSettings()"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Compact Sidebar</div>
+                <div class="setting-desc">Show icons only (more screen space)</div>
+              </div>
+              <label class="toggle"><input type="checkbox" id="compactToggle" onchange="toggleCompact()"><span class="toggle-slider"></span></label>
+            </div>
+          </div>
+          <div class="settings-title">🔔 Notifications</div>
+          <div class="settings-section">
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Budget Alerts</div>
+                <div class="setting-desc">Notify when approaching budget limits</div>
+              </div>
+              <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Weekly Summary</div>
+                <div class="setting-desc">Get a weekly financial digest</div>
+              </div>
+              <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Goal Milestones</div>
+                <div class="setting-desc">Celebrate when goals hit 25%, 50%, 75%</div>
+              </div>
+              <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+            </div>
+          </div>
+          <div class="settings-title">🔐 Security</div>
+          <div class="settings-section">
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Biometric Lock</div>
+                <div class="setting-desc">Require fingerprint / Face ID on open</div>
+              </div>
+              <label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Auto-Lock after 5 min</div>
+                <div class="setting-desc">Automatically blur data when idle</div>
+              </div>
+              <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+            </div>
+          </div>
+          <div class="settings-title">💾 Data</div>
+          <div class="settings-section">
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Export to CSV</div>
+                <div class="setting-desc">Download your transaction history</div>
+              </div>
+              <button class="btn-secondary" onclick="exportCSV()" style="padding:7px 14px;font-size:12px">Export 📥</button>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Reset All Data</div>
+                <div class="setting-desc">Clear localStorage and start fresh</div>
+              </div>
+              <button onclick="resetAllData()" style="padding:7px 14px;font-size:12px;background:rgba(239,68,68,0.1);color:var(--danger);border:1px solid rgba(239,68,68,0.3);border-radius:var(--radius-sm);cursor:pointer;font-weight:600">Reset ⚠️</button>
+            </div>
+          </div>
+          <div style="text-align:center;margin-top:24px;padding-top:20px;border-top:1px solid var(--border);color:var(--text-muted);font-size:12px">
+            💎 FinFlow Pro v3 • Wealth OS + Invisible Fortress<br>
+            <span style="color:var(--primary-light)">Built with ❤️ for serious personal finance</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content-scroll -->
+  </div><!-- /main-area -->
+</div><!-- /app-shell -->
+
+<script>
+/* ============================================================
+   STATE & DEFAULTS
+============================================================ */
+const DEFAULT_STATE = {
+  budget: [
+    {id:'housing',name:'Housing',icon:'🏠',spent:1200,limit:1200,color:'var(--danger)'},
+    {id:'food',name:'Food & Dining',icon:'🍔',spent:480,limit:600,color:'var(--warning)'},
+    {id:'transport',name:'Transport',icon:'🚗',spent:340,limit:400,color:'var(--warning)'},
+    {id:'entertainment',name:'Entertainment',icon:'🎬',spent:95,limit:200,color:'var(--success)'},
+    {id:'healthcare',name:'Healthcare',icon:'🏥',spent:150,limit:200,color:'var(--success)'},
+    {id:'savings',name:'Savings',icon:'💰',spent:935,limit:900,color:'var(--primary)'},
+  ],
+  goals: [
+    {id:'emergency',name:'Emergency Fund',icon:'🛡️',current:8400,target:15000,color:'var(--primary)'},
+    {id:'vacation',name:'Vacation Fund',icon:'✈️',current:1200,target:3000,color:'var(--warning)'},
+    {id:'car',name:'New Car',icon:'🚗',current:5800,target:25000,color:'var(--success)'},
+  ],
+  theme:'dark',
+  fortress:false,
+};
+
+let state = loadState();
+
+function loadState(){
+  try{
+    const s=localStorage.getItem('finflow_v3');
+    return s ? {...DEFAULT_STATE,...JSON.parse(s)} : {...DEFAULT_STATE,budget:[...DEFAULT_STATE.budget.map(b=>({...b}))],goals:[...DEFAULT_STATE.goals.map(g=>({...g}))]};
+  }catch(e){return JSON.parse(JSON.stringify(DEFAULT_STATE))}
+}
+
+function saveState(){
+  try{localStorage.setItem('finflow_v3',JSON.stringify(state))}catch(e){}
+}
+
+/* ============================================================
+   TRANSACTIONS DATA
+============================================================ */
+const TRANSACTIONS = [
+  {date:'05/05',icon:'🛒',desc:'Walmart',sub:'Superstore',cat:'groceries',catLabel:'Groceries',amount:-67.43},
+  {date:'05/04',icon:'💼',desc:'Direct Deposit',sub:'Employer Inc.',cat:'income',catLabel:'Income',amount:2600.00},
+  {date:'05/03',icon:'⛽',desc:'Shell Gas Station',sub:'Fuel',cat:'transport',catLabel:'Transport',amount:-54.20},
+  {date:'05/02',icon:'🍕',desc:'Domino\'s Pizza',sub:'Food delivery',cat:'food',catLabel:'Dining',amount:-32.67},
+  {date:'05/01',icon:'💊',desc:'CVS Pharmacy',sub:'Healthcare',cat:'health',catLabel:'Healthcare',amount:-22.40},
+  {date:'04/30',icon:'🎮',desc:'Steam',sub:'Entertainment',cat:'entertainment',catLabel:'Entertainment',amount:-14.99},
+];
+
+/* ============================================================
+   AI RESPONSES
+============================================================ */
+let aiResponseIdx=0;
+const AI_RESPONSES=[
+  "Based on your spending patterns, you could save an additional <strong>$340/month</strong> by reducing dining and entertainment. Your emergency fund would be fully funded in <strong>8 months</strong> at that rate. 💡",
+  "Your debt-to-income ratio is healthy at <strong>18%</strong>. Consider the avalanche method — pay minimums on all debts except your highest-interest one. You could be debt-free in <strong>14 months</strong>. ⚡",
+  "Your investment allocation looks conservative. At your income level, increasing equity exposure to <strong>70%</strong> could increase your 10-year return by an estimated <strong>23%</strong>. 📈",
+  "Great news — your net worth increased <strong>12%</strong> over the past 6 months. Keep your current savings rate and you'll hit <strong>$200K net worth</strong> by Q3 next year. 🎯",
+  "I noticed your entertainment budget is only <strong>47% used</strong> this month. Consider redirecting the unused $105 to your Emergency Fund — you're $6,600 away from your goal. 🛡️",
+];
+
+/* ============================================================
+   INIT
+============================================================ */
+window.addEventListener('load',()=>{
+  applyTheme(state.theme);
+  if(state.fortress)applyFortress(true,false);
+  renderBudgetList('dashBudgetList',true);
+  renderBudgetList('fullBudgetList',false);
+  renderTransactions();
+  renderGoals('dashGoalsGrid',true);
+  renderGoals('fullGoalsList',false);
+  animateBars();
+  updateDarkModeToggle();
+  updateFortressToggle();
+});
+
+/* ============================================================
+   VIEWS
+============================================================ */
+const VIEW_TITLES={
+  dashboard:'Dashboard',networth:'Net Worth',budget:'Budget Tracker',
+  accounts:'Accounts',goals:'Goals & Savings',debt:'Debt Crusher',
+  investments:'Investments',ai:'AI Advisor',settings:'Settings'
+};
+
+function showView(id,el){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el)el.classList.add('active');
+  else{
+    document.querySelectorAll('.nav-item').forEach(n=>{
+      if(n.getAttribute('onclick')&&n.getAttribute('onclick').includes("'"+id+"'"))n.classList.add('active');
+    });
+  }
+  document.getElementById('viewTitle').textContent=VIEW_TITLES[id]||id;
+  document.getElementById('contentScroll').scrollTop=0;
+  // Re-animate bars when switching to budget/investments/debt
+  setTimeout(animateBars,100);
+  // Close sidebar on mobile
+  if(window.innerWidth<=768)document.getElementById('sidebar').classList.remove('open');
+}
+
+/* ============================================================
+   SIDEBAR HAMBURGER
+============================================================ */
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+/* ============================================================
+   THEME
+============================================================ */
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme',t);
+  document.getElementById('themeBtn').textContent=t==='dark'?'🌙':'☀️';
+}
+function toggleTheme(){
+  state.theme=state.theme==='dark'?'light':'dark';
+  applyTheme(state.theme);
+  saveState();
+  updateDarkModeToggle();
+}
+function toggleThemeSettings(){
+  const cb=document.getElementById('darkModeToggle');
+  state.theme=cb.checked?'dark':'light';
+  applyTheme(state.theme);
+  saveState();
+}
+function updateDarkModeToggle(){
+  const cb=document.getElementById('darkModeToggle');
+  if(cb)cb.checked=state.theme==='dark';
+}
+
+/* ============================================================
+   INVISIBLE FORTRESS
+============================================================ */
+function applyFortress(on,save=true){
+  state.fortress=on;
+  document.body.classList.toggle('fortress-mode',on);
+  document.getElementById('fortressBanner').classList.toggle('show',on);
+  const btn=document.getElementById('fortressBtn');
+  btn.textContent=on?'🔓':'🔒';
+  btn.classList.toggle('active',on);
+  if(save)saveState();
+  updateFortressToggle();
+}
+function toggleFortress(){applyFortress(!state.fortress)}
+function toggleFortressSettings(){
+  const cb=document.getElementById('fortressToggle');
+  applyFortress(cb.checked);
+}
+function updateFortressToggle(){
+  const cb=document.getElementById('fortressToggle');
+  if(cb)cb.checked=state.fortress;
+}
+
+/* ============================================================
+   COMPACT SIDEBAR
+============================================================ */
+function toggleCompact(){
+  const sb=document.getElementById('sidebar');
+  const cb=document.getElementById('compactToggle');
+  if(cb.checked){
+    sb.style.width='64px';
+    sb.style.minWidth='64px';
+    sb.querySelectorAll('.nav-item').forEach(n=>{
+      n.querySelectorAll('*:not(.nav-icon)').forEach(c=>c.style.display='none');
+      n.style.justifyContent='center';n.style.padding='10px 0';
+    });
+    sb.querySelectorAll('.nav-section-label,.sidebar-logo .logo-text,.user-name,.user-role').forEach(e=>e.style.display='none');
+  }else{
+    sb.style.width='';sb.style.minWidth='';
+    sb.querySelectorAll('.nav-item').forEach(n=>{
+      n.querySelectorAll('*').forEach(c=>c.style.display='');
+      n.style.justifyContent='';n.style.padding='';
+    });
+    sb.querySelectorAll('.nav-section-label,.sidebar-logo .logo-text,.user-name,.user-role').forEach(e=>e.style.display='');
+  }
+}
+
+/* ============================================================
+   RENDER BUDGET
+============================================================ */
+function getBudgetColor(spent,limit){
+  const pct=spent/limit*100;
+  if(pct>=100)return'var(--danger)';
+  if(pct>=80)return'var(--warning)';
+  if(pct>100)return'var(--primary)';
+  return'var(--success)';
+}
+
+function renderBudgetList(elId,mini){
+  const el=document.getElementById(elId);
+  if(!el)return;
+  el.innerHTML=state.budget.map((b,i)=>{
+    const pct=Math.min(Math.round(b.spent/b.limit*100),100);
+    const over=b.spent>b.limit;
+    const color=over?'var(--danger)':pct>=80?'var(--warning)':'var(--success)';
+    return `<div class="budget-item" id="bitem-${b.id}">
+      <div class="budget-row">
+        <div class="budget-cat">${b.icon} ${b.name}</div>
+        <div class="budget-amounts">
+          <span class="spent sensitive editable" onclick="openBudgetEdit(${i})" title="Click to edit">$${b.spent.toLocaleString()}</span>
+          <span style="color:var(--border)"> / </span>
+          <span class="sensitive editable" onclick="openBudgetEdit(${i})" title="Click to edit">$${b.limit.toLocaleString()}</span>
+          <span style="font-size:10px;margin-left:6px;color:${color};font-weight:700">${Math.round(b.spent/b.limit*100)}%</span>
+          ${!mini?`<button onclick="openBudgetEdit(${i})" style="margin-left:8px;font-size:11px;color:var(--primary-light);background:none;border:none;cursor:pointer">✏️</button>`:''}
+        </div>
+      </div>
+      <div class="budget-bar-track">
+        <div class="budget-bar-fill" data-pct="${pct}" style="background:${color};width:0%"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ============================================================
+   RENDER TRANSACTIONS
+============================================================ */
+function renderTransactions(){
+  const tb=document.getElementById('txTableBody');
+  if(!tb)return;
+  tb.innerHTML=TRANSACTIONS.map(t=>`
+    <tr>
+      <td style="color:var(--text-muted);font-size:12px">${t.date}</td>
+      <td><div class="tx-merchant">
+        <div class="tx-icon">${t.icon}</div>
+        <div><div class="tx-desc">${t.desc}</div><div class="tx-subtext">${t.sub}</div></div>
+      </div></td>
+      <td><span class="badge badge-${t.cat}">${t.catLabel}</span></td>
+      <td style="text-align:right"><span class="${t.amount>=0?'amount-pos':'amount-neg'} sensitive">${t.amount>=0?'+':''}$${Math.abs(t.amount).toFixed(2)}</span></td>
+    </tr>
+  `).join('');
+}
+
+/* ============================================================
+   RENDER GOALS
+============================================================ */
+function renderGoals(elId,mini){
+  const el=document.getElementById(elId);
+  if(!el)return;
+  el.innerHTML=state.goals.map((g,i)=>{
+    const pct=Math.round(g.current/g.target*100);
+    const remaining=g.target-g.current;
+    return `<div class="goal-item" onclick="openGoalModal(${i})">
+      <div class="goal-row">
+        <div class="goal-name"><span class="goal-emoji">${g.icon}</span>${g.name}</div>
+        <div class="goal-amounts"><span class="goal-curr sensitive">$${g.current.toLocaleString()}</span><span> / </span><span class="sensitive">$${g.target.toLocaleString()}</span></div>
+      </div>
+      <div class="goal-bar-track">
+        <div class="goal-bar-fill" data-pct="${pct}" style="background:${g.color};width:0%"></div>
+      </div>
+      <div class="goal-meta">
+        <span>${pct}% funded</span>
+        <span class="sensitive">$${remaining.toLocaleString()} to go</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ============================================================
+   ANIMATE BARS
+============================================================ */
+function animateBars(){
+  document.querySelectorAll('[data-pct]').forEach(el=>{
+    const pct=parseFloat(el.getAttribute('data-pct'));
+    setTimeout(()=>{el.style.width=pct+'%'},50);
+  });
+}
+
+/* ============================================================
+   BUDGET EDIT MODAL
+============================================================ */
+let editingBudgetIdx=null;
+function openBudgetEdit(i){
+  editingBudgetIdx=i;
+  const b=state.budget[i];
+  document.getElementById('budgetModalTitle').textContent=`✏️ Edit ${b.icon} ${b.name}`;
+  document.getElementById('budgetSpentInput').value=b.spent;
+  document.getElementById('budgetLimitInput').value=b.limit;
+  openModal('budgetModal');
+}
+function saveBudgetEdit(){
+  if(editingBudgetIdx===null)return;
+  const spent=parseFloat(document.getElementById('budgetSpentInput').value)||0;
+  const limit=parseFloat(document.getElementById('budgetLimitInput').value)||1;
+  state.budget[editingBudgetIdx].spent=spent;
+  state.budget[editingBudgetIdx].limit=limit;
+  saveState();
+  renderBudgetList('dashBudgetList',true);
+  renderBudgetList('fullBudgetList',false);
+  setTimeout(animateBars,100);
+  closeModal('budgetModal');
+}
+function resetBudget(){
+  state.budget=JSON.parse(JSON.stringify(DEFAULT_STATE.budget));
+  saveState();
+  renderBudgetList('dashBudgetList',true);
+  renderBudgetList('fullBudgetList',false);
+  setTimeout(animateBars,100);
+}
+
+/* ============================================================
+   GOALS MODAL
+============================================================ */
+let activeGoalIdx=null;
+function openGoalModal(i){
+  activeGoalIdx=i;
+  const g=state.goals[i];
+  document.getElementById('goalModalTitle').textContent=`${g.icon} Add to ${g.name}`;
+  document.getElementById('goalModalCurrent').textContent=`$${g.current.toLocaleString()}`;
+  document.getElementById('goalAddAmount').value='';
+  openModal('goalModal');
+}
+function addFundsToGoal(){
+  if(activeGoalIdx===null)return;
+  const amt=parseFloat(document.getElementById('goalAddAmount').value)||0;
+  if(amt<=0){alert('Please enter a valid amount.');return;}
+  state.goals[activeGoalIdx].current=Math.min(state.goals[activeGoalIdx].current+amt,state.goals[activeGoalIdx].target);
+  saveState();
+  renderGoals('dashGoalsGrid',true);
+  renderGoals('fullGoalsList',false);
+  setTimeout(animateBars,100);
+  closeModal('goalModal');
+}
+function addNewGoal(){
+  const name=prompt('Goal name (e.g. New Laptop):');
+  if(!name)return;
+  const target=parseFloat(prompt('Target amount ($):'))||1000;
+  state.goals.push({id:'g'+Date.now(),name,icon:'⭐',current:0,target,color:'var(--primary)'});
+  saveState();
+  renderGoals('fullGoalsList',false);
+  setTimeout(animateBars,100);
+}
+
+/* ============================================================
+   PLAID CONNECT
+============================================================ */
+function connectBank(name){
+  closeModal('plaidModal');
+  setTimeout(()=>{
+    const accts=document.getElementById('accountsList');
+    const newEl=document.createElement('div');
+    newEl.className='account-card';
+    newEl.style.animation='modalIn 0.3s ease';
+    newEl.innerHTML=`
+      <div class="account-left">
+        <div class="account-logo" style="background:rgba(99,102,241,0.15);color:var(--primary-light)">🏦</div>
+        <div>
+          <div class="account-name">${name}</div>
+          <div class="account-num">••••  ••••  ••••  ${Math.floor(1000+Math.random()*9000)}</div>
+        </div>
+      </div>
+      <div class="account-right">
+        <div class="account-balance sensitive">$0.00</div>
+        <div class="status-label"><span class="status-dot" style="background:var(--warning)"></span>Syncing...</div>
+      </div>`;
+    accts.appendChild(newEl);
+    // After 2s show connected
+    setTimeout(()=>{
+      newEl.querySelector('.status-label').innerHTML='<span class="status-dot"></span>Connected';
+      newEl.querySelector('.account-balance').textContent='$'+Math.floor(1000+Math.random()*19000).toLocaleString()+'.00';
+    },2000);
+  },300);
+}
+
+/* ============================================================
+   MODALS
+============================================================ */
+function openModal(id){document.getElementById(id).classList.add('show')}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+// Close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('show')});
+});
+
+/* ============================================================
+   AI CHAT (Full view)
+============================================================ */
+function sendAiMessage(){
+  const inp=document.getElementById('aiInput');
+  const msg=inp.value.trim();
+  if(!msg)return;
+  inp.value='';
+  const chat=document.getElementById('chatMessages');
+  // Add user message
+  const userMsg=document.createElement('div');
+  userMsg.className='chat-msg user';
+  userMsg.innerHTML=`<div class="chat-avatar user-av">TL</div><div><div class="chat-bubble">${escHtml(msg)}</div><div style="font-size:11px;color:var(--text-muted);margin-top:4px;text-align:right;margin-right:4px">You • Just now</div></div>`;
+  chat.appendChild(userMsg);
+  chat.scrollTop=chat.scrollHeight;
+  // Show typing
+  const tw=document.getElementById('typingWrap');
+  tw.style.display='flex';
+  chat.scrollTop=chat.scrollHeight;
+  // Response after delay
+  setTimeout(()=>{
+    tw.style.display='none';
+    const resp=AI_RESPONSES[aiResponseIdx%AI_RESPONSES.length];
+    aiResponseIdx++;
+    const aiMsg=document.createElement('div');
+    aiMsg.className='chat-msg ai';
+    aiMsg.style.animation='modalIn 0.25s ease';
+    aiMsg.innerHTML=`<div class="chat-avatar ai-av">🤖</div><div><div class="chat-bubble">✦ <span>${resp}</span></div><div style="font-size:11px;color:var(--text-muted);margin-top:4px;margin-left:4px">FinFlow AI (Grok) • Just now</div></div>`;
+    chat.appendChild(aiMsg);
+    chat.scrollTop=chat.scrollHeight;
+  },1200+Math.random()*800);
+}
+
+/* ============================================================
+   AI CHAT (Dashboard quick)
+============================================================ */
+function sendDashAi(){
+  const inp=document.getElementById('dashAiInput');
+  const msg=inp.value.trim();
+  if(!msg)return;
+  inp.value='';
+  const replyEl=document.getElementById('dashAiReply');
+  replyEl.style.display='block';
+  replyEl.innerHTML='<em style="color:var(--text-muted)">✦ Analyzing your financial data...</em>';
+  setTimeout(()=>{
+    const resp=AI_RESPONSES[aiResponseIdx%AI_RESPONSES.length];
+    aiResponseIdx++;
+    replyEl.innerHTML='<strong style="color:var(--primary-light)">🤖 FinFlow AI:</strong> '+resp+'<br><span style="font-size:10px;color:var(--text-muted);margin-top:4px;display:block">✦ Powered by Grok AI</span>';
+  },1000+Math.random()*600);
+}
+
+/* ============================================================
+   EXPORT CSV
+============================================================ */
+function exportCSV(){
+  const rows=[['Date','Description','Category','Amount'],...TRANSACTIONS.map(t=>[t.date,t.desc,t.catLabel,t.amount.toFixed(2)])];
+  const csv=rows.map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='finflow-transactions-may2026.csv';
+  a.click();
+}
+
+/* ============================================================
+   RESET
+============================================================ */
+function resetAllData(){
+  if(confirm('⚠️ Reset all FinFlow data? This cannot be undone.')){
+    localStorage.removeItem('finflow_v3');
+    location.reload();
+  }
+}
+
+/* ============================================================
+   HELPERS
+============================================================ */
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+/* ============================================================
+   KEYBOARD SHORTCUTS
+============================================================ */
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    document.querySelectorAll('.modal-overlay.show').forEach(m=>m.classList.remove('show'));
+  }
+});
+</script>
+</body>
+</html>

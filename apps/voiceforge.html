@@ -1,0 +1,1574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VoiceForge — AI Audiobook Narration Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0f0e0d;
+    --parchment: #f5f0e8;
+    --cream: #faf8f3;
+    --rust: #c8440f;
+    --gold: #d4a84b;
+    --sage: #4a6741;
+    --mist: #e8e4dc;
+    --deep: #1a1614;
+    --voice: #e85d26;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; font-size: 16px; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
+
+  /* ===== SCROLLBAR ===== */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--parchment); }
+  ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 3px; }
+
+  /* ===== NAV ===== */
+  #nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 6%;
+    transition: all 0.35s ease;
+  }
+  #nav.scrolled {
+    background: rgba(250,248,243,0.92);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 2px 24px rgba(15,14,13,0.08);
+    padding: 14px 6%;
+  }
+
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--ink);
+    text-decoration: none;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .nav-logo span.accent { color: var(--voice); }
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--voice), var(--rust));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+  }
+
+  .nav-links {
+    display: flex; align-items: center; gap: 36px;
+    list-style: none;
+  }
+  .nav-links a {
+    text-decoration: none; color: var(--ink); font-weight: 500;
+    font-size: 0.95rem; opacity: 0.75;
+    transition: opacity 0.2s, color 0.2s;
+    position: relative;
+  }
+  .nav-links a::after {
+    content: ''; position: absolute; bottom: -4px; left: 0; right: 0;
+    height: 2px; background: var(--voice);
+    transform: scaleX(0); transition: transform 0.25s;
+  }
+  .nav-links a:hover { opacity: 1; color: var(--voice); }
+  .nav-links a:hover::after, .nav-links a.active::after { transform: scaleX(1); }
+  .nav-links a.active { opacity: 1; color: var(--voice); }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 11px 26px; border-radius: 50px;
+    font-family: 'DM Sans', sans-serif; font-weight: 600;
+    font-size: 0.95rem; cursor: pointer;
+    text-decoration: none; border: none;
+    transition: all 0.25s ease; white-space: nowrap;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--voice), var(--rust));
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(232,93,38,0.3);
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(232,93,38,0.4);
+  }
+  .btn-outline {
+    background: transparent;
+    border: 2px solid var(--ink);
+    color: var(--ink);
+  }
+  .btn-outline:hover {
+    background: var(--ink); color: #fff;
+    transform: translateY(-2px);
+  }
+  .btn-gold {
+    background: linear-gradient(135deg, var(--gold), #b8882a);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(212,168,75,0.35);
+  }
+  .btn-gold:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(212,168,75,0.5);
+  }
+
+  .hamburger {
+    display: none; flex-direction: column; gap: 5px;
+    cursor: pointer; padding: 6px;
+    background: none; border: none;
+  }
+  .hamburger span {
+    display: block; width: 24px; height: 2px;
+    background: var(--ink); border-radius: 2px;
+    transition: all 0.3s;
+  }
+  .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  .mobile-menu {
+    display: none;
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(250,248,243,0.98);
+    backdrop-filter: blur(20px);
+    z-index: 999;
+    flex-direction: column; align-items: center; justify-content: center;
+    gap: 32px;
+  }
+  .mobile-menu.open { display: flex; }
+  .mobile-menu a {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem; text-decoration: none;
+    color: var(--ink); opacity: 0.8;
+    transition: opacity 0.2s, color 0.2s;
+  }
+  .mobile-menu a:hover { opacity: 1; color: var(--voice); }
+
+  /* ===== HERO ===== */
+  #hero {
+    min-height: 100vh;
+    display: flex; align-items: center;
+    padding: 120px 6% 80px;
+    position: relative; overflow: hidden;
+    background: var(--cream);
+  }
+
+  .hero-bg-pattern {
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(circle at 70% 30%, rgba(232,93,38,0.07) 0%, transparent 50%),
+      radial-gradient(circle at 20% 80%, rgba(212,168,75,0.08) 0%, transparent 45%);
+    pointer-events: none;
+  }
+
+  .hero-grid-lines {
+    position: absolute; inset: 0; pointer-events: none; opacity: 0.3;
+    background-image:
+      linear-gradient(rgba(212,168,75,0.15) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(212,168,75,0.15) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 0%, transparent 100%);
+  }
+
+  .hero-content {
+    max-width: 680px; position: relative; z-index: 2;
+  }
+
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(232,93,38,0.1); border: 1px solid rgba(232,93,38,0.25);
+    color: var(--voice); border-radius: 50px;
+    padding: 6px 16px; font-size: 0.82rem; font-weight: 600;
+    letter-spacing: 0.05em; text-transform: uppercase;
+    margin-bottom: 28px;
+  }
+  .hero-badge .dot {
+    width: 7px; height: 7px; background: var(--voice);
+    border-radius: 50%; animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.4); }
+  }
+
+  .hero-title {
+    font-size: clamp(3rem, 6vw, 5.5rem);
+    line-height: 1.05;
+    color: var(--ink);
+    margin-bottom: 24px;
+  }
+  .hero-title em {
+    font-style: italic; color: var(--voice);
+    position: relative;
+  }
+
+  .hero-subtitle {
+    font-size: 1.2rem; line-height: 1.7;
+    color: var(--ink); opacity: 0.65;
+    margin-bottom: 40px; max-width: 520px;
+    font-weight: 400;
+  }
+
+  .hero-ctas { display: flex; gap: 16px; flex-wrap: wrap; }
+
+  .hero-stats {
+    display: flex; gap: 36px; margin-top: 52px;
+    flex-wrap: wrap;
+  }
+  .stat { display: flex; flex-direction: column; gap: 4px; }
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem; font-weight: 700; color: var(--ink);
+  }
+  .stat-label { font-size: 0.82rem; opacity: 0.55; font-weight: 500; letter-spacing: 0.03em; }
+
+  .hero-visual {
+    position: absolute; right: 5%; top: 50%;
+    transform: translateY(-50%);
+    width: min(480px, 42vw);
+    z-index: 1;
+  }
+
+  .floating-book {
+    position: relative;
+    animation: float 5s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(-3deg); }
+    50% { transform: translateY(-18px) rotate(-1deg); }
+  }
+
+  .book-card {
+    background: white;
+    border-radius: 20px;
+    padding: 32px;
+    box-shadow: 0 24px 80px rgba(15,14,13,0.15), 0 4px 16px rgba(15,14,13,0.08);
+    position: relative;
+  }
+  .book-cover {
+    width: 100%; height: 220px;
+    background: linear-gradient(135deg, var(--deep) 0%, #3d2c1e 50%, var(--rust) 100%);
+    border-radius: 12px; margin-bottom: 20px;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; position: relative;
+  }
+  .book-cover-title {
+    font-family: 'Playfair Display', serif;
+    color: var(--gold); font-size: 1.3rem; font-weight: 700;
+    text-align: center; padding: 20px; line-height: 1.4;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+  .book-lines {
+    display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;
+  }
+  .book-line {
+    height: 10px; background: var(--mist);
+    border-radius: 5px;
+  }
+  .book-line:nth-child(1) { width: 90%; }
+  .book-line:nth-child(2) { width: 75%; }
+  .book-line:nth-child(3) { width: 82%; }
+
+  .waveform-hero {
+    display: flex; align-items: center; gap: 4px;
+    height: 40px; justify-content: center;
+  }
+  .waveform-hero .bar {
+    width: 4px; background: linear-gradient(to top, var(--voice), var(--gold));
+    border-radius: 2px;
+    animation: wave 1.4s ease-in-out infinite;
+  }
+
+  @keyframes wave {
+    0%, 100% { transform: scaleY(0.3); }
+    50% { transform: scaleY(1); }
+  }
+
+  .floating-pill {
+    position: absolute; background: white;
+    border-radius: 50px; padding: 12px 20px;
+    box-shadow: 0 8px 32px rgba(15,14,13,0.12);
+    display: flex; align-items: center; gap: 10px;
+    font-size: 0.85rem; font-weight: 600; white-space: nowrap;
+  }
+  .pill-1 { top: -20px; right: -20px; }
+  .pill-2 { bottom: 30px; left: -30px; }
+  .pill-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .pill-dot.green { background: #22c55e; }
+  .pill-dot.orange { background: var(--voice); animation: pulse 2s infinite; }
+
+  /* ===== SECTION COMMONS ===== */
+  section { padding: 100px 6%; }
+  .section-label {
+    display: inline-block;
+    font-size: 0.78rem; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--voice); margin-bottom: 16px;
+  }
+  .section-title {
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1.15; color: var(--ink);
+    margin-bottom: 16px;
+  }
+  .section-sub {
+    font-size: 1.05rem; opacity: 0.6;
+    max-width: 540px; line-height: 1.7;
+  }
+  .section-header { margin-bottom: 64px; }
+  .section-header.centered { text-align: center; }
+  .section-header.centered .section-sub { margin: 0 auto; }
+
+  /* ===== HOW IT WORKS ===== */
+  #how {
+    background: var(--deep);
+    color: white;
+  }
+  #how .section-label { color: var(--gold); }
+  #how .section-title { color: white; }
+  #how .section-sub { color: rgba(255,255,255,0.55); }
+
+  .steps-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+  }
+
+  .step-connector {
+    display: none;
+  }
+
+  .step-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 40px 32px;
+    position: relative;
+    transition: all 0.3s;
+  }
+  .step-card:hover {
+    background: rgba(255,255,255,0.07);
+    transform: translateY(-6px);
+    border-color: rgba(212,168,75,0.3);
+  }
+  .step-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 4rem; font-weight: 700;
+    color: rgba(212,168,75,0.2); line-height: 1;
+    margin-bottom: 16px;
+  }
+  .step-icon {
+    width: 60px; height: 60px;
+    background: linear-gradient(135deg, var(--voice), var(--rust));
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem; margin-bottom: 24px;
+  }
+  .step-title {
+    font-size: 1.3rem; font-weight: 600;
+    color: white; margin-bottom: 12px;
+  }
+  .step-desc {
+    font-size: 0.95rem; line-height: 1.7;
+    color: rgba(255,255,255,0.55);
+  }
+  .step-arrow {
+    position: absolute; right: -24px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--gold); font-size: 1.5rem; opacity: 0.4;
+    z-index: 2;
+  }
+
+  /* ===== VOICES ===== */
+  #voices { background: var(--parchment); }
+
+  .voices-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .voice-card {
+    background: white;
+    border-radius: 20px;
+    padding: 28px 24px;
+    border: 2px solid transparent;
+    transition: all 0.3s;
+    cursor: pointer;
+    position: relative; overflow: hidden;
+  }
+  .voice-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, var(--voice), var(--rust));
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .voice-card:hover {
+    border-color: var(--voice);
+    transform: translateY(-4px);
+    box-shadow: 0 16px 48px rgba(232,93,38,0.15);
+  }
+  .voice-card > * { position: relative; z-index: 1; }
+
+  .voice-avatar {
+    width: 56px; height: 56px;
+    border-radius: 50%; margin-bottom: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem; font-weight: 700; color: white;
+  }
+
+  .voice-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem; margin-bottom: 8px;
+  }
+  .voice-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .voice-tag {
+    background: var(--mist);
+    border-radius: 50px; padding: 4px 12px;
+    font-size: 0.75rem; font-weight: 500; color: var(--ink); opacity: 0.7;
+  }
+
+  .voice-waveform {
+    display: flex; align-items: center; gap: 3px;
+    height: 36px; margin-bottom: 16px;
+  }
+  .voice-waveform .bar {
+    width: 3px; background: var(--mist);
+    border-radius: 2px; transition: background 0.3s;
+  }
+  .voice-card:hover .voice-waveform .bar,
+  .voice-card.playing .voice-waveform .bar {
+    background: linear-gradient(to top, var(--voice), var(--gold));
+  }
+  .voice-card.playing .voice-waveform .bar {
+    animation: wave 1.2s ease-in-out infinite;
+  }
+
+  .voice-preview-btn {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--mist); border: none; border-radius: 50px;
+    padding: 9px 20px; font-size: 0.85rem; font-weight: 600;
+    cursor: pointer; transition: all 0.25s; color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+  }
+  .voice-preview-btn:hover {
+    background: var(--voice); color: white;
+  }
+  .voice-card.playing .voice-preview-btn {
+    background: var(--rust); color: white;
+  }
+
+  /* ===== DEMO ===== */
+  #demo { background: white; }
+
+  .demo-container {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 60px; align-items: start;
+  }
+
+  .demo-textarea {
+    width: 100%; min-height: 200px;
+    border: 2px solid var(--mist); border-radius: 16px;
+    padding: 20px; font-family: 'DM Sans', sans-serif;
+    font-size: 1rem; line-height: 1.7; color: var(--ink);
+    background: var(--cream); resize: vertical;
+    transition: border-color 0.25s;
+    margin-bottom: 20px;
+  }
+  .demo-textarea:focus {
+    outline: none; border-color: var(--voice);
+  }
+
+  .demo-voices { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
+  .demo-voice-btn {
+    padding: 10px 22px; border-radius: 50px;
+    border: 2px solid var(--mist);
+    background: white; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-weight: 600;
+    font-size: 0.9rem; color: var(--ink);
+    transition: all 0.25s;
+  }
+  .demo-voice-btn:hover { border-color: var(--voice); color: var(--voice); }
+  .demo-voice-btn.active { background: var(--voice); border-color: var(--voice); color: white; }
+
+  .demo-controls { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+
+  .demo-waveform {
+    display: flex; align-items: center; gap: 4px;
+    height: 48px; padding: 0 16px;
+    background: var(--cream); border-radius: 12px;
+    min-width: 160px;
+  }
+  .demo-waveform .bar {
+    width: 4px; background: var(--mist);
+    border-radius: 2px; transition: all 0.3s;
+    height: 8px;
+  }
+  .demo-waveform.active .bar {
+    background: linear-gradient(to top, var(--voice), var(--gold));
+    animation: wave 1.3s ease-in-out infinite;
+  }
+
+  .demo-visual {
+    position: sticky; top: 120px;
+  }
+  .demo-player {
+    background: var(--deep);
+    border-radius: 24px; padding: 36px;
+    color: white;
+  }
+  .player-book {
+    background: rgba(255,255,255,0.06);
+    border-radius: 16px; padding: 24px;
+    margin-bottom: 24px; text-align: center;
+  }
+  .player-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem; font-style: italic;
+    color: var(--gold); margin-bottom: 6px;
+  }
+  .player-author { font-size: 0.82rem; opacity: 0.5; }
+  .player-waveform {
+    display: flex; align-items: center; gap: 3px;
+    height: 64px; justify-content: center; margin: 28px 0;
+  }
+  .player-waveform .bar {
+    width: 4px; background: rgba(255,255,255,0.15);
+    border-radius: 2px;
+  }
+  .player-waveform.active .bar {
+    background: linear-gradient(to top, var(--voice), var(--gold));
+    animation: wave 1.2s ease-in-out infinite;
+  }
+  .player-progress {
+    background: rgba(255,255,255,0.1); border-radius: 50px;
+    height: 4px; margin-bottom: 12px; overflow: hidden;
+  }
+  .player-progress-fill {
+    height: 100%; background: linear-gradient(90deg, var(--voice), var(--gold));
+    border-radius: 50px; width: 35%;
+    transition: width 0.1s;
+  }
+  .player-time {
+    display: flex; justify-content: space-between;
+    font-size: 0.78rem; opacity: 0.4;
+  }
+  .player-voice-info {
+    display: flex; align-items: center; gap: 12px; margin-top: 20px;
+  }
+  .player-voice-avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--voice), var(--rust));
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.9rem;
+  }
+  .player-voice-name { font-size: 0.9rem; font-weight: 600; }
+  .player-voice-style { font-size: 0.78rem; opacity: 0.5; }
+
+  /* ===== FEATURES ===== */
+  #features { background: var(--cream); }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .feature-card {
+    background: white; border-radius: 20px;
+    padding: 36px 28px;
+    border: 1px solid var(--mist);
+    transition: all 0.3s;
+  }
+  .feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 60px rgba(15,14,13,0.08);
+    border-color: rgba(232,93,38,0.2);
+  }
+  .feature-icon {
+    width: 56px; height: 56px;
+    border-radius: 16px; margin-bottom: 24px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+  }
+  .feature-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem; margin-bottom: 10px;
+  }
+  .feature-desc {
+    font-size: 0.92rem; line-height: 1.7;
+    opacity: 0.6;
+  }
+
+  /* ===== PRICING ===== */
+  #pricing { background: var(--parchment); }
+
+  .pricing-toggle {
+    display: flex; align-items: center; gap: 16px;
+    justify-content: center; margin-bottom: 56px;
+  }
+  .toggle-label { font-weight: 600; font-size: 0.95rem; opacity: 0.7; }
+  .toggle-label.active { opacity: 1; color: var(--ink); }
+  .toggle-switch {
+    position: relative; width: 52px; height: 28px;
+    background: var(--voice); border-radius: 50px;
+    cursor: pointer; transition: background 0.3s;
+  }
+  .toggle-switch .toggle-knob {
+    position: absolute; top: 3px;
+    width: 22px; height: 22px;
+    background: white; border-radius: 50%;
+    transition: left 0.3s;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+  .toggle-switch.monthly .toggle-knob { left: 3px; }
+  .toggle-switch.annual .toggle-knob { left: 27px; }
+  .toggle-badge {
+    background: var(--sage); color: white;
+    border-radius: 50px; padding: 3px 10px;
+    font-size: 0.72rem; font-weight: 600;
+  }
+
+  .pricing-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 24px; align-items: start;
+  }
+
+  .pricing-card {
+    background: white; border-radius: 24px;
+    padding: 40px 32px;
+    border: 2px solid var(--mist);
+    transition: all 0.3s; position: relative;
+  }
+  .pricing-card:hover { transform: translateY(-4px); }
+  .pricing-card.featured {
+    background: var(--deep); color: white;
+    border-color: var(--voice);
+    transform: scale(1.04);
+    box-shadow: 0 24px 80px rgba(232,93,38,0.25);
+  }
+  .pricing-card.featured:hover { transform: scale(1.04) translateY(-4px); }
+
+  .featured-badge {
+    position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+    background: linear-gradient(135deg, var(--voice), var(--rust));
+    color: white; border-radius: 50px;
+    padding: 6px 18px; font-size: 0.78rem; font-weight: 700;
+    letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap;
+  }
+
+  .plan-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem; margin-bottom: 8px;
+  }
+  .plan-desc { font-size: 0.88rem; opacity: 0.6; margin-bottom: 28px; }
+  .plan-price {
+    display: flex; align-items: flex-end; gap: 4px;
+    margin-bottom: 8px;
+  }
+  .price-amount {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem; font-weight: 700; line-height: 1;
+  }
+  .price-period { font-size: 0.88rem; opacity: 0.5; margin-bottom: 6px; }
+  .price-original {
+    font-size: 0.85rem; opacity: 0.45;
+    text-decoration: line-through; margin-bottom: 28px; height: 20px;
+  }
+  .plan-divider {
+    height: 1px; background: rgba(255,255,255,0.1);
+    margin: 24px 0;
+  }
+  .pricing-card:not(.featured) .plan-divider { background: var(--mist); }
+
+  .plan-features { list-style: none; display: flex; flex-direction: column; gap: 14px; margin-bottom: 32px; }
+  .plan-features li {
+    display: flex; align-items: flex-start; gap: 12px;
+    font-size: 0.92rem; line-height: 1.5;
+  }
+  .check {
+    width: 20px; height: 20px; min-width: 20px;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; font-weight: 700;
+  }
+  .check.yes { background: rgba(34,197,94,0.15); color: #22c55e; }
+  .featured .check.yes { background: rgba(34,197,94,0.2); }
+  .check.no { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.2); }
+  .pricing-card:not(.featured) .check.no { background: var(--mist); color: var(--mist); }
+
+  /* ===== TESTIMONIALS ===== */
+  #testimonials { background: white; }
+
+  .testi-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+  }
+
+  .testi-card {
+    background: var(--cream); border-radius: 20px;
+    padding: 36px 28px;
+    border: 1px solid var(--mist); transition: all 0.3s;
+  }
+  .testi-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 48px rgba(15,14,13,0.06);
+  }
+  .testi-stars {
+    display: flex; gap: 4px; margin-bottom: 20px;
+    color: var(--gold); font-size: 1rem;
+  }
+  .testi-quote {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem; line-height: 1.7;
+    font-style: italic; margin-bottom: 24px;
+    opacity: 0.85;
+  }
+  .testi-author { display: flex; align-items: center; gap: 14px; }
+  .testi-avatar {
+    width: 46px; height: 46px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 1rem; color: white;
+  }
+  .testi-name { font-weight: 600; font-size: 0.95rem; }
+  .testi-role { font-size: 0.8rem; opacity: 0.5; }
+
+  /* ===== CTA BANNER ===== */
+  #cta {
+    background: linear-gradient(135deg, var(--deep) 0%, #2d1e14 40%, #1a0e08 100%);
+    text-align: center; padding: 120px 6%;
+    position: relative; overflow: hidden;
+  }
+  #cta::before {
+    content: ''; position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 30% 50%, rgba(232,93,38,0.15) 0%, transparent 50%),
+      radial-gradient(circle at 70% 50%, rgba(212,168,75,0.1) 0%, transparent 50%);
+  }
+  .cta-content { position: relative; z-index: 1; }
+  .cta-label { color: var(--gold); margin-bottom: 24px; }
+  .cta-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    color: white; line-height: 1.1; margin-bottom: 20px;
+  }
+  .cta-title em { font-style: italic; color: var(--gold); }
+  .cta-sub { color: rgba(255,255,255,0.55); font-size: 1.1rem; margin-bottom: 40px; }
+  .cta-note { color: rgba(255,255,255,0.3); font-size: 0.82rem; margin-top: 20px; }
+
+  /* ===== FOOTER ===== */
+  footer {
+    background: var(--deep); color: white;
+    padding: 64px 6% 40px;
+  }
+  .footer-grid {
+    display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 48px; margin-bottom: 56px;
+  }
+  .footer-brand .nav-logo { color: white; }
+  .footer-tagline { font-size: 0.9rem; color: rgba(255,255,255,0.45); margin-top: 16px; line-height: 1.7; max-width: 280px; }
+  .footer-col-title { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 20px; }
+  .footer-links { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .footer-links a { color: rgba(255,255,255,0.55); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+  .footer-links a:hover { color: var(--gold); }
+  .footer-bottom { border-top: 1px solid rgba(255,255,255,0.08); padding-top: 28px; display: flex; justify-content: space-between; align-items: center; flex-wrap: gap; gap: 16px; }
+  .footer-copy { font-size: 0.82rem; color: rgba(255,255,255,0.3); }
+  .footer-legal { display: flex; gap: 24px; }
+  .footer-legal a { font-size: 0.82rem; color: rgba(255,255,255,0.3); text-decoration: none; }
+  .footer-legal a:hover { color: var(--gold); }
+
+  /* ===== MODAL ===== */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(15,14,13,0.7);
+    backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal-box {
+    background: white; border-radius: 24px;
+    padding: 52px 48px; max-width: 480px; width: 90%;
+    text-align: center;
+    transform: scale(0.9) translateY(20px);
+    transition: all 0.35s;
+  }
+  .modal-overlay.open .modal-box { transform: scale(1) translateY(0); }
+  .modal-emoji { font-size: 4rem; margin-bottom: 24px; }
+  .modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem; margin-bottom: 12px;
+  }
+  .modal-msg { color: var(--ink); opacity: 0.6; line-height: 1.7; margin-bottom: 32px; }
+  .modal-close {
+    background: none; border: none; cursor: pointer;
+    position: absolute; top: 20px; right: 24px;
+    font-size: 1.4rem; opacity: 0.4; transition: opacity 0.2s;
+    color: var(--ink);
+  }
+  .modal-close:hover { opacity: 0.8; }
+
+  /* ===== SCROLL REVEAL ===== */
+  .reveal {
+    opacity: 0; transform: translateY(32px);
+    transition: opacity 0.65s ease, transform 0.65s ease;
+  }
+  .reveal.visible { opacity: 1; transform: none; }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+  .reveal-delay-4 { transition-delay: 0.4s; }
+  .reveal-delay-5 { transition-delay: 0.5s; }
+
+  /* ===== DRAG DROP ===== */
+  .drop-zone {
+    border: 2px dashed var(--mist); border-radius: 16px;
+    padding: 40px; text-align: center; cursor: pointer;
+    transition: all 0.25s; background: var(--cream);
+  }
+  .drop-zone.drag-over { border-color: var(--voice); background: rgba(232,93,38,0.05); }
+  .drop-icon { font-size: 2.5rem; margin-bottom: 12px; }
+  .drop-title { font-weight: 600; margin-bottom: 6px; }
+  .drop-sub { font-size: 0.85rem; opacity: 0.5; }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 1100px) {
+    .steps-grid { grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+    .voices-grid { grid-template-columns: repeat(2, 1fr); }
+    .features-grid { grid-template-columns: repeat(2, 1fr); }
+    .hero-visual { width: 36vw; }
+  }
+
+  @media (max-width: 900px) {
+    .nav-links { display: none; }
+    .hamburger { display: flex; }
+    .hero-visual { display: none; }
+    .hero-content { max-width: 100%; }
+    .demo-container { grid-template-columns: 1fr; }
+    .demo-visual { position: static; }
+    .pricing-grid { grid-template-columns: 1fr; max-width: 440px; margin: 0 auto; }
+    .pricing-card.featured { transform: scale(1); }
+    .testi-grid { grid-template-columns: 1fr; }
+    .footer-grid { grid-template-columns: 1fr 1fr; gap: 36px; }
+  }
+
+  @media (max-width: 640px) {
+    section { padding: 72px 5%; }
+    .steps-grid { grid-template-columns: 1fr; }
+    .voices-grid { grid-template-columns: 1fr; }
+    .features-grid { grid-template-columns: 1fr; }
+    .footer-grid { grid-template-columns: 1fr; }
+    .hero-ctas { flex-direction: column; }
+    .hero-stats { gap: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="nav-logo">
+    <div class="logo-icon">🎙️</div>
+    Voice<span class="accent">Forge</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#features" data-section="features">Features</a></li>
+    <li><a href="#voices" data-section="voices">Voices</a></li>
+    <li><a href="#pricing" data-section="pricing">Pricing</a></li>
+    <li><a href="#demo" data-section="demo">Demo</a></li>
+  </ul>
+  <button class="btn btn-primary nav-cta" onclick="openModal()">Start Free</button>
+  <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#features" onclick="closeMenu()">Features</a>
+  <a href="#voices" onclick="closeMenu()">Voices</a>
+  <a href="#pricing" onclick="closeMenu()">Pricing</a>
+  <a href="#demo" onclick="closeMenu()">Demo</a>
+  <button class="btn btn-primary" onclick="openModal(); closeMenu();">Start Free Trial</button>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg-pattern"></div>
+  <div class="hero-grid-lines"></div>
+  <div class="hero-content">
+    <div class="hero-badge"><span class="dot"></span> AI-Powered Audiobook Studio</div>
+    <h1 class="hero-title">AI Books,<br><em>Human Heart</em></h1>
+    <p class="hero-subtitle">Transform any ebook into an emotionally resonant audiobook in minutes. Choose from 50+ expressive AI voices with natural pauses, whispers, and dramatic inflection.</p>
+    <div class="hero-ctas">
+      <button class="btn btn-primary" onclick="openModal()">🎧 Try Free Demo</button>
+      <a href="#voices" class="btn btn-outline">See All Voices →</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat">
+        <span class="stat-num">50+</span>
+        <span class="stat-label">AI Voices</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">12K+</span>
+        <span class="stat-label">Books Narrated</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">4.9★</span>
+        <span class="stat-label">Avg Rating</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-visual">
+    <div class="floating-book">
+      <div class="book-card">
+        <div class="book-cover">
+          <div class="book-cover-title">The Last<br>Garden</div>
+        </div>
+        <div class="book-lines">
+          <div class="book-line"></div>
+          <div class="book-line"></div>
+          <div class="book-line"></div>
+        </div>
+        <div class="waveform-hero" id="heroWaveform">
+          <!-- bars added by JS -->
+        </div>
+        <div class="floating-pill pill-1">
+          <span class="pill-dot green"></span> Narrating now
+        </div>
+        <div class="floating-pill pill-2">
+          <span class="pill-dot orange"></span> Voice: Solène
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="section-header centered reveal">
+    <span class="section-label">Simple Process</span>
+    <h2 class="section-title">From Page to Audio in 3 Steps</h2>
+    <p class="section-sub">No technical skills needed. Upload, choose, download — your audiobook is ready in minutes.</p>
+  </div>
+  <div class="steps-grid">
+    <div class="step-card reveal reveal-delay-1">
+      <div class="step-num">01</div>
+      <div class="step-icon">📚</div>
+      <h3 class="step-title">Upload Your Book</h3>
+      <p class="step-desc">Drag and drop your EPUB, PDF, or DOCX file. We auto-detect chapters, characters, and narrative structure with AI.</p>
+    </div>
+    <div class="step-card reveal reveal-delay-2">
+      <div class="step-num">02</div>
+      <div class="step-icon">🎭</div>
+      <h3 class="step-title">Choose Voice & Emotion</h3>
+      <p class="step-desc">Pick from 50+ AI voices and assign emotional profiles — dramatic tension, romantic warmth, or calm narration.</p>
+    </div>
+    <div class="step-card reveal reveal-delay-3">
+      <div class="step-num">03</div>
+      <div class="step-icon">⬇️</div>
+      <h3 class="step-title">Download & Share</h3>
+      <p class="step-desc">Export as high-quality MP3 or M4B. Share directly to Audible, Spotify, or your personal library.</p>
+    </div>
+  </div>
+</section>
+
+<!-- VOICE GALLERY -->
+<section id="voices">
+  <div class="section-header centered reveal">
+    <span class="section-label">Voice Gallery</span>
+    <h2 class="section-title">Meet Your Narrators</h2>
+    <p class="section-sub">Click "Preview" on any voice to hear them speak with your browser's speech synthesis. Every voice is tuned for long-form listening.</p>
+  </div>
+  <div class="voices-grid" id="voicesGrid">
+    <!-- Populated by JS -->
+  </div>
+</section>
+
+<!-- LIVE DEMO -->
+<section id="demo">
+  <div class="section-header reveal">
+    <span class="section-label">Live Demo</span>
+    <h2 class="section-title">Hear It For Yourself</h2>
+    <p class="section-sub">Type or paste any text below and press play to hear your chosen AI narrator bring it to life.</p>
+  </div>
+  <div class="demo-container">
+    <div>
+      <textarea class="demo-textarea" id="demoText" rows="7">The moonlight fell through fractured clouds, casting silver ribbons across the ancient stone floor. Eleanor pressed her back against the cold wall, heart hammering. Somewhere in the dark labyrinth ahead, the creature stirred. She could hear it — the slow, deliberate scrape of claws against cobblestone, drawing ever closer.</textarea>
+      <div class="demo-voices" id="demoVoices"></div>
+      <div class="demo-controls">
+        <button class="btn btn-primary" id="playBtn" onclick="demoPlay()">▶ Narrate</button>
+        <button class="btn btn-outline" id="stopBtn" onclick="demoStop()" style="display:none;">⏹ Stop</button>
+        <div class="demo-waveform" id="demoWaveform"></div>
+      </div>
+      <div style="margin-top: 24px;">
+        <div class="drop-zone" id="dropZone">
+          <div class="drop-icon">📄</div>
+          <div class="drop-title">Upload Your Book</div>
+          <div class="drop-sub">EPUB, PDF, DOCX — drag & drop or click to browse</div>
+          <input type="file" id="fileInput" accept=".epub,.pdf,.docx" style="display:none;" onchange="handleFile(event)">
+        </div>
+      </div>
+    </div>
+    <div class="demo-visual">
+      <div class="demo-player">
+        <div class="player-book">
+          <div class="player-title">"The Obsidian Labyrinth"</div>
+          <div class="player-author">by M. Calloway</div>
+        </div>
+        <div class="player-waveform" id="playerWaveform"></div>
+        <div class="player-progress">
+          <div class="player-progress-fill" id="progressFill"></div>
+        </div>
+        <div class="player-time">
+          <span id="currentTime">0:00</span>
+          <span>6:42</span>
+        </div>
+        <div class="player-voice-info">
+          <div class="player-voice-avatar" id="playerAvatar">V</div>
+          <div>
+            <div class="player-voice-name" id="playerVoiceName">Vex</div>
+            <div class="player-voice-style">Dark / Thriller</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-header centered reveal">
+    <span class="section-label">Features</span>
+    <h2 class="section-title">Everything You Need</h2>
+    <p class="section-sub">Professional-grade audiobook production without a recording studio, voice actors, or editing software.</p>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card reveal reveal-delay-1">
+      <div class="feature-icon" style="background: rgba(232,93,38,0.1);">🎭</div>
+      <h3 class="feature-title">Emotional Narration</h3>
+      <p class="feature-desc">Tag your text with emotion markers like &lt;whisper&gt;, &lt;excited&gt;, &lt;pause&gt;. Our AI interprets context automatically for natural dramatic delivery.</p>
+    </div>
+    <div class="feature-card reveal reveal-delay-2">
+      <div class="feature-icon" style="background: rgba(74,103,65,0.1);">👥</div>
+      <h3 class="feature-title">Multi-Character Voices</h3>
+      <p class="feature-desc">Assign different AI voices to each character in your book. VoiceForge auto-detects dialogue speakers and switches seamlessly between voices.</p>
+    </div>
+    <div class="feature-card reveal reveal-delay-3">
+      <div class="feature-icon" style="background: rgba(212,168,75,0.1);">📖</div>
+      <h3 class="feature-title">EPUB & PDF Import</h3>
+      <p class="feature-desc">Drag and drop your ebook files directly. We parse chapters, metadata, and table of contents automatically — no formatting required.</p>
+    </div>
+    <div class="feature-card reveal reveal-delay-1">
+      <div class="feature-icon" style="background: rgba(74,103,65,0.1);">🎵</div>
+      <h3 class="feature-title">Background Music & SFX</h3>
+      <p class="feature-desc">Layer ambient soundscapes — forest rain, tavern ambience, space hum — that adapt dynamically to your story's mood and genre.</p>
+    </div>
+    <div class="feature-card reveal reveal-delay-2">
+      <div class="feature-icon" style="background: rgba(200,68,15,0.1);">⚡</div>
+      <h3 class="feature-title">Long-Form Stability</h3>
+      <p class="feature-desc">Our AI maintains consistent voice quality and character across entire novels. No drift, no glitching — flawless narration for 10+ hour audiobooks.</p>
+    </div>
+    <div class="feature-card reveal reveal-delay-3">
+      <div class="feature-icon" style="background: rgba(232,93,38,0.1);">📡</div>
+      <h3 class="feature-title">Real-Time Streaming</h3>
+      <p class="feature-desc">Start listening to your audiobook as it generates — no waiting for full export. Stream chapter by chapter the moment processing begins.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="section-header centered reveal">
+    <span class="section-label">Simple Pricing</span>
+    <h2 class="section-title">Choose Your Plan</h2>
+    <p class="section-sub">Start free for 7 days. Cancel anytime. All plans include unlimited listening.</p>
+  </div>
+
+  <div class="pricing-toggle">
+    <span class="toggle-label active" id="monthlyLabel">Monthly</span>
+    <div class="toggle-switch monthly" id="billingToggle" onclick="toggleBilling()">
+      <div class="toggle-knob"></div>
+    </div>
+    <span class="toggle-label" id="annualLabel">Annual</span>
+    <span class="toggle-badge">Save 20%</span>
+  </div>
+
+  <div class="pricing-grid reveal">
+    <div class="pricing-card">
+      <h3 class="plan-name">Reader</h3>
+      <p class="plan-desc">Perfect for casual audiobook lovers</p>
+      <div class="plan-price">
+        <span class="price-amount" id="price1">$9</span>
+        <span class="price-period">/mo</span>
+      </div>
+      <div class="price-original" id="orig1"></div>
+      <div class="plan-divider"></div>
+      <ul class="plan-features">
+        <li><span class="check yes">✓</span> 5 books per month</li>
+        <li><span class="check yes">✓</span> 3 AI voices included</li>
+        <li><span class="check yes">✓</span> Basic emotion tags</li>
+        <li><span class="check yes">✓</span> MP3 export</li>
+        <li><span class="check no">✗</span> <span style="opacity:0.4">Background music</span></li>
+        <li><span class="check no">✗</span> <span style="opacity:0.4">Multi-character voices</span></li>
+      </ul>
+      <button class="btn btn-outline" style="width:100%" onclick="openModal()">Get Started</button>
+    </div>
+
+    <div class="pricing-card featured">
+      <div class="featured-badge">⭐ Most Popular</div>
+      <h3 class="plan-name" style="color:white">Listener+</h3>
+      <p class="plan-desc" style="color:rgba(255,255,255,0.55)">For dedicated readers & creators</p>
+      <div class="plan-price">
+        <span class="price-amount" id="price2">$19</span>
+        <span class="price-period" style="color:rgba(255,255,255,0.5)">/mo</span>
+      </div>
+      <div class="price-original" id="orig2"></div>
+      <div class="plan-divider"></div>
+      <ul class="plan-features" style="color:rgba(255,255,255,0.8)">
+        <li><span class="check yes">✓</span> Unlimited books</li>
+        <li><span class="check yes">✓</span> All 50+ AI voices</li>
+        <li><span class="check yes">✓</span> Advanced emotion tags</li>
+        <li><span class="check yes">✓</span> Background music library</li>
+        <li><span class="check yes">✓</span> Multi-character voices</li>
+        <li><span class="check yes">✓</span> MP3 + M4B export</li>
+      </ul>
+      <button class="btn btn-gold" style="width:100%" onclick="openModal()">Start Free Trial</button>
+    </div>
+
+    <div class="pricing-card">
+      <h3 class="plan-name">Publisher</h3>
+      <p class="plan-desc">For authors, studios & businesses</p>
+      <div class="plan-price">
+        <span class="price-amount" id="price3">$49</span>
+        <span class="price-period">/mo</span>
+      </div>
+      <div class="price-original" id="orig3"></div>
+      <div class="plan-divider"></div>
+      <ul class="plan-features">
+        <li><span class="check yes">✓</span> Everything in Listener+</li>
+        <li><span class="check yes">✓</span> Voice cloning (your voice)</li>
+        <li><span class="check yes">✓</span> EPUB auto-conversion</li>
+        <li><span class="check yes">✓</span> Commercial license</li>
+        <li><span class="check yes">✓</span> Priority rendering queue</li>
+        <li><span class="check yes">✓</span> Dedicated support</li>
+      </ul>
+      <button class="btn btn-primary" style="width:100%" onclick="openModal()">Get Started</button>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials">
+  <div class="section-header centered reveal">
+    <span class="section-label">Reviews</span>
+    <h2 class="section-title">Readers Love VoiceForge</h2>
+    <p class="section-sub">Join thousands of authors and readers who've transformed their reading experience.</p>
+  </div>
+  <div class="testi-grid">
+    <div class="testi-card reveal reveal-delay-1">
+      <div class="testi-stars">★★★★★</div>
+      <p class="testi-quote">"I uploaded my fantasy novel and within 20 minutes I was listening to the most stunning narration. Solène's voice for the romantic scenes made me tear up — and I wrote the book."</p>
+      <div class="testi-author">
+        <div class="testi-avatar" style="background: linear-gradient(135deg, #c8440f, #e85d26);">RM</div>
+        <div>
+          <div class="testi-name">Rachel Morrow</div>
+          <div class="testi-role">Fantasy novelist, 3 published books</div>
+        </div>
+      </div>
+    </div>
+    <div class="testi-card reveal reveal-delay-2">
+      <div class="testi-stars">★★★★★</div>
+      <p class="testi-quote">"As a podcast producer I've tested every TTS tool out there. VoiceForge's long-form stability is genuinely unmatched — zero quality drift over a 9-hour audiobook. Blew my mind."</p>
+      <div class="testi-author">
+        <div class="testi-avatar" style="background: linear-gradient(135deg, #4a6741, #2d5a2d);">DK</div>
+        <div>
+          <div class="testi-name">David Kim</div>
+          <div class="testi-role">Podcast Producer & Audio Engineer</div>
+        </div>
+      </div>
+    </div>
+    <div class="testi-card reveal reveal-delay-3">
+      <div class="testi-stars">★★★★★</div>
+      <p class="testi-quote">"Marcus narrates my business books with exactly the right authoritative tone. My audiobook sales tripled after switching to VoiceForge. The commercial license paid for itself in a week."</p>
+      <div class="testi-author">
+        <div class="testi-avatar" style="background: linear-gradient(135deg, #d4a84b, #b8882a);">SL</div>
+        <div>
+          <div class="testi-name">Sarah Liu</div>
+          <div class="testi-role">Business author & entrepreneur</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BANNER -->
+<section id="cta">
+  <div class="cta-content reveal">
+    <div class="section-label cta-label">Get Started Today</div>
+    <h2 class="cta-title">Your Story Deserves<br><em>a Voice</em></h2>
+    <p class="cta-sub">Start your 7-day free trial. No credit card required. Cancel anytime.</p>
+    <button class="btn btn-gold" style="font-size:1.1rem; padding:16px 40px;" onclick="openModal()">🎙️ Start Your Free Trial</button>
+    <p class="cta-note">✦ 7-day free trial &nbsp;·&nbsp; ✦ No credit card needed &nbsp;·&nbsp; ✦ Cancel anytime</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <a href="#" class="nav-logo">
+        <div class="logo-icon">🎙️</div>
+        Voice<span class="accent">Forge</span>
+      </a>
+      <p class="footer-tagline">The AI audiobook studio that turns your ebooks into emotionally resonant, professional-grade audio experiences.</p>
+    </div>
+    <div>
+      <div class="footer-col-title">Product</div>
+      <ul class="footer-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="#voices">Voices</a></li>
+        <li><a href="#demo">Live Demo</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Company</div>
+      <ul class="footer-links">
+        <li><a href="#">About Us</a></li>
+        <li><a href="#">Blog</a></li>
+        <li><a href="#">Careers</a></li>
+        <li><a href="#">Press Kit</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Support</div>
+      <ul class="footer-links">
+        <li><a href="#">Help Center</a></li>
+        <li><a href="#">API Docs</a></li>
+        <li><a href="#">Contact</a></li>
+        <li><a href="#">Status</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span class="footer-copy">© 2026 VoiceForge, Inc. All rights reserved.</span>
+    <div class="footer-legal">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">Cookie Policy</a>
+    </div>
+  </div>
+</footer>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal-box" style="position:relative">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-emoji">🎉</div>
+    <h3 class="modal-title">Welcome to VoiceForge!</h3>
+    <p class="modal-msg">Your 7-day free trial has started. Explore all voices, upload your first book, and experience the magic of AI narration.</p>
+    <button class="btn btn-primary" style="width:100%;" onclick="closeModal()">Start Narrating →</button>
+  </div>
+</div>
+
+<script>
+  // ===== VOICE DATA =====
+  const voices = [
+    { id: 'remy',   name: 'Remy',   tags: ['Dramatic', 'Literary'],     color: '#1a1614', pitch: 0.85, rate: 0.88, text: "Hello, I'm Remy, ready to bring your story to life with dramatic flair and literary depth." },
+    { id: 'solene', name: 'Solène', tags: ['Lyrical', 'Romance'],       color: '#7a3a5a', pitch: 1.2,  rate: 0.92, text: "Hello, I'm Solène, ready to bring your story to life with lyrical warmth and romantic resonance." },
+    { id: 'vex',    name: 'Vex',    tags: ['Dark', 'Thriller'],          color: '#1e2a3a', pitch: 0.75, rate: 0.82, text: "Hello, I'm Vex, ready to bring your story to life with dark intensity and thrilling menace." },
+    { id: 'aria',   name: 'Aria',   tags: ["Warm", "Children's"],        color: '#2d6e44', pitch: 1.35, rate: 1.05, text: "Hello, I'm Aria, ready to bring your story to life with warmth and playful energy." },
+    { id: 'marcus', name: 'Marcus', tags: ['Educational', 'Nonfiction'], color: '#2a3d6b', pitch: 0.9,  rate: 0.95, text: "Hello, I'm Marcus, ready to bring your story to life with authority and clarity." },
+    { id: 'zara',   name: 'Zara',   tags: ['Conversational', 'Self-help'], color: '#c8440f', pitch: 1.05, rate: 1.0,  text: "Hello, I'm Zara, ready to bring your story to life with a friendly, conversational tone." }
+  ];
+
+  const demoVoiceKeys = ['vex', 'solene', 'remy'];
+  let selectedDemoVoice = 'vex';
+  let currentUtterance = null;
+  let isSpeaking = false;
+  let progressInterval = null;
+  let timeInterval = null;
+  let playSeconds = 0;
+
+  // ===== BUILD WAVEFORM BARS =====
+  function makeBars(container, count, minH, maxH) {
+    for (let i = 0; i < count; i++) {
+      const bar = document.createElement('div');
+      bar.className = 'bar';
+      const h = minH + Math.random() * (maxH - minH);
+      bar.style.height = h + 'px';
+      bar.style.animationDelay = (Math.random() * 1.4) + 's';
+      container.appendChild(bar);
+    }
+  }
+
+  // Hero waveform
+  const heroWave = document.getElementById('heroWaveform');
+  makeBars(heroWave, 24, 8, 36);
+
+  // Demo waveform
+  const demoWave = document.getElementById('demoWaveform');
+  makeBars(demoWave, 20, 6, 32);
+
+  // Player waveform
+  const playerWave = document.getElementById('playerWaveform');
+  makeBars(playerWave, 30, 6, 48);
+
+  // ===== BUILD VOICE GALLERY =====
+  const grid = document.getElementById('voicesGrid');
+  voices.forEach((v, idx) => {
+    const initials = v.name.slice(0,2).toUpperCase();
+    const card = document.createElement('div');
+    card.className = 'voice-card reveal reveal-delay-' + ((idx % 3) + 1);
+    card.id = 'voice-' + v.id;
+    card.innerHTML = `
+      <div class="voice-avatar" style="background: linear-gradient(135deg, ${v.color}, ${v.color}cc)">${initials}</div>
+      <div class="voice-name">${v.name}</div>
+      <div class="voice-tags">${v.tags.map(t => `<span class="voice-tag">${t}</span>`).join('')}</div>
+      <div class="voice-waveform" id="vw-${v.id}"></div>
+      <button class="voice-preview-btn" id="vbtn-${v.id}" onclick="previewVoice('${v.id}')">
+        <span id="vbtn-icon-${v.id}">▶</span> Preview
+      </button>
+    `;
+    grid.appendChild(card);
+    const wf = document.getElementById('vw-' + v.id);
+    makeBars(wf, 18, 8, 28);
+    wf.querySelectorAll('.bar').forEach((b, i) => {
+      b.style.animationDelay = (i * 0.07) + 's';
+    });
+  });
+
+  // ===== VOICE PREVIEW =====
+  function previewVoice(id) {
+    const v = voices.find(x => x.id === id);
+    if (!v) return;
+    stopAllVoices();
+    if ('speechSynthesis' in window) {
+      const utt = new SpeechSynthesisUtterance(v.text);
+      utt.pitch = v.pitch;
+      utt.rate = v.rate;
+      const card = document.getElementById('voice-' + id);
+      const btn = document.getElementById('vbtn-' + id);
+      const icon = document.getElementById('vbtn-icon-' + id);
+      card.classList.add('playing');
+      icon.textContent = '⏹';
+      btn.onclick = () => { stopAllVoices(); };
+      utt.onend = () => {
+        card.classList.remove('playing');
+        icon.textContent = '▶';
+        btn.onclick = () => previewVoice(id);
+      };
+      utt.onerror = () => {
+        card.classList.remove('playing');
+        icon.textContent = '▶';
+        btn.onclick = () => previewVoice(id);
+      };
+      currentUtterance = { utt, id };
+      window.speechSynthesis.speak(utt);
+    } else {
+      alert('Speech synthesis not supported in this browser. Try Chrome or Edge.');
+    }
+  }
+
+  function stopAllVoices() {
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    voices.forEach(v => {
+      const card = document.getElementById('voice-' + v.id);
+      if (card) card.classList.remove('playing');
+      const icon = document.getElementById('vbtn-icon-' + v.id);
+      if (icon) icon.textContent = '▶';
+      const btn = document.getElementById('vbtn-' + v.id);
+      if (btn) btn.onclick = () => previewVoice(v.id);
+    });
+  }
+
+  // ===== BUILD DEMO VOICE BUTTONS =====
+  const demoVoicesDiv = document.getElementById('demoVoices');
+  demoVoiceKeys.forEach(id => {
+    const v = voices.find(x => x.id === id);
+    const btn = document.createElement('button');
+    btn.className = 'demo-voice-btn' + (id === selectedDemoVoice ? ' active' : '');
+    btn.id = 'dvbtn-' + id;
+    btn.textContent = v.name + ' — ' + v.tags[0];
+    btn.onclick = () => selectDemoVoice(id);
+    demoVoicesDiv.appendChild(btn);
+  });
+
+  function selectDemoVoice(id) {
+    selectedDemoVoice = id;
+    demoVoiceKeys.forEach(k => {
+      const b = document.getElementById('dvbtn-' + k);
+      if (b) b.classList.toggle('active', k === id);
+    });
+    const v = voices.find(x => x.id === id);
+    document.getElementById('playerVoiceName').textContent = v.name;
+    document.getElementById('playerAvatar').textContent = v.name.slice(0,1);
+    demoStop();
+  }
+
+  function demoPlay() {
+    if (!('speechSynthesis' in window)) {
+      alert('Speech synthesis not supported in this browser. Try Chrome or Edge.');
+      return;
+    }
+    demoStop();
+    const text = document.getElementById('demoText').value.trim();
+    if (!text) return;
+    const v = voices.find(x => x.id === selectedDemoVoice);
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.pitch = v.pitch;
+    utt.rate = v.rate;
+    isSpeaking = true;
+    document.getElementById('playBtn').style.display = 'none';
+    document.getElementById('stopBtn').style.display = '';
+    document.getElementById('demoWaveform').classList.add('active');
+    document.getElementById('playerWaveform').classList.add('active');
+    playSeconds = 0;
+    timeInterval = setInterval(() => {
+      playSeconds++;
+      const m = Math.floor(playSeconds / 60);
+      const s = playSeconds % 60;
+      document.getElementById('currentTime').textContent = m + ':' + (s < 10 ? '0' : '') + s;
+      const prog = Math.min((playSeconds / 402) * 100, 100);
+      document.getElementById('progressFill').style.width = prog + '%';
+    }, 1000);
+    utt.onend = demoStop;
+    utt.onerror = demoStop;
+    window.speechSynthesis.speak(utt);
+  }
+
+  function demoStop() {
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    isSpeaking = false;
+    document.getElementById('playBtn').style.display = '';
+    document.getElementById('stopBtn').style.display = 'none';
+    document.getElementById('demoWaveform').classList.remove('active');
+    document.getElementById('playerWaveform').classList.remove('active');
+    clearInterval(timeInterval);
+    clearInterval(progressInterval);
+  }
+
+  // ===== NAV SCROLL =====
+  const nav = document.getElementById('nav');
+  const sections = ['hero','how','voices','demo','features','pricing','testimonials','cta'];
+  const navLinks = document.querySelectorAll('.nav-links a[data-section]');
+
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 60) nav.classList.add('scrolled');
+    else nav.classList.remove('scrolled');
+
+    // Active nav
+    let current = '';
+    sections.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && window.scrollY >= el.offsetTop - 120) current = id;
+    });
+    navLinks.forEach(a => {
+      a.classList.toggle('active', a.dataset.section === current);
+    });
+  });
+
+  // ===== HAMBURGER =====
+  function toggleMenu() {
+    const h = document.getElementById('hamburger');
+    const m = document.getElementById('mobileMenu');
+    h.classList.toggle('open');
+    m.classList.toggle('open');
+    document.body.style.overflow = m.classList.contains('open') ? 'hidden' : '';
+  }
+  function closeMenu() {
+    document.getElementById('hamburger').classList.remove('open');
+    document.getElementById('mobileMenu').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  // ===== SCROLL REVEAL =====
+  const revealEls = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); }
+    });
+  }, { threshold: 0.12 });
+  revealEls.forEach(el => observer.observe(el));
+
+  // ===== BILLING TOGGLE =====
+  let isAnnual = false;
+  const monthlyPrices = [9, 19, 49];
+  const annualPrices = [7, 15, 39];
+  const origMonthly = ['', '', ''];
+  const origAnnual = ['$9/mo', '$19/mo', '$49/mo'];
+
+  function toggleBilling() {
+    isAnnual = !isAnnual;
+    const toggle = document.getElementById('billingToggle');
+    toggle.classList.toggle('annual', isAnnual);
+    toggle.classList.toggle('monthly', !isAnnual);
+    document.getElementById('monthlyLabel').classList.toggle('active', !isAnnual);
+    document.getElementById('annualLabel').classList.toggle('active', isAnnual);
+
+    [1, 2, 3].forEach((i, idx) => {
+      document.getElementById('price' + i).textContent = '$' + (isAnnual ? annualPrices[idx] : monthlyPrices[idx]);
+      const orig = document.getElementById('orig' + i);
+      orig.textContent = isAnnual ? origAnnual[idx] : '';
+    });
+  }
+
+  // ===== MODAL =====
+  function openModal() {
+    document.getElementById('modal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModal(e) {
+    if (!e || e.target === document.getElementById('modal') || e.target.classList.contains('modal-close') || e.target.closest('.modal-close')) {
+      document.getElementById('modal').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  }
+
+  // ===== DROP ZONE =====
+  const dropZone = document.getElementById('dropZone');
+  dropZone.addEventListener('click', () => document.getElementById('fileInput').click());
+  dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault(); dropZone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) handleFileDrop(file);
+  });
+
+  function handleFile(e) {
+    if (e.target.files[0]) handleFileDrop(e.target.files[0]);
+  }
+  function handleFileDrop(file) {
+    dropZone.innerHTML = `
+      <div class="drop-icon">✅</div>
+      <div class="drop-title">${file.name}</div>
+      <div class="drop-sub">Ready to narrate · ${(file.size / 1024).toFixed(0)} KB</div>
+    `;
+    setTimeout(() => {
+      document.getElementById('demoText').value = `Chapter 1 — "${file.name.replace(/\.[^.]+$/,'')}"\n\nYour book has been loaded and is ready for AI narration. Select a voice above and press Narrate to hear a preview of how VoiceForge would read your text.`;
+    }, 600);
+  }
+
+  // ===== STOP SPEECH ON PAGE LEAVE =====
+  window.addEventListener('beforeunload', () => {
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  });
+</script>
+</body>
+</html>

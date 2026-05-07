@@ -1,0 +1,1718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PillPal Guardian — AI Senior Companion</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #FAF7F2;
+            --surface: #FFFFFF;
+            --primary: #5B7B6F;
+            --primary-light: #EAF2EF;
+            --accent: #E8A045;
+            --danger: #C25F5F;
+            --text: #2D3748;
+            --text-muted: #718096;
+            --border: #E2E8F0;
+            --success: #48A675;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        /* Container & Layout */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .header-left {
+            flex: 1;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .greeting {
+            font-size: 20px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .voice-button {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            font-size: 36px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(91, 123, 111, 0.3);
+            flex-shrink: 0;
+        }
+
+        .voice-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 16px rgba(91, 123, 111, 0.4);
+        }
+
+        .voice-button:active {
+            transform: scale(0.95);
+        }
+
+        /* Tab Navigation */
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            background: var(--surface);
+            padding: 12px;
+            border-radius: 12px;
+            flex-wrap: wrap;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .nav-tab {
+            flex: 1;
+            min-width: 120px;
+            padding: 14px 16px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            text-align: center;
+            touch-action: manipulation;
+        }
+
+        .nav-tab:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .nav-tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Cards */
+        .card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text);
+        }
+
+        .card-subtitle {
+            font-size: 16px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            width: 100%;
+            height: 32px;
+            background: var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success), var(--primary));
+            transition: width 0.4s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 56px;
+            touch-action: manipulation;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #4a6a5f;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(91, 123, 111, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: #d7e8e2;
+        }
+
+        .btn-accent {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-accent:hover {
+            background: #d88f2f;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+            font-size: 20px;
+            padding: 20px;
+            width: 100%;
+            min-height: 80px;
+        }
+
+        .btn-danger:hover {
+            background: #b04c4c;
+        }
+
+        .btn-small {
+            padding: 8px 12px;
+            font-size: 14px;
+            min-height: 44px;
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        /* Status Grid */
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .status-card {
+            background: var(--primary-light);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid var(--primary);
+        }
+
+        .status-card-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .status-card-label {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .status-card-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .quick-action-btn {
+            padding: 14px;
+            background: var(--primary-light);
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .quick-action-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .quick-action-btn-icon {
+            font-size: 24px;
+        }
+
+        /* Medication List */
+        .medication-card {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .medication-info {
+            flex: 1;
+        }
+
+        .medication-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .medication-time {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .medication-status {
+            font-size: 14px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 6px;
+            text-align: center;
+            min-width: 90px;
+        }
+
+        .medication-status.taken {
+            background: #d4f4dd;
+            color: var(--success);
+        }
+
+        .medication-status.upcoming {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .medication-status.missed {
+            background: #f8d7da;
+            color: var(--danger);
+        }
+
+        .medication-toggle {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 56px;
+        }
+
+        .medication-toggle.taken {
+            background: var(--success);
+            color: white;
+        }
+
+        .medication-toggle.not-taken {
+            background: var(--border);
+            color: var(--text-muted);
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 70px;
+            height: 40px;
+            margin: 16px 0;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 40px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 32px;
+            width: 32px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--primary);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(30px);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(40px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: transparent;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: color 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: var(--text);
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-family: 'Nunito', sans-serif;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Chat Interface */
+        .chat-box {
+            background: var(--primary-light);
+            border-radius: 12px;
+            padding: 16px;
+            height: 400px;
+            overflow-y: auto;
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .chat-message {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .chat-message.user {
+            justify-content: flex-end;
+        }
+
+        .chat-bubble {
+            max-width: 70%;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 16px;
+            word-wrap: break-word;
+        }
+
+        .chat-bubble.assistant {
+            background: var(--primary);
+            color: white;
+            border-radius: 10px 10px 10px 0;
+        }
+
+        .chat-bubble.user {
+            background: var(--accent);
+            color: white;
+            border-radius: 10px 10px 0 10px;
+        }
+
+        .chat-input-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-input-group input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        .chat-input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 12px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                opacity: 0.5;
+                transform: translateY(0);
+            }
+            30% {
+                opacity: 1;
+                transform: translateY(-10px);
+            }
+        }
+
+        /* Quick Prompts */
+        .quick-prompts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 8px;
+        }
+
+        .quick-prompt-btn {
+            padding: 10px;
+            background: var(--primary-light);
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quick-prompt-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Hydration Tracker */
+        .water-glasses {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 16px 0;
+        }
+
+        .water-glass {
+            width: 40px;
+            height: 60px;
+            border: 2px solid var(--primary);
+            border-radius: 4px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .water-glass.filled::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #3b9dd9;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .water-glass.empty {
+            background: var(--border);
+        }
+
+        /* Safety Checklist */
+        .checklist {
+            list-style: none;
+        }
+
+        .checklist-item {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 16px;
+        }
+
+        .checklist-item:last-child {
+            border-bottom: none;
+        }
+
+        .checklist-item input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+        }
+
+        /* SOS Animation */
+        .sos-pulse {
+            animation: sosPulse 1s infinite;
+        }
+
+        @keyframes sosPulse {
+            0%, 100% {
+                box-shadow: 0 4px 12px rgba(194, 95, 95, 0.3);
+            }
+            50% {
+                box-shadow: 0 8px 24px rgba(194, 95, 95, 0.6);
+            }
+        }
+
+        .sos-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(194, 95, 95, 0.2);
+            z-index: 2000;
+            animation: sosFlash 0.5s infinite;
+            display: none;
+        }
+
+        .sos-overlay.active {
+            display: block;
+        }
+
+        @keyframes sosFlash {
+            0%, 100% {
+                opacity: 0.2;
+            }
+            50% {
+                opacity: 0.4;
+            }
+        }
+
+        /* Radio Buttons */
+        .radio-group {
+            margin: 16px 0;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .radio-option:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .radio-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .radio-option input[type="radio"]:checked {
+            accent-color: var(--primary);
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 12px;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 16px;
+            }
+
+            .logo {
+                font-size: 24px;
+            }
+
+            .voice-button {
+                align-self: flex-end;
+                width: 60px;
+                height: 60px;
+                font-size: 28px;
+            }
+
+            .nav-tabs {
+                flex-direction: column;
+            }
+
+            .nav-tab {
+                min-width: 100%;
+            }
+
+            .status-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .medication-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .card {
+                padding: 16px;
+            }
+
+            .modal-content {
+                max-width: 95%;
+            }
+
+            .chat-box {
+                height: 300px;
+            }
+
+            .water-glasses {
+                justify-content: center;
+            }
+        }
+
+        /* Confirmation Dialog */
+        .confirmation-dialog {
+            text-align: center;
+        }
+
+        .confirmation-text {
+            font-size: 18px;
+            margin-bottom: 24px;
+            color: var(--text);
+        }
+
+        .confirmation-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .confirmation-buttons .btn {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <div class="logo">🛡️ PillPal Guardian</div>
+                <div class="greeting" id="greeting">Good morning, Margaret!</div>
+            </div>
+            <button class="voice-button" id="voiceBtn" title="Speak to Guardian">🎤</button>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" data-tab="today">Today</button>
+            <button class="nav-tab" data-tab="medications">Medications</button>
+            <button class="nav-tab" data-tab="voice">Guardian Voice</button>
+            <button class="nav-tab" data-tab="companion">Companion</button>
+            <button class="nav-tab" data-tab="safety">Safety</button>
+            <button class="nav-tab" data-tab="family">Family</button>
+        </div>
+
+        <!-- TODAY TAB -->
+        <div class="tab-content active" id="tab-today">
+            <div class="card">
+                <div class="card-title">Daily Status</div>
+                <div style="font-size: 18px; margin-bottom: 12px;">You've taken <strong id="todayMedsCount">2</strong> of <strong>3</strong> medications today</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 66%;">2/3</div>
+                </div>
+                <div class="card-subtitle" style="margin-top: 16px;">Next medication: <strong id="nextMed">Atorvastatin 20mg at 9:00 PM</strong></div>
+                <button class="btn btn-primary btn-block" style="margin-top: 16px;">Mark All Taken ✓</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Today's Summary</div>
+                <div class="status-grid">
+                    <div class="status-card">
+                        <div class="status-card-icon">💊</div>
+                        <div class="status-card-label">Medications</div>
+                        <div class="status-card-value" id="statusMeds">2/3</div>
+                    </div>
+                    <div class="status-card">
+                        <div class="status-card-icon">💧</div>
+                        <div class="status-card-label">Water</div>
+                        <div class="status-card-value" id="statusWater">5</div>
+                    </div>
+                    <div class="status-card">
+                        <div class="status-card-icon">🌟</div>
+                        <div class="status-card-label">Mood</div>
+                        <div class="status-card-value" id="statusMood">Good</div>
+                    </div>
+                    <div class="status-card">
+                        <div class="status-card-icon">🛡️</div>
+                        <div class="status-card-label">Safety</div>
+                        <div class="status-card-value">Clear</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Quick Actions</div>
+                <div class="quick-actions">
+                    <button class="quick-action-btn" id="logWaterBtn">
+                        <span class="quick-action-btn-icon">💧</span>
+                        Log Water
+                    </button>
+                    <button class="quick-action-btn" id="logMoodBtn">
+                        <span class="quick-action-btn-icon">😊</span>
+                        Log Mood
+                    </button>
+                    <button class="quick-action-btn" id="callFamilyBtn">
+                        <span class="quick-action-btn-icon">📞</span>
+                        Call Family
+                    </button>
+                </div>
+            </div>
+
+            <div class="card" style="background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);">
+                <div style="font-size: 18px; margin-bottom: 12px;">🌟 <strong>AI Daily Tip</strong></div>
+                <div style="font-size: 16px; color: var(--text);">Great job taking your morning medications! Remember to drink a full glass of water with your evening Atorvastatin.</div>
+            </div>
+        </div>
+
+        <!-- MEDICATIONS TAB -->
+        <div class="tab-content" id="tab-medications">
+            <div class="card">
+                <div class="card-title">Your Medications</div>
+                <div id="medicationsList"></div>
+                <button class="btn btn-primary btn-block" id="addMedBtn" style="margin-top: 16px;">+ Add Medication</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Medication Notes</div>
+                <div style="margin-bottom: 12px;">
+                    <strong>Metformin 500mg</strong><br>
+                    Take WITH food to avoid stomach upset.
+                </div>
+                <div>
+                    <strong>Atorvastatin 20mg</strong><br>
+                    Take at night for best results.
+                </div>
+            </div>
+        </div>
+
+        <!-- GUARDIAN VOICE TAB -->
+        <div class="tab-content" id="tab-voice">
+            <div class="card" style="background: linear-gradient(135deg, #eaf2ef 0%, #d4e8e0 100%);">
+                <div style="font-size: 20px; font-weight: 700; color: var(--primary);">🛡️ Guardian Voice is Ready</div>
+                <div style="margin-top: 12px; font-size: 16px; color: var(--text);">Your AI guardian is standing by to assist with calls and communications.</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Auto-Answer Settings</div>
+                <div style="margin-bottom: 12px;">Enable Guardian to automatically answer calls on your behalf:</div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="autoAnswerToggle">
+                    <span class="toggle-slider"></span>
+                </label>
+                <div style="margin-top: 12px; font-size: 16px; color: var(--text-muted);" id="autoAnswerStatus">Auto-Answer is OFF</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Quick Dial</div>
+                <button class="btn btn-primary btn-block" data-contact="Pharmacy" style="margin-bottom: 12px;">📞 Call Pharmacy</button>
+                <button class="btn btn-primary btn-block" data-contact="Doctor Chen" style="margin-bottom: 12px;">📞 Call Doctor Chen</button>
+                <button class="btn btn-primary btn-block" data-contact="Sarah">📞 Call Sarah</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Your Bio</div>
+                <div class="card-subtitle">Guardian Voice uses this information when speaking on your behalf:</div>
+                <textarea class="form-textarea" id="bioText" placeholder="Enter your personal bio...">I'm Margaret Chen, a retired teacher. I take great care of my health. I have a daughter named Sarah and a wonderful relationship with my doctor, Dr. David Chen. I enjoy gardening and reading.</textarea>
+                <button class="btn btn-primary btn-block" id="saveBioBtn" style="margin-top: 12px;">Save Bio</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Voice Profile</div>
+                <div class="radio-group">
+                    <label class="radio-option">
+                        <input type="radio" name="voice-profile" value="warm" checked>
+                        <div>
+                            <strong>Warm</strong><br>
+                            <span style="font-size: 14px; color: var(--text-muted);">Friendly and compassionate</span>
+                        </div>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="voice-profile" value="professional">
+                        <div>
+                            <strong>Professional</strong><br>
+                            <span style="font-size: 14px; color: var(--text-muted);">Clear and efficient</span>
+                        </div>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="voice-profile" value="gentle">
+                        <div>
+                            <strong>Gentle</strong><br>
+                            <span style="font-size: 14px; color: var(--text-muted);">Soft and caring</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- COMPANION TAB -->
+        <div class="tab-content" id="tab-companion">
+            <div class="card">
+                <div class="card-title">AI Companion Chat</div>
+                <div class="chat-box" id="chatBox">
+                    <div class="chat-message">
+                        <div class="chat-bubble assistant">Good morning Margaret! How are you feeling today?</div>
+                    </div>
+                    <div class="chat-message user">
+                        <div class="chat-bubble user">A little tired but okay</div>
+                    </div>
+                    <div class="chat-message">
+                        <div class="chat-bubble assistant">That's completely understandable. A tired day is still a good day! Make sure you had breakfast before your morning medications. Would you like me to remind you about anything specific today?</div>
+                    </div>
+                </div>
+                <div class="chat-input-group">
+                    <input type="text" id="chatInput" placeholder="Type your message...">
+                    <button class="btn btn-primary" id="chatSendBtn" style="width: auto;">Send</button>
+                    <button class="btn btn-secondary" id="chatVoiceBtn" style="width: auto;">🎤</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Suggested Topics</div>
+                <div class="quick-prompts">
+                    <button class="quick-prompt-btn">How are my medications?</button>
+                    <button class="quick-prompt-btn">Remind me what to take tonight</button>
+                    <button class="quick-prompt-btn">I'm not feeling well</button>
+                    <button class="quick-prompt-btn">Tell me something nice</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SAFETY TAB -->
+        <div class="tab-content" id="tab-safety">
+            <div class="card">
+                <div class="card-title">Emergency SOS</div>
+                <button class="btn btn-danger btn-block sos-pulse" id="sosBtn">🚨 SOS EMERGENCY ALERT</button>
+                <div style="margin-top: 16px; font-size: 14px; color: var(--text-muted); text-align: center;">Press and hold to alert your emergency contacts and emergency services</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Fall Detection</div>
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                    <div style="width: 16px; height: 16px; background: var(--success); border-radius: 50%;"></div>
+                    <strong>Fall Detection: Active</strong>
+                </div>
+                <div style="font-size: 16px; margin-bottom: 16px; color: var(--text-muted);">Monitoring for falls via motion sensors</div>
+                <button class="btn btn-secondary btn-block" id="testFallBtn">Test Fall Detection</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Safety Contacts</div>
+                <div style="margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border);">
+                        <div>
+                            <strong>Sarah (Daughter)</strong><br>
+                            <span style="font-size: 14px; color: var(--text-muted);">📞 555-0124</span>
+                        </div>
+                        <button class="btn btn-small btn-secondary">Edit</button>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px;">
+                        <div>
+                            <strong>Doctor Chen</strong><br>
+                            <span style="font-size: 14px; color: var(--text-muted);">📞 555-0199</span>
+                        </div>
+                        <button class="btn btn-small btn-secondary">Edit</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Daily Safety Checklist</div>
+                <ul class="checklist">
+                    <li class="checklist-item">
+                        <input type="checkbox" id="checkMeds" checked>
+                        <label for="checkMeds" style="cursor: pointer;">Took morning medications</label>
+                    </li>
+                    <li class="checklist-item">
+                        <input type="checkbox" id="checkWater" checked>
+                        <label for="checkWater" style="cursor: pointer;">Drank water</label>
+                    </li>
+                    <li class="checklist-item">
+                        <input type="checkbox" id="checkExercise">
+                        <label for="checkExercise" style="cursor: pointer;">Gentle walk or exercise</label>
+                    </li>
+                    <li class="checklist-item">
+                        <input type="checkbox" id="checkFamily">
+                        <label for="checkFamily" style="cursor: pointer;">Called family</label>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- FAMILY TAB -->
+        <div class="tab-content" id="tab-family">
+            <div class="card">
+                <div class="card-title">Daily Summary</div>
+                <div style="margin-bottom: 16px;">
+                    <strong>Today's Overview:</strong><br>
+                    Medications: 2 of 3 taken ✓<br>
+                    Water: 5 glasses consumed<br>
+                    Mood: Feeling Good<br>
+                    Safety Status: All Clear
+                </div>
+                <button class="btn btn-primary btn-block" id="sendSummaryBtn">Send Summary to Sarah</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Family Contacts</div>
+                <div style="margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border);">
+                        <div>
+                            <strong>Sarah (Daughter)</strong><br>
+                            <span style="font-size: 14px; color: var(--text-muted);">Last contact: Yesterday</span>
+                        </div>
+                        <button class="btn btn-small btn-primary">📞 Call</button>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px;">
+                        <div>
+                            <strong>Dr. Chen</strong><br>
+                            <span style="font-size: 14px; color: var(--text-muted);">Last contact: Last week</span>
+                        </div>
+                        <button class="btn btn-small btn-primary">📞 Call</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Hydration Progress</div>
+                <div class="water-glasses" id="waterGlassesDisplay"></div>
+                <div style="margin-top: 16px; font-size: 16px; color: var(--text-muted);">You're doing great! <strong id="glassesRemaining">3</strong> more glasses to reach your daily goal.</div>
+                <button class="btn btn-secondary btn-block" id="logGlassBtn" style="margin-top: 12px;">💧 Log Another Glass</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Notes for Family</div>
+                <div style="font-size: 16px; color: var(--text); line-height: 1.8;">
+                    Margaret had a good day. Took 2 of 3 medications on time. Energy level: Good. No health concerns reported.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Add Medication Modal -->
+    <div class="modal" id="addMedModal">
+        <div class="modal-content" style="max-width: 500px;">
+            <button class="modal-close" onclick="closeModal('addMedModal')">✕</button>
+            <div class="modal-header">Add Medication</div>
+            <div class="form-group">
+                <label class="form-label">Medication Name</label>
+                <input type="text" class="form-input" id="medNameInput" placeholder="e.g., Aspirin 81mg">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Time</label>
+                <input type="time" class="form-input" id="medTimeInput">
+            </div>
+            <button class="btn btn-primary btn-block" id="saveMedBtn">Save Medication</button>
+        </div>
+    </div>
+
+    <!-- Calling Modal -->
+    <div class="modal" id="callingModal">
+        <div class="modal-content" style="max-width: 500px; text-align: center;">
+            <button class="modal-close" onclick="closeModal('callingModal')">✕</button>
+            <div class="modal-header" style="margin-bottom: 24px;" id="callingTitle">Calling...</div>
+            <div style="font-size: 48px; margin-bottom: 24px;">📞</div>
+            <div style="font-size: 20px; margin-bottom: 24px;">
+                <div class="typing-indicator" style="justify-content: center;">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
+            <button class="btn btn-danger" onclick="closeModal('callingModal')" style="width: 100%;">Cancel Call</button>
+        </div>
+    </div>
+
+    <!-- Mood Modal -->
+    <div class="modal" id="moodModal">
+        <div class="modal-content" style="max-width: 500px; text-align: center;">
+            <button class="modal-close" onclick="closeModal('moodModal')">✕</button>
+            <div class="modal-header">How are you feeling?</div>
+            <div style="display: flex; justify-content: center; gap: 16px; margin-bottom: 24px;">
+                <button class="mood-btn" data-mood="Great" style="font-size: 48px; background: none; border: none; cursor: pointer;">😄</button>
+                <button class="mood-btn" data-mood="Good" style="font-size: 48px; background: none; border: none; cursor: pointer;">😊</button>
+                <button class="mood-btn" data-mood="Okay" style="font-size: 48px; background: none; border: none; cursor: pointer;">😐</button>
+                <button class="mood-btn" data-mood="Not Well" style="font-size: 48px; background: none; border: none; cursor: pointer;">😟</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SOS Confirmation Modal -->
+    <div class="modal" id="sosConfirmModal">
+        <div class="modal-content" style="max-width: 500px;">
+            <button class="modal-close" onclick="closeModal('sosConfirmModal')">✕</button>
+            <div class="confirmation-dialog">
+                <div style="font-size: 48px; margin-bottom: 16px;">🚨</div>
+                <div class="modal-header" style="margin-bottom: 16px;">Are you sure?</div>
+                <div class="confirmation-text">This will immediately alert your emergency contacts and local emergency services with your location.</div>
+                <div class="confirmation-buttons">
+                    <button class="btn btn-secondary" onclick="closeModal('sosConfirmModal')">Cancel</button>
+                    <button class="btn btn-danger" id="sosSendBtn">Yes, Send SOS</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call Family Modal -->
+    <div class="modal" id="callFamilyModal">
+        <div class="modal-content" style="max-width: 500px;">
+            <button class="modal-close" onclick="closeModal('callFamilyModal')">✕</button>
+            <div class="modal-header">Contact Family</div>
+            <button class="btn btn-primary btn-block" data-contact="Sarah" style="margin-bottom: 12px;">📞 Call Sarah</button>
+            <button class="btn btn-primary btn-block">📞 Video Call Sarah</button>
+        </div>
+    </div>
+
+    <!-- SOS Overlay -->
+    <div class="sos-overlay" id="sosOverlay"></div>
+
+    <script>
+        // ============ STATE MANAGEMENT ============
+        const state = {
+            medications: [
+                { name: 'Metformin 500mg', time: '08:00', taken: true },
+                { name: 'Lisinopril 10mg', time: '08:00', taken: true },
+                { name: 'Atorvastatin 20mg', time: '21:00', taken: false }
+            ],
+            waterGlasses: 5,
+            mood: 'Good',
+            autoAnswer: false,
+            voiceProfile: 'warm',
+            bioText: 'I\'m Margaret Chen, a retired teacher. I take great care of my health. I have a daughter named Sarah and a wonderful relationship with my doctor, Dr. David Chen. I enjoy gardening and reading.'
+        };
+
+        const aiResponses = [
+            "You're doing wonderfully, Margaret! Taking your medications on time is so important. Is there anything I can help you remember today?",
+            "That sounds lovely! Your family would be so proud of how well you're managing your health. Don't forget to drink some water!",
+            "I'm always here for you, Margaret. Remember — small steps each day lead to big improvements over time. You've got this!",
+            "Your health is looking great today! Two out of three medications taken, 5 glasses of water — you're doing amazing!"
+        ];
+
+        // ============ LOAD STATE ============
+        function loadState() {
+            const savedState = localStorage.getItem('pillpalState');
+            if (savedState) {
+                Object.assign(state, JSON.parse(savedState));
+            }
+        }
+
+        function saveState() {
+            localStorage.setItem('pillpalState', JSON.stringify(state));
+        }
+
+        // ============ INITIALIZATION ============
+        function init() {
+            loadState();
+            updateGreeting();
+            renderMedications();
+            renderWaterGlasses();
+            updateTodayTab();
+            setupEventListeners();
+            setupTabNavigation();
+        }
+
+        function updateGreeting() {
+            const hour = new Date().getHours();
+            let greeting = "Good morning";
+            if (hour >= 12 && hour < 18) greeting = "Good afternoon";
+            if (hour >= 18) greeting = "Good evening";
+            document.getElementById('greeting').textContent = `${greeting}, Margaret!`;
+        }
+
+        // ============ TAB NAVIGATION ============
+        function setupTabNavigation() {
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabName = tab.getAttribute('data-tab');
+                    switchTab(tabName);
+                });
+            });
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+
+        // ============ MEDICATIONS ============
+        function renderMedications() {
+            const list = document.getElementById('medicationsList');
+            list.innerHTML = state.medications.map((med, idx) => {
+                const status = med.taken ? 'Taken' : 'Upcoming';
+                const statusClass = med.taken ? 'taken' : 'upcoming';
+                const buttonClass = med.taken ? 'taken' : 'not-taken';
+                const buttonText = med.taken ? '✓' : '○';
+                
+                return `
+                    <div class="medication-card">
+                        <div class="medication-info">
+                            <div class="medication-name">${med.name}</div>
+                            <div class="medication-time">🕐 ${med.time}</div>
+                        </div>
+                        <div class="medication-status ${statusClass}">${status}</div>
+                        <button class="medication-toggle ${buttonClass}" onclick="toggleMedication(${idx})" title="Toggle medication status">${buttonText}</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleMedication(idx) {
+            state.medications[idx].taken = !state.medications[idx].taken;
+            saveState();
+            renderMedications();
+            updateTodayTab();
+        }
+
+        function updateTodayTab() {
+            const taken = state.medications.filter(m => m.taken).length;
+            const total = state.medications.length;
+            const percent = (taken / total) * 100;
+            
+            document.getElementById('todayMedsCount').textContent = taken;
+            document.getElementById('progressFill').style.width = percent + '%';
+            document.getElementById('progressFill').textContent = `${taken}/${total}`;
+            document.getElementById('statusMeds').textContent = `${taken}/${total}`;
+            document.getElementById('statusWater').textContent = state.waterGlasses;
+            document.getElementById('statusMood').textContent = state.mood;
+            
+            // Find next medication
+            const nextMed = state.medications.find(m => !m.taken);
+            if (nextMed) {
+                document.getElementById('nextMed').textContent = `${nextMed.name} at ${nextMed.time}`;
+            } else {
+                document.getElementById('nextMed').textContent = `All medications taken today!`;
+            }
+        }
+
+        // ============ MODALS ============
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.add('show');
+        }
+
+        document.getElementById('addMedBtn').addEventListener('click', () => openModal('addMedModal'));
+        document.getElementById('saveMedBtn').addEventListener('click', () => {
+            const name = document.getElementById('medNameInput').value;
+            const time = document.getElementById('medTimeInput').value;
+            if (name && time) {
+                state.medications.push({ name, time, taken: false });
+                saveState();
+                renderMedications();
+                updateTodayTab();
+                closeModal('addMedModal');
+                document.getElementById('medNameInput').value = '';
+                document.getElementById('medTimeInput').value = '';
+            }
+        });
+
+        // Close modals when clicking outside
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal(modal.id);
+            });
+        });
+
+        // ============ MOOD LOGGING ============
+        document.getElementById('logMoodBtn').addEventListener('click', () => openModal('moodModal'));
+        
+        document.querySelectorAll('.mood-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                state.mood = btn.getAttribute('data-mood');
+                saveState();
+                updateTodayTab();
+                closeModal('moodModal');
+                speak(`Mood logged as ${state.mood}`);
+            });
+        });
+
+        // ============ WATER LOGGING ============
+        function renderWaterGlasses() {
+            const container = document.getElementById('waterGlassesDisplay');
+            let html = '';
+            for (let i = 0; i < 8; i++) {
+                const isFilled = i < state.waterGlasses;
+                html += `<div class="water-glass ${isFilled ? 'filled' : 'empty'}" onclick="toggleWater(${i})"></div>`;
+            }
+            container.innerHTML = html;
+            const remaining = Math.max(0, 8 - state.waterGlasses);
+            document.getElementById('glassesRemaining').textContent = remaining;
+        }
+
+        function toggleWater(idx) {
+            state.waterGlasses = idx + 1;
+            saveState();
+            renderWaterGlasses();
+            updateTodayTab();
+        }
+
+        document.getElementById('logWaterBtn').addEventListener('click', () => {
+            if (state.waterGlasses < 8) {
+                state.waterGlasses++;
+                saveState();
+                renderWaterGlasses();
+                updateTodayTab();
+                speak(`Glass of water logged. You've had ${state.waterGlasses} glasses today.`);
+            } else {
+                speak('You have reached your daily water goal! Great job!');
+            }
+        });
+
+        document.getElementById('logGlassBtn').addEventListener('click', () => {
+            if (state.waterGlasses < 8) {
+                state.waterGlasses++;
+                saveState();
+                renderWaterGlasses();
+                updateTodayTab();
+                speak(`Glass logged. ${8 - state.waterGlasses} more to go!`);
+            }
+        });
+
+        // ============ GUARDIAN VOICE ============
+        document.getElementById('autoAnswerToggle').addEventListener('change', (e) => {
+            state.autoAnswer = e.target.checked;
+            saveState();
+            const statusEl = document.getElementById('autoAnswerStatus');
+            if (state.autoAnswer) {
+                statusEl.textContent = 'Auto-Answer is ON — Guardian will answer calls for you';
+                speak('Auto-answer enabled. Guardian will now answer calls on your behalf.');
+            } else {
+                statusEl.textContent = 'Auto-Answer is OFF';
+                speak('Auto-answer disabled.');
+            }
+        });
+
+        document.getElementById('saveBioBtn').addEventListener('click', () => {
+            state.bioText = document.getElementById('bioText').value;
+            saveState();
+            speak('Biography saved successfully.');
+        });
+
+        document.querySelectorAll('[data-contact]').forEach(btn => {
+            if (!btn.closest('#tab-companion')) {
+                btn.addEventListener('click', (e) => {
+                    const contact = btn.getAttribute('data-contact');
+                    makeCall(contact);
+                });
+            }
+        });
+
+        function makeCall(contact) {
+            document.getElementById('callingTitle').textContent = `Calling ${contact}...`;
+            openModal('callingModal');
+            const reasons = {
+                'Pharmacy': 'would like to refill a prescription',
+                'Doctor Chen': 'would like to schedule an appointment',
+                'Sarah': 'would like to chat with you'
+            };
+            const reason = reasons[contact] || 'needs to speak with you';
+            const guardianMsg = `Hello, this is Margaret's AI Guardian. She ${reason}. Please hold while I connect you.`;
+            setTimeout(() => speak(guardianMsg), 800);
+        }
+
+        // ============ VOICE PROFILE ============
+        document.querySelectorAll('input[name="voice-profile"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                state.voiceProfile = e.target.value;
+                saveState();
+            });
+        });
+
+        // ============ COMPANION CHAT ============
+        let responseIndex = 0;
+
+        document.getElementById('chatSendBtn').addEventListener('click', sendMessage);
+        document.getElementById('chatInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            const chatBox = document.getElementById('chatBox');
+            const userBubble = document.createElement('div');
+            userBubble.className = 'chat-message user';
+            userBubble.innerHTML = `<div class="chat-bubble user">${msg}</div>`;
+            chatBox.appendChild(userBubble);
+
+            input.value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Typing indicator
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'chat-message';
+            typingDiv.innerHTML = `<div class="typing-indicator">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>`;
+            chatBox.appendChild(typingDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            setTimeout(() => {
+                typingDiv.remove();
+                const assistantBubble = document.createElement('div');
+                assistantBubble.className = 'chat-message';
+                assistantBubble.innerHTML = `<div class="chat-bubble assistant">${aiResponses[responseIndex]}</div>`;
+                chatBox.appendChild(assistantBubble);
+                responseIndex = (responseIndex + 1) % aiResponses.length;
+                chatBox.scrollTop = chatBox.scrollHeight;
+                speak(aiResponses[responseIndex === 0 ? aiResponses.length - 1 : responseIndex - 1]);
+            }, 1500);
+        }
+
+        document.querySelectorAll('.quick-prompt-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById('chatInput').value = btn.textContent;
+                sendMessage();
+            });
+        });
+
+        document.getElementById('chatVoiceBtn').addEventListener('click', () => {
+            startVoiceInput((text) => {
+                document.getElementById('chatInput').value = text;
+                sendMessage();
+            });
+        });
+
+        // ============ SAFETY - SOS ============
+        document.getElementById('sosBtn').addEventListener('click', () => openModal('sosConfirmModal'));
+
+        document.getElementById('sosSendBtn').addEventListener('click', () => {
+            closeModal('sosConfirmModal');
+            triggerSOS();
+        });
+
+        function triggerSOS() {
+            document.getElementById('sosOverlay').classList.add('active');
+            playAlarm();
+            speak('Emergency SOS activated. Alerting Sarah and emergency services with your location.');
+            
+            const chatBox = document.getElementById('chatBox');
+            const sosBubble = document.createElement('div');
+            sosBubble.className = 'chat-message';
+            sosBubble.innerHTML = `<div class="chat-bubble assistant" style="background: var(--danger);">🚨 SOS SENT — Help is on the way, Margaret!</div>`;
+            chatBox.appendChild(sosBubble);
+
+            setTimeout(() => {
+                document.getElementById('sosOverlay').classList.remove('active');
+            }, 5000);
+        }
+
+        document.getElementById('testFallBtn').addEventListener('click', () => {
+            speak('Fall detection triggered. Emergency alert being sent.');
+            triggerSOS();
+        });
+
+        // ============ FAMILY TAB ============
+        document.getElementById('sendSummaryBtn').addEventListener('click', () => {
+            speak('Daily summary sent to Sarah. She will receive it shortly.');
+            setTimeout(() => alert('✅ Summary sent to Sarah!'), 500);
+        });
+
+        document.getElementById('callFamilyBtn').addEventListener('click', () => openModal('callFamilyModal'));
+
+        // ============ VOICE BUTTON ============
+        document.getElementById('voiceBtn').addEventListener('click', () => {
+            speak('How can I help you today, Margaret?');
+            startVoiceInput((text) => {
+                document.getElementById('chatInput').value = text;
+                sendMessage();
+            });
+        });
+
+        // ============ VOICE & SPEECH SYNTHESIS ============
+        function speak(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.9;
+            utterance.pitch = 1;
+            speechSynthesis.cancel();
+            speechSynthesis.speak(utterance);
+        }
+
+        function startVoiceInput(callback) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                alert('Speech recognition not supported in this browser');
+                return;
+            }
+
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = () => {
+                console.log('Voice input started...');
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = Array.from(event.results)
+                    .map(result => result[0].transcript)
+                    .join('');
+                callback(transcript);
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+            };
+
+            recognition.start();
+        }
+
+        // ============ AUDIO ALARM ============
+        function playAlarm() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime + 0.5);
+        }
+
+        // ============ INITIALIZE ============
+        document.addEventListener('DOMContentLoaded', init);
+        
+        // Update greeting every minute
+        setInterval(updateGreeting, 60000);
+    </script>
+</body>
+</html>
