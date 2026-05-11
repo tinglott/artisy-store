@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ParentWise • Neurodiversity Parenting Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#FFFBF5;--bg-alt:#FFF7ED;--surface:#fff;--surface-2:#FEF3E2;
+  --primary:#D97706;--primary-dark:#B45309;--accent:#0E7490;
+  --autism:#8B5CF6;--adhd:#EC4899;--audhdgr:#14B8A6;
+  --text:#1C1917;--muted:#78716C;--border:#E7E5E4;
+  --hero-a:#FDE68A;--hero-b:#FED7AA;
+  --shadow:0 4px 24px rgba(0,0,0,.08);--shadow-lg:0 8px 40px rgba(0,0,0,.12);
+  --r:18px;--r-lg:24px;
+}
+html.dark{
+  --bg:#0C0A09;--bg-alt:#111;--surface:#1C1917;--surface-2:#292524;
+  --primary:#F59E0B;--accent:#22D3EE;--autism:#A78BFA;--adhd:#F472B6;
+  --text:#FAFAF9;--muted:#A8A29E;--border:#44403C;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+h1,h2,h3{font-family:'DM Serif Display',serif}
+a{text-decoration:none;color:inherit}
+button{cursor:pointer;border:none;font-family:inherit}
+input,select,textarea{font-family:inherit;outline:none}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:200;background:var(--surface);border-bottom:1px solid var(--border);backdrop-filter:blur(12px)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;height:68px;max-width:1280px;margin:0 auto;padding:0 24px}
+.logo{font-size:1.5rem;color:var(--primary);display:flex;align-items:center;gap:8px;font-family:'DM Serif Display',serif}
+.neuro-tags{display:flex;gap:6px}
+.tag{padding:3px 10px;border-radius:999px;font-size:.72rem;font-weight:700}
+.tag-autism{background:var(--autism);color:#fff}
+.tag-adhd{background:var(--adhd);color:#fff}
+.tag-audh{background:var(--audhdgr);color:#fff}
+.nav-links{display:flex;gap:24px;list-style:none}
+.nav-links a{font-size:.9rem;font-weight:500;color:var(--muted);transition:color .2s}
+.nav-links a:hover{color:var(--primary)}
+.btn-nav{background:var(--primary);color:#fff;padding:10px 24px;border-radius:999px;font-weight:700;font-size:.9rem;transition:all .2s}
+.btn-nav:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(217,119,6,.3)}
+.dark-toggle{background:none;border:1px solid var(--border);width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.hamburger{display:none;background:none;border:none;font-size:1.4rem;color:var(--text)}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,var(--hero-a),var(--hero-b));padding:90px 0 110px}
+.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;max-width:1280px;margin:0 auto;padding:0 24px}
+.badge{display:inline-flex;align-items:center;gap:8px;background:var(--autism);color:#fff;padding:6px 16px;border-radius:999px;font-weight:700;font-size:.85rem;margin-bottom:20px}
+.hero h1{font-size:clamp(2rem,4vw,3.2rem);line-height:1.15;margin-bottom:16px}
+.hero-desc{color:var(--muted);font-size:1rem;margin-bottom:28px;line-height:1.7}
+.profile-card{background:var(--surface);padding:28px;border-radius:var(--r-lg);box-shadow:var(--shadow-lg)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.form-group label{display:block;font-weight:600;font-size:.85rem;margin-bottom:6px}
+.form-group input,.form-group select{width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:12px;background:var(--bg);color:var(--text);font-size:.9rem;transition:border .2s}
+.form-group input:focus,.form-group select:focus{border-color:var(--primary)}
+.btn-primary{background:var(--primary);color:#fff;padding:14px 28px;border-radius:999px;font-weight:700;transition:all .25s;display:inline-flex;align-items:center;gap:8px}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(217,119,6,.35)}
+.btn-primary.full{width:100%;justify-content:center}
+.btn-secondary{background:var(--surface-2);color:var(--text);padding:12px 24px;border-radius:999px;font-weight:600;transition:all .2s}
+
+/* SECTIONS */
+.section{padding:80px 0}
+.container{max-width:1280px;margin:0 auto;padding:0 24px}
+.section-tag{display:inline-flex;align-items:center;gap:6px;background:var(--surface-2);color:var(--primary);padding:6px 14px;border-radius:999px;font-size:.8rem;font-weight:700;margin-bottom:12px}
+.section-header{text-align:center;margin-bottom:52px}
+.section-header h2{font-size:clamp(1.6rem,3vw,2.4rem);margin-bottom:10px}
+.section-header p{color:var(--muted);max-width:600px;margin:0 auto}
+
+/* CARDS */
+.card{background:var(--surface);border-radius:var(--r-lg);padding:28px;box-shadow:var(--shadow)}
+.card h3{font-size:1.1rem;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.grid-auto{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px}
+
+/* DASHBOARD */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:32px}
+.stat-card{background:var(--surface);border-radius:var(--r);padding:22px;box-shadow:var(--shadow);text-align:center;border-left:4px solid var(--primary)}
+.stat-num{font-size:2.4rem;font-weight:800;color:var(--primary);font-family:'DM Serif Display',serif}
+.stat-label{font-size:.8rem;color:var(--muted);font-weight:600;margin-top:4px}
+
+/* SCHEDULE */
+.schedule-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);animation:fadeIn .3s ease}
+.schedule-item:last-child{border-bottom:none}
+.schedule-item input[type=checkbox]{width:20px;height:20px;accent-color:var(--primary);cursor:pointer}
+.schedule-item .task-name{flex:1;font-weight:500}
+.schedule-item .task-name.done{text-decoration:line-through;opacity:.5}
+.schedule-item .del-btn{background:none;border:none;color:#ef4444;font-size:1rem;opacity:.6;transition:opacity .2s}
+.schedule-item .del-btn:hover{opacity:1}
+
+/* TABS */
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;border-bottom:2px solid var(--border);padding-bottom:12px}
+.tab{padding:8px 18px;border-radius:999px;font-weight:600;font-size:.85rem;background:none;color:var(--muted);transition:all .2s;border:2px solid transparent}
+.tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.tab:hover:not(.active){background:var(--surface-2)}
+
+/* ABC LOGGER */
+.abc-form{display:grid;gap:14px}
+.abc-field{display:grid;gap:6px}
+.abc-field label{font-weight:600;font-size:.85rem;color:var(--muted)}
+.abc-field textarea,.abc-field input,.abc-field select{padding:12px 14px;border:2px solid var(--border);border-radius:12px;background:var(--bg);color:var(--text);resize:vertical;width:100%}
+.abc-field textarea:focus,.abc-field input:focus,.abc-field select:focus{border-color:var(--primary)}
+.log-entry{background:var(--surface-2);border-radius:var(--r);padding:16px;margin-bottom:12px;border-left:4px solid var(--adhd)}
+.log-entry .log-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.log-entry .log-date{font-size:.8rem;color:var(--muted)}
+.intensity-bar{height:6px;background:var(--border);border-radius:3px;margin-top:8px}
+.intensity-fill{height:100%;background:linear-gradient(90deg,#22c55e,#ef4444);border-radius:3px}
+
+/* TOKENS */
+.token-display{text-align:center;padding:24px;background:var(--surface-2);border-radius:var(--r-lg);margin-bottom:16px}
+.token-emojis{font-size:2.5rem;margin-bottom:8px;min-height:3.5rem}
+.token-count{font-size:1.8rem;font-weight:800;color:var(--primary)}
+.token-progress{height:12px;background:var(--border);border-radius:6px;margin:12px 0;overflow:hidden}
+.token-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--adhd));border-radius:6px;transition:width .4s ease}
+
+/* AAC BOARD */
+.aac-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.aac-btn{padding:20px 12px;border-radius:var(--r);font-size:1.6rem;background:var(--surface-2);border:2px solid var(--border);transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:6px}
+.aac-btn span{font-size:.8rem;font-weight:700;color:var(--text)}
+.aac-btn:hover{transform:scale(1.05);border-color:var(--primary)}
+.aac-btn:active{transform:scale(.96)}
+
+/* MILESTONES */
+.milestone-item{display:flex;align-items:center;gap:12px;padding:12px;background:var(--surface-2);border-radius:var(--r);margin-bottom:10px}
+.milestone-cb{width:22px;height:22px;accent-color:var(--autism);cursor:pointer}
+.milestone-achieved{opacity:.5}
+
+/* CHAT */
+.chat-window{height:360px;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;background:var(--bg);border-radius:var(--r) var(--r) 0 0;border:2px solid var(--border);border-bottom:none}
+.chat-bubble{max-width:80%;padding:12px 18px;border-radius:18px;font-size:.9rem;line-height:1.5;animation:fadeIn .3s ease}
+.chat-bubble.user{align-self:flex-end;background:var(--primary);color:#fff;border-bottom-right-radius:4px}
+.chat-bubble.bot{align-self:flex-start;background:var(--surface-2);color:var(--text);border-bottom-left-radius:4px}
+.chat-input-row{display:flex;gap:10px;padding:14px;background:var(--surface);border:2px solid var(--border);border-top:none;border-radius:0 0 var(--r) var(--r)}
+.chat-input-row input{flex:1;padding:12px 16px;border:2px solid var(--border);border-radius:999px;background:var(--bg);color:var(--text)}
+
+/* TIMER */
+.timer-display{font-size:4rem;font-weight:800;text-align:center;color:var(--primary);font-variant-numeric:tabular-nums;margin:16px 0}
+.timer-btns{display:flex;gap:10px;justify-content:center}
+.timer-btn{padding:10px 24px;border-radius:999px;font-weight:700;font-size:.9rem}
+.timer-ring{width:160px;height:160px;margin:0 auto 8px}
+
+/* PRICING */
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;max-width:960px;margin:0 auto}
+.price-card{background:var(--surface);border-radius:var(--r-lg);padding:36px 28px;box-shadow:var(--shadow);text-align:center;border:2px solid var(--border);transition:all .25s;position:relative}
+.price-card.featured{border-color:var(--primary);transform:translateY(-8px);box-shadow:var(--shadow-lg)}
+.price-card .badge-feat{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:var(--primary);color:#fff;padding:4px 18px;border-radius:999px;font-size:.8rem;font-weight:700;white-space:nowrap}
+.price-amount{font-size:3rem;font-weight:800;color:var(--primary);font-family:'DM Serif Display',serif}
+.price-features{list-style:none;text-align:left;margin:20px 0;display:grid;gap:10px}
+.price-features li{display:flex;align-items:flex-start;gap:8px;font-size:.9rem}
+.price-features li::before{content:"✓";color:var(--primary);font-weight:800;flex-shrink:0}
+
+/* VIDEOS */
+.video-card{background:var(--surface);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow)}
+.video-card iframe{width:100%;height:200px}
+.video-card-body{padding:16px}
+.video-card-body p{font-size:.85rem;color:var(--muted);margin-top:6px}
+
+/* SENSORY TOOLKIT */
+.sensory-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.sensory-btn{padding:18px;border-radius:var(--r);font-weight:700;font-size:.95rem;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.sensory-btn:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.1)}
+
+/* SOCIAL STORY */
+.story-output{background:var(--surface-2);border-radius:var(--r);padding:20px;margin-top:16px;line-height:1.8;border-left:4px solid var(--autism)}
+
+/* TOAST */
+.toast{position:fixed;bottom:28px;right:28px;background:#10b981;color:#fff;padding:14px 24px;border-radius:999px;z-index:9999;font-weight:600;box-shadow:0 8px 24px rgba(16,185,129,.4);animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* FOOTER */
+footer{background:var(--surface-2);padding:40px 24px;text-align:center;color:var(--muted);font-size:.85rem;margin-top:80px}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .hero-grid,.grid-2,.grid-3,.pricing-grid{grid-template-columns:1fr}
+  .stat-grid{grid-template-columns:1fr 1fr}
+  .form-row{grid-template-columns:1fr}
+  .nav-links{display:none}
+  .hamburger{display:block}
+  .price-card.featured{transform:none}
+  .grid-auto{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  .stat-grid{grid-template-columns:1fr 1fr}
+  .aac-grid{grid-template-columns:repeat(3,1fr)}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#" class="logo">
+      <i class="fa-solid fa-brain"></i> ParentWise
+      <div class="neuro-tags">
+        <span class="tag tag-autism">Autism</span>
+        <span class="tag tag-adhd">ADHD</span>
+        <span class="tag tag-audh">AuDHD</span>
+      </div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#dashboard">Dashboard</a></li>
+      <li><a href="#neuro-hub">Neuro Hub</a></li>
+      <li><a href="#behavior">ABC Logger</a></li>
+      <li><a href="#trackers">Trackers</a></li>
+      <li><a href="#second-brain">Brain</a></li>
+      <li><a href="#milestones">Milestones</a></li>
+      <li><a href="#ai">AI Chat</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+    </ul>
+    <div style="display:flex;align-items:center;gap:10px">
+      <button class="dark-toggle" onclick="toggleDark()" title="Dark mode"><i class="fa-solid fa-moon"></i></button>
+      <a href="#pricing" class="btn-nav">Get Access</a>
+      <button class="hamburger" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></button>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid">
+    <div>
+      <div class="badge"><i class="fa-solid fa-heart-pulse"></i> World-Class Neurodiversity Support</div>
+      <h1>Parenting Tools for <span style="color:var(--autism)">Autistic</span>, <span style="color:var(--adhd)">ADHD</span> &amp; All Neurodivergent Kids</h1>
+      <p class="hero-desc">Built from r/AutismParenting community insights, expert research, and Choiceworks/Goally best practices. Visual schedules, ABC behavior logs, sensory trackers, token economy, AAC boards, meltdown support, milestone tracking, and AI guidance — all in one place. Data saves across ALL your devices.</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <a href="#neuro-hub" class="btn-primary"><i class="fa-solid fa-rocket"></i> Explore Tools</a>
+        <a href="#pricing" class="btn-secondary">See Plans</a>
+      </div>
+    </div>
+    <div class="profile-card">
+      <h3 style="margin-bottom:20px">Build Your Child's Neuro Profile</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Child's Name</label>
+          <input id="childName" type="text" placeholder="e.g. Alex">
+        </div>
+        <div class="form-group">
+          <label>Age Stage</label>
+          <select id="childAge">
+            <option value="0-3">0–3 years (Early Intervention)</option>
+            <option value="3-6">3–6 years (Preschool)</option>
+            <option value="6-12" selected>6–12 years (School-Age)</option>
+            <option value="13+">13+ (Teen / Transition)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:16px">
+        <label>Neurotype</label>
+        <select id="neuroType">
+          <option value="autism">Autistic</option>
+          <option value="adhd">ADHD</option>
+          <option value="audh">AuDHD (Autism + ADHD)</option>
+          <option value="sensory">Sensory Processing Differences</option>
+          <option value="other">Other Neurodivergent</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:20px">
+        <label>Primary Challenge Right Now</label>
+        <select id="mainChallenge">
+          <option value="meltdowns">Meltdowns / Dysregulation</option>
+          <option value="communication">Communication / AAC</option>
+          <option value="routines">Transitions &amp; Routines</option>
+          <option value="focus">Focus &amp; Attention</option>
+          <option value="sensory">Sensory Overwhelm</option>
+          <option value="sleep">Sleep Issues</option>
+          <option value="social">Social Skills</option>
+        </select>
+      </div>
+      <button class="btn-primary full" onclick="initProfile()">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> Activate My Neuro Hub →
+      </button>
+      <div id="profileStatus" style="margin-top:12px;text-align:center;font-size:.85rem;color:var(--muted)">Data syncs to cloud automatically</div>
+    </div>
+  </div>
+</section>
+
+<!-- DASHBOARD -->
+<section id="dashboard" class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag"><i class="fa-solid fa-gauge-high"></i> Live Dashboard</div>
+      <h2 id="dashTitle">Your Parenting Command Center</h2>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-num" id="statStreak">0</div>
+        <div class="stat-label">Day Streak</div>
+      </div>
+      <div class="stat-card" style="border-color:var(--autism)">
+        <div class="stat-num" id="statTokens" style="color:var(--autism)">0</div>
+        <div class="stat-label">Tokens Earned Today</div>
+      </div>
+      <div class="stat-card" style="border-color:var(--adhd)">
+        <div class="stat-num" id="statSchedule" style="color:var(--adhd)">0</div>
+        <div class="stat-label">Schedule Items Done</div>
+      </div>
+      <div class="stat-card" style="border-color:var(--audhdgr)">
+        <div class="stat-num" id="statLogs" style="color:var(--audhdgr)">0</div>
+        <div class="stat-label">Behavior Logs</div>
+      </div>
+    </div>
+    <!-- Focus Timer -->
+    <div class="card" style="max-width:480px;margin:0 auto;text-align:center">
+      <h3 style="justify-content:center"><i class="fa-solid fa-stopwatch"></i> Focus / Break Timer</h3>
+      <div style="display:flex;justify-content:center;gap:16px;margin-bottom:12px">
+        <button class="tab active" onclick="setTimerMode('focus',this)">Focus 25</button>
+        <button class="tab" onclick="setTimerMode('break',this)">Break 5</button>
+        <button class="tab" onclick="setTimerMode('long',this)">Long 15</button>
+      </div>
+      <div class="timer-display" id="timerDisplay">25:00</div>
+      <div class="timer-btns">
+        <button class="btn-primary timer-btn" onclick="startTimer()"><i class="fa-solid fa-play"></i> Start</button>
+        <button class="btn-secondary timer-btn" onclick="resetTimer()"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NEURO HUB -->
+<section id="neuro-hub" class="section" style="background:var(--bg-alt)">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag" style="background:#F3E8FF;color:var(--autism)"><i class="fa-solid fa-puzzle-piece"></i> NEURO HUB</div>
+      <h2>Visual Schedule · Sensory Toolkit · Token Economy · AAC Board</h2>
+      <p>Evidence-based tools from the autism and ADHD parenting community</p>
+    </div>
+    <div class="grid-2" style="margin-bottom:28px">
+      <!-- VISUAL SCHEDULE -->
+      <div class="card">
+        <h3><i class="fa-solid fa-list-check" style="color:var(--primary)"></i> Visual Schedule Builder <small style="font-size:.75rem;color:var(--muted);font-family:'Plus Jakarta Sans',sans-serif">(Choiceworks Inspired)</small></h3>
+        <div id="scheduleList" style="min-height:180px;max-height:300px;overflow-y:auto"></div>
+        <div style="display:flex;gap:10px;margin-top:16px">
+          <input id="scheduleInput" type="text" placeholder="Add activity… (e.g. 🪥 Brush teeth 5 min)" style="flex:1;padding:12px;border:2px solid var(--border);border-radius:12px;background:var(--bg);color:var(--text)">
+          <button class="btn-primary" onclick="addScheduleItem()" style="padding:12px 20px"><i class="fa-solid fa-plus"></i></button>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn-secondary" style="font-size:.8rem;padding:8px 14px" onclick="clearDoneItems()">Clear Completed</button>
+          <button class="btn-secondary" style="font-size:.8rem;padding:8px 14px" onclick="printSchedule()"><i class="fa-solid fa-print"></i> Print</button>
+        </div>
+      </div>
+
+      <!-- TOKEN ECONOMY -->
+      <div class="card">
+        <h3><i class="fa-solid fa-trophy" style="color:#F59E0B"></i> Token Economy &amp; Reinforcement Board</h3>
+        <div class="token-display">
+          <div class="token-emojis" id="tokenEmojis">⬜⬜⬜⬜⬜</div>
+          <div class="token-count" id="tokenCount">0 / 5 tokens</div>
+          <div class="token-progress"><div class="token-fill" id="tokenFill" style="width:0%"></div></div>
+          <div id="tokenGoalLabel" style="font-size:.8rem;color:var(--muted);margin-top:6px">Goal: Earn 5 tokens</div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Behavior to reinforce</label>
+            <input id="tokenBehavior" type="text" placeholder="e.g. Stayed calm in store" style="padding:10px;border:2px solid var(--border);border-radius:10px;width:100%;background:var(--bg);color:var(--text)">
+          </div>
+          <div class="form-group">
+            <label>Reward</label>
+            <input id="tokenReward" type="text" placeholder="e.g. 20 min screen time" style="padding:10px;border:2px solid var(--border);border-radius:10px;width:100%;background:var(--bg);color:var(--text)">
+          </div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn-primary" onclick="earnToken()" style="flex:1"><i class="fa-solid fa-star"></i> Earn Token</button>
+          <button class="btn-secondary" onclick="resetTokens()" style="padding:12px 16px"><i class="fa-solid fa-rotate-left"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- SENSORY TOOLKIT -->
+      <div class="card">
+        <h3><i class="fa-solid fa-hand-sparkles" style="color:var(--adhd)"></i> Sensory &amp; Regulation Toolkit</h3>
+        <div class="sensory-grid" style="margin-bottom:16px">
+          <button class="sensory-btn" style="background:#F3E8FF" onclick="logSensory('🏋️ Heavy Work','Heavy work activity logged')">🏋️ Heavy Work</button>
+          <button class="sensory-btn" style="background:#E0F2FE" onclick="logSensory('🌊 Deep Pressure','Deep pressure logged')">🌊 Deep Pressure</button>
+          <button class="sensory-btn" style="background:#FEF9C3" onclick="logSensory('🎵 Calming Music','Calming music session logged')">🎵 Calming Music</button>
+          <button class="sensory-btn" style="background:#DCFCE7" onclick="logSensory('🌿 Nature Break','Nature/outdoor break logged')">🌿 Nature Break</button>
+          <button class="sensory-btn" style="background:#FFE4E6" onclick="startMeltdownMode()" style="grid-column:span 2;background:#FEE2E2">🆘 Meltdown Support Mode</button>
+          <button class="sensory-btn" style="background:#FEF3E2" onclick="startBreathing()">🫁 Breathing Exercise</button>
+        </div>
+        <div id="sensoryLog" style="font-size:.85rem;color:var(--muted);max-height:100px;overflow-y:auto"></div>
+      </div>
+
+      <!-- AAC BOARD -->
+      <div class="card">
+        <h3><i class="fa-solid fa-comment-dots" style="color:var(--autism)"></i> Quick AAC Communication Board</h3>
+        <div class="aac-grid" style="margin-bottom:16px">
+          <button class="aac-btn" onclick="aacSpeak('I need help')">🙋<span>HELP</span></button>
+          <button class="aac-btn" onclick="aacSpeak('I want more')">➕<span>MORE</span></button>
+          <button class="aac-btn" onclick="aacSpeak('Stop please')">✋<span>STOP</span></button>
+          <button class="aac-btn" onclick="aacSpeak('Yes I want this')">✅<span>YES</span></button>
+          <button class="aac-btn" onclick="aacSpeak('No thank you')">❌<span>NO</span></button>
+          <button class="aac-btn" onclick="aacSpeak('I need a break')">⏸️<span>BREAK</span></button>
+          <button class="aac-btn" onclick="aacSpeak('I am hungry')">🍎<span>HUNGRY</span></button>
+          <button class="aac-btn" onclick="aacSpeak('I am tired')">😴<span>TIRED</span></button>
+          <button class="aac-btn" onclick="aacSpeak('I feel happy')">😊<span>HAPPY</span></button>
+        </div>
+        <div id="aacOutput" style="background:var(--surface-2);border-radius:var(--r);padding:12px;text-align:center;font-weight:700;min-height:44px;font-size:1.1rem"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABC BEHAVIOR LOGGER -->
+<section id="behavior" class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag" style="background:#FEE2E2;color:#ef4444"><i class="fa-solid fa-clipboard-list"></i> ABC BEHAVIOR LOG</div>
+      <h2>Antecedent · Behavior · Consequence Logger</h2>
+      <p>Scientifically proven method to identify meltdown triggers and patterns. Data is saved to your cloud account.</p>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3><i class="fa-solid fa-plus" style="color:var(--adhd)"></i> Log New Behavior Event</h3>
+        <div class="abc-form">
+          <div class="abc-field">
+            <label>📍 A — Antecedent (What happened BEFORE?)</label>
+            <textarea id="abcA" rows="2" placeholder="e.g. Loud noise in grocery store, transition to leaving park, asked to stop screen time"></textarea>
+          </div>
+          <div class="abc-field">
+            <label>🌊 B — Behavior (What did the child do?)</label>
+            <textarea id="abcB" rows="2" placeholder="e.g. Covered ears and dropped to floor, cried and hit self, ran away"></textarea>
+          </div>
+          <div class="abc-field">
+            <label>✅ C — Consequence (What happened AFTER?)</label>
+            <textarea id="abcC" rows="2" placeholder="e.g. Left store immediately, given iPad, ignored behavior, used regulation strategy"></textarea>
+          </div>
+          <div class="form-row">
+            <div class="abc-field">
+              <label>Intensity (1–5)</label>
+              <select id="abcIntensity">
+                <option value="1">1 - Very Mild</option>
+                <option value="2">2 - Mild</option>
+                <option value="3" selected>3 - Moderate</option>
+                <option value="4">4 - Severe</option>
+                <option value="5">5 - Crisis</option>
+              </select>
+            </div>
+            <div class="abc-field">
+              <label>Duration (minutes)</label>
+              <input id="abcDuration" type="number" placeholder="e.g. 15" min="1">
+            </div>
+          </div>
+          <div class="abc-field">
+            <label>Location</label>
+            <input id="abcLocation" type="text" placeholder="e.g. School, Home, Grocery store, Car">
+          </div>
+          <button class="btn-primary full" onclick="saveABCLog()"><i class="fa-solid fa-save"></i> Save Behavior Log</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3><i class="fa-solid fa-chart-line" style="color:var(--adhd)"></i> Recent Behavior Logs</h3>
+        <div id="abcLogList" style="max-height:460px;overflow-y:auto">
+          <p style="color:var(--muted);text-align:center;padding:40px 0">No logs yet. Start tracking to see patterns.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRACKERS -->
+<section id="trackers" class="section" style="background:var(--bg-alt)">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag"><i class="fa-solid fa-chart-simple"></i> DAILY TRACKERS</div>
+      <h2>Sleep · Sensory · Focus · Feeding · Regulation</h2>
+      <p>Track daily data and spot patterns over time</p>
+    </div>
+    <div class="card">
+      <div class="tabs" id="trackerTabs"></div>
+      <div id="trackerForm"></div>
+      <canvas id="trackerChart" style="max-height:280px;margin-top:24px"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- SECOND BRAIN -->
+<section id="second-brain" class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag"><i class="fa-solid fa-lightbulb"></i> SECOND BRAIN</div>
+      <h2>Brain Dump · Quick Tasks · Parenting Journal</h2>
+    </div>
+    <div class="card">
+      <div class="tabs" id="brainTabs"></div>
+      <div id="brainContent"></div>
+    </div>
+  </div>
+</section>
+
+<!-- MILESTONES -->
+<section id="milestones" class="section" style="background:var(--bg-alt)">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag" style="background:#F3E8FF;color:var(--autism)"><i class="fa-solid fa-star"></i> MILESTONE TRACKER</div>
+      <h2>Developmental Milestone Tracking</h2>
+      <p>Celebrate every achievement — big and small — on your child's unique timeline</p>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3><i class="fa-solid fa-plus" style="color:var(--autism)"></i> Add Milestone</h3>
+        <div style="display:grid;gap:14px">
+          <div class="form-group">
+            <label>Milestone</label>
+            <input id="milestoneInput" type="text" placeholder="e.g. Said 'I want juice' spontaneously">
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <select id="milestoneCategory">
+              <option value="communication">🗣️ Communication</option>
+              <option value="social">👥 Social Skills</option>
+              <option value="motor">🏃 Motor Skills</option>
+              <option value="adaptive">🧩 Adaptive Behavior</option>
+              <option value="academic">📚 Academic</option>
+              <option value="emotional">💜 Emotional Regulation</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Notes</label>
+            <textarea id="milestoneNotes" rows="2" style="padding:12px;border:2px solid var(--border);border-radius:12px;width:100%;background:var(--bg);color:var(--text);resize:vertical" placeholder="Context or how it happened"></textarea>
+          </div>
+          <button class="btn-primary full" onclick="addMilestone()"><i class="fa-solid fa-star"></i> Celebrate This Milestone!</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3><i class="fa-solid fa-list" style="color:var(--autism)"></i> Milestone Journey</h3>
+        <div id="milestoneList" style="max-height:400px;overflow-y:auto">
+          <p style="color:var(--muted);text-align:center;padding:40px 0">Every milestone — no matter how small — is worth celebrating! 🎉</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SOCIAL STORY GENERATOR -->
+<section id="social-stories" class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag" style="background:#F3E8FF;color:var(--autism)"><i class="fa-solid fa-book-open"></i> SOCIAL STORIES</div>
+      <h2>Custom Social Story Generator</h2>
+      <p>Personalized visual stories to prepare your child for transitions and new situations</p>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Generate a Story</h3>
+        <div style="display:grid;gap:14px">
+          <div class="form-group">
+            <label>Situation / Event</label>
+            <select id="storyTopic">
+              <option value="dentist">Going to the Dentist</option>
+              <option value="haircut">Getting a Haircut</option>
+              <option value="grocery">Grocery Store Visit</option>
+              <option value="school">Starting New School</option>
+              <option value="doctor">Doctor's Appointment</option>
+              <option value="birthday">Birthday Party</option>
+              <option value="transition">Ending Screen Time</option>
+              <option value="restaurant">Eating at a Restaurant</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Child's Name</label>
+            <input id="storyChildName" type="text" placeholder="Enter name">
+          </div>
+          <button class="btn-primary full" onclick="generateStory()"><i class="fa-solid fa-book"></i> Generate Story</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3><i class="fa-solid fa-scroll"></i> Your Story</h3>
+        <div id="storyOutput" style="max-height:320px;overflow-y:auto;color:var(--muted);text-align:center;padding:40px 0">Your personalized story will appear here.</div>
+        <div style="display:flex;gap:10px;margin-top:16px">
+          <button class="btn-secondary" onclick="printStory()" style="flex:1"><i class="fa-solid fa-print"></i> Print Story</button>
+          <button class="btn-secondary" onclick="readStoryAloud()" style="flex:1"><i class="fa-solid fa-volume-high"></i> Read Aloud</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VIDEOS -->
+<section id="videos" class="section" style="background:var(--bg-alt)">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag"><i class="fa-brands fa-youtube" style="color:#ef4444"></i> EXPERT RESOURCES</div>
+      <h2>Autism &amp; ADHD Parenting Video Library</h2>
+    </div>
+    <div class="grid-auto" id="videoGrid"></div>
+  </div>
+</section>
+
+<!-- AI CHAT -->
+<section id="ai" class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag"><i class="fa-solid fa-robot"></i> AI ASSISTANT</div>
+      <h2>Neurodiversity AI Chat</h2>
+      <p>Get evidence-based, compassionate guidance for autism and ADHD parenting challenges</p>
+    </div>
+    <div style="max-width:760px;margin:0 auto">
+      <div class="chat-window" id="chatWindow"></div>
+      <div class="chat-input-row">
+        <input id="chatInput" type="text" placeholder="Ask anything: meltdown scripts, visual schedule tips, sensory strategies…" onkeydown="if(event.key==='Enter')sendChat()">
+        <button class="btn-primary" onclick="sendChat()"><i class="fa-solid fa-paper-plane"></i> Ask</button>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+        <button class="tab" onclick="quickChat('Meltdown support script for grocery store')">🆘 Meltdown Script</button>
+        <button class="tab" onclick="quickChat('Visual schedule tips for mornings')">📅 Morning Routine</button>
+        <button class="tab" onclick="quickChat('Sensory diet ideas for a 7 year old')">🎯 Sensory Diet</button>
+        <button class="tab" onclick="quickChat('How to handle screen time transitions')">📱 Screen Time</button>
+        <button class="tab" onclick="quickChat('Sleep strategies for autistic children')">😴 Sleep Tips</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing" class="section" style="background:var(--bg-alt)">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag"><i class="fa-solid fa-tag"></i> LIFETIME ACCESS</div>
+      <h2>One Payment. Tools for Life.</h2>
+      <p>No subscriptions. No monthly fees. One-time access to everything your family needs.</p>
+    </div>
+    <div class="pricing-grid">
+      <div class="price-card">
+        <div class="tag tag-adhd" style="display:inline-block;margin-bottom:12px">Starter</div>
+        <div class="price-amount">$29</div>
+        <p style="color:var(--muted);margin:8px 0 20px;font-size:.9rem">One-time payment</p>
+        <ul class="price-features">
+          <li>Visual Schedule Builder</li>
+          <li>Token Economy Board</li>
+          <li>Basic AAC Board</li>
+          <li>Sensory Toolkit</li>
+          <li>Focus Timer</li>
+          <li>7-day data history</li>
+        </ul>
+        <button class="btn-primary full" onclick="selectPlan('Starter',$29)">Get Starter</button>
+      </div>
+      <div class="price-card featured">
+        <div class="badge-feat">⭐ Most Popular</div>
+        <div class="tag tag-autism" style="display:inline-block;margin-bottom:12px">Complete</div>
+        <div class="price-amount">$97</div>
+        <p style="color:var(--muted);margin:8px 0 20px;font-size:.9rem">One-time · Lifetime access</p>
+        <ul class="price-features">
+          <li>Everything in Starter</li>
+          <li>ABC Behavior Logger</li>
+          <li>All 5 Daily Trackers</li>
+          <li>Milestone Tracker</li>
+          <li>Social Story Generator</li>
+          <li>Second Brain / Journal</li>
+          <li>AI Neurodiversity Chat</li>
+          <li>Cloud sync (all devices)</li>
+          <li>Unlimited data history</li>
+        </ul>
+        <button class="btn-primary full" onclick="selectPlan('Complete',$97)">Get Complete</button>
+      </div>
+      <div class="price-card">
+        <div class="tag tag-audh" style="display:inline-block;margin-bottom:12px">Premium</div>
+        <div class="price-amount">$197</div>
+        <p style="color:var(--muted);margin:8px 0 20px;font-size:.9rem">One-time · For families &amp; pros</p>
+        <ul class="price-features">
+          <li>Everything in Complete</li>
+          <li>Unlimited child profiles</li>
+          <li>Pattern analysis reports</li>
+          <li>Printable visual aids</li>
+          <li>Share with therapists &amp; teachers</li>
+          <li>Priority support</li>
+          <li>All future updates</li>
+          <li>PDF milestone reports</li>
+        </ul>
+        <button class="btn-primary full" onclick="selectPlan('Premium',$197)">Get Premium</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p style="font-size:1.1rem;font-weight:700;color:var(--primary);margin-bottom:8px">ParentWise — Neurodiversity Parenting Hub</p>
+    <p>Built with love for parents of autistic, ADHD, and all neurodivergent children. 💜</p>
+    <p style="margin-top:8px">Data secured by Supabase · Runs on any device · No subscriptions</p>
+  </div>
+</footer>
+
+<script>
+// ─── SUPABASE ───
+const SUPA_URL = 'https://lltlbjmurwhnotjegjrz.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxsdGxiam11cndobm90amVnanJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4NTA0MTEsImV4cCI6MjA5MDQyNjQxMX0.0GTC6Wf6hdyrWt68NuAJ4EclKZsfji1Fm0getKPo7As';
+const { createClient } = supabase;
+const db = createClient(SUPA_URL, SUPA_KEY);
+
+// ─── SESSION ───
+let SID = localStorage.getItem('pw_session');
+if (!SID) {
+  SID = 'pw_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+  localStorage.setItem('pw_session', SID);
+}
+let profile = JSON.parse(localStorage.getItem('pw_profile')) || {};
+let timerInterval = null;
+let timerSeconds = 1500;
+let timerMode = 'focus';
+let tokens = parseInt(localStorage.getItem('pw_tokens')) || 0;
+let streak = parseInt(localStorage.getItem('pw_streak')) || 0;
+let chartInstance = null;
+let chatHistory = [];
+
+// ─── DARK MODE ───
+if (localStorage.getItem('pw_dark') === '1') document.documentElement.classList.add('dark');
+function toggleDark() {
+  document.documentElement.classList.toggle('dark');
+  localStorage.setItem('pw_dark', document.documentElement.classList.contains('dark') ? '1' : '0');
+}
+
+// ─── MOBILE MENU ───
+function toggleMenu() {
+  const nl = document.querySelector('.nav-links');
+  nl.style.display = nl.style.display === 'flex' ? 'none' : 'flex';
+  nl.style.flexDirection = 'column';
+  nl.style.position = 'absolute';
+  nl.style.top = '68px';
+  nl.style.left = '0';
+  nl.style.right = '0';
+  nl.style.background = 'var(--surface)';
+  nl.style.padding = '20px';
+  nl.style.gap = '16px';
+  nl.style.borderBottom = '1px solid var(--border)';
+  nl.style.zIndex = '100';
+}
+
+// ─── PROFILE ───
+async function initProfile() {
+  profile = {
+    childName: document.getElementById('childName').value || 'Your Child',
+    age: document.getElementById('childAge').value,
+    neuroType: document.getElementById('neuroType').value,
+    challenge: document.getElementById('mainChallenge').value
+  };
+  localStorage.setItem('pw_profile', JSON.stringify(profile));
+  document.getElementById('profileStatus').innerHTML = '<span style="color:#10b981">✓ Profile saved! Syncing to cloud…</span>';
+  try {
+    const { error } = await db.from('pw_profiles').upsert({
+      session_id: SID, child_name: profile.childName, age_stage: profile.age, neuro_type: profile.neuroType
+    }, {onConflict:'session_id'});
+    if (!error) document.getElementById('profileStatus').innerHTML = '<span style="color:#10b981">✓ Profile synced to cloud ☁️</span>';
+  } catch(e) {}
+  document.getElementById('dashTitle').textContent = `${profile.childName}'s Parenting Hub`;
+  document.getElementById('storyChildName').value = profile.childName;
+  showToast(`✨ ${profile.childName}'s Neuro Hub activated!`);
+  streak = parseInt(localStorage.getItem('pw_streak')) || 1;
+  document.getElementById('statStreak').textContent = streak;
+}
+
+// ─── VISUAL SCHEDULE ───
+async function addScheduleItem() {
+  const input = document.getElementById('scheduleInput');
+  if (!input.value.trim()) return;
+  const item = {task_name: input.value.trim(), session_id: SID, done: false};
+  const schedule = JSON.parse(localStorage.getItem('pw_schedule') || '[]');
+  schedule.push(item);
+  localStorage.setItem('pw_schedule', JSON.stringify(schedule));
+  try { await db.from('pw_schedules').insert(item); } catch(e) {}
+  renderSchedule();
+  input.value = '';
+  showToast('✅ Added to schedule!');
+}
+
+function renderSchedule() {
+  const schedule = JSON.parse(localStorage.getItem('pw_schedule') || '[]');
+  const list = document.getElementById('scheduleList');
+  if (!schedule.length) { list.innerHTML = '<p style="color:var(--muted);text-align:center;padding:30px 0">No items yet. Add your first activity!</p>'; return; }
+  list.innerHTML = schedule.map((item, i) => `
+    <div class="schedule-item">
+      <input type="checkbox" ${item.done?'checked':''} onchange="toggleSchedule(${i})">
+      <span class="task-name ${item.done?'done':''}">${item.task_name}</span>
+      <button class="del-btn" onclick="deleteSchedule(${i})"><i class="fa-solid fa-trash-can"></i></button>
+    </div>`).join('');
+  const done = schedule.filter(i=>i.done).length;
+  document.getElementById('statSchedule').textContent = `${done}/${schedule.length}`;
+}
+
+function toggleSchedule(i) {
+  const s = JSON.parse(localStorage.getItem('pw_schedule') || '[]');
+  s[i].done = !s[i].done;
+  localStorage.setItem('pw_schedule', JSON.stringify(s));
+  renderSchedule();
+}
+
+function deleteSchedule(i) {
+  const s = JSON.parse(localStorage.getItem('pw_schedule') || '[]');
+  s.splice(i,1);
+  localStorage.setItem('pw_schedule', JSON.stringify(s));
+  renderSchedule();
+}
+
+function clearDoneItems() {
+  const s = JSON.parse(localStorage.getItem('pw_schedule') || '[]').filter(i=>!i.done);
+  localStorage.setItem('pw_schedule', JSON.stringify(s));
+  renderSchedule();
+}
+
+function printSchedule() {
+  const s = JSON.parse(localStorage.getItem('pw_schedule') || '[]');
+  const w = window.open('','_blank');
+  w.document.write(`<html><head><title>Visual Schedule</title><style>body{font-family:sans-serif;padding:40px}h1{color:#D97706;margin-bottom:20px}li{font-size:1.2rem;padding:10px;margin:8px 0;background:#FEF3E2;border-radius:8px;list-style:none}</style></head><body><h1>📅 ${profile.childName||'Child'}'s Visual Schedule</h1><ul>${s.map(i=>`<li>${i.done?'✅':'⬜'} ${i.task_name}</li>`).join('')}</ul></body></html>`);
+  w.print();
+}
+
+// ─── TOKEN ECONOMY ───
+async function earnToken() {
+  tokens++;
+  localStorage.setItem('pw_tokens', tokens);
+  const goal = 5;
+  const filled = tokens % goal;
+  const pct = (filled / goal) * 100;
+  const stars = '⭐'.repeat(filled || (tokens>0 && tokens%goal===0 ? goal : 0)) + '⬜'.repeat(goal - (filled || (tokens>0 && tokens%goal===0 ? 0 : 0)));
+  document.getElementById('tokenEmojis').textContent = '⭐'.repeat(Math.min(tokens%goal||((tokens%goal===0&&tokens>0)?goal:0),goal)) + '⬜'.repeat(Math.max(0,goal-(tokens%goal||((tokens%goal===0&&tokens>0)?goal:0))));
+  document.getElementById('tokenCount').textContent = `${tokens} tokens`;
+  document.getElementById('tokenFill').style.width = `${pct===0&&tokens>0?100:pct}%`;
+  document.getElementById('statTokens').textContent = tokens;
+  if (tokens % goal === 0 && tokens > 0) {
+    showToast('🎉 REWARD EARNED! 🎉 ' + (document.getElementById('tokenReward').value || 'You earned your reward!'));
+    setTimeout(()=>{document.getElementById('tokenEmojis').textContent='⬜⬜⬜⬜⬜';document.getElementById('tokenFill').style.width='0%';},2000);
+  } else {
+    showToast('⭐ Token earned!');
+  }
+  try { await db.from('pw_tokens').upsert({session_id:SID,tokens_earned:tokens,behavior_name:document.getElementById('tokenBehavior').value,reward:document.getElementById('tokenReward').value},{onConflict:'session_id'}); } catch(e) {}
+}
+
+function resetTokens() { tokens=0; localStorage.setItem('pw_tokens',0); document.getElementById('tokenEmojis').textContent='⬜⬜⬜⬜⬜'; document.getElementById('tokenCount').textContent='0 / 5 tokens'; document.getElementById('tokenFill').style.width='0%'; document.getElementById('statTokens').textContent=0; }
+
+// ─── SENSORY ───
+function logSensory(type, msg) {
+  const log = document.getElementById('sensoryLog');
+  const time = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  log.innerHTML = `<div style="padding:6px 0;border-bottom:1px solid var(--border)"><span style="color:var(--primary);font-weight:600">${time}</span> — ${type}</div>` + log.innerHTML;
+  showToast('✓ ' + (msg||type+' logged'));
+  db.from('pw_tracker_entries').insert({session_id:SID,tracker_type:'sensory',label:type,value:1}).catch(()=>{});
+}
+
+function startMeltdownMode() {
+  showToast('🧘 Meltdown Mode: Stay calm · Reduce demands · Validate feelings · Offer sensory support',6000);
+  document.getElementById('sensoryLog').innerHTML = `<div style="padding:8px;background:#FEE2E2;border-radius:8px;margin-bottom:8px"><strong>🆘 Meltdown support activated ${new Date().toLocaleTimeString()}</strong><br><small>Remember: Safety first · No teaching during meltdown · Validate after calm</small></div>` + document.getElementById('sensoryLog').innerHTML;
+  db.from('pw_behavior_logs').insert({session_id:SID,behavior:'Meltdown — Support Mode Activated',intensity:4,location:'(recorded via support mode)'}).catch(()=>{});
+}
+
+function startBreathing() {
+  let count = 4;
+  showToast('🫁 Breathe IN for 4... (watch the count)');
+  const steps = ['🫁 Breathe IN... 4','Hold... 4','Breathe OUT... 4','Hold... 4'];
+  let s = 0;
+  const interval = setInterval(()=>{
+    if(s>=steps.length){clearInterval(interval);showToast('✨ Great job breathing!');return;}
+    showToast(steps[s++]);
+  },4000);
+}
+
+// ─── AAC ───
+function aacSpeak(phrase) {
+  document.getElementById('aacOutput').textContent = '🗣️ "' + phrase + '"';
+  if ('speechSynthesis' in window) {
+    const u = new SpeechSynthesisUtterance(phrase);
+    u.rate = 0.85;
+    window.speechSynthesis.speak(u);
+  }
+}
+
+// ─── ABC BEHAVIOR LOG ───
+async function saveABCLog() {
+  const log = {
+    session_id: SID,
+    antecedent: document.getElementById('abcA').value,
+    behavior: document.getElementById('abcB').value,
+    consequence: document.getElementById('abcC').value,
+    intensity: parseInt(document.getElementById('abcIntensity').value),
+    duration_mins: parseInt(document.getElementById('abcDuration').value)||null,
+    location: document.getElementById('abcLocation').value
+  };
+  if (!log.antecedent && !log.behavior) { showToast('Please fill in at least A and B fields','error'); return; }
+  const logs = JSON.parse(localStorage.getItem('pw_abc_logs') || '[]');
+  logs.unshift({...log, created_at: new Date().toISOString()});
+  localStorage.setItem('pw_abc_logs', JSON.stringify(logs.slice(0,100)));
+  try { await db.from('pw_behavior_logs').insert(log); } catch(e) {}
+  document.getElementById('abcA').value='';
+  document.getElementById('abcB').value='';
+  document.getElementById('abcC').value='';
+  document.getElementById('abcDuration').value='';
+  document.getElementById('abcLocation').value='';
+  document.getElementById('statLogs').textContent = logs.length;
+  renderABCLogs();
+  showToast('📋 Behavior log saved!');
+}
+
+function renderABCLogs() {
+  const logs = JSON.parse(localStorage.getItem('pw_abc_logs') || '[]');
+  const container = document.getElementById('abcLogList');
+  if (!logs.length) { container.innerHTML = '<p style="color:var(--muted);text-align:center;padding:40px 0">No logs yet.</p>'; return; }
+  container.innerHTML = logs.map(l => `
+    <div class="log-entry">
+      <div class="log-meta">
+        <span style="font-weight:700">🌊 Intensity ${l.intensity}/5${l.location?' · '+l.location:''}</span>
+        <span class="log-date">${new Date(l.created_at).toLocaleDateString()}</span>
+      </div>
+      ${l.antecedent?`<div><strong style="color:var(--muted)">A:</strong> ${l.antecedent}</div>`:''}
+      ${l.behavior?`<div><strong style="color:var(--adhd)">B:</strong> ${l.behavior}</div>`:''}
+      ${l.consequence?`<div><strong style="color:#10b981">C:</strong> ${l.consequence}</div>`:''}
+      ${l.duration_mins?`<div style="font-size:.8rem;color:var(--muted)">Duration: ${l.duration_mins} min</div>`:''}
+      <div class="intensity-bar"><div class="intensity-fill" style="width:${l.intensity*20}%"></div></div>
+    </div>`).join('');
+}
+
+// ─── TRACKERS ───
+const TRACKERS = [
+  {id:'sleep', label:'😴 Sleep', fields:[{name:'hours',label:'Hours slept',type:'number'},{name:'quality',label:'Quality (1-5)',type:'range',min:1,max:5}]},
+  {id:'sensory', label:'🎯 Sensory', fields:[{name:'level',label:'Sensory Level (1-5)',type:'range',min:1,max:5},{name:'notes',label:'Notes',type:'text'}]},
+  {id:'focus', label:'🧠 Focus', fields:[{name:'focus_mins',label:'Focused minutes',type:'number'},{name:'breaks',label:'Breaks needed',type:'number'}]},
+  {id:'feeding', label:'🍎 Feeding', fields:[{name:'meals',label:'Meals eaten',type:'number'},{name:'new_food',label:'New foods tried',type:'number'}]},
+  {id:'regulation', label:'💜 Regulation', fields:[{name:'score',label:'Regulation score (1-5)',type:'range',min:1,max:5},{name:'notes',label:'What helped?',type:'text'}]}
+];
+
+let activeTracker = 'sleep';
+function renderTrackerTabs() {
+  document.getElementById('trackerTabs').innerHTML = TRACKERS.map(t => `<button class="tab ${t.id===activeTracker?'active':''}" onclick="setTracker('${t.id}')">${t.label}</button>`).join('');
+  renderTrackerForm();
+}
+function setTracker(id) { activeTracker = id; renderTrackerTabs(); loadTrackerChart(); }
+function renderTrackerForm() {
+  const t = TRACKERS.find(x=>x.id===activeTracker);
+  document.getElementById('trackerForm').innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:16px">
+      ${t.fields.map(f=>`
+        <div class="form-group">
+          <label>${f.label}</label>
+          ${f.type==='range'?`<input type="range" id="tracker_${f.name}" min="${f.min||1}" max="${f.max||5}" value="${f.min||1}" oninput="this.nextElementSibling.textContent=this.value" style="width:100%;accent-color:var(--primary)"><span style="font-size:.9rem;font-weight:700;color:var(--primary)">${f.min||1}</span>`:
+          f.type==='text'?`<input type="text" id="tracker_${f.name}" placeholder="Optional notes" style="padding:10px;border:2px solid var(--border);border-radius:10px;width:100%;background:var(--bg);color:var(--text)">`:
+          `<input type="number" id="tracker_${f.name}" min="0" placeholder="0" style="padding:10px;border:2px solid var(--border);border-radius:10px;width:100%;background:var(--bg);color:var(--text)">`}
+        </div>`).join('')}
+    </div>
+    <button class="btn-primary" onclick="saveTrackerEntry()"><i class="fa-solid fa-save"></i> Log Today's ${t.label}</button>`;
+}
+
+async function saveTrackerEntry() {
+  const t = TRACKERS.find(x=>x.id===activeTracker);
+  const entry = {session_id:SID, tracker_type:activeTracker, entry_date:new Date().toISOString().slice(0,10)};
+  t.fields.forEach(f => { entry[f.name==='notes'?'notes':'value'] = document.getElementById('tracker_'+f.name)?.value; });
+  const entries = JSON.parse(localStorage.getItem('pw_tracker_entries') || '{}');
+  if (!entries[activeTracker]) entries[activeTracker] = [];
+  entries[activeTracker].unshift({...entry, created_at:new Date().toISOString()});
+  localStorage.setItem('pw_tracker_entries', JSON.stringify(entries));
+  try { await db.from('pw_tracker_entries').insert(entry); } catch(e) {}
+  loadTrackerChart();
+  showToast('📊 Tracked!');
+}
+
+function loadTrackerChart() {
+  const entries = JSON.parse(localStorage.getItem('pw_tracker_entries') || '{}');
+  const data = (entries[activeTracker] || []).slice(0,14).reverse();
+  if (chartInstance) chartInstance.destroy();
+  const ctx = document.getElementById('trackerChart');
+  if (!data.length) { ctx.style.display='none'; return; }
+  ctx.style.display='block';
+  chartInstance = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels: data.map(d=>new Date(d.created_at).toLocaleDateString('en',{month:'short',day:'numeric'})),
+      datasets:[{label:TRACKERS.find(x=>x.id===activeTracker).label,data:data.map(d=>parseFloat(d.value)||0),borderColor:'var(--primary)',backgroundColor:'rgba(217,119,6,.1)',tension:.4,fill:true}]
+    },
+    options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
+  });
+}
+
+// ─── SECOND BRAIN ───
+const BRAIN_TABS = [
+  {id:'dump',label:'🧠 Brain Dump'},
+  {id:'tasks',label:'✅ Quick Tasks'},
+  {id:'journal',label:'📓 Journal'}
+];
+let activeBrain = 'dump';
+function renderBrainTabs() {
+  document.getElementById('brainTabs').innerHTML = BRAIN_TABS.map(t=>`<button class="tab ${t.id===activeBrain?'active':''}" onclick="setBrain('${t.id}')">${t.label}</button>`).join('');
+  renderBrainContent();
+}
+function setBrain(id) { activeBrain=id; renderBrainTabs(); }
+
+function renderBrainContent() {
+  const entries = JSON.parse(localStorage.getItem('pw_journal_'+activeBrain) || '[]');
+  const placeholder = activeBrain==='dump'?'Everything on your mind… worries, observations, wins, anything':activeBrain==='tasks'?'Quick task to remember…':'How did today go?';
+  const isTask = activeBrain==='tasks';
+  document.getElementById('brainContent').innerHTML = `
+    <div style="display:flex;gap:10px;margin-bottom:16px">
+      ${isTask?`<input id="brainInput" type="text" placeholder="${placeholder}" style="flex:1;padding:12px;border:2px solid var(--border);border-radius:12px;background:var(--bg);color:var(--text)">`
+      :`<textarea id="brainInput" rows="3" placeholder="${placeholder}" style="flex:1;padding:12px;border:2px solid var(--border);border-radius:12px;background:var(--bg);color:var(--text);resize:vertical"></textarea>`}
+      <button class="btn-primary" onclick="saveBrainEntry()" style="align-self:flex-start;padding:12px 18px"><i class="fa-solid fa-plus"></i></button>
+    </div>
+    <div id="brainList" style="max-height:320px;overflow-y:auto">
+      ${entries.length?entries.map((e,i)=>`
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:12px;background:var(--surface-2);border-radius:var(--r);margin-bottom:8px">
+          ${isTask?`<input type="checkbox" ${e.done?'checked':''} onchange="toggleBrainTask(${i})" style="margin-top:3px;accent-color:var(--primary)">`:''}
+          <span style="${e.done?'text-decoration:line-through;opacity:.5':''};flex:1;font-size:.9rem">${e.content}</span>
+          <button onclick="deleteBrainEntry(${i})" style="background:none;border:none;color:#ef4444;font-size:.9rem;opacity:.6;cursor:pointer"><i class="fa-solid fa-trash-can"></i></button>
+        </div>`).join(''):'<p style="color:var(--muted);text-align:center;padding:30px 0">Nothing here yet. Your thoughts are safe here. 💜</p>'}
+    </div>`;
+}
+
+async function saveBrainEntry() {
+  const input = document.getElementById('brainInput');
+  if (!input?.value.trim()) return;
+  const entries = JSON.parse(localStorage.getItem('pw_journal_'+activeBrain) || '[]');
+  entries.unshift({content:input.value.trim(),done:false,created_at:new Date().toISOString()});
+  localStorage.setItem('pw_journal_'+activeBrain, JSON.stringify(entries));
+  try { await db.from('pw_journal').insert({session_id:SID,entry_type:activeBrain,content:input.value.trim()}); } catch(e) {}
+  input.value='';
+  renderBrainContent();
+}
+
+function toggleBrainTask(i) {
+  const entries = JSON.parse(localStorage.getItem('pw_journal_tasks') || '[]');
+  entries[i].done=!entries[i].done;
+  localStorage.setItem('pw_journal_tasks', JSON.stringify(entries));
+  renderBrainContent();
+}
+
+function deleteBrainEntry(i) {
+  const entries = JSON.parse(localStorage.getItem('pw_journal_'+activeBrain) || '[]');
+  entries.splice(i,1);
+  localStorage.setItem('pw_journal_'+activeBrain, JSON.stringify(entries));
+  renderBrainContent();
+}
+
+// ─── MILESTONES ───
+async function addMilestone() {
+  const name = document.getElementById('milestoneInput').value.trim();
+  if (!name) return;
+  const m = {session_id:SID, milestone_name:name, category:document.getElementById('milestoneCategory').value, notes:document.getElementById('milestoneNotes').value, achieved:true, achieved_date:new Date().toISOString().slice(0,10)};
+  const list = JSON.parse(localStorage.getItem('pw_milestones') || '[]');
+  list.unshift({...m, created_at:new Date().toISOString()});
+  localStorage.setItem('pw_milestones', JSON.stringify(list));
+  try { await db.from('pw_milestones').insert(m); } catch(e) {}
+  document.getElementById('milestoneInput').value='';
+  document.getElementById('milestoneNotes').value='';
+  renderMilestones();
+  showToast('🌟 Milestone celebrated! You\'re doing amazing! 💜');
+}
+
+function renderMilestones() {
+  const list = JSON.parse(localStorage.getItem('pw_milestones') || '[]');
+  const catEmoji = {communication:'🗣️',social:'👥',motor:'🏃',adaptive:'🧩',academic:'📚',emotional:'💜'};
+  document.getElementById('milestoneList').innerHTML = list.length ?
+    list.map(m=>`<div class="milestone-item"><span style="font-size:1.4rem">${catEmoji[m.category]||'⭐'}</span><div><div style="font-weight:600">${m.milestone_name}</div><div style="font-size:.8rem;color:var(--muted)">${m.category} · ${new Date(m.created_at).toLocaleDateString()}</div>${m.notes?`<div style="font-size:.8rem;color:var(--muted);margin-top:4px">${m.notes}</div>`:''}</div></div>`).join('')
+    : '<p style="color:var(--muted);text-align:center;padding:40px 0">Every milestone — no matter how small — is worth celebrating! 🎉</p>';
+}
+
+// ─── SOCIAL STORIES ───
+const STORIES = {
+  dentist:(name)=>`<p><strong>${name}</strong> is going to the dentist today.</p><p>The waiting room might be a little loud. ${name} can bring headphones or a fidget toy. 🎧</p><p>The dentist will say "Open wide!" ${name} will open their mouth for just a moment.</p><p>The dentist is checking to make sure our teeth are healthy and strong. 💪</p><p>When it's done, ${name} gets to choose a sticker! ⭐</p><p>Going to the dentist helps keep our smile healthy. ${name} is SO brave!</p>`,
+  haircut:(name)=>`<p>Today ${name} is getting a haircut. ✂️</p><p>The stylist will use scissors and maybe a buzzer. The buzzer makes a sound.</p><p>${name} can say "Please use just scissors" if needed. That's okay!</p><p>The stylist will be gentle and quick. ${name} can hold a fidget or watch a video.</p><p>After the haircut, ${name}'s hair will look and feel fresh. 😊</p>`,
+  grocery:(name)=>`<p>${name} and their family are going to the grocery store. 🛒</p><p>The store might be bright and a little loud. ${name} can wear sunglasses or ear defenders. 😎</p><p>We will walk through the aisles and put food in the cart.</p><p>${name} can help by choosing one special item. 🍎</p><p>When we're done, we pay at the register and go home.</p><p>${name} is such a great helper!</p>`,
+  school:(name)=>`<p>${name} is starting at a new school! 🏫</p><p>New places can feel big and unfamiliar at first. That's a normal feeling.</p><p>There will be a teacher who will help ${name} learn where everything is.</p><p>${name} might not know everyone yet — and that's perfectly okay.</p><p>Every day, it will feel a little more comfortable. ${name} is brave and capable!</p>`,
+  doctor:(name)=>`<p>Today ${name} is visiting the doctor. 🩺</p><p>The doctor wants to make sure ${name} is healthy and growing strong.</p><p>The doctor might listen to ${name}'s heart, look in their ears, and check their height and weight.</p><p>${name} can ask questions. The doctor will answer them.</p><p>After the visit, ${name} did something really important — taking care of their health! 💪</p>`,
+  birthday:(name)=>`<p>${name} is going to a birthday party! 🎉</p><p>There will be people, music, and cake. It might be loud and busy.</p><p>${name} can stay near a trusted adult if they need a quiet moment.</p><p>When it feels like too much, ${name} can take a break in a quiet corner.</p><p>Parties are meant to be fun — and it's okay to enjoy it in your own way! 🎂</p>`,
+  transition:(name)=>`<p>It's almost time to stop screen time. ⏰</p><p>${name} has been having fun, and stopping can feel hard.</p><p>The grown-up will give a 5-minute warning first.</p><p>When the timer goes off, ${name} will put the device down.</p><p>After screen time, there will be another fun activity waiting. 🎮➡️🎨</p><p>${name} is really good at following the schedule!</p>`,
+  restaurant:(name)=>`<p>${name}'s family is eating at a restaurant today. 🍽️</p><p>Restaurants can be busy and have different smells and sounds.</p><p>${name} can bring a fidget toy or headphones just in case.</p><p>We'll look at the menu and choose what looks good to eat.</p><p>If ${name} needs a break, we can step outside for a moment.</p><p>When we're done, everyone will say "That was a great meal!" 😊</p>`
+};
+
+function generateStory() {
+  const topic = document.getElementById('storyTopic').value;
+  const name = document.getElementById('storyChildName').value || profile.childName || 'Your child';
+  const storyFn = STORIES[topic];
+  const storyHTML = storyFn ? storyFn(name) : '<p>Story coming soon!</p>';
+  document.getElementById('storyOutput').innerHTML = `<div class="story-output">${storyHTML}</div>`;
+  showToast('📖 Story generated for ' + name + '!');
+}
+
+function printStory() {
+  const content = document.getElementById('storyOutput').innerHTML;
+  const w = window.open('','_blank');
+  w.document.write(`<html><head><title>Social Story</title><style>body{font-family:sans-serif;padding:40px;max-width:600px;margin:0 auto;font-size:1.1rem;line-height:1.8}p{margin-bottom:12px}</style></head><body>${content}</body></html>`);
+  w.print();
+}
+
+function readStoryAloud() {
+  const text = document.getElementById('storyOutput').textContent;
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 0.85; u.pitch = 1.1;
+    window.speechSynthesis.speak(u);
+    showToast('🔊 Reading story aloud…');
+  }
+}
+
+// ─── VIDEOS ───
+function renderVideos() {
+  const videos = [
+    {title:"Understanding Autism: A Parent's Guide",id:"GbTNigzYpSA",desc:"Core strategies for autism parenting"},
+    {title:"Managing Meltdowns Effectively",id:"xz5myo3C2rE",desc:"Step-by-step meltdown support"},
+    {title:"Visual Schedules & Routines",id:"k4w6Lq-U-wg",desc:"How to build effective visual schedules"},
+    {title:"ADHD Parenting Strategies",id:"Nt7VNYbZI6I",desc:"Evidence-based ADHD techniques"},
+    {title:"Sensory Processing Explained",id:"VnMfmtcsgso",desc:"Understanding your child's sensory needs"},
+    {title:"Token Economy for Kids",id:"E7zOUXo7Jqk",desc:"Building reinforcement systems at home"}
+  ];
+  document.getElementById('videoGrid').innerHTML = videos.map(v=>`
+    <div class="video-card">
+      <iframe src="https://www.youtube.com/embed/${v.id}" allowfullscreen loading="lazy"></iframe>
+      <div class="video-card-body"><strong>${v.title}</strong><p>${v.desc}</p></div>
+    </div>`).join('');
+}
+
+// ─── AI CHAT ───
+const AI_RESPONSES = {
+  meltdown: "🧘 **Meltdown Support Script:**\n\n1. Stay calm — your energy regulates theirs\n2. Remove demands completely: \"It's okay. You're safe.\"\n3. Reduce sensory input (dim lights, reduce noise)\n4. Offer silent comfort or deep pressure if they welcome it\n5. Wait. Don't teach or reason during the meltdown.\n6. After calm: validate emotions, then problem-solve together\n\n*Remember: Meltdowns are neurological, not behavioral. Your child isn't giving you a hard time — they're having a hard time.*",
+  schedule: "📅 **Visual Schedule Tips:**\n\n• First-Then boards reduce anxiety: \"First shoes, THEN iPad\"\n• Use photos or icons rather than just words\n• Give 5-minute transition warnings (visual timer helps!)\n• Keep morning schedules to 6-8 steps max\n• Velcro schedule strips allow kids to move items as done\n• Consistent = predictable = less anxiety",
+  sensory: "🎯 **Sensory Diet Ideas:**\n\n**Heavy Work (calming):** Carrying groceries, pushing laundry cart, wall push-ups, weighted blanket\n**Proprioceptive:** Jumping on trampoline, bear hugs, rough-housing (if safe)\n**Oral:** Chewing gum/chewy tube, crunchy snacks, smoothies with straw\n**Calming:** Swinging, rocking, white noise, dim lighting\n\n*Sensory diets work best with 2-3 activities spread across the day*",
+  screen: "📱 **Screen Time Transitions:**\n\n• Always give a 5-minute warning BEFORE stopping\n• Use a visual timer (Time Timer app is excellent)\n• Have the NEXT activity ready and inviting\n• 'First-Then': \"First close iPad, then we do [fun thing]\"\n• Never yank the device — ask them to hand it to you\n• Consistent rules every day reduce negotiation meltdowns",
+  sleep: "😴 **Sleep Strategies for Neurodivergent Kids:**\n\n• Same bedtime within 30 min every night (critical)\n• Visual bedtime routine (5-6 steps with pictures)\n• Weighted blanket (often deeply calming for autism)\n• White noise or pink noise machine\n• Blackout curtains — many autistic kids are light-sensitive\n• Melatonin (talk to pediatrician first — often very effective)\n• No screens 1hr before bed — blue light delays melatonin",
+  communication: "🗣️ **Communication Support:**\n\n• Use AAC even if child has some speech — it doesn't replace speech, it supports it\n• Honor ALL forms of communication (pointing, leading, sounds)\n• Follow the child's lead — comment on what they're doing\n• Reduce questions — make observations instead\n• Use visuals alongside spoken words always\n• Peak Communication and core vocabulary boards are excellent starting points",
+  default: "💜 I'm here to help with evidence-based, compassionate guidance for neurodivergent parenting.\n\nTry asking about:\n• Meltdown scripts and support\n• Visual schedule strategies\n• Sensory diet ideas\n• Sleep strategies\n• AAC and communication\n• ADHD focus tips\n• Token economy setup\n\nWhat challenge are you navigating today?"
+};
+
+function sendChat() {
+  const input = document.getElementById('chatInput');
+  if (!input.value.trim()) return;
+  const q = input.value.trim();
+  chatHistory.push({role:'user',content:q});
+  renderChat();
+  input.value='';
+  setTimeout(()=>{
+    const ql = q.toLowerCase();
+    let resp = AI_RESPONSES.default;
+    if (ql.includes('meltdown')||ql.includes('tantrum')||ql.includes('crisis')) resp = AI_RESPONSES.meltdown;
+    else if (ql.includes('schedule')||ql.includes('routine')||ql.includes('transition')) resp = AI_RESPONSES.schedule;
+    else if (ql.includes('sensory')) resp = AI_RESPONSES.sensory;
+    else if (ql.includes('screen')||ql.includes('ipad')||ql.includes('tablet')) resp = AI_RESPONSES.screen;
+    else if (ql.includes('sleep')||ql.includes('bedtime')) resp = AI_RESPONSES.sleep;
+    else if (ql.includes('communication')||ql.includes('speech')||ql.includes('aac')||ql.includes('talk')) resp = AI_RESPONSES.communication;
+    chatHistory.push({role:'bot',content:resp});
+    renderChat();
+  },600);
+}
+
+function quickChat(q) { document.getElementById('chatInput').value=q; sendChat(); }
+
+function renderChat() {
+  const win = document.getElementById('chatWindow');
+  win.innerHTML = chatHistory.map(m=>`<div class="chat-bubble ${m.role}">${m.content.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')}</div>`).join('');
+  win.scrollTop=win.scrollHeight;
+}
+
+// ─── TIMER ───
+const TIMER_MODES = {focus:1500, break:300, long:900};
+function setTimerMode(mode, btn) {
+  timerMode=mode; timerSeconds=TIMER_MODES[mode];
+  document.querySelectorAll('.tab').forEach(t=>{if(t.closest('#dashboard'))t.classList.remove('active')});
+  if(btn)btn.classList.add('active');
+  updateTimerDisplay();
+  clearInterval(timerInterval); timerInterval=null;
+}
+function updateTimerDisplay() {
+  const m=Math.floor(timerSeconds/60).toString().padStart(2,'0');
+  const s=(timerSeconds%60).toString().padStart(2,'0');
+  document.getElementById('timerDisplay').textContent=`${m}:${s}`;
+}
+function startTimer() {
+  if(timerInterval){clearInterval(timerInterval);timerInterval=null;return;}
+  timerInterval=setInterval(()=>{
+    timerSeconds--;
+    updateTimerDisplay();
+    if(timerSeconds<=0){
+      clearInterval(timerInterval);timerInterval=null;
+      showToast(timerMode==='focus'?'🎯 Focus session done! Time for a break! ⭐':'✅ Break over! Back to focus!');
+    }
+  },1000);
+}
+function resetTimer() { clearInterval(timerInterval);timerInterval=null; timerSeconds=TIMER_MODES[timerMode]; updateTimerDisplay(); }
+
+// ─── PRICING ───
+function selectPlan(name, price) {
+  showToast(`🚀 ${name} plan selected ($${price}) — checkout coming soon!`);
+}
+
+// ─── TOAST ───
+function showToast(msg, type='success', duration=4000) {
+  const t=document.createElement('div');
+  t.className='toast';
+  t.style.background=type==='error'?'#ef4444':'#10b981';
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>{t.style.animation='slideUp .3s ease reverse';setTimeout(()=>t.remove(),300);},duration);
+}
+
+// ─── INIT ───
+window.addEventListener('DOMContentLoaded', ()=>{
+  if(profile.childName){document.getElementById('childName').value=profile.childName;document.getElementById('dashTitle').textContent=`${profile.childName}'s Parenting Hub`;document.getElementById('storyChildName').value=profile.childName;}
+  if(profile.age)document.getElementById('childAge').value=profile.age;
+  if(profile.neuroType)document.getElementById('neuroType').value=profile.neuroType;
+  document.getElementById('statStreak').textContent=streak;
+  document.getElementById('statTokens').textContent=tokens;
+  renderSchedule();
+  renderTrackerTabs();
+  renderBrainTabs();
+  renderABCLogs();
+  renderMilestones();
+  renderVideos();
+  loadTrackerChart();
+  updateTimerDisplay();
+  document.getElementById('tokenCount').textContent=`${tokens} tokens`;
+  setTimeout(()=>showToast('💜 Welcome to ParentWise — your family\'s neuro hub!'),1000);
+});
+</script>
+</body>
+</html>
