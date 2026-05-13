@@ -7,6 +7,7 @@
     <meta name="description" content="Your personal AI wellness advisor for stress relief, anxiety recovery, and spiritual renewal. Powered by Sacred Cycles Renewal principles.">
     <meta property="og:title" content="Divine Resonance Guide | Sacred Cycles Renewal">
     <meta property="og:description" content="Talk to a compassionate AI wellness advisor — built on 23 years of nursing expertise. Free stress relief coloring book included.">
+    <script src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.15.0"></script>
     <style>
         :root {
             --bg: #06061a;
@@ -443,8 +444,10 @@
 // ──────────────────────────────────────────────
 //  CONFIG
 // ──────────────────────────────────────────────
-const KEY = 'sk_de67d5519bdc5823e1fe42dfc506d5ea';
-const URL = 'https://api.groq.com/openai/v1/chat/completions';
+// Transformers.js - runs AI locally in browser, NO API keys needed
+const { pipeline } = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.15.0');
+let generator = null;
+let modelReady = false;
 
 const SYS = `You are Resonance Guide — the official Sacred Cycles Renewal AI wellness advisor, created by Ting Lott, a Registered Nurse with 23 years of experience in stress, trauma, and mind-body healing.
 
@@ -560,37 +563,41 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 // ──────────────────────────────────────────────
-//  GROQ
+//  TRANSFORMERS.JS (FREE, NO API KEYS)
 // ──────────────────────────────────────────────
+async function initModel() {
+    if (modelReady) return;
+    try {
+        const { pipeline } = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.15.0');
+        generator = await pipeline('text2text-generation', 'Xenova/flan-t5-small');
+        modelReady = true;
+    } catch (e) {
+        console.error('Model init failed:', e);
+        throw new Error('Model loading failed');
+    }
+}
+
 async function callGemini(userMsg) {
-    const msgs = [
-        { role: 'system', content: SYS },
-        ...history.map(h => ({ role: h.role === 'user' ? 'user' : 'assistant', content: h.content })),
-        { role: 'user', content: userMsg }
-    ];
+    if (!modelReady) await initModel();
+    
     history.push({ role: 'user', content: userMsg });
-
-    const res = await fetch(URL, {
-        method: 'POST',
-        headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${KEY}`
-        },
-        body: JSON.stringify({
-            model: 'mixtral-8x7b-32768',
-            messages: msgs,
-            temperature: 0.82,
-            max_tokens: 900,
-            top_p: 0.9
-        })
-    });
-
-    if (!res.ok) throw new Error(await res.text());
-
-    const d = await res.json();
-    const text = d.choices[0].message.content;
-    history.push({ role: 'assistant', content: text });
-    return text;
+    
+    // Build context from history
+    const context = history.slice(-6).map(h => 
+        h.role === 'user' ? `User: ${h.content}` : `Guide: ${h.content}`
+    ).join(' ');
+    
+    const prompt = `${SYS}\n\nContext: ${context}\n\nRespond as Sacred Cycles wellness guide:`;
+    
+    try {
+        const result = await generator(prompt, { max_length: 300 });
+        const text = result[0].generated_text.trim();
+        history.push({ role: 'assistant', content: text });
+        return text;
+    } catch (e) {
+        console.error('Generation error:', e);
+        throw e;
+    }
 }
 
 // ──────────────────────────────────────────────
