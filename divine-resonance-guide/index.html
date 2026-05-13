@@ -7,6 +7,7 @@
     <meta name="description" content="Your personal AI wellness advisor for stress relief, anxiety recovery, and spiritual renewal. Powered by Sacred Cycles Renewal principles.">
     <meta property="og:title" content="Divine Resonance Guide | Sacred Cycles Renewal">
     <meta property="og:description" content="Talk to a compassionate AI wellness advisor — built on 23 years of nursing expertise. Free stress relief coloring book included.">
+    <script src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.15.0"></script>
     <style>
         :root {
             --bg: #06061a;
@@ -75,7 +76,64 @@
             -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
         .logo-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
 
-        .header-controls { display: flex; gap: 8px; align-items: center; }
+        /* === SURVEY MODAL === */
+        #surveyModal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(6,6,26,0.92);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .survey-box {
+            background: linear-gradient(145deg, #0d0d2b, #111130);
+            border: 1px solid var(--purple);
+            border-radius: 18px;
+            padding: 28px 24px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 0 0 60px rgba(124,58,237,0.3);
+            position: relative;
+        }
+        .survey-close {
+            position: absolute;
+            top: 12px; right: 16px;
+            background: none; border: none;
+            color: var(--muted); font-size: 18px;
+            cursor: pointer;
+        }
+        .survey-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .survey-header .gift-icon { font-size: 36px; margin-bottom: 8px; }
+        .survey-header h3 {
+            background: linear-gradient(135deg, #c084fc, #e8b84b);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            font-size: 17px; margin-bottom: 6px;
+        }
+        .survey-header p { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+        /* Free Gift Button */
+        .free-gift-btn {
+            background: linear-gradient(135deg, #7c3aed, #e8b84b);
+            color: white;
+            border: none;
+            padding: 7px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            animation: gift-pulse 2.5s ease-in-out infinite;
+        }
+        @keyframes gift-pulse {
+            0%,100% { box-shadow: 0 0 0 0 rgba(232,184,75,0.4); }
+            50% { box-shadow: 0 0 0 8px rgba(232,184,75,0); }
+        }
+
+        .header-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
         .ctrl-btn {
             padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border);
             background: transparent; color: var(--text2); font-size: 12px; cursor: pointer;
@@ -277,8 +335,22 @@
         </div>
     </div>
     <div class="header-controls">
+        <button class="free-gift-btn" onclick="showSurvey()">🎁 Free Coloring Book</button>
         <button class="ctrl-btn active" id="voiceBtn" onclick="toggleVoice()">🔊 <span id="voiceLbl">Voice On</span></button>
         <button class="ctrl-btn" onclick="clearChat()">↺ Reset</button>
+    </div>
+</div>
+
+<!-- SURVEY MODAL -->
+<div id="surveyModal">
+    <div class="survey-box">
+        <button class="survey-close" onclick="document.getElementById('surveyModal').style.display='none'">✕</button>
+        <div class="survey-header">
+            <div class="gift-icon">🎨</div>
+            <h3>Get Your FREE Adult Coloring Book</h3>
+            <p>25 hand-crafted stress relief mandala pages — just answer 3 quick questions first so we can personalize your journey 💙</p>
+        </div>
+        <div id="surveyBody"></div>
     </div>
 </div>
 
@@ -372,8 +444,10 @@
 // ──────────────────────────────────────────────
 //  CONFIG
 // ──────────────────────────────────────────────
-const KEY = 'AIzaSyDp2coQWliDX-zDqrfwAjpXTXfCcF3TaQg';
-const URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${KEY}`;
+// Transformers.js - runs AI locally in browser, NO API keys needed
+const { pipeline } = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.15.0');
+let generator = null;
+let modelReady = false;
 
 const SYS = `You are Resonance Guide — the official Sacred Cycles Renewal AI wellness advisor, created by Ting Lott, a Registered Nurse with 23 years of experience in stress, trauma, and mind-body healing.
 
@@ -489,27 +563,41 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 // ──────────────────────────────────────────────
-//  GEMINI
+//  TRANSFORMERS.JS (FREE, NO API KEYS)
 // ──────────────────────────────────────────────
+async function initModel() {
+    if (modelReady) return;
+    try {
+        const { pipeline } = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.15.0');
+        generator = await pipeline('text2text-generation', 'Xenova/flan-t5-small');
+        modelReady = true;
+    } catch (e) {
+        console.error('Model init failed:', e);
+        throw new Error('Model loading failed');
+    }
+}
+
 async function callGemini(userMsg) {
-    history.push({ role: 'user', parts: [{ text: userMsg }] });
-
-    const res = await fetch(URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            system_instruction: { parts: [{ text: SYS }] },
-            contents: history,
-            generationConfig: { temperature: 0.82, maxOutputTokens: 900, topP: 0.9 }
-        })
-    });
-
-    if (!res.ok) throw new Error(await res.text());
-
-    const d = await res.json();
-    const text = d.candidates[0].content.parts[0].text;
-    history.push({ role: 'model', parts: [{ text }] });
-    return text;
+    if (!modelReady) await initModel();
+    
+    history.push({ role: 'user', content: userMsg });
+    
+    // Build context from history
+    const context = history.slice(-6).map(h => 
+        h.role === 'user' ? `User: ${h.content}` : `Guide: ${h.content}`
+    ).join(' ');
+    
+    const prompt = `${SYS}\n\nContext: ${context}\n\nRespond as Sacred Cycles wellness guide:`;
+    
+    try {
+        const result = await generator(prompt, { max_length: 300 });
+        const text = result[0].generated_text.trim();
+        history.push({ role: 'assistant', content: text });
+        return text;
+    } catch (e) {
+        console.error('Generation error:', e);
+        throw e;
+    }
 }
 
 // ──────────────────────────────────────────────
@@ -693,42 +781,154 @@ function vibChange(v) {
 // ──────────────────────────────────────────────
 //  EMAIL CAPTURE
 // ──────────────────────────────────────────────
-function showEmailBanner() { document.getElementById('emailBanner').classList.add('show'); }
+// ── SURVEY STATE ──
+let surveyAnswers = {};
+let surveyStep = 0;
 
-async function submitEmail() {
-    const inp = document.getElementById('emailIn');
-    const em = inp.value.trim();
-    if (!em || !em.includes('@')) { inp.style.borderColor='#ef4444'; setTimeout(()=>inp.style.borderColor='',2000); return; }
+function showEmailBanner() {
+    // Show survey first instead of direct email
+    showSurvey();
+}
+
+function showSurvey() {
+    document.getElementById('surveyModal').style.display = 'flex';
+    renderSurveyStep(0);
+}
+
+function renderSurveyStep(step) {
+    surveyStep = step;
+    const body = document.getElementById('surveyBody');
+    const steps = [
+        {
+            q: 'Are you experiencing stress, anxiety, or depression?',
+            options: ['Yes — it\'s affecting my daily life', 'Somewhat — some days are harder', 'No — I\'m just curious'],
+            key: 'stress_level'
+        },
+        {
+            q: 'What\'s the main source of your stress?',
+            options: ['Relationships', 'Parenting', 'Work or Job Changes', 'Loss or Grief', 'General Worry / Anxiety', 'Burnout / Exhaustion'],
+            key: 'stress_source'
+        },
+        {
+            q: 'Would you be interested in a mind-spirit-body renewal program?',
+            options: ['Absolutely — I need this', 'Maybe — tell me more', 'Just want the coloring book for now'],
+            key: 'program_interest'
+        }
+    ];
+    const s = steps[step];
+    const progress = Math.round(((step) / steps.length) * 100);
+    body.innerHTML = `
+        <div style="margin-bottom:16px;">
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:6px;">
+                <span>Question ${step+1} of ${steps.length}</span>
+                <span>${progress}% complete</span>
+            </div>
+            <div style="height:4px;background:var(--border);border-radius:2px;">
+                <div style="height:4px;background:linear-gradient(90deg,var(--purple),var(--gold));border-radius:2px;width:${progress}%;transition:width 0.4s;"></div>
+            </div>
+        </div>
+        <h4 style="color:var(--gold);margin-bottom:16px;font-size:15px;line-height:1.5;">${s.q}</h4>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+            ${s.options.map((opt, i) => `
+                <button onclick="surveyPick('${s.key}','${opt}',${step})"
+                    style="background:var(--bg3);border:1px solid var(--border);color:var(--text);
+                    padding:11px 14px;border-radius:10px;text-align:left;cursor:pointer;font-size:13px;
+                    transition:all 0.2s;hover:border-color:var(--purple);">
+                    ${opt}
+                </button>`).join('')}
+        </div>`;
+}
+
+function surveyPick(key, val, step) {
+    surveyAnswers[key] = val;
+    const steps = ['stress_level', 'stress_source', 'program_interest'];
+    if (step < 2) {
+        renderSurveyStep(step + 1);
+    } else {
+        // All done — show email capture
+        showSurveyEmail();
+    }
+}
+
+function showSurveyEmail() {
+    const interest = surveyAnswers['program_interest'] || '';
+    const isHot = interest.includes('Absolutely');
+    document.getElementById('surveyBody').innerHTML = `
+        <div style="text-align:center;margin-bottom:16px;">
+            <div style="font-size:36px;margin-bottom:8px;">${isHot ? '🌟' : '🎁'}</div>
+            <h4 style="color:var(--gold);margin-bottom:8px;">
+                ${isHot ? 'You\'re ready for your renewal journey!' : 'Thank you for sharing with us!'}
+            </h4>
+            <p style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6;">
+                Enter your email to receive your <strong style="color:var(--gold);">FREE Adult Stress Relief Coloring Book</strong> — 
+                25 hand-crafted mandala pages proven to lower cortisol and calm anxiety in just 10 minutes.
+            </p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+            <input id="surveyEmailIn" type="email" placeholder="your@email.com"
+                style="background:var(--bg3);border:1px solid var(--border);color:var(--text);
+                padding:12px 14px;border-radius:10px;font-size:14px;outline:none;width:100%;">
+            <button onclick="submitSurveyEmail()"
+                style="background:linear-gradient(135deg,var(--purple),var(--gold));color:white;
+                border:none;padding:13px;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer;">
+                🎁 Send My Free Coloring Book
+            </button>
+            <p style="font-size:10px;color:var(--muted);text-align:center;">No spam ever. Unsubscribe anytime. 💙</p>
+        </div>`;
+}
+
+async function submitSurveyEmail() {
+    const inp = document.getElementById('surveyEmailIn');
+    const em = inp ? inp.value.trim() : '';
+    if (!em || !em.includes('@')) {
+        if (inp) { inp.style.borderColor='#ef4444'; setTimeout(()=>inp.style.borderColor='',2000); }
+        return;
+    }
 
     localStorage.setItem('sc_email', em);
+    localStorage.setItem('sc_survey', JSON.stringify(surveyAnswers));
     emailDone = true;
 
-    // Non-blocking form submit
+    // Send to email
     fetch('https://formsubmit.co/ajax/lott2395@gmail.com', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({
             email: em,
-            subject: '🌟 New Sacred Cycles Subscriber',
-            message: `New lead from Divine Resonance Guide: ${em}`,
+            subject: '🌟 New Sacred Cycles Lead — Survey Completed',
+            message: `Email: ${em}\nStress Level: ${surveyAnswers.stress_level||'n/a'}\nStress Source: ${surveyAnswers.stress_source||'n/a'}\nProgram Interest: ${surveyAnswers.program_interest||'n/a'}`,
             _captcha: 'false'
         })
     }).catch(()=>{});
 
-    document.getElementById('emailBanner').innerHTML = `
+    // Show download
+    document.getElementById('surveyBody').innerHTML = `
         <div style="text-align:center;padding:8px 0;">
-            <div style="font-size:28px;margin-bottom:8px;">🎁✨</div>
-            <h4 style="color:var(--gold);margin-bottom:6px;">Welcome to Sacred Cycles, beautiful soul!</h4>
-            <p style="font-size:12px;color:var(--text2);margin-bottom:12px;">Your free coloring book is ready. Coloring mandalas activates theta brain waves — the same as deep meditation.</p>
-            <a href="/sacred_cycles_coloring_book.pdf" download
-               style="display:inline-block;background:linear-gradient(135deg,#7c3aed,#9d6ef7);color:white;text-decoration:none;padding:10px 26px;border-radius:8px;font-weight:700;font-size:13px;">
-                ⬇️ Download Free Coloring Book
+            <div style="font-size:40px;margin-bottom:12px;">🎨✨</div>
+            <h4 style="color:var(--gold);margin-bottom:8px;">Your coloring book is ready!</h4>
+            <p style="font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.6;">
+                25 adult mandala pages — print & color anytime. Each one designed for deep stress relief and meditation.
+            </p>
+            <a href="/sacred_cycles_adult_coloring_book.pdf" download
+               style="display:inline-block;background:linear-gradient(135deg,#7c3aed,#e8b84b);
+               color:white;text-decoration:none;padding:13px 30px;border-radius:10px;
+               font-weight:700;font-size:14px;margin-bottom:12px;">
+                ⬇️ Download FREE Adult Coloring Book
             </a>
+            <br>
+            <button onclick="document.getElementById('surveyModal').style.display='none'"
+                style="background:transparent;border:1px solid var(--border);color:var(--muted);
+                padding:8px 20px;border-radius:8px;cursor:pointer;font-size:12px;margin-top:8px;">
+                Continue chatting 💬
+            </button>
         </div>`;
 
-    addMsg('assistant', `Thank you so much, and welcome! 🙏✨\n\nYour **Sacred Cycles Stress Relief Coloring Book** is ready to download above — 25 hand-drawn mandalas, each one designed to guide your mind into a calming theta state.\n\nJust 10–15 minutes of coloring has been shown to measurably reduce cortisol levels. It's your portable stress reset button.\n\nI'm here whenever you need support. We'll take this journey one breath at a time. 🌿`);
-    if (voiceOn) speak("Thank you and welcome! Your coloring book is ready to download. I'm so glad you're here.");
+    addMsg('assistant', `Welcome to Sacred Cycles, beautiful soul! 🙏✨\n\nYour **FREE Adult Stress Relief Coloring Book** is ready — 25 hand-crafted mandala pages waiting for you.\n\nColoring activates theta brain waves — the same deep state as meditation. Just 10 minutes a day can measurably lower cortisol levels.\n\nI'm here for your full renewal journey. One breath at a time. 🌿`);
+    if (voiceOn) speak("Welcome! Your free coloring book is ready. I'm so glad you're here for your renewal journey.");
 }
+
+// Legacy submitEmail fallback
+async function submitEmail() { submitSurveyEmail(); }
 </script>
 </body>
 </html>
