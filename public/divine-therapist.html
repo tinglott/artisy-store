@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Divine Resonance Voice Therapist AI</title>
-    <script src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -63,6 +62,18 @@
             border-radius: 10px;
             max-width: 85%;
             word-wrap: break-word;
+            animation: slideIn 0.3s ease-in;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .user-message {
@@ -140,6 +151,7 @@
             color: #667eea;
             font-size: 0.9em;
             margin-top: 10px;
+            min-height: 20px;
         }
 
         .disclaimer {
@@ -178,7 +190,7 @@
 
         <div class="input-section">
             <input type="text" id="userInput" placeholder="Tell me what's on your mind..." />
-            <button onclick="sendMessage()">Send</button>
+            <button id="sendBtn" onclick="sendMessage()">Send</button>
         </div>
 
         <div class="voice-section">
@@ -186,7 +198,7 @@
             <button class="voice-btn" id="speakBtn" onclick="speakResponse()" style="display:none;">🔊 Speak</button>
         </div>
 
-        <div class="status" id="status"></div>
+        <div class="status" id="status">Ready to chat. Type or click 🎤</div>
 
         <div class="disclaimer">
             <strong>⚠️ Medical Disclaimer:</strong> This AI assistant is for educational and wellness support only. It is not a substitute for professional mental health treatment. If you're experiencing a crisis, please contact a mental health professional or call 988 (Suicide & Crisis Lifeline).
@@ -194,73 +206,46 @@
     </div>
 
     <script>
-        let pipe = null;
         let lastResponse = '';
         let isListening = false;
-        let isSpeaking = false;
 
-        // Initialize Transformers.js
-        async function initializeModel() {
-            try {
-                updateStatus('Loading AI model... (this may take a minute)');
-                const { pipeline } = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.js');
-                pipe = await pipeline('text2text-generation', 'Xenova/flan-t5-small');
-                updateStatus('AI ready! Start talking.');
-            } catch (err) {
-                updateStatus('Model loading error. Using fallback responses.');
-            }
-        }
+        // Therapist knowledge base
+        const therapistResponses = {
+            stress: "I hear that you're experiencing stress. Let's take three deep breaths together. Breathing in... holding... and out. Remember, you have the strength to navigate this.",
+            anxious: "Anxiety is your mind trying to protect you. That's actually a sign of care. What if we focus on what you can control right now?",
+            tired: "Burnout is real, especially in caring professions like nursing. You've given so much to others. What does rest look like for you?",
+            exhausted: "When we're exhausted, it's often our body saying 'I need help.' What's one thing you could do today to honor that need?",
+            hope: "I feel your hope. That resilience is beautiful. What small step could you take today that aligns with that hope?",
+            grateful: "Gratitude opens the heart. Thank you for sharing that with me. What else are you grateful for?",
+            pain: "I'm here with you in this moment. Pain is often a teacher. What might it be trying to tell you?",
+            alone: "You're not alone in this journey. Many people face what you're facing. What would help you feel more connected right now?",
+            scared: "Fear is natural, and courage isn't the absence of fear—it's moving forward despite it. What's one brave thing you've already done?",
+            love: "Love is the strongest force. Whether it's love for others or self-love, nurture that. How can you express love to yourself today?",
+            sleep: "Sleep is sacred medicine. Your body is asking for rest. What would help you honor that need tonight?",
+            night: "Night shift work asks so much of us. Your body, mind, and spirit deserve extra care. What's your favorite way to recharge?"
+        };
 
-        async function sendMessage() {
-            const input = document.getElementById('userInput');
-            const msg = input.value.trim();
-            if (!msg) return;
-
-            addMessage(msg, 'user');
-            input.value = '';
-            updateStatus('Thinking...');
-
-            try {
-                let response;
-                
-                if (pipe) {
-                    const output = await pipe(msg, {
-                        max_length: 150
-                    });
-                    response = output[0].generated_text;
-                } else {
-                    // Fallback if model not loaded
-                    response = generateTherapistResponse(msg);
-                }
-
-                lastResponse = response;
-                addMessage(response, 'therapist');
-                updateStatus('Ready to listen. Click 🎤 to speak.');
-            } catch (err) {
-                lastResponse = generateTherapistResponse(msg);
-                addMessage(lastResponse, 'therapist');
-                updateStatus('Ready.');
-            }
-        }
-
-        function generateTherapistResponse(userInput) {
-            const responses = {
-                stress: "I hear that you're experiencing stress. Let's take three deep breaths together. Breathing in... holding... and out. Remember, you have the strength to navigate this.",
-                anxious: "Anxiety is your mind trying to protect you. That's actually a sign of care. What if we focus on what you can control right now?",
-                tired: "Burnout is real, especially in caring professions like nursing. You've given so much to others. What does rest look like for you?",
-                hope: "I feel your hope. That resilience is beautiful. What small step could you take today that aligns with that hope?",
-                grateful: "Gratitude opens the heart. Thank you for sharing that with me. What else are you grateful for?",
-                pain: "I'm here with you in this moment. Pain is often a teacher. What might it be trying to tell you?"
-            };
-
-            const userLower = userInput.toLowerCase();
-            for (let key in responses) {
-                if (userLower.includes(key)) {
-                    return responses[key];
+        function generateResponse(userInput) {
+            const lowerInput = userInput.toLowerCase();
+            
+            // Check for keyword matches
+            for (let key in therapistResponses) {
+                if (lowerInput.includes(key)) {
+                    return therapistResponses[key];
                 }
             }
 
-            return "Thank you for sharing that with me. I'm here to support you on this journey. What feels most important to explore right now?";
+            // Default compassionate response
+            const defaults = [
+                "Thank you for sharing that with me. I'm here to listen and support you. What feels most important right now?",
+                "That sounds significant. Tell me more about what you're experiencing.",
+                "I appreciate your openness. How does that make you feel?",
+                "That's a real concern. What would help you feel better about this situation?",
+                "I hear you. You matter, and your feelings are valid. What do you need right now?",
+                "Thank you for trusting me with this. What's your next step forward?"
+            ];
+
+            return defaults[Math.floor(Math.random() * defaults.length)];
         }
 
         function addMessage(text, sender) {
@@ -276,9 +261,30 @@
             document.getElementById('status').textContent = msg;
         }
 
+        function sendMessage() {
+            const input = document.getElementById('userInput');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            addMessage(msg, 'user');
+            input.value = '';
+            updateStatus('Thinking...');
+
+            // Simulate brief processing delay
+            setTimeout(() => {
+                const response = generateResponse(msg);
+                lastResponse = response;
+                addMessage(response, 'therapist');
+                
+                // Show speak button
+                document.getElementById('speakBtn').style.display = 'flex';
+                updateStatus('Click 🔊 to hear response, or type next message');
+            }, 600);
+        }
+
         function startListening() {
             if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                updateStatus('Voice not supported on this device.');
+                updateStatus('Voice not supported on this device. Please type instead.');
                 return;
             }
 
@@ -290,7 +296,7 @@
 
             const recordBtn = document.getElementById('recordBtn');
             recordBtn.disabled = true;
-            updateStatus('Listening...');
+            updateStatus('Listening... speak now');
 
             recognition.onstart = () => {
                 isListening = true;
@@ -300,11 +306,14 @@
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
                 document.getElementById('userInput').value = transcript;
-                updateStatus('Transcribed. Click Send or 🔊 to hear response.');
+                updateStatus('Transcribed. Click Send or press Enter');
+                sendMessage();
             };
 
             recognition.onerror = () => {
                 updateStatus('Microphone error. Try typing instead.');
+                recordBtn.disabled = false;
+                recordBtn.style.background = '#667eea';
             };
 
             recognition.onend = () => {
@@ -316,9 +325,9 @@
             recognition.start();
         }
 
-        async function speakResponse() {
+        function speakResponse() {
             if (!lastResponse) {
-                updateStatus('No response to speak yet. Send a message first!');
+                updateStatus('No response to speak yet.');
                 return;
             }
 
@@ -334,22 +343,20 @@
             utterance.lang = 'en-US';
 
             utterance.onstart = () => {
-                isSpeaking = true;
                 updateStatus('Speaking...');
             };
 
             utterance.onend = () => {
-                isSpeaking = false;
-                updateStatus('Ready to listen.');
+                updateStatus('Click 🎤 to respond, or type your next message');
             };
 
             speechSynthesis.speak(utterance);
         }
 
-        // Initialize on load
+        // Welcome message on load
         window.addEventListener('load', () => {
-            initializeModel();
             addMessage("Hello, I'm your Divine Resonance Guide. I'm here to listen and support you with compassion. What's on your heart today?", 'therapist');
+            updateStatus('Ready to chat. Type or click 🎤');
         });
 
         // Allow Enter key to send
