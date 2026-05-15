@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Burnout Assessment Quiz - Am I Burned Out?</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+        .quiz-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .quiz-header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .quiz-header p {
+            color: #666;
+            font-size: 16px;
+        }
+        .progress-bar {
+            height: 4px;
+            background: #eee;
+            border-radius: 4px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .question-container {
+            display: none;
+        }
+        .question-container.active {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .question-text {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 25px;
+            font-weight: 500;
+        }
+        .answers {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .answer-btn {
+            padding: 12px 20px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+        .answer-btn:hover {
+            border-color: #667eea;
+            background: #f5f7ff;
+        }
+        .answer-btn.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+            justify-content: space-between;
+        }
+        button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .btn-prev {
+            background: #e0e0e0;
+            color: #333;
+        }
+        .btn-prev:hover {
+            background: #d0d0d0;
+        }
+        .btn-next {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            flex: 1;
+        }
+        .btn-next:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        .results-container {
+            display: none;
+            text-align: center;
+        }
+        .results-container.active {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+        .score-badge {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+            color: white;
+        }
+        .score-critical {
+            background: linear-gradient(135deg, #f56565, #c53030);
+        }
+        .score-high {
+            background: linear-gradient(135deg, #ed8936, #dd6b20);
+        }
+        .score-moderate {
+            background: linear-gradient(135deg, #ecc94b, #d69e2e);
+        }
+        .score-low {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+        }
+        .result-title {
+            font-size: 26px;
+            color: #333;
+            margin-top: 20px;
+            margin-bottom: 15px;
+        }
+        .result-message {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .email-form {
+            background: #f9f9f9;
+            padding: 25px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .email-form h3 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        .form-group {
+            margin-bottom: 12px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .back-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="quiz-header">
+            <h1>Burnout Assessment Quiz</h1>
+            <p>Discover your burnout level in just 60 seconds</p>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+
+        <div id="quiz">
+            <!-- Questions will be inserted here -->
+        </div>
+
+        <div id="results" class="results-container"></div>
+
+        <div class="button-group" id="buttonGroup">
+            <button class="btn-prev" onclick="previousQuestion()" style="display:none;" id="prevBtn">← Back</button>
+            <button class="btn-next" onclick="nextQuestion()" id="nextBtn">Next →</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                q: "How often do you feel emotionally exhausted after work?",
+                answers: ["Never", "Rarely", "Sometimes", "Often", "Always"]
+            },
+            {
+                q: "Do you experience physical symptoms (headaches, fatigue, insomnia)?",
+                answers: ["Never", "Rarely", "Sometimes", "Often", "Always"]
+            },
+            {
+                q: "How frequently do you feel cynical or detached from your work?",
+                answers: ["Never", "Rarely", "Sometimes", "Often", "Always"]
+            },
+            {
+                q: "Do you struggle to concentrate or make decisions?",
+                answers: ["Never", "Rarely", "Sometimes", "Often", "Always"]
+            },
+            {
+                q: "How often do you feel unable to cope with your workload?",
+                answers: ["Never", "Rarely", "Sometimes", "Often", "Always"]
+            },
+            {
+                q: "Do you feel less effective or productive than before?",
+                answers: ["Never", "Rarely", "Sometimes", "Often", "Always"]
+            },
+            {
+                q: "How frequently do you experience anxiety or irritability?",
+                answers: ["Never", "Rarely", "Sometimes", "Often", "Always"]
+            },
+            {
+                q: "Do you neglect self-care (sleep, exercise, healthy eating)?",
+                answers: ["Never", "Rarely", "Sometimes", "Often", "Always"]
+            },
+            {
+                q: "Do you dread going to work or have negative thoughts about it?",
+                answers: ["Never", "Rarely", "Sometimes", "Often", "Always"]
+            },
+            {
+                q: "Do you lack motivation or passion for things you once enjoyed?",
+                answers: ["Never", "Rarely", "Sometimes", "Often", "Always"]
+            }
+        ];
+
+        let currentQuestion = 0;
+        let scores = [];
+
+        function initQuiz() {
+            const quizContainer = document.getElementById('quiz');
+            questions.forEach((question, index) => {
+                const div = document.createElement('div');
+                div.className = 'question-container' + (index === 0 ? ' active' : '');
+                div.innerHTML = `
+                    <div class="question-text">Q${index + 1}/10: ${question.q}</div>
+                    <div class="answers" id="answers-${index}"></div>
+                `;
+                quizContainer.appendChild(div);
+
+                const answersDiv = document.getElementById(`answers-${index}`);
+                question.answers.forEach((answer, i) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'answer-btn';
+                    btn.textContent = answer;
+                    btn.onclick = () => selectAnswer(index, i);
+                    answersDiv.appendChild(btn);
+                });
+            });
+            scores = new Array(questions.length).fill(-1);
+        }
+
+        function selectAnswer(qIndex, answerIndex) {
+            scores[qIndex] = answerIndex;
+            const buttons = document.querySelectorAll(`#answers-${qIndex} .answer-btn`);
+            buttons.forEach((btn, i) => {
+                btn.classList.toggle('selected', i === answerIndex);
+            });
+        }
+
+        function nextQuestion() {
+            if (scores[currentQuestion] === -1) {
+                alert('Please select an answer');
+                return;
+            }
+            
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                showQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                showQuestion();
+            }
+        }
+
+        function showQuestion() {
+            const containers = document.querySelectorAll('.question-container');
+            containers.forEach((c, i) => {
+                c.classList.toggle('active', i === currentQuestion);
+            });
+            
+            document.getElementById('prevBtn').style.display = currentQuestion > 0 ? 'block' : 'none';
+            document.getElementById('nextBtn').textContent = currentQuestion === questions.length - 1 ? 'See Results' : 'Next →';
+            
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            document.querySelector('.progress-fill').style.width = progress + '%';
+        }
+
+        function showResults() {
+            const totalScore = scores.reduce((a, b) => a + b, 0);
+            const maxScore = questions.length * 4;
+            const percentage = (totalScore / maxScore) * 100;
+            
+            let level, title, message, badgeClass;
+            
+            if (percentage >= 80) {
+                level = Math.round(percentage);
+                title = "🚨 CRITICAL BURNOUT";
+                message = "You're showing severe signs of burnout. Your body and mind are signaling that immediate action is needed. This is not sustainable—you need support NOW.";
+                badgeClass = "score-critical";
+            } else if (percentage >= 60) {
+                level = Math.round(percentage);
+                title = "⚠️ HIGH BURNOUT";
+                message = "You're experiencing significant burnout symptoms. Without intervention, this will continue to escalate. It's time to take real steps to recover.";
+                badgeClass = "score-high";
+            } else if (percentage >= 40) {
+                level = Math.round(percentage);
+                title = "⚡ MODERATE BURNOUT";
+                message = "You're showing moderate burnout signs. Now is the time to make changes before it becomes severe. Small actions today prevent bigger problems later.";
+                badgeClass = "score-moderate";
+            } else {
+                level = Math.round(percentage);
+                title = "✅ LOW BURNOUT";
+                message = "You're managing well, but don't ignore early warning signs. Preventive care is always better than crisis management.";
+                badgeClass = "score-low";
+            }
+
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `
+                <div class="score-badge ${badgeClass}">${level}%</div>
+                <h2 class="result-title">${title}</h2>
+                <p class="result-message">${message}</p>
+                
+                <div class="email-form">
+                    <h3>📧 Get Your Personalized Recovery Plan</h3>
+                    <form action="https://formsubmit.co/lott2395@gmail.com" method="POST">
+                        <input type="hidden" name="_subject" value="Burnout Quiz Result - Score: ${level}%">
+                        <input type="hidden" name="_captcha" value="false">
+                        <div class="form-group">
+                            <input type="text" name="name" placeholder="Your Name" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="email" name="email" placeholder="Your Email" required>
+                        </div>
+                        <div class="form-group">
+                            <textarea name="message" placeholder="What's your biggest burnout challenge?" style="width:100%; padding:12px; border:2px solid #ddd; border-radius:6px; font-size:15px; font-family:inherit;" rows="3"></textarea>
+                        </div>
+                        <button type="submit" class="submit-btn">Get Your Recovery Plan →</button>
+                    </form>
+                </div>
+                
+                <p style="font-size:14px; color:#999; margin-top:20px;">As a Registered Nurse with 23 years of experience (including night shifts), I've built recovery tools that actually work. You're not alone in this.</p>
+            `;
+            
+            resultsDiv.classList.add('active');
+            document.getElementById('quiz').style.display = 'none';
+            document.getElementById('buttonGroup').style.display = 'none';
+        }
+
+        // Initialize quiz on page load
+        initQuiz();
+    </script>
+</body>
+</html>
