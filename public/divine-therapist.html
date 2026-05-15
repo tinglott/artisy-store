@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Divine Resonance Voice Therapist AI</title>
+    <script src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 700px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1em;
+        }
+
+        .chat-box {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 15px;
+            border-radius: 10px;
+            max-width: 85%;
+            word-wrap: break-word;
+        }
+
+        .user-message {
+            background: #667eea;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .therapist-message {
+            background: white;
+            color: #333;
+            border: 1px solid #e0e0e0;
+            text-align: left;
+        }
+
+        .input-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            padding: 12px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .voice-section {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .voice-btn {
+            flex: 1;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .status {
+            text-align: center;
+            color: #667eea;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        .disclaimer {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 0.85em;
+            color: #555;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .chat-box {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🙏 Divine Resonance Guide</h1>
+            <p>Your compassionate voice therapist for stress relief & spiritual wellness</p>
+        </div>
+
+        <div class="chat-box" id="chatBox"></div>
+
+        <div class="input-section">
+            <input type="text" id="userInput" placeholder="Tell me what's on your mind..." />
+            <button onclick="sendMessage()">Send</button>
+        </div>
+
+        <div class="voice-section">
+            <button class="voice-btn" id="recordBtn" onclick="startListening()">🎤 Listen to me</button>
+            <button class="voice-btn" id="speakBtn" onclick="speakResponse()" style="display:none;">🔊 Speak</button>
+        </div>
+
+        <div class="status" id="status"></div>
+
+        <div class="disclaimer">
+            <strong>⚠️ Medical Disclaimer:</strong> This AI assistant is for educational and wellness support only. It is not a substitute for professional mental health treatment. If you're experiencing a crisis, please contact a mental health professional or call 988 (Suicide & Crisis Lifeline).
+        </div>
+    </div>
+
+    <script>
+        let pipe = null;
+        let lastResponse = '';
+        let isListening = false;
+        let isSpeaking = false;
+
+        // Initialize Transformers.js
+        async function initializeModel() {
+            try {
+                updateStatus('Loading AI model... (this may take a minute)');
+                const { pipeline } = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.js');
+                pipe = await pipeline('text2text-generation', 'Xenova/flan-t5-small');
+                updateStatus('AI ready! Start talking.');
+            } catch (err) {
+                updateStatus('Model loading error. Using fallback responses.');
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            addMessage(msg, 'user');
+            input.value = '';
+            updateStatus('Thinking...');
+
+            try {
+                let response;
+                
+                if (pipe) {
+                    const output = await pipe(msg, {
+                        max_length: 150
+                    });
+                    response = output[0].generated_text;
+                } else {
+                    // Fallback if model not loaded
+                    response = generateTherapistResponse(msg);
+                }
+
+                lastResponse = response;
+                addMessage(response, 'therapist');
+                updateStatus('Ready to listen. Click 🎤 to speak.');
+            } catch (err) {
+                lastResponse = generateTherapistResponse(msg);
+                addMessage(lastResponse, 'therapist');
+                updateStatus('Ready.');
+            }
+        }
+
+        function generateTherapistResponse(userInput) {
+            const responses = {
+                stress: "I hear that you're experiencing stress. Let's take three deep breaths together. Breathing in... holding... and out. Remember, you have the strength to navigate this.",
+                anxious: "Anxiety is your mind trying to protect you. That's actually a sign of care. What if we focus on what you can control right now?",
+                tired: "Burnout is real, especially in caring professions like nursing. You've given so much to others. What does rest look like for you?",
+                hope: "I feel your hope. That resilience is beautiful. What small step could you take today that aligns with that hope?",
+                grateful: "Gratitude opens the heart. Thank you for sharing that with me. What else are you grateful for?",
+                pain: "I'm here with you in this moment. Pain is often a teacher. What might it be trying to tell you?"
+            };
+
+            const userLower = userInput.toLowerCase();
+            for (let key in responses) {
+                if (userLower.includes(key)) {
+                    return responses[key];
+                }
+            }
+
+            return "Thank you for sharing that with me. I'm here to support you on this journey. What feels most important to explore right now?";
+        }
+
+        function addMessage(text, sender) {
+            const chatBox = document.getElementById('chatBox');
+            const div = document.createElement('div');
+            div.className = `message ${sender}-message`;
+            div.textContent = text;
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function updateStatus(msg) {
+            document.getElementById('status').textContent = msg;
+        }
+
+        function startListening() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                updateStatus('Voice not supported on this device.');
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            const recordBtn = document.getElementById('recordBtn');
+            recordBtn.disabled = true;
+            updateStatus('Listening...');
+
+            recognition.onstart = () => {
+                isListening = true;
+                recordBtn.style.background = '#ff6b6b';
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('userInput').value = transcript;
+                updateStatus('Transcribed. Click Send or 🔊 to hear response.');
+            };
+
+            recognition.onerror = () => {
+                updateStatus('Microphone error. Try typing instead.');
+            };
+
+            recognition.onend = () => {
+                isListening = false;
+                recordBtn.disabled = false;
+                recordBtn.style.background = '#667eea';
+            };
+
+            recognition.start();
+        }
+
+        async function speakResponse() {
+            if (!lastResponse) {
+                updateStatus('No response to speak yet. Send a message first!');
+                return;
+            }
+
+            if (!('speechSynthesis' in window)) {
+                updateStatus('Speech synthesis not supported.');
+                return;
+            }
+
+            const utterance = new SpeechSynthesisUtterance(lastResponse);
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+            utterance.lang = 'en-US';
+
+            utterance.onstart = () => {
+                isSpeaking = true;
+                updateStatus('Speaking...');
+            };
+
+            utterance.onend = () => {
+                isSpeaking = false;
+                updateStatus('Ready to listen.');
+            };
+
+            speechSynthesis.speak(utterance);
+        }
+
+        // Initialize on load
+        window.addEventListener('load', () => {
+            initializeModel();
+            addMessage("Hello, I'm your Divine Resonance Guide. I'm here to listen and support you with compassion. What's on your heart today?", 'therapist');
+        });
+
+        // Allow Enter key to send
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && e.target.id === 'userInput') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
