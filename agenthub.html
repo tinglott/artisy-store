@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>T. Lott AgentHub - 6-Agent AI Workforce</title>
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -20,11 +17,6 @@
             background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0f0a1a 100%);
             color: #e0e0e0;
             overflow-x: hidden;
-            min-height: 100vh;
-        }
-        
-        #root {
-            width: 100%;
             min-height: 100vh;
         }
         
@@ -78,12 +70,9 @@
         
         .header h1 {
             font-family: 'Orbitron', monospace;
-            font-size: 3em;
+            font-size: 2.5em;
             font-weight: 900;
-            background: linear-gradient(90deg, #00d4ff, #00ffff, #00d4ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #00ffff;
             text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
             margin-bottom: 10px;
         }
@@ -96,45 +85,54 @@
         
         .agents-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
         }
         
         .agent-card {
-            background: linear-gradient(135deg, rgba(30, 30, 60, 0.8), rgba(50, 40, 80, 0.8));
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(100, 50, 200, 0.1));
             border: 2px solid #00d4ff;
             border-radius: 8px;
-            padding: 25px;
+            padding: 20px;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
             position: relative;
+            overflow: hidden;
         }
         
         .agent-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 0 30px rgba(0, 212, 255, 0.6);
             border-color: #00ffff;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+            transform: translateY(-3px);
+        }
+        
+        .agent-card.selected {
+            border-color: #00ffff;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(100, 50, 200, 0.2));
+        }
+        
+        .agent-emoji {
+            font-size: 2em;
+            margin-bottom: 10px;
         }
         
         .agent-card h3 {
-            font-family: 'Orbitron', monospace;
             color: #00ffff;
-            margin-bottom: 10px;
-            font-size: 1.3em;
+            margin-bottom: 8px;
+            font-family: 'Orbitron', monospace;
         }
         
         .agent-card p {
             color: #b0b0b0;
-            font-size: 0.95em;
-            line-height: 1.6;
-            margin-bottom: 15px;
+            font-size: 0.9em;
+            line-height: 1.4;
         }
         
-        .agent-card .emoji {
-            font-size: 2em;
-            margin-bottom: 10px;
+        .agent-card .selected-indicator {
+            color: #51cf66;
+            font-size: 0.9em;
+            margin-top: 10px;
         }
         
         .input-section {
@@ -145,57 +143,46 @@
             margin-bottom: 20px;
         }
         
-        .input-section h2 {
-            font-family: 'Orbitron', monospace;
-            color: #00ffff;
-            margin-bottom: 15px;
-        }
-        
         .input-section textarea {
             width: 100%;
-            min-height: 120px;
-            padding: 10px;
-            background: rgba(20, 20, 40, 0.9);
+            height: 150px;
+            background: rgba(10, 10, 30, 0.8);
             border: 1px solid #00d4ff;
             color: #e0e0e0;
-            font-family: 'Courier Prime', monospace;
+            padding: 15px;
             border-radius: 4px;
-            margin-bottom: 10px;
+            font-family: 'Courier Prime', monospace;
             font-size: 0.95em;
+            resize: vertical;
         }
         
         .input-section textarea:focus {
             outline: none;
             border-color: #00ffff;
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.2);
         }
         
-        .button-group {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        
-        .btn {
-            padding: 10px 20px;
-            background: linear-gradient(135deg, #00d4ff, #00ffff);
-            color: #000;
+        .submit-btn {
+            background: linear-gradient(90deg, #00d4ff, #00ffff);
+            color: #0a0e27;
             border: none;
+            padding: 12px 30px;
             border-radius: 4px;
-            font-family: 'Orbitron', monospace;
             cursor: pointer;
             font-weight: bold;
+            font-family: 'Courier Prime', monospace;
+            margin-top: 10px;
             transition: all 0.3s ease;
-            font-size: 0.95em;
         }
         
-        .btn:hover {
+        .submit-btn:hover {
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
             transform: scale(1.05);
-            box-shadow: 0 0 15px rgba(0, 212, 255, 0.6);
         }
         
-        .btn:active {
-            transform: scale(0.98);
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
         
         .output-section {
@@ -251,23 +238,13 @@
             border-radius: 4px;
         }
         
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2em;
-            }
-            
-            .agents-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
         .quick-actions {
             display: flex;
             gap: 10px;
             margin-top: 10px;
             flex-wrap: wrap;
         }
-
+        
         .quick-action-btn {
             padding: 6px 12px;
             background: rgba(0, 212, 255, 0.2);
@@ -279,241 +256,226 @@
             transition: all 0.2s ease;
             font-family: 'Courier Prime', monospace;
         }
-
+        
         .quick-action-btn:hover {
             background: rgba(0, 212, 255, 0.4);
             box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
         }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .agents-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
-    <div id="root"></div>
-    
-    <script type="text/babel">
-        const { useState, useEffect } = React;
-        
+    <div class="app-container">
+        <div class="particles"></div>
+        <div class="content">
+            <div class="header">
+                <h1>⚡ T. LOTT AGENTHUB</h1>
+                <p>6-Agent AI Workforce Powered by Grok</p>
+            </div>
+            
+            <div class="agents-grid" id="agentsGrid"></div>
+            <div id="inputArea"></div>
+            <div id="outputArea"></div>
+        </div>
+    </div>
+
+    <script>
         const GROK_API_KEY = 'xai-token-yRCYMQuymEdkCjdBwqWBn4v60E9h4DJqKnt6WAWYft3PYzOjvjTQEGfQjv4c9HIi43qKc7u7zZHIie2u';
         
         const agents = [
             {
                 id: 'content-creator',
                 name: '📝 Content Creator',
-                description: 'Generate blog posts, social media content, email copy, and creative writing.',
                 emoji: '📝',
-                systemPrompt: 'You are an expert content creator who specializes in engaging, compelling copy for various platforms.'
+                description: 'Create blog posts, emails, social media content, and more',
+                systemPrompt: 'You are a professional content creator. Help users write engaging, high-quality content across all platforms.'
             },
             {
-                id: 'research',
-                name: '🔍 Research Assistant',
-                description: 'Deep research, fact-checking, data synthesis, and knowledge compilation.',
-                emoji: '🔍',
-                systemPrompt: 'You are a thorough research assistant who provides well-organized, accurate information with sources.'
+                id: 'researcher',
+                name: '🔬 Research Assistant',
+                emoji: '🔬',
+                description: 'Research topics, analyze information, and provide insights',
+                systemPrompt: 'You are a research expert. Help users find, analyze, and understand information on any topic.'
             },
             {
-                id: 'ai-employee-builder',
-                name: '⚙️ AI Employee Builder',
-                description: 'Design and plan AI agents, automations, and workflow systems.',
-                emoji: '⚙️',
-                systemPrompt: 'You are an expert in designing AI systems, automations, and workflow optimization.'
+                id: 'ai-builder',
+                name: '🤖 AI Employee Builder',
+                emoji: '🤖',
+                description: 'Design and build AI automation workflows',
+                systemPrompt: 'You are an AI automation expert. Help users design efficient AI-powered workflows and automations.'
             },
             {
-                id: 'productivity-coach',
-                name: '⏰ Productivity Coach',
-                description: 'Task planning, time management strategies, and workflow optimization.',
-                emoji: '⏰',
-                systemPrompt: 'You are a productivity and time management expert who helps people optimize their workflows.'
+                id: 'coach',
+                name: '🎯 Productivity Coach',
+                emoji: '🎯',
+                description: 'Get strategies for productivity and time management',
+                systemPrompt: 'You are a productivity coach. Help users develop strategies to work smarter and achieve their goals.'
             },
             {
-                id: 'business-strategist',
+                id: 'strategist',
                 name: '💼 Business Strategist',
-                description: 'Business planning, growth strategies, market analysis, and revenue models.',
                 emoji: '💼',
-                systemPrompt: 'You are a strategic business consultant with expertise in growth, markets, and revenue optimization.'
+                description: 'Develop business strategies and growth plans',
+                systemPrompt: 'You are a business strategist. Help users develop effective strategies for business growth and success.'
             },
             {
-                id: 'learning-accelerator',
-                name: '🧠 Learning Accelerator',
-                description: 'Create learning plans, explain complex topics, and design educational content.',
-                emoji: '🧠',
-                systemPrompt: 'You are an educational expert who breaks down complex topics and creates effective learning paths.'
+                id: 'accelerator',
+                name: '⚡ Learning Accelerator',
+                emoji: '⚡',
+                description: 'Fast-track your learning on any subject',
+                systemPrompt: 'You are a learning expert. Help users quickly master new skills and knowledge areas.'
             }
         ];
         
-        function AgentHub() {
-            const [selectedAgent, setSelectedAgent] = useState(null);
-            const [userInput, setUserInput] = useState('');
-            const [output, setOutput] = useState('');
-            const [loading, setLoading] = useState(false);
-            const [error, setError] = useState('');
-            
-            useEffect(() => {
-                // Create particles
-                const particlesContainer = document.querySelector('.particles');
-                for (let i = 0; i < 50; i++) {
-                    const particle = document.createElement('div');
-                    particle.className = 'particle';
-                    particle.style.left = Math.random() * 100 + '%';
-                    particle.style.top = Math.random() * 100 + '%';
-                    particle.style.animationDelay = Math.random() * 20 + 's';
-                    particle.style.animationDuration = (15 + Math.random() * 15) + 's';
-                    particlesContainer.appendChild(particle);
-                }
-            }, []);
-            
-            const callGrokAPI = async (agentSystemPrompt, userMessage) => {
-                try {
-                    const response = await fetch('https://api.x.ai/v1/chat/completions', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${GROK_API_KEY}`
-                        },
-                        body: JSON.stringify({
-                            model: 'grok-3',
-                            messages: [
-                                {
-                                    role: 'system',
-                                    content: agentSystemPrompt
-                                },
-                                {
-                                    role: 'user',
-                                    content: userMessage
-                                }
-                            ],
-                            temperature: 0.7,
-                            max_tokens: 2000
-                        })
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error(`API Error: ${response.status} ${response.statusText}`);
-                    }
-                    
-                    const data = await response.json();
-                    return data.choices[0].message.content;
-                } catch (err) {
-                    throw new Error(`Grok API Error: ${err.message}`);
-                }
-            };
-            
-            const handleExecute = async () => {
-                if (!selectedAgent) {
-                    setError('Please select an agent first');
-                    return;
-                }
-                
-                if (!userInput.trim()) {
-                    setError('Please enter a prompt');
-                    return;
-                }
-                
-                setLoading(true);
-                setError('');
-                setOutput('Processing...');
-                
-                try {
-                    const agent = agents.find(a => a.id === selectedAgent);
-                    const result = await callGrokAPI(agent.systemPrompt, userInput);
-                    setOutput(result);
-                } catch (err) {
-                    setError(err.message);
-                    setOutput('');
-                } finally {
-                    setLoading(false);
-                }
-            };
-            
-            const handleQuickAction = (action) => {
-                const prompts = {
-                    'blog': 'Write a blog post about [your topic here]',
-                    'email': 'Write a professional email about [topic]',
-                    'plan': 'Create a detailed plan for [your goal]',
-                    'analyze': 'Analyze this: [paste your content here]'
-                };
-                setUserInput(prompts[action] || '');
-            };
-            
-            return (
-                <div className="app-container">
-                    <div className="particles"></div>
-                    <div className="content">
-                        <div className="header">
-                            <h1>⚡ T. LOTT AGENTHUB</h1>
-                            <p>6-Agent AI Workforce Powered by Grok</p>
-                        </div>
-                        
-                        <div className="agents-grid">
-                            {agents.map(agent => (
-                                <div
-                                    key={agent.id}
-                                    className="agent-card"
-                                    onClick={() => setSelectedAgent(agent.id)}
-                                    style={{
-                                        opacity: selectedAgent === agent.id ? 1 : 0.7,
-                                        borderColor: selectedAgent === agent.id ? '#00ffff' : '#00d4ff'
-                                    }}
-                                >
-                                    <div className="emoji">{agent.emoji}</div>
-                                    <h3>{agent.name}</h3>
-                                    <p>{agent.description}</p>
-                                    {selectedAgent === agent.id && (
-                                        <div style={{ color: '#51cf66', fontSize: '0.9em', marginTop: '10px' }}>
-                                            ✓ Selected
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                        
-                        {selectedAgent && (
-                            <>
-                                <div className="input-section">
-                                    <h2>💬 Your Prompt</h2>
-                                    <textarea
-                                        value={userInput}
-                                        onChange={(e) => setUserInput(e.target.value)}
-                                        placeholder="Enter your prompt here..."
-                                        onKeyDown={(e) => {
-                                            if (e.ctrlKey && e.key === 'Enter') handleExecute();
-                                        }}
-                                    />
-                                    <div className="button-group">
-                                        <button className="btn" onClick={handleExecute} disabled={loading}>
-                                            {loading ? 'Processing...' : 'Execute'}
-                                        </button>
-                                        <button className="btn" onClick={() => setUserInput('')}>Clear</button>
-                                    </div>
-                                    <div className="quick-actions">
-                                        <button className="quick-action-btn" onClick={() => handleQuickAction('blog')}>📝 Blog Post</button>
-                                        <button className="quick-action-btn" onClick={() => handleQuickAction('email')}>✉️ Email</button>
-                                        <button className="quick-action-btn" onClick={() => handleQuickAction('plan')}>📋 Plan</button>
-                                        <button className="quick-action-btn" onClick={() => handleQuickAction('analyze')}>🔍 Analyze</button>
-                                    </div>
-                                    {error && <div className="error-message">{error}</div>}
-                                </div>
-                                
-                                <div className="output-section">
-                                    <h3>📤 Output</h3>
-                                    <div className="output-content">
-                                        {output || 'Output will appear here...'}
-                                    </div>
-                                </div>
-                            </>
-                        )}
-                        
-                        {!selectedAgent && (
-                            <div className="input-section">
-                                <p style={{ textAlign: 'center', color: '#00d4ff' }}>
-                                    👈 Select an agent to get started
-                                </p>
-                            </div>
-                        )}
-                    </div>
+        let selectedAgent = null;
+        let isLoading = false;
+        
+        function renderAgents() {
+            const grid = document.getElementById('agentsGrid');
+            grid.innerHTML = agents.map(agent => `
+                <div class="agent-card ${selectedAgent === agent.id ? 'selected' : ''}" onclick="selectAgent('${agent.id}')">
+                    <div class="agent-emoji">${agent.emoji}</div>
+                    <h3>${agent.name}</h3>
+                    <p>${agent.description}</p>
+                    ${selectedAgent === agent.id ? '<div class="selected-indicator">✓ Selected</div>' : ''}
                 </div>
-            );
+            `).join('');
         }
         
-        ReactDOM.createRoot(document.getElementById('root')).render(<AgentHub />);
+        function selectAgent(agentId) {
+            selectedAgent = agentId;
+            renderAgents();
+            renderInputArea();
+        }
+        
+        function renderInputArea() {
+            const area = document.getElementById('inputArea');
+            if (!selectedAgent) {
+                area.innerHTML = '<div class="input-section" style="text-align: center; color: #00d4ff;">👈 Select an agent to get started</div>';
+                return;
+            }
+            
+            const agent = agents.find(a => a.id === selectedAgent);
+            area.innerHTML = `
+                <div class="input-section">
+                    <h3 style="color: #00ffff; margin-bottom: 10px;">Talk to ${agent.name}</h3>
+                    <textarea id="userInput" placeholder="Enter your request here..."></textarea>
+                    <button class="submit-btn" onclick="submitRequest()">Send to Grok 🚀</button>
+                    <div class="quick-actions">
+                        <button class="quick-action-btn" onclick="fillTemplate('blog')">Blog Post</button>
+                        <button class="quick-action-btn" onclick="fillTemplate('email')">Email</button>
+                        <button class="quick-action-btn" onclick="fillTemplate('plan')">Plan</button>
+                        <button class="quick-action-btn" onclick="fillTemplate('analyze')">Analyze</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function fillTemplate(type) {
+            const templates = {
+                'blog': 'Write a blog post about [your topic here]',
+                'email': 'Write a professional email about [topic]',
+                'plan': 'Create a detailed plan for [your goal]',
+                'analyze': 'Analyze this: [paste your content here]'
+            };
+            document.getElementById('userInput').value = templates[type];
+        }
+        
+        async function submitRequest() {
+            if (!selectedAgent || isLoading) return;
+            
+            const userInput = document.getElementById('userInput').value.trim();
+            if (!userInput) {
+                alert('Please enter a request');
+                return;
+            }
+            
+            isLoading = true;
+            const agent = agents.find(a => a.id === selectedAgent);
+            
+            document.getElementById('outputArea').innerHTML = `
+                <div class="output-section">
+                    <h3>Response from ${agent.name}</h3>
+                    <div class="loading">Thinking...</div>
+                </div>
+            `;
+            
+            try {
+                const response = await fetch('https://api.x.ai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${GROK_API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: 'grok-3',
+                        messages: [
+                            {
+                                role: 'system',
+                                content: agent.systemPrompt
+                            },
+                            {
+                                role: 'user',
+                                content: userInput
+                            }
+                        ],
+                        temperature: 0.7,
+                        max_tokens: 2000
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                const result = data.choices[0].message.content;
+                
+                document.getElementById('outputArea').innerHTML = `
+                    <div class="output-section">
+                        <h3>Response from ${agent.name}</h3>
+                        <div class="output-content">${result}</div>
+                        <div class="success-message">✓ Generated by Grok</div>
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById('outputArea').innerHTML = `
+                    <div class="output-section">
+                        <h3>Response from ${agent.name}</h3>
+                        <div class="error-message">❌ Error: ${error.message}</div>
+                    </div>
+                `;
+            } finally {
+                isLoading = false;
+            }
+        }
+        
+        // Create particles
+        function createParticles() {
+            const container = document.querySelector('.particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animation = `float ${15 + Math.random() * 15}s infinite linear`;
+                particle.style.animationDelay = Math.random() * 5 + 's';
+                container.appendChild(particle);
+            }
+        }
+        
+        // Initialize
+        createParticles();
+        renderAgents();
+        renderInputArea();
     </script>
 </body>
 </html>
