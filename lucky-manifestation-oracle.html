@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lucky Manifestation Oracle — Your Daily Guidance</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --purple-dark: #1a0533;
+  --purple-mid: #2d1b69;
+  --purple-light: #7c3aed;
+  --purple-glow: #a855f7;
+  --gold: #f5c842;
+  --gold-light: #fde68a;
+  --crystal: #e0d7ff;
+  --white: #faf5ff;
+  --text: #f3e8ff;
+  --text-dim: #c4b5fd;
+  --radius: 20px;
+  --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Montserrat', sans-serif;
+  background: linear-gradient(135deg, var(--purple-dark) 0%, var(--purple-mid) 50%, #0f172a 100%);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Stars background */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: 
+    radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.6) 0%, transparent 100%),
+    radial-gradient(1px 1px at 60% 20%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 80% 70%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 90% 40%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(2px 2px at 15% 60%, rgba(245,200,66,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 70% 90%, rgba(255,255,255,0.4) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── HEADER ── */
+.header {
+  padding: 1rem 1.5rem;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  position: relative; z-index: 10;
+  background: rgba(26,5,51,0.6);
+  backdrop-filter: blur(12px);
+}
+.logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.4rem; font-weight: 300;
+  background: linear-gradient(135deg, var(--gold), var(--purple-glow));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  letter-spacing: 0.05em;
+}
+.streak-badge {
+  display: flex; align-items: center; gap: 0.4rem;
+  background: rgba(245,200,66,0.15); border: 1px solid rgba(245,200,66,0.3);
+  padding: 0.4rem 0.9rem; border-radius: 50px;
+  font-size: 0.8rem; color: var(--gold);
+}
+
+/* ── NAV ── */
+.nav {
+  display: flex; gap: 0; overflow-x: auto;
+  background: rgba(26,5,51,0.8); border-bottom: 1px solid rgba(255,255,255,0.06);
+  position: relative; z-index: 10;
+}
+.nav-btn {
+  background: none; border: none; cursor: pointer;
+  padding: 0.85rem 1.2rem; color: var(--text-dim);
+  font-family: 'Montserrat', sans-serif; font-size: 0.75rem;
+  font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+  border-bottom: 2px solid transparent; transition: var(--transition);
+  white-space: nowrap; display: flex; align-items: center; gap: 0.4rem;
+}
+.nav-btn.active { color: var(--purple-glow); border-bottom-color: var(--purple-glow); }
+.nav-btn:hover:not(.active) { color: var(--crystal); }
+
+/* ── MAIN ── */
+main { position: relative; z-index: 5; max-width: 700px; margin: 0 auto; padding: 2rem 1.5rem; }
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── CRYSTAL BALL ── */
+.oracle-center { text-align: center; margin-bottom: 2rem; }
+.oracle-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 300;
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 0.4rem;
+}
+.oracle-subtitle { color: var(--text-dim); font-size: 0.85rem; margin-bottom: 1.5rem; }
+
+/* Mood selector */
+.mood-bar {
+  display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1.5rem;
+}
+.mood-btn {
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+  color: var(--text-dim); padding: 0.45rem 1rem; border-radius: 50px;
+  cursor: pointer; font-size: 0.8rem; transition: var(--transition);
+  font-family: 'Montserrat', sans-serif;
+}
+.mood-btn.selected, .mood-btn:hover {
+  background: rgba(168,85,247,0.25); border-color: var(--purple-glow);
+  color: var(--crystal);
+}
+
+/* Crystal ball */
+.crystal-wrap {
+  display: flex; justify-content: center; margin: 0 auto 2rem;
+  position: relative;
+}
+.crystal-ball {
+  width: clamp(180px, 45vw, 240px);
+  height: clamp(180px, 45vw, 240px);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.3) 0%, rgba(124,58,237,0.6) 35%, rgba(45,27,105,0.9) 70%, rgba(26,5,51,1) 100%);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+  box-shadow:
+    0 0 40px rgba(168,85,247,0.4),
+    0 0 80px rgba(168,85,247,0.2),
+    inset 0 0 40px rgba(124,58,237,0.3);
+  transition: var(--transition);
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+.crystal-ball:hover { transform: scale(1.05); box-shadow: 0 0 60px rgba(168,85,247,0.6), 0 0 100px rgba(168,85,247,0.3); }
+.crystal-ball::before {
+  content: '';
+  position: absolute; top: 12%; left: 18%; width: 30%; height: 20%;
+  background: rgba(255,255,255,0.15); border-radius: 50%;
+  transform: rotate(-30deg);
+}
+.crystal-inner { text-align: center; padding: 1rem; }
+.crystal-icon { font-size: 2.5rem; display: block; margin-bottom: 0.5rem; }
+.crystal-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.85rem; font-style: italic; color: rgba(255,255,255,0.7);
+  line-height: 1.4;
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 40px rgba(168,85,247,0.4), 0 0 80px rgba(168,85,247,0.2); }
+  50% { box-shadow: 0 0 60px rgba(168,85,247,0.6), 0 0 120px rgba(168,85,247,0.3); }
+}
+
+/* Message card */
+.message-card {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(168,85,247,0.25);
+  border-radius: var(--radius);
+  padding: 1.75rem;
+  backdrop-filter: blur(8px);
+  margin-bottom: 1.5rem;
+}
+.message-category {
+  font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 0.75rem;
+}
+.message-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+  font-style: italic; line-height: 1.6; color: var(--crystal);
+  margin-bottom: 1rem;
+}
+.message-sub { font-size: 0.82rem; color: var(--text-dim); line-height: 1.5; }
+.msg-actions { display: flex; gap: 0.75rem; margin-top: 1.25rem; flex-wrap: wrap; }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.65rem 1.4rem; border-radius: 50px;
+  font-family: 'Montserrat', sans-serif; font-size: 0.8rem; font-weight: 700;
+  cursor: pointer; transition: var(--transition); border: none; letter-spacing: 0.05em;
+}
+.btn-gold { background: linear-gradient(135deg, var(--gold), #e8b800); color: #1a0533; }
+.btn-gold:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(245,200,66,0.4); }
+.btn-purple { background: linear-gradient(135deg, var(--purple-light), var(--purple-glow)); color: #fff; }
+.btn-purple:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(168,85,247,0.4); }
+.btn-ghost { background: rgba(255,255,255,0.08); color: var(--text-dim); border: 1px solid rgba(255,255,255,0.12); }
+.btn-ghost:hover { background: rgba(255,255,255,0.14); color: var(--crystal); }
+.btn-sm { padding: 0.45rem 1rem; font-size: 0.75rem; }
+
+/* ── JOURNAL ── */
+.journal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+.section-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.8rem; font-weight: 300;
+  background: linear-gradient(135deg, var(--gold), var(--purple-glow));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.journal-box {
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem;
+}
+textarea {
+  width: 100%; min-height: 130px; background: transparent;
+  border: none; outline: none; color: var(--text);
+  font-family: 'Montserrat', sans-serif; font-size: 0.9rem;
+  line-height: 1.7; resize: vertical;
+}
+textarea::placeholder { color: rgba(196,181,253,0.5); font-style: italic; }
+
+.journal-entry {
+  background: rgba(255,255,255,0.04); border-radius: 12px;
+  border-left: 3px solid var(--purple-glow); padding: 1rem 1.25rem;
+  margin-bottom: 0.75rem;
+}
+.entry-date { font-size: 0.72rem; color: var(--text-dim); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.5rem; }
+
+/* ── STREAKS ── */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+.stat-card {
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius); padding: 1.25rem; text-align: center;
+}
+.stat-icon { font-size: 1.8rem; margin-bottom: 0.5rem; }
+.stat-num { font-size: 2rem; font-weight: 700; color: var(--gold); }
+.stat-lbl { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim); }
+.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 1.5rem; }
+.cal-day {
+  aspect-ratio: 1; border-radius: 4px;
+  background: rgba(255,255,255,0.05);
+}
+.cal-day.visited { background: rgba(168,85,247,0.5); }
+.cal-day.today { background: var(--gold); }
+
+/* ── SAVED ── */
+.saved-card {
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius); padding: 1.25rem; margin-bottom: 0.75rem;
+}
+.saved-msg { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.05rem; line-height: 1.5; margin-bottom: 0.5rem; }
+.saved-cat { font-size: 0.72rem; color: var(--gold); letter-spacing: 0.1em; text-transform: uppercase; }
+.empty-state { text-align: center; padding: 3rem 1rem; color: var(--text-dim); }
+.empty-state .icon { font-size: 3rem; margin-bottom: 1rem; display: block; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(60px);
+  background: rgba(26,5,51,0.95); border: 1px solid rgba(168,85,247,0.3);
+  color: var(--crystal); padding: 0.75rem 1.5rem; border-radius: 50px;
+  font-size: 0.82rem; opacity: 0; transition: var(--transition); z-index: 999;
+  white-space: nowrap; backdrop-filter: blur(12px);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@media (max-width: 480px) {
+  main { padding: 1.5rem 1rem; }
+  .msg-actions { gap: 0.5rem; }
+  .btn { padding: 0.55rem 1rem; font-size: 0.75rem; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">✨ Lucky Manifestation Oracle</div>
+  <div class="streak-badge"><i class="fas fa-fire"></i> <span id="streak-display">0</span> day streak</div>
+</header>
+
+<nav class="nav">
+  <button class="nav-btn active" onclick="showPage('oracle', this)">🔮 Oracle</button>
+  <button class="nav-btn" onclick="showPage('journal', this)">📓 Journal</button>
+  <button class="nav-btn" onclick="showPage('saved', this)">💜 Saved</button>
+  <button class="nav-btn" onclick="showPage('streaks', this)">🔥 Streaks</button>
+</nav>
+
+<main>
+  <!-- ORACLE PAGE -->
+  <div class="page active" id="page-oracle">
+    <div class="oracle-center">
+      <h1 class="oracle-title">Your Daily Oracle</h1>
+      <p class="oracle-subtitle">Select your current energy, then tap the crystal ball for guidance</p>
+      <div class="mood-bar">
+        <button class="mood-btn selected" onclick="selectMood('hopeful', this)">🌟 Hopeful</button>
+        <button class="mood-btn" onclick="selectMood('anxious', this)">🌊 Anxious</button>
+        <button class="mood-btn" onclick="selectMood('grateful', this)">💛 Grateful</button>
+        <button class="mood-btn" onclick="selectMood('seeking', this)">🔍 Seeking</button>
+        <button class="mood-btn" onclick="selectMood('joyful', this)">✨ Joyful</button>
+        <button class="mood-btn" onclick="selectMood('healing', this)">🌿 Healing</button>
+      </div>
+      <div class="crystal-wrap">
+        <div class="crystal-ball" id="crystal-ball" onclick="revealMessage()">
+          <div class="crystal-inner">
+            <span class="crystal-icon" id="crystal-icon">🔮</span>
+            <p class="crystal-text" id="crystal-hint">Tap to reveal your message</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="message-card" id="message-card" style="display:none">
+      <div class="message-category" id="msg-category">MANIFESTATION</div>
+      <p class="message-text" id="msg-text"></p>
+      <p class="message-sub" id="msg-sub"></p>
+      <div class="msg-actions">
+        <button class="btn btn-gold btn-sm" onclick="saveMessage()"><i class="fas fa-heart"></i> Save</button>
+        <button class="btn btn-purple btn-sm" onclick="revealMessage()"><i class="fas fa-sync-alt"></i> New Message</button>
+        <button class="btn btn-ghost btn-sm" onclick="shareMessage()"><i class="fas fa-share-alt"></i> Share</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JOURNAL PAGE -->
+  <div class="page" id="page-journal">
+    <div class="journal-header">
+      <h2 class="section-title">My Journal</h2>
+      <span style="font-size:0.78rem;color:var(--text-dim)" id="j-count">0 entries</span>
+    </div>
+    <div class="journal-box">
+      <textarea id="journal-input" placeholder="Write your intentions, reflections, and gratitude...&#10;&#10;The universe is listening. 🌙"></textarea>
+    </div>
+    <button class="btn btn-purple" onclick="saveJournal()" style="margin-bottom:1.5rem"><i class="fas fa-feather"></i> Save Entry</button>
+    <div id="journal-list"></div>
+  </div>
+
+  <!-- SAVED PAGE -->
+  <div class="page" id="page-saved">
+    <h2 class="section-title" style="margin-bottom:1.25rem">Saved Messages</h2>
+    <div id="saved-list"></div>
+  </div>
+
+  <!-- STREAKS PAGE -->
+  <div class="page" id="page-streaks">
+    <h2 class="section-title" style="margin-bottom:1.25rem">Your Journey</h2>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">🔥</div>
+        <div class="stat-num" id="s-streak">0</div>
+        <div class="stat-lbl">Day Streak</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🔮</div>
+        <div class="stat-num" id="s-readings">0</div>
+        <div class="stat-lbl">Readings</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">💜</div>
+        <div class="stat-num" id="s-saved">0</div>
+        <div class="stat-lbl">Saved</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📓</div>
+        <div class="stat-num" id="s-journal">0</div>
+        <div class="stat-lbl">Journal Entries</div>
+      </div>
+    </div>
+    <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--text-dim);margin-bottom:0.75rem">Last 35 Days</h3>
+    <div class="calendar-grid" id="cal-grid"></div>
+    <p style="font-size:0.78rem;color:var(--text-dim);text-align:center">
+      <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:rgba(168,85,247,0.5);margin-right:4px"></span>Visited &nbsp;
+      <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--gold);margin-right:4px"></span>Today
+    </p>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA ──
+const messages = {
+  hopeful: [
+    { cat: 'MANIFESTATION', text: 'Your hope is the seed of your reality. Water it with action and watch it bloom beyond imagination.', sub: 'The energy you send out is already returning to you multiplied.' },
+    { cat: 'ABUNDANCE', text: 'What you seek is seeking you. The path is already being prepared beneath your feet.', sub: 'Trust the timing of your life. Everything is aligning in perfect order.' },
+    { cat: 'BREAKTHROUGH', text: 'You are standing at the edge of your biggest breakthrough. The next step forward changes everything.', sub: 'Your hope is not naive — it is prophetic.' },
+  ],
+  anxious: [
+    { cat: 'PEACE', text: 'This feeling is temporary. You have survived every hard day so far — you are batting 100%.', sub: 'Breathe. Right now, in this moment, you are safe.' },
+    { cat: 'RELEASE', text: 'Let go of what you cannot control. Your peace is worth more than any outcome.', sub: 'The universe is working on your behalf even when you cannot see it.' },
+    { cat: 'GROUNDING', text: 'Your feet are on solid ground. Root into this present moment and feel your own strength.', sub: 'Anxiety is energy in search of direction. Redirect it toward your dreams.' },
+  ],
+  grateful: [
+    { cat: 'AMPLIFICATION', text: 'Gratitude is the fastest frequency to attract more of what you love. You are already magnetic.', sub: 'What you appreciate, appreciates. Your thankfulness is multiplying your blessings right now.' },
+    { cat: 'FLOW', text: 'When you count your blessings, the universe starts counting them with you — and adding more.', sub: 'You are in the flow state of receiving. Stay open, stay grateful.' },
+    { cat: 'ABUNDANCE', text: 'Your grateful heart is a magnet for miracles. More is on its way to you now.', sub: 'Appreciation opens every door that striving alone cannot.' },
+  ],
+  seeking: [
+    { cat: 'CLARITY', text: 'The answer you seek lives within you, quiet but certain. Stillness will reveal it.', sub: 'You already know. Trust the first whisper you hear.' },
+    { cat: 'DIRECTION', text: 'You are not lost — you are exploring. Every path taken teaches you something priceless.', sub: 'The seeker always finds. Your curiosity is your compass.' },
+    { cat: 'REVELATION', text: 'Something is about to become clear to you. A door you have not yet noticed is about to open.', sub: 'Keep seeking. The universe rewards those who dare to ask.' },
+  ],
+  joyful: [
+    { cat: 'EXPANSION', text: 'Your joy is contagious and magnetic. You are attracting people and opportunities who match your light.', sub: 'This energy is your natural state. You deserve to live here always.' },
+    { cat: 'CELEBRATION', text: 'Joy is not the reward for achieving — it is the fuel. Keep feeding this fire and watch your life expand.', sub: 'Your happiness is a gift to the world. Shine without apology.' },
+    { cat: 'MAGNETISM', text: 'High-vibe people and abundant opportunities are being drawn to your energy right now.', sub: 'You are in alignment. Everything is working out beautifully.' },
+  ],
+  healing: [
+    { cat: 'RENEWAL', text: 'Every ending creates space for a beautiful new beginning. You are being renewed, not abandoned.', sub: 'Healing is not weakness — it is the bravest thing you can do.' },
+    { cat: 'STRENGTH', text: 'You have survived 100% of your hardest days. That is not luck — that is power.', sub: 'Your wounds are becoming wisdom. Your story is becoming your superpower.' },
+    { cat: 'GRACE', text: 'Give yourself the grace you would give your dearest friend. You deserve gentle love right now.', sub: 'Healing happens in layers, in seasons. Be patient with your beautiful self.' },
+  ]
+};
+
+const generalMessages = [
+  { cat: 'ABUNDANCE', text: 'Money flows to you easily and frequently. Wealth is your birthright and you are ready to receive it.', sub: 'Release any beliefs that limit your abundance. You are worthy of financial freedom.' },
+  { cat: 'LOVE', text: 'Love surrounds you in forms you may not yet recognize. Open your eyes and your heart wider.', sub: 'The love you give so freely is returning to you now, multiplied.' },
+  { cat: 'PURPOSE', text: 'You are exactly where you need to be. Your unique gifts are needed in this world right now.', sub: 'Your path is unfolding perfectly. Keep showing up authentically.' },
+  { cat: 'TIMING', text: 'What is meant for you cannot miss you. Divine timing is working in your favor.', sub: 'Stop rushing. The best things in your life are being carefully prepared.' },
+  { cat: 'COURAGE', text: 'The brave version of you is waiting on the other side of this fear. Take one step forward today.', sub: 'Courage is not the absence of fear — it is choosing to move forward anyway.' },
+  { cat: 'INTUITION', text: 'Your intuition is your superpower. It has never lied to you. Trust it completely today.', sub: 'The answer you are looking for is already inside you. Get quiet and listen.' },
+  { cat: 'SUCCESS', text: 'You are closer to your breakthrough than you think. Do not stop now — everything is about to shift.', sub: 'Success is not for some people. It is for those who decide to have it. You decided.' },
+  { cat: 'TRANSFORMATION', text: 'You are being transformed. What feels like loss is actually making room for something extraordinary.', sub: 'The butterfly does not grieve the cocoon. Embrace your transformation.' },
+];
+
+// ── STATE ──
+let selectedMood = 'hopeful';
+let savedMessages = JSON.parse(localStorage.getItem('lmo_saved') || '[]');
+let journalEntries = JSON.parse(localStorage.getItem('lmo_journal') || '[]');
+let readingCount = parseInt(localStorage.getItem('lmo_readings') || '0');
+let visitDates = JSON.parse(localStorage.getItem('lmo_visits') || '[]');
+
+function recordVisit() {
+  const today = new Date().toISOString().split('T')[0];
+  if (!visitDates.includes(today)) {
+    visitDates.push(today);
+    localStorage.setItem('lmo_visits', JSON.stringify(visitDates));
+  }
+}
+
+function getStreak() {
+  if (!visitDates.length) return 0;
+  const today = new Date();
+  let streak = 0;
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().split('T')[0];
+    if (visitDates.includes(key)) streak++;
+    else if (i > 0) break;
+  }
+  return streak;
+}
+
+function updateStreakDisplay() {
+  const s = getStreak();
+  document.getElementById('streak-display').textContent = s;
+  document.getElementById('s-streak').textContent = s;
+  document.getElementById('s-readings').textContent = readingCount;
+  document.getElementById('s-saved').textContent = savedMessages.length;
+  document.getElementById('s-journal').textContent = journalEntries.length;
+}
+
+// ── ORACLE ──
+function selectMood(mood, btn) {
+  selectedMood = mood;
+  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function revealMessage() {
+  const pool = [...(messages[selectedMood] || []), ...generalMessages];
+  const today = new Date().toDateString();
+  const seed = today.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+  const idx = (seed + readingCount) % pool.length;
+  const msg = pool[idx];
+
+  document.getElementById('crystal-icon').textContent = '💜';
+  document.getElementById('crystal-hint').textContent = 'Your message has arrived';
+  document.getElementById('crystal-ball').style.transform = 'scale(1.08)';
+  setTimeout(() => { document.getElementById('crystal-ball').style.transform = 'scale(1)'; }, 400);
+
+  document.getElementById('msg-category').textContent = msg.cat;
+  document.getElementById('msg-text').textContent = '"' + msg.text + '"';
+  document.getElementById('msg-sub').textContent = msg.sub;
+  document.getElementById('message-card').style.display = 'block';
+
+  readingCount++;
+  localStorage.setItem('lmo_readings', readingCount);
+  updateStreakDisplay();
+}
+
+function saveMessage() {
+  const text = document.getElementById('msg-text').textContent;
+  const cat = document.getElementById('msg-category').textContent;
+  if (!savedMessages.find(m => m.text === text)) {
+    savedMessages.push({ text, cat, date: new Date().toLocaleDateString() });
+    localStorage.setItem('lmo_saved', JSON.stringify(savedMessages));
+    showToast('💜 Message saved to your collection!');
+  } else {
+    showToast('Already in your saved messages!');
+  }
+}
+
+function shareMessage() {
+  const text = document.getElementById('msg-text').textContent;
+  if (navigator.share) {
+    navigator.share({ title: 'Lucky Manifestation Oracle', text: text, url: window.location.href });
+  } else {
+    navigator.clipboard.writeText(text + '\n\n— Lucky Manifestation Oracle');
+    showToast('✨ Copied to clipboard!');
+  }
+}
+
+// ── JOURNAL ──
+function saveJournal() {
+  const text = document.getElementById('journal-input').value.trim();
+  if (!text) return showToast('Write something first 🌙');
+  journalEntries.unshift({ text, date: new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' }) });
+  localStorage.setItem('lmo_journal', JSON.stringify(journalEntries));
+  document.getElementById('journal-input').value = '';
+  renderJournal();
+  updateStreakDisplay();
+  showToast('📓 Entry saved!');
+}
+
+function renderJournal() {
+  document.getElementById('j-count').textContent = journalEntries.length + ' entries';
+  const list = document.getElementById('journal-list');
+  if (!journalEntries.length) {
+    list.innerHTML = '<div class="empty-state"><span class="icon">📓</span><p>Start journaling above. Your thoughts matter.</p></div>';
+    return;
+  }
+  list.innerHTML = journalEntries.map(e => `
+    <div class="journal-entry">
+      <div class="entry-date">${e.date}</div>
+      <p style="font-size:0.88rem;line-height:1.65;color:var(--crystal)">${e.text}</p>
+    </div>
+  `).join('');
+}
+
+function renderSaved() {
+  const list = document.getElementById('saved-list');
+  if (!savedMessages.length) {
+    list.innerHTML = '<div class="empty-state"><span class="icon">💜</span><p>No saved messages yet. Tap the Oracle and save what resonates.</p></div>';
+    return;
+  }
+  list.innerHTML = savedMessages.map((m, i) => `
+    <div class="saved-card">
+      <div class="saved-cat">${m.cat}</div>
+      <p class="saved-msg">${m.text}</p>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.5rem">
+        <span style="font-size:0.72rem;color:var(--text-dim)">${m.date}</span>
+        <button class="btn btn-ghost btn-sm" onclick="removeSaved(${i})"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function removeSaved(i) {
+  savedMessages.splice(i, 1);
+  localStorage.setItem('lmo_saved', JSON.stringify(savedMessages));
+  renderSaved();
+  updateStreakDisplay();
+}
+
+function renderCalendar() {
+  const grid = document.getElementById('cal-grid');
+  const today = new Date().toISOString().split('T')[0];
+  let html = '';
+  for (let i = 34; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().split('T')[0];
+    const isToday = key === today;
+    const visited = visitDates.includes(key);
+    html += `<div class="cal-day ${isToday ? 'today' : visited ? 'visited' : ''}" title="${key}"></div>`;
+  }
+  grid.innerHTML = html;
+}
+
+// ── NAV ──
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'saved') renderSaved();
+  if (id === 'journal') renderJournal();
+  if (id === 'streaks') { renderCalendar(); updateStreakDisplay(); }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ── INIT ──
+recordVisit();
+updateStreakDisplay();
+</script>
+</body>
+</html>
