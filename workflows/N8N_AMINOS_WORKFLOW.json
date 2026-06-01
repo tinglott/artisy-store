@@ -1,0 +1,219 @@
+{
+  "name": "ARTISY — Aminos Bot Builder Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whop-purchase",
+        "responseMode": "onReceived",
+        "responseData": "allEntries"
+      },
+      "id": "whop-webhook",
+      "name": "Whop Purchase Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [240, 300],
+      "webhookId": "whop-purchase-aminos"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract and normalize Whop webhook payload\nconst body = $input.first().json;\n\n// Whop sends membership/product data\nconst productTitle = body.data?.product?.name || body.product_name || '';\n\n// Map product to tier\nlet tier = 'starter';\nif (productTitle.toLowerCase().includes('business')) tier = 'business';\nelse if (productTitle.toLowerCase().includes('lead')) tier = 'lead';\nelse if (productTitle.toLowerCase().includes('care') || productTitle.toLowerCase().includes('maintenance')) tier = 'care';\n\nconst orderId = body.data?.id || body.id || `order_${Date.now()}`;\nconst customerEmail = body.data?.user?.email || body.email || '';\nconst customerName = body.data?.user?.name || body.username || 'Valued Customer';\n\n// Build intake form URL\nconst intakeUrl = `https://shop.artistrystore.com/aminos-intake.html?order_id=${orderId}&tier=${tier}&email=${encodeURIComponent(customerEmail)}`;\n\nreturn [{\n  json: {\n    order_id: orderId,\n    tier,\n    customer_email: customerEmail,\n    customer_name: customerName,\n    product_title: productTitle,\n    intake_url: intakeUrl,\n    timestamp: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "parse-order",
+      "name": "Parse Whop Order",
+      "type": "n8n-nodes-base.code",
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.emailit.com/v2/emails",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer em_7n3nILKWl_REPLACE_WITH_FULL_KEY" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "from", "value": "hello@mail.artistrystore.com" },
+            { "name": "to", "value": "={{ $json.customer_email }}" },
+            { "name": "subject", "value": "🤖 Your AI Bot Is Being Built — One Quick Step!" },
+            { "name": "html", "value": "=<div style='font-family:sans-serif;max-width:600px;margin:0 auto;background:#0a0a0f;color:#e8e8f0;padding:40px;border-radius:12px;'>\n<h1 style='color:#D4AF37;'>Your AI Chatbot Is In The Queue!</h1>\n<p style='color:#aaa;font-size:16px;line-height:1.7;margin:20px 0;'>Hey {{ $json.customer_name }},<br><br>Thanks for your order! We just need a few quick details to build your bot perfectly.</p>\n<a href='{{ $json.intake_url }}' style='display:inline-block;background:#D4AF37;color:#000;padding:16px 32px;border-radius:8px;font-weight:700;text-decoration:none;font-size:16px;margin:20px 0;'>👉 FILL OUT YOUR BOT SETUP FORM</a>\n<p style='color:#888;font-size:14px;'>Takes 2 minutes. Your bot will be live within 24 hours after you submit.</p>\n<hr style='border-color:rgba(212,175,55,0.2);margin:32px 0;'>\n<p style='color:#666;font-size:12px;'>ARTISY AI Services • <a href='https://whop.com/tlott12' style='color:#D4AF37;'>whop.com/tlott12</a></p>\n</div>" }
+          ]
+        }
+      },
+      "id": "send-intake-email",
+      "name": "Send Intake Form Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://artisy-store-c6xh.vercel.app/api/aminos-orders",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "action", "value": "new_order" },
+            { "name": "order_id", "value": "={{ $json.order_id }}" },
+            { "name": "tier", "value": "={{ $json.tier }}" },
+            { "name": "customer_email", "value": "={{ $json.customer_email }}" },
+            { "name": "status", "value": "awaiting_intake" },
+            { "name": "timestamp", "value": "={{ $json.timestamp }}" }
+          ]
+        }
+      },
+      "id": "log-to-nexus-new",
+      "name": "Log New Order to NEXUS",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [680, 460]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "aminos-intake",
+        "responseMode": "onReceived"
+      },
+      "id": "intake-webhook",
+      "name": "Intake Form Submitted",
+      "type": "n8n-nodes-base.webhook",
+      "position": [240, 640],
+      "webhookId": "aminos-intake-form"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validate and clean intake form data\nconst data = $input.first().json;\n\nif (!data.website_url || !data.customer_email) {\n  throw new Error('Missing required fields: website_url or customer_email');\n}\n\n// Clean URL\nlet url = data.website_url;\nif (!url.startsWith('http')) url = 'https://' + url;\n\nreturn [{\n  json: {\n    ...data,\n    website_url: url,\n    bot_name: data.bot_name || 'AI Assistant',\n    primary_color: data.primary_color || '#6B46C1',\n    tier: data.tier || 'starter',\n    build_started: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "validate-intake",
+      "name": "Validate Intake Data",
+      "type": "n8n-nodes-base.code",
+      "position": [460, 640]
+    },
+    {
+      "parameters": {
+        "command": "=cd /home/tasklet && python3 aminos_bot_builder.py --order_id \"{{ $json.order_id }}\" --customer_email \"{{ $json.customer_email }}\" --website_url \"{{ $json.website_url }}\" --bot_name \"{{ $json.bot_name }}\" --tier \"{{ $json.tier }}\" --primary_color \"{{ $json.primary_color }}\" --output_file \"/tmp/bot_result_{{ $json.order_id }}.json\" 2>&1",
+        "executeOnce": false
+      },
+      "id": "run-hermes-builder",
+      "name": "Run Hermes Bot Builder",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [680, 640]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Read bot build result from output file\nconst { execSync } = require('child_process');\nconst orderId = $input.first().json.order_id || $('Validate Intake Data').first().json.order_id;\n\ntry {\n  const resultJson = execSync(`cat /tmp/bot_result_${orderId}.json`).toString();\n  const result = JSON.parse(resultJson);\n  \n  // Get intake data from previous node\n  const intakeData = $('Validate Intake Data').first().json;\n  \n  return [{ json: { ...result, customer_name: intakeData.customer_name || 'there' } }];\n} catch(e) {\n  return [{ json: { success: false, error: e.message, order_id: orderId } }];\n}"
+      },
+      "id": "parse-build-result",
+      "name": "Parse Build Result",
+      "type": "n8n-nodes-base.code",
+      "position": [900, 640]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [{ "value1": "={{ $json.success }}", "value2": true }]
+        }
+      },
+      "id": "check-success",
+      "name": "Build Successful?",
+      "type": "n8n-nodes-base.if",
+      "position": [1120, 640]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.emailit.com/v2/emails",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer em_7n3nILKWl_REPLACE_WITH_FULL_KEY" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "from", "value": "hello@mail.artistrystore.com" },
+            { "name": "to", "value": "={{ $json.customer_email }}" },
+            { "name": "subject", "value": "🎉 Your AI Chatbot Is LIVE — Here's Your Embed Code!" },
+            { "name": "html", "value": "=<div style='font-family:sans-serif;max-width:600px;margin:0 auto;background:#0a0a0f;color:#e8e8f0;padding:40px;border-radius:12px;'>\n<h1 style='color:#D4AF37;'>Your Bot Is Ready! 🤖</h1>\n<p style='color:#aaa;font-size:16px;line-height:1.7;'>Hey {{ $json.customer_name }},<br><br>Your AI chatbot has been built and trained on your website. Here's how to install it:</p>\n\n<h3 style='color:#D4AF37;margin-top:24px;'>Step 1: Copy this embed code</h3>\n<div style='background:#1a1a2e;border:1px solid rgba(212,175,55,0.3);border-radius:8px;padding:20px;margin:16px 0;'>\n<code style='color:#a78bfa;font-size:13px;word-break:break-all;'>{{ $json.embed_code }}</code>\n</div>\n\n<h3 style='color:#D4AF37;margin-top:24px;'>Step 2: Paste it in your website</h3>\n<p style='color:#aaa;'>Paste the code above just before the closing &lt;/body&gt; tag on any page where you want the chatbot to appear. Works on WordPress, Shopify, Squarespace, Wix, and any HTML site.</p>\n\n<h3 style='color:#D4AF37;margin-top:24px;'>Preview your bot</h3>\n<a href='{{ $json.preview_url }}' style='display:inline-block;background:rgba(212,175,55,0.1);border:1px solid #D4AF37;color:#D4AF37;padding:12px 24px;border-radius:8px;text-decoration:none;'>👁 View Bot Dashboard</a>\n\n<hr style='border-color:rgba(212,175,55,0.2);margin:32px 0;'>\n<p style='color:#888;font-size:14px;'>Need help installing? Reply to this email and we'll assist you. Your bot will keep learning as long as your subscription is active.</p>\n<p style='color:#666;font-size:12px;margin-top:16px;'>ARTISY AI Services • <a href='https://whop.com/tlott12' style='color:#D4AF37;'>whop.com/tlott12</a></p>\n</div>" }
+          ]
+        }
+      },
+      "id": "send-embed-code",
+      "name": "Send Embed Code to Customer",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1340, 540]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.emailit.com/v2/emails",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer em_7n3nILKWl_REPLACE_WITH_FULL_KEY" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "from", "value": "hello@mail.artistrystore.com" },
+            { "name": "to", "value": "tinglott@gmail.com" },
+            { "name": "subject", "value": "⚠️ Bot Build Failed — Manual Action Needed" },
+            { "name": "html", "value": "=<p>Order {{ $json.order_id }} failed to build.<br>Customer: {{ $json.customer_email }}<br>Error: {{ $json.error }}<br><br>Login to app.aminos.ai and build manually.</p>" }
+          ]
+        }
+      },
+      "id": "alert-ting-failure",
+      "name": "Alert Ting — Build Failed",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1340, 740]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://artisy-store-c6xh.vercel.app/api/aminos-orders",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "action", "value": "update_status" },
+            { "name": "order_id", "value": "={{ $json.order_id }}" },
+            { "name": "status", "value": "={{ $json.success ? 'delivered' : 'failed' }}" },
+            { "name": "bot_id", "value": "={{ $json.bot_id }}" },
+            { "name": "preview_url", "value": "={{ $json.preview_url }}" }
+          ]
+        }
+      },
+      "id": "update-nexus-status",
+      "name": "Update NEXUS Order Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1340, 900]
+    }
+  ],
+  "connections": {
+    "Whop Purchase Webhook": { "main": [[{ "node": "Parse Whop Order", "type": "main", "index": 0 }]] },
+    "Parse Whop Order": {
+      "main": [[
+        { "node": "Send Intake Form Email", "type": "main", "index": 0 },
+        { "node": "Log New Order to NEXUS", "type": "main", "index": 0 }
+      ]]
+    },
+    "Intake Form Submitted": { "main": [[{ "node": "Validate Intake Data", "type": "main", "index": 0 }]] },
+    "Validate Intake Data": { "main": [[{ "node": "Run Hermes Bot Builder", "type": "main", "index": 0 }]] },
+    "Run Hermes Bot Builder": { "main": [[{ "node": "Parse Build Result", "type": "main", "index": 0 }]] },
+    "Parse Build Result": { "main": [[{ "node": "Build Successful?", "type": "main", "index": 0 }]] },
+    "Build Successful?": {
+      "main": [
+        [{ "node": "Send Embed Code to Customer", "type": "main", "index": 0 }],
+        [{ "node": "Alert Ting — Build Failed", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Embed Code to Customer": { "main": [[{ "node": "Update NEXUS Order Status", "type": "main", "index": 0 }]] },
+    "Alert Ting — Build Failed": { "main": [[{ "node": "Update NEXUS Order Status", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "meta": { "description": "Full Aminos bot build pipeline: Whop order → intake form → Hermes builder → email delivery → NEXUS tracking" }
+}
