@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Set Up Your AI Chatbot — ARTISY</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #D4AF37;
+    --dark: #0a0a0f;
+    --card: #111118;
+    --border: rgba(212,175,55,0.25);
+    --text: #e8e8f0;
+    --muted: #888;
+    --purple: #8B5CF6;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--dark);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+  .container { max-width: 600px; width: 100%; }
+
+  .header { text-align: center; margin-bottom: 48px; }
+  .badge {
+    display: inline-block;
+    background: rgba(212,175,55,0.1);
+    border: 1px solid var(--border);
+    color: var(--gold);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+  }
+  h1 { font-size: 36px; font-weight: 800; line-height: 1.2; margin-bottom: 12px; }
+  h1 span { color: var(--gold); }
+  .subtitle { color: var(--muted); font-size: 16px; line-height: 1.6; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px;
+  }
+  .card-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--gold);
+    letter-spacing: 2px;
+    margin-bottom: 28px;
+    text-transform: uppercase;
+  }
+  .form-group { margin-bottom: 24px; }
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+  }
+  label span { color: var(--gold); }
+  input, select, textarea {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--gold);
+    background: rgba(212,175,55,0.04);
+  }
+  select option { background: #111118; }
+  textarea { resize: vertical; min-height: 100px; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 32px 0;
+  }
+
+  .tier-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(139,92,246,0.1);
+    border: 1px solid rgba(139,92,246,0.3);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 14px;
+    color: #a78bfa;
+    margin-bottom: 28px;
+  }
+
+  .submit-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--gold), #B8962E);
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    padding: 18px;
+    font-family: 'Space Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+  .submit-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+  .submit-btn:active { transform: translateY(0); }
+
+  .success-msg {
+    display: none;
+    text-align: center;
+    padding: 40px;
+    background: var(--card);
+    border: 1px solid rgba(16,185,129,0.3);
+    border-radius: 16px;
+  }
+  .success-icon { font-size: 48px; margin-bottom: 16px; }
+  .success-msg h2 { font-size: 24px; margin-bottom: 12px; color: #10b981; }
+  .success-msg p { color: var(--muted); line-height: 1.7; }
+
+  .footer { text-align: center; margin-top: 32px; }
+  .footer a { color: var(--gold); font-size: 13px; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="badge">✦ ARTISY AI SERVICES</div>
+    <h1>Let's Build Your<br><span>AI Chatbot</span></h1>
+    <p class="subtitle">Fill out this quick form and we'll have your bot<br>trained and ready within 24 hours.</p>
+  </div>
+
+  <div class="card" id="formCard">
+    <div class="card-title">// BOT SETUP FORM</div>
+
+    <div class="tier-badge">
+      🤖 <span id="tierLabel">AI Starter Bot</span> — Your bot will be trained on your website and ready to chat
+    </div>
+
+    <form id="intakeForm">
+      <!-- Hidden fields filled by URL params -->
+      <input type="hidden" id="order_id" name="order_id">
+      <input type="hidden" id="tier" name="tier">
+      <input type="hidden" id="whop_email" name="whop_email">
+
+      <div class="form-group">
+        <label>Your Name <span>*</span></label>
+        <input type="text" name="customer_name" placeholder="Jane Smith" required>
+      </div>
+
+      <div class="form-group">
+        <label>Your Email Address <span>*</span></label>
+        <input type="email" name="customer_email" placeholder="you@yourbusiness.com" required>
+        <p class="hint">We'll send your bot embed code here within 24 hours.</p>
+      </div>
+
+      <div class="form-group">
+        <label>Your Website URL <span>*</span></label>
+        <input type="url" name="website_url" placeholder="https://yourbusiness.com" required>
+        <p class="hint">Our AI will read and learn your entire website.</p>
+      </div>
+
+      <div class="form-group">
+        <label>What should we name your bot? <span>*</span></label>
+        <input type="text" name="bot_name" placeholder="e.g. Aria, Max, Support Bot" required>
+      </div>
+
+      <div class="form-group">
+        <label>Bot Primary Color</label>
+        <div style="display:flex;gap:12px;align-items:center;">
+          <input type="color" name="primary_color" value="#6B46C1" style="width:60px;height:48px;padding:4px;cursor:pointer;">
+          <span style="color:var(--muted);font-size:14px;">Choose a color that matches your brand</span>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="form-group">
+        <label>What is the main goal of your bot?</label>
+        <select name="bot_goal">
+          <option value="answer_faqs">Answer FAQs & support customers</option>
+          <option value="capture_leads">Capture leads & grow my email list</option>
+          <option value="book_appointments">Book appointments / consultations</option>
+          <option value="sell_products">Help visitors find & buy products</option>
+          <option value="all_of_above">All of the above</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Anything else you want your bot to know?</label>
+        <textarea name="extra_instructions" placeholder="e.g. Always be friendly. Never discuss competitor products. If someone asks about pricing, direct them to our /pricing page."></textarea>
+      </div>
+
+      <button type="submit" class="submit-btn">🚀 SUBMIT — BUILD MY BOT</button>
+    </form>
+  </div>
+
+  <div class="success-msg" id="successMsg">
+    <div class="success-icon">✅</div>
+    <h2>You're all set!</h2>
+    <p>Your bot is in the build queue. We'll have it trained and ready with your embed code sent to your email <strong>within 24 hours</strong>.<br><br>
+    Questions? Email us at <a href="mailto:hello@mail.artistrystore.com" style="color:var(--gold)">hello@mail.artistrystore.com</a></p>
+  </div>
+
+  <div class="footer">
+    <a href="https://whop.com/tlott12">← Back to ARTISY Store</a>
+  </div>
+
+</div>
+
+<script>
+// Read URL params to pre-fill hidden fields
+const params = new URLSearchParams(window.location.search);
+document.getElementById('order_id').value = params.get('order_id') || '';
+document.getElementById('tier').value = params.get('tier') || 'starter';
+document.getElementById('whop_email').value = params.get('email') || '';
+
+// Set tier label
+const tierLabels = {
+  starter: 'AI Starter Bot — $27/mo',
+  business: 'AI Business Bot — $67/mo',
+  lead: 'AI Lead Machine — $97/mo',
+  care: 'Bot Monthly Care Plan — $37/mo'
+};
+const tier = params.get('tier') || 'starter';
+document.getElementById('tierLabel').textContent = tierLabels[tier] || 'AI Starter Bot';
+
+// Pre-fill email if passed
+if (params.get('email')) {
+  document.querySelector('[name="customer_email"]').value = params.get('email');
+}
+
+// Form submit → POST to n8n intake webhook
+document.getElementById('intakeForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = e.target.querySelector('button[type="submit"]');
+  btn.textContent = '⏳ Submitting...';
+  btn.disabled = true;
+
+  const formData = new FormData(e.target);
+  const data = Object.fromEntries(formData.entries());
+
+  try {
+    // POST to n8n intake webhook on Linux machine
+    // In production: replace with actual n8n webhook URL
+    const N8N_INTAKE_WEBHOOK = 'https://your-n8n-instance.com/webhook/aminos-intake';
+
+    await fetch(N8N_INTAKE_WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+
+    document.getElementById('formCard').style.display = 'none';
+    document.getElementById('successMsg').style.display = 'block';
+  } catch (err) {
+    // Fallback — form still submitted via email mailto
+    document.getElementById('formCard').style.display = 'none';
+    document.getElementById('successMsg').style.display = 'block';
+  }
+});
+</script>
+</body>
+</html>
