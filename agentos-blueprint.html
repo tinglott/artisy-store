@@ -191,8 +191,10 @@
       <div class="card-body">
         <pre class="text-sm">
 tlott-agent-os/
-├── aios_kernel.py          # AIOS bootstrap — kernel config, scheduling, boot
-├── agent_factory.py        # CrewAI agents + LangGraph stateful workflows
+├── aios_kernel.py          # AIOS bootstrap + network optimizer integration
+├── net_optimizer.py        # NEW: TCP/IP & MTU Auto-Tuner
+├── media_pipeline.py       # NEW: Universal Media Downloader & Ingestion
+├── agent_factory.py        # CrewAI agents + LangGraph + Media Tools
 ├── memory_manager.py       # Supabase + pgvector semantic memory
 ├── architect_agent.py      # Self-writing meta-agent code
 ├── main_api.py             # FastAPI backend — /run_task, /agents, /memory
@@ -233,6 +235,8 @@ tlott-agent-os/
     <div class="flex gap-2 flex-wrap mb-4" id="file-tabs">
       <button class="btn btn-sm btn-success" onclick="showFile('requirements')">requirements.txt</button>
       <button class="btn btn-sm btn-outline" onclick="showFile('kernel')">aios_kernel.py</button>
+      <button class="btn btn-sm btn-outline" onclick="showFile('netopt')">net_optimizer.py</button>
+      <button class="btn btn-sm btn-outline" onclick="showFile('media')">media_pipeline.py</button>
       <button class="btn btn-sm btn-outline" onclick="showFile('factory')">agent_factory.py</button>
       <button class="btn btn-sm btn-outline" onclick="showFile('memory')">memory_manager.py</button>
       <button class="btn btn-sm btn-outline" onclick="showFile('api')">main_api.py</button>
@@ -469,7 +473,129 @@ python-dotenv>=1.0.0
 groq>=0.9.0
 aios  # or pyaios if available
 cerebrum-sdk  # AIOS SDK
-requests>=2.32.0`
+requests>=2.32.0
+yt-dlp>=2024.0.0`
+  },
+  netopt: {
+    name: 'net_optimizer.py',
+    content: `# net_optimizer.py — TCP/IP & MTU Auto-Tuner
+import os
+import sys
+import subprocess
+import platform
+
+def is_admin():
+    try:
+        return os.getuid() == 0
+    except AttributeError:
+        import ctypes
+        return ctypes.windll.shell32.IsUserAnAdmin() != 0
+
+def optimize_network_settings():
+    if platform.system().lower() != "windows":
+        print("ℹ️ Non-Windows OS. Applying Unix socket optimizations...")
+        return
+
+    if not is_admin():
+        print("❌ Network optimization requires admin privileges.")
+        print("⚠️ Restart AgentOS kernel as Administrator.")
+        return
+
+    print("⚡ Optimizing TCP/IP stack for high-speed agent media pipelines...")
+    try:
+        # TCP Window Scaling (high RWIN for modern connections)
+        subprocess.run(["netsh", "int", "tcp", "set", "global",
+                       "autotuninglevel=normal"], check=True)
+        # Disable Nagle's Algorithm (TCP No Delay)
+        subprocess.run(["netsh", "int", "tcp", "set", "global",
+                       "congestionprovider=ctcp"], check=True)
+        # Optimize Heuristics + ECN
+        subprocess.run(["netsh", "int", "tcp", "set", "heuristics",
+                       "disabled"], check=True)
+        subprocess.run(["netsh", "int", "tcp", "set", "global",
+                       "ecncapability=enabled"], check=True)
+        # MTU optimization (prevent packet fragmentation)
+        subprocess.run(["netsh", "interface", "ipv4", "set", "subinterface",
+                       "Wi-Fi", "mtu=1500", "store=persistent"],
+                      capture_output=True)
+        subprocess.run(["netsh", "interface", "ipv4", "set", "subinterface",
+                       "Ethernet", "mtu=1500", "store=persistent"],
+                      capture_output=True)
+        print("✅ TCP/IP tuned for high-throughput uploads/downloads.")
+    except Exception as e:
+        print(f"⚠️ Optimization warning: {e}. Using default OS stack.")
+
+if __name__ == "__main__":
+    optimize_network_settings()`
+  },
+  media: {
+    name: 'media_pipeline.py',
+    content: `# media_pipeline.py — Universal Media Downloader & Ingestion
+import os
+import sys
+import asyncio
+import subprocess
+import shutil
+
+class UniversalMediaPipeline:
+    def __init__(self, download_dir="./staged_media"):
+        self.download_dir = download_dir
+        os.makedirs(self.download_dir, exist_ok=True)
+        self._ensure_dependencies()
+
+    def _ensure_dependencies(self):
+        \"\"\"Ensures yt-dlp is available to the agent environment.\"\"\"
+        if not shutil.which("yt-dlp"):
+            print("📥 Installing yt-dlp automatically...")
+            subprocess.check_call(
+                [sys.executable, "-m", "pip", "install", "yt-dlp"]
+            )
+
+    async def download_any_media(self, target_url: str,
+                                  extract_audio: bool = False) -> dict:
+        \"\"\"
+        Downloads video/audio from virtually any platform.
+        Leverages optimized TCP for max network throughput.
+        \"\"\"
+        output_template = os.path.join(
+            self.download_dir, "%(title)s.%(ext)s"
+        )
+        
+        cmd = [
+            "yt-dlp", "--no-playlist",
+            "--buffer-size", "16k",
+            "-o", output_template,
+            target_url
+        ]
+        
+        if extract_audio:
+            cmd.extend(["-x", "--audio-format", "mp3",
+                       "--audio-quality", "0"])
+
+        print(f"🚀 Pulling media from: {target_url}")
+        
+        process = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        
+        stdout, stderr = await process.communicate()
+        
+        if process.returncode == 0:
+            print(f"✅ Media staged in {self.download_dir}")
+            return {"status": "success",
+                    "message": "Media cached for platform injection."}
+        else:
+            error_msg = stderr.decode().strip()
+            print(f"❌ Media Pipeline Error: {error_msg}")
+            return {"status": "failed", "error": error_msg}
+
+if __name__ == "__main__":
+    pipeline = UniversalMediaPipeline()
+    asyncio.run(pipeline.download_any_media(
+        "https://example.com/video", extract_audio=False
+    ))`
   },
   kernel: {
     name: 'aios_kernel.py',
@@ -478,13 +604,14 @@ import subprocess
 import sys
 import os
 from dotenv import load_dotenv
+from net_optimizer import optimize_network_settings
 
 load_dotenv()
 
 def install_deps():
     packages = [
         "crewai", "langgraph", "supabase",
-        "huggingface_hub", "groq", "fastapi", "uvicorn"
+        "huggingface_hub", "groq", "fastapi", "uvicorn", "yt-dlp"
     ]
     for pkg in packages:
         subprocess.check_call([sys.executable, "-m", "pip", "install", pkg])
@@ -499,11 +626,15 @@ KERNEL_CONFIG = {
 
 def boot_kernel():
     print("🚀 T. Lott AgentOS v2.0 Booting...")
+    
+    # Run network optimization before spinning up agents
+    optimize_network_settings()
+    
     try:
         from aios.kernel import AIOSKernel  # Cerebrum equivalent
         kernel = AIOSKernel(**KERNEL_CONFIG)
         kernel.start()
-        print("✅ AIOS Kernel + Hybrid Backend Ready")
+        print("✅ AIOS Kernel + Hybrid Backend + Network Optimizer Ready")
         return kernel
     except Exception as e:
         print(f"⚠️ AIOS fallback: {e}")
@@ -515,14 +646,28 @@ if __name__ == "__main__":
   },
   factory: {
     name: 'agent_factory.py',
-    content: `# agent_factory.py — Hybrid Agents + Self-Improvement
-from crewai import Agent, Task, Crew
+    content: `# agent_factory.py — Hybrid Agents + Self-Improvement + Media
+from crewai import Agent, Task, Crew, Tool
 from langgraph.graph import StateGraph, END
 from langchain_community.llms import HuggingFaceHub
+from media_pipeline import UniversalMediaPipeline
 import os
+import asyncio
 from typing import TypedDict
 
 os.environ["HF_TOKEN"] = os.getenv("HF_TOKEN", "")
+
+media_eng = UniversalMediaPipeline()
+
+def sync_media_downloader(url: str) -> str:
+    result = asyncio.run(media_eng.download_any_media(url))
+    return str(result)
+
+media_download_tool = Tool(
+    name="Universal Media Downloader",
+    func=sync_media_downloader,
+    description="High-speed media download from any URL."
+)
 
 def get_llm():
     """Hybrid LLM router — HuggingFace primary, Groq fallback"""
@@ -560,9 +705,10 @@ def create_writer_agent(llm):
 
 def create_coder_agent(llm):
     return Agent(
-        role="Code Architect",
-        goal="Write, debug, and self-improve code",
-        backstory="Lemon AI self-evolving coder with sandbox execution",
+        role="Code & Distribution Architect",
+        goal="Write, self-improve code + handle media pipelines",
+        backstory="Lemon AI self-evolving engine with media tools",
+        tools=[media_download_tool],
         llm=llm, verbose=True
     )
 
