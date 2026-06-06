@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Copilot Unlocked - AI Mastery Platform</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--card:#12121a;--gold:#c8a84b;--gold2:#e8c95a;--text:#f5f0e8;--dim:#888;--success:#4ade80;--accent:#6366f1;--sidebar-w:280px}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.app{display:flex;min-height:100vh}
+
+/* Sidebar */
+.sidebar{width:var(--sidebar-w);background:var(--card);border-right:1px solid #222;position:fixed;top:0;left:0;bottom:0;overflow-y:auto;z-index:100;transition:transform .3s}
+.sidebar.closed{transform:translateX(-100%)}
+.sidebar-header{padding:24px 20px;border-bottom:1px solid #222}
+.sidebar-header h2{color:var(--gold);font-size:18px;margin-bottom:4px}
+.sidebar-header p{color:var(--dim);font-size:12px}
+.progress-bar{background:#222;border-radius:8px;height:8px;margin-top:12px;overflow:hidden}
+.progress-fill{background:linear-gradient(90deg,var(--gold),var(--gold2));height:100%;border-radius:8px;transition:width .5s}
+.progress-text{color:var(--dim);font-size:11px;margin-top:4px}
+.nav-section{padding:12px 0}
+.nav-section-title{padding:8px 20px;color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:1px}
+.nav-item{display:flex;align-items:center;padding:10px 20px;cursor:pointer;transition:all .2s;gap:10px;border-left:3px solid transparent}
+.nav-item:hover{background:rgba(200,168,75,.08)}
+.nav-item.active{background:rgba(200,168,75,.12);border-left-color:var(--gold)}
+.nav-item.completed .check{color:var(--success)}
+.nav-item .check{width:20px;height:20px;border:2px solid #444;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.nav-item.completed .check{border-color:var(--success);background:rgba(74,222,128,.1)}
+.nav-item .label{font-size:13px;color:var(--text)}
+.nav-item .duration{font-size:11px;color:var(--dim);margin-left:auto}
+
+/* Main */
+.main{margin-left:var(--sidebar-w);flex:1;padding:0}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 32px;background:var(--card);border-bottom:1px solid #222;position:sticky;top:0;z-index:50}
+.menu-btn{display:none;background:none;border:none;color:var(--text);font-size:24px;cursor:pointer}
+.topbar-actions{display:flex;gap:12px}
+.btn{padding:8px 18px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000}
+.btn-gold:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(200,168,75,.3)}
+.btn-outline{background:transparent;border:1px solid #333;color:var(--text)}
+.btn-outline:hover{border-color:var(--gold)}
+
+.content{max-width:900px;margin:0 auto;padding:32px}
+.module-header{margin-bottom:32px}
+.module-header .tag{display:inline-block;background:rgba(200,168,75,.15);color:var(--gold);padding:4px 12px;border-radius:20px;font-size:12px;margin-bottom:12px}
+.module-header h1{font-size:28px;margin-bottom:8px}
+.module-header p{color:var(--dim);font-size:15px}
+
+.lesson-card{background:var(--card);border:1px solid #222;border-radius:12px;padding:24px;margin-bottom:20px;transition:all .3s}
+.lesson-card:hover{border-color:#333}
+.lesson-card h3{font-size:18px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.lesson-card h3 .icon{font-size:20px}
+.lesson-content{color:#ccc;font-size:14px;line-height:1.7}
+.lesson-content p{margin-bottom:12px}
+.lesson-content ul{margin:8px 0 12px 20px}
+.lesson-content li{margin-bottom:6px}
+
+.prompt-box{background:#1a1a2e;border:1px solid #2a2a4e;border-radius:8px;padding:16px;margin:12px 0;position:relative}
+.prompt-box .copy-btn{position:absolute;top:8px;right:8px;background:rgba(200,168,75,.2);border:none;color:var(--gold);padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px}
+.prompt-box .copy-btn:hover{background:rgba(200,168,75,.4)}
+.prompt-box code{color:var(--gold2);font-family:'Fira Code',monospace;font-size:13px;white-space:pre-wrap;display:block}
+
+.quiz-section{background:linear-gradient(135deg,#1a1a2e,#12121a);border:1px solid var(--accent);border-radius:12px;padding:24px;margin:20px 0}
+.quiz-section h4{color:var(--accent);margin-bottom:16px;font-size:16px}
+.quiz-option{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid #333;border-radius:8px;margin-bottom:8px;cursor:pointer;transition:all .2s}
+.quiz-option:hover{border-color:var(--accent)}
+.quiz-option.selected{border-color:var(--gold);background:rgba(200,168,75,.08)}
+.quiz-option.correct{border-color:var(--success);background:rgba(74,222,128,.08)}
+.quiz-option.wrong{border-color:#f87171;background:rgba(248,113,113,.08)}
+.quiz-option input{accent-color:var(--gold)}
+
+.tool-card{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin:16px 0}
+.tool-item{background:#1a1a25;border:1px solid #2a2a3e;border-radius:10px;padding:16px;text-align:center}
+.tool-item .tool-icon{font-size:32px;margin-bottom:8px}
+.tool-item h5{color:var(--gold);margin-bottom:4px}
+.tool-item p{color:var(--dim);font-size:12px}
+
+.audio-player{background:var(--card);border:1px solid #333;border-radius:12px;padding:16px;margin:20px 0;display:flex;align-items:center;gap:16px}
+.audio-player audio{flex:1;height:36px}
+.audio-player .audio-label{color:var(--gold);font-size:13px;white-space:nowrap}
+
+.cert-section{text-align:center;padding:48px 24px;background:linear-gradient(135deg,#1a1520,#12121a);border:2px solid var(--gold);border-radius:16px;margin:32px 0}
+.cert-section h2{color:var(--gold);font-size:24px;margin-bottom:8px}
+.cert-section p{color:var(--dim);margin-bottom:20px}
+.cert-section input{background:#222;border:1px solid #444;color:var(--text);padding:10px 16px;border-radius:8px;font-size:14px;width:260px;margin-bottom:12px;text-align:center}
+
+.download-section{display:flex;gap:16px;margin:20px 0;flex-wrap:wrap}
+.download-card{flex:1;min-width:200px;background:var(--card);border:1px solid #333;border-radius:10px;padding:20px;text-align:center}
+.download-card .dl-icon{font-size:36px;margin-bottom:8px}
+.download-card h5{margin-bottom:4px}
+.download-card p{color:var(--dim);font-size:12px;margin-bottom:12px}
+
+.complete-btn{display:block;width:100%;padding:14px;background:linear-gradient(135deg,var(--success),#22c55e);color:#000;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;margin-top:20px;transition:all .2s}
+.complete-btn:hover{transform:translateY(-2px);box-shadow:0 4px 15px rgba(74,222,128,.3)}
+.complete-btn.done{background:#333;color:var(--success)}
+
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}
+  .menu-btn{display:block}
+  .content{padding:20px 16px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<nav class="sidebar" id="sidebar">
+<div class="sidebar-header">
+<h2>⚡ Copilot Unlocked</h2>
+<p>AI Mastery Platform</p>
+<div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+<div class="progress-text" id="progressText">0% Complete</div>
+</div>
+<div class="nav-section">
+<div class="nav-section-title">Course Modules</div>
+<div id="navItems"></div>
+</div>
+<div class="nav-section">
+<div class="nav-section-title">Resources</div>
+<div class="nav-item" onclick="showSection('downloads')"><span class="check">📥</span><span class="label">Downloads</span></div>
+<div class="nav-item" onclick="showSection('prompts')"><span class="check">💡</span><span class="label">Prompt Library</span></div>
+<div class="nav-item" onclick="showSection('certificate')"><span class="check">🏆</span><span class="label">Certificate</span></div>
+</div>
+</nav>
+
+<div class="main">
+<div class="topbar">
+<button class="menu-btn" onclick="toggleSidebar()">☰</button>
+<div style="font-weight:600">Copilot Unlocked</div>
+<div class="topbar-actions">
+<button class="btn btn-outline" onclick="showSection('downloads')">📥 Downloads</button>
+<button class="btn btn-gold" onclick="showSection('prompts')">💡 Prompts</button>
+</div>
+</div>
+<div class="content" id="contentArea"></div>
+</div>
+</div>
+
+<script>
+const MODULES=[
+{id:'m1',title:'Module 1: AI Foundations',subtitle:'What Copilot Actually Does',icon:'🧠',lessons:[
+{id:'l1_1',title:'The AI Landscape in 2026',content:`<p>The AI revolution isn't coming — it's here. With a <strong>$5.5 trillion</strong> market by 2030 and 90% of enterprises facing AI skills shortages, the question isn't whether to learn AI, but how fast you can master it.</p><p>Microsoft Copilot has evolved from a simple chatbot into a full productivity suite. But here's what they don't tell you: <strong>you don't need the $30/month enterprise plan</strong> to harness its power.</p><ul><li>Free tier: Chat, image generation, web search, basic document help</li><li>Pro tier ($20/month): Priority access, deeper Office integration</li><li>Enterprise ($30/user/month): Data protection, admin controls</li></ul><p>For creators, freelancers, and solopreneurs, the free tier + smart prompting gets you 80% of the value.</p>`,prompts:['List the top 5 ways AI can save me time in my [specific business type] this week','Compare Microsoft Copilot free vs Pro features for a [your role] — which tier do I actually need?']},
+{id:'l1_2',title:'Setting Up Your AI Workspace',content:`<p>Before we dive into advanced techniques, let's build your foundation right.</p><p><strong>Step 1: Access Copilot</strong> — Go to copilot.microsoft.com or use the sidebar in Edge/Windows</p><p><strong>Step 2: Configure Your Profile</strong> — Tell Copilot your role, industry, and preferences</p><p><strong>Step 3: Set Up Conversation Styles</strong></p><ul><li><strong>Creative:</strong> For brainstorming, content creation, marketing copy</li><li><strong>Balanced:</strong> For general research and analysis</li><li><strong>Precise:</strong> For data, code, technical documentation</li></ul><p><strong>Step 4: Create Your Prompt Templates Folder</strong> — Save your best prompts for reuse. This alone will 3x your productivity.</p>`,prompts:['You are my AI productivity assistant. My role is [your role]. My industry is [your industry]. My top 3 daily tasks are [list them]. Suggest how to optimize each with AI.','Create a weekly AI productivity checklist for a [your role] who wants to automate [specific tasks]']},
+]},
+{id:'m2',title:'Module 2: Prompt Engineering',subtitle:'The Skill That Pays',icon:'✍️',lessons:[
+{id:'l2_1',title:'The 5 Rules of Power Prompting',content:`<p>Most people use AI like a search engine. That's like using a Ferrari to go to the mailbox. Here are the 5 rules that separate amateurs from power users:</p><p><strong>Rule 1: Role Assignment</strong> — Always tell AI who it is: "You are a senior marketing strategist with 15 years of experience..."</p><p><strong>Rule 2: Context Loading</strong> — Front-load with relevant details. More context = better output.</p><p><strong>Rule 3: Format Specification</strong> — Tell it exactly how you want the output: bullet points, tables, step-by-step, etc.</p><p><strong>Rule 4: Constraint Setting</strong> — Set boundaries: "Keep it under 200 words" or "Use only data from 2024-2026"</p><p><strong>Rule 5: Iteration Commands</strong> — Never accept the first output. Use "Make it more specific," "Add examples," "Rewrite for a beginner audience."</p>`,prompts:['You are a [expert role] with [X] years of experience in [field]. I need you to [specific task]. Format the output as [format]. Keep it under [length]. Focus specifically on [constraint].','Take this draft and make it: (1) More specific with real examples (2) More actionable with step-by-step instructions (3) More engaging with a hook opening. Here is the draft: [paste text]']},
+{id:'l2_2',title:'Industry-Specific Prompt Templates',content:`<p>Generic prompts get generic results. Here are battle-tested templates for specific roles:</p><p><strong>For Freelance Writers:</strong></p><ul><li>Blog post outlines with SEO keywords</li><li>Client proposal generators</li><li>Content calendar builders</li></ul><p><strong>For E-commerce Sellers:</strong></p><ul><li>Product description generators</li><li>A/B test headline creators</li><li>Customer email sequences</li></ul><p><strong>For Coaches & Consultants:</strong></p><ul><li>Workshop curriculum builders</li><li>Client onboarding sequences</li><li>Social proof story frameworks</li></ul>`,prompts:['Write 5 product descriptions for [product type] targeting [audience]. Each should be under 150 words, include 3 benefits, and end with a call to action. Tone: [casual/professional/luxury].','Create a 4-week content calendar for [business type] on [platform]. Include post type, topic, caption hook, and best posting time. Focus on [goal: awareness/sales/engagement].']},
+]},
+{id:'m3',title:'Module 3: Workflow Automation',subtitle:'Notion + Zapier + Make',icon:'⚙️',lessons:[
+{id:'l3_1',title:'Copilot + Notion Integration',content:`<p>Notion AI is powerful alone, but when you use Copilot to <strong>pre-process</strong> content before dropping it into Notion, you create a system that's greater than the sum of its parts.</p><p><strong>The Copilot-to-Notion Pipeline:</strong></p><ol><li>Use Copilot to research and generate first drafts</li><li>Paste into Notion with your template structure</li><li>Use Notion AI to refine and format</li><li>Automate distribution with Notion API + Zapier</li></ol><p><strong>Workflow Blueprint: Content Machine</strong></p><ul><li>Monday: Use Copilot to generate 5 topic ideas with outlines</li><li>Tuesday-Thursday: Expand 3 best ideas into full posts in Notion</li><li>Friday: Schedule distribution via Zapier automation</li></ul>`,prompts:['Generate 5 blog post ideas about [topic] for [audience]. For each, provide: Title (with power word), 5-point outline, target keyword, estimated word count, and content angle.','Create a Notion database template for tracking [content type]. Include columns for: Status, Due Date, Platform, Word Count, SEO Score, and Distribution Channels.']},
+{id:'l3_2',title:'Zapier & Make Automation Blueprints',content:`<p>Automation is where AI stops being a toy and becomes a money-printing machine. Here are 3 blueprints you can set up today:</p><p><strong>Blueprint 1: Auto-Research Pipeline</strong></p><ul><li>Trigger: New RSS feed item in your industry</li><li>Action 1: Copilot summarizes the article</li><li>Action 2: Generate 3 social media posts from summary</li><li>Action 3: Add to Notion content queue</li></ul><p><strong>Blueprint 2: Client Onboarding Automation</strong></p><ul><li>Trigger: New form submission</li><li>Action 1: AI generates welcome email</li><li>Action 2: Create project in Notion</li><li>Action 3: Schedule kickoff reminder</li></ul><p><strong>Blueprint 3: Invoice & Follow-up</strong></p><ul><li>Trigger: Project marked complete</li><li>Action 1: Generate invoice</li><li>Action 2: Send thank-you email with upsell</li><li>Action 3: Schedule 30-day check-in</li></ul>`,prompts:['Design a 5-step Zapier automation for [business process]. For each step, specify: Trigger/Action, App needed, Data passed, and Error handling.','Create a client onboarding email sequence (5 emails over 14 days) for a [business type]. Include subject lines, send timing, and personalization variables.']},
+]},
+{id:'m4',title:'Module 4: GitHub Copilot',subtitle:'For Non-Developers',icon:'💻',lessons:[
+{id:'l4_1',title:'Code Without Coding',content:`<p>GitHub Copilot isn't just for developers. If you've ever wanted to build a website, automate spreadsheets, or create tools — Copilot can write the code while you describe what you want in plain English.</p><p><strong>What Non-Devs Can Build:</strong></p><ul><li>Landing pages and portfolio sites</li><li>Google Sheets automation scripts</li><li>Simple web calculators and tools</li><li>Email templates with dynamic content</li><li>Data analysis scripts for business reports</li></ul><p><strong>The Secret:</strong> You don't need to understand code. You need to understand what you want. Describe the outcome, and Copilot writes the implementation.</p><p><strong>Setup:</strong> VS Code (free) + GitHub Copilot extension. Start with the free tier — it includes enough completions for learning.</p>`,prompts:['I am not a developer but I want to create [describe what you want to build]. Walk me through: (1) What tools I need to install (2) Step-by-step instructions a beginner can follow (3) The complete code with comments explaining each section','Write a Python script that reads a CSV file of [data type], calculates [metrics], and generates a formatted report. Add detailed comments explaining each line for a non-programmer.']},
+]},
+{id:'m5',title:'Module 5: Open-Source Alternatives',subtitle:'Free Forever Tools',icon:'🔓',lessons:[
+{id:'l5_1',title:'Continue.dev, Tabby & Ollama Setup',content:`<p>Why pay $20-30/month when open-source alternatives are catching up fast? Here's your free AI toolkit:</p><div class="tool-card"><div class="tool-item"><div class="tool-icon">🔄</div><h5>Continue.dev</h5><p>Free GitHub Copilot alternative. Works in VS Code. Connects to any AI model.</p></div><div class="tool-item"><div class="tool-icon">🐱</div><h5>Tabby</h5><p>Self-hosted code assistant. Runs on your machine. Complete privacy.</p></div><div class="tool-item"><div class="tool-icon">🦙</div><h5>Ollama</h5><p>Run LLMs locally. Llama 3, Mistral, CodeLlama — all free, all private.</p></div><div class="tool-item"><div class="tool-icon">📝</div><h5>Jan.ai</h5><p>Beautiful local AI chat. Like ChatGPT but running on your own computer.</p></div></div><p><strong>The 15-Minute Setup:</strong></p><ol><li>Install Ollama: <code>curl -fsSL https://ollama.ai/install.sh | sh</code></li><li>Pull a model: <code>ollama pull llama3</code></li><li>Install Continue.dev extension in VS Code</li><li>Connect Continue.dev to your local Ollama</li><li>Start coding with AI — completely free, completely private</li></ol>`,prompts:['Compare these AI coding assistants for a [beginner/intermediate] user: GitHub Copilot, Continue.dev, Tabby, and Cursor. Include: cost, privacy, features, and best use case.','Create a step-by-step guide to set up a completely free, private AI development environment using open-source tools. Target audience: non-technical solopreneur.']},
+]},
+{id:'m6',title:'Module 6: Monetize Your AI Skills',subtitle:'Turn Knowledge Into Income',icon:'💰',lessons:[
+{id:'l6_1',title:'5 AI Income Streams for 2026',content:`<p>You're not just learning AI — you're building a sellable skill set. Here are 5 proven income streams:</p><p><strong>1. AI Consulting ($75-200/hr)</strong></p><ul><li>Help small businesses implement AI workflows</li><li>No coding required — just prompt engineering + tool setup</li><li>Start with local businesses, scale to remote clients</li></ul><p><strong>2. AI Content Creation ($2,000-10,000/mo)</strong></p><ul><li>Use AI to produce 10x more content</li><li>Blog posts, social media, newsletters, video scripts</li><li>Tools: Copilot + Notion + Canva + scheduling tools</li></ul><p><strong>3. Prompt Engineering Services ($50-150/prompt set)</strong></p><ul><li>Create custom prompt libraries for businesses</li><li>Package as templates with instructions</li><li>Sell on Gumroad, Etsy, or direct to clients</li></ul><p><strong>4. AI-Powered Digital Products ($10-500/product)</strong></p><ul><li>Courses, templates, toolkits, calculators</li><li>Use AI to create, AI to market, AI to support</li><li>Passive income potential</li></ul><p><strong>5. AI Workshop Facilitation ($500-2,000/workshop)</strong></p><ul><li>Teach teams how to use AI effectively</li><li>Half-day or full-day formats</li><li>Corporate training is a massive growth area</li></ul>`,prompts:['Create a 90-day action plan to launch an AI consulting business. I have [X hours/week] available. My target clients are [type]. Include: Week-by-week milestones, pricing strategy, and client acquisition channels.','Design a digital product idea using AI for [target market]. Include: Product concept, creation workflow using AI tools, pricing strategy, and marketing plan. Budget: $0 (free tools only).']},
+]},
+{id:'bonus',title:'BONUS: AI Side Income Playbook',subtitle:'Your 90-Day Launch Plan',icon:'🚀',lessons:[
+{id:'lb_1',title:'The 90-Day AI Entrepreneur Blueprint',content:`<p>Here's your step-by-step blueprint to go from zero to earning with AI in 90 days:</p><p><strong>Month 1: Foundation (Days 1-30)</strong></p><ul><li>Week 1-2: Master all 6 modules in this course</li><li>Week 3: Build your prompt library (50+ templates)</li><li>Week 4: Create your first AI-powered service offering</li></ul><p><strong>Month 2: Launch (Days 31-60)</strong></p><ul><li>Week 5: Set up profiles on Upwork, Fiverr, LinkedIn</li><li>Week 6: Publish 2 case studies / portfolio pieces</li><li>Week 7: Land first 3 clients at introductory rates</li><li>Week 8: Refine your process, collect testimonials</li></ul><p><strong>Month 3: Scale (Days 61-90)</strong></p><ul><li>Week 9: Raise prices based on results</li><li>Week 10: Create a digital product from your best work</li><li>Week 11: Launch content marketing (blog + social)</li><li>Week 12: Implement referral system + recurring revenue</li></ul><p><strong>Target Outcome:</strong> $1,000-5,000/month in AI-powered income by Day 90.</p>`,prompts:['Create my AI freelancer profile for [platform]. My skills: [list skills]. My target clients: [describe]. Write: Headline (under 10 words), Summary (under 300 words), and 3 service packages with pricing.','Generate a portfolio case study for an AI consulting project. Client type: [type]. Problem: [describe]. Solution: [AI tools used]. Results: [metrics]. Format: Before/After with specific numbers.']},
+]},
+];
+
+let currentSection='m1';
+let completed=JSON.parse(localStorage.getItem('copilot_completed')||'{}');
+
+function renderNav(){
+  const c=document.getElementById('navItems');
+  c.innerHTML='';
+  let totalLessons=0,completedCount=0;
+  MODULES.forEach(m=>{
+    m.lessons.forEach(l=>{
+      totalLessons++;
+      if(completed[l.id])completedCount++;
+      const div=document.createElement('div');
+      div.className=`nav-item ${completed[l.id]?'completed':''} ${currentSection===l.id?'active':''}`;
+      div.onclick=()=>showSection(l.id);
+      div.innerHTML=`<span class="check">${completed[l.id]?'✓':''}</span><span class="label">${l.title}</span>`;
+      c.appendChild(div);
+    });
+  });
+  const pct=Math.round(completedCount/totalLessons*100);
+  document.getElementById('progressFill').style.width=pct+'%';
+  document.getElementById('progressText').textContent=pct+'% Complete ('+completedCount+'/'+totalLessons+' lessons)';
+}
+
+function showSection(id){
+  currentSection=id;
+  renderNav();
+  const area=document.getElementById('contentArea');
+  
+  if(id==='downloads'){
+    area.innerHTML=`<div class="module-header"><span class="tag">Resources</span><h1>📥 Course Downloads</h1><p>All your course materials in one place</p></div>
+    <div class="download-section">
+      <div class="download-card"><div class="dl-icon">📄</div><h5>Course PDF</h5><p>Complete 16-page course guide</p><a href="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/copilot-unlocked/Copilot_Unlocked_Course.pdf" target="_blank" class="btn btn-gold" style="display:inline-block;text-decoration:none;margin-top:8px">Download PDF</a></div>
+      <div class="download-card"><div class="dl-icon">🎧</div><h5>Audiobook</h5><p>23-minute audio version</p><a href="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/copilot-unlocked/Copilot_Unlocked_Audiobook.mp3" target="_blank" class="btn btn-gold" style="display:inline-block;text-decoration:none;margin-top:8px">Download MP3</a></div>
+    </div>
+    <div class="audio-player"><span class="audio-label">🎧 Listen Now</span><audio controls src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/copilot-unlocked/Copilot_Unlocked_Audiobook.mp3"></audio></div>`;
+    return;
+  }
+  
+  if(id==='prompts'){
+    let html=`<div class="module-header"><span class="tag">Prompt Library</span><h1>💡 50+ Ready-to-Use Prompts</h1><p>Copy any prompt and customize the [bracketed] sections</p></div>`;
+    MODULES.forEach(m=>{
+      html+=`<div class="lesson-card"><h3>${m.icon} ${m.title}</h3><div class="lesson-content">`;
+      m.lessons.forEach(l=>{
+        l.prompts.forEach((p,i)=>{
+          html+=`<div class="prompt-box"><button class="copy-btn" onclick="copyPrompt(this)">Copy</button><code>${p}</code></div>`;
+        });
+      });
+      html+=`</div></div>`;
+    });
+    area.innerHTML=html;
+    return;
+  }
+  
+  if(id==='certificate'){
+    const allDone=MODULES.every(m=>m.lessons.every(l=>completed[l.id]));
+    area.innerHTML=`<div class="cert-section">
+      <h2>🏆 Certificate of Completion</h2>
+      <p>${allDone?'Congratulations! Enter your name to generate your certificate.':'Complete all lessons to unlock your certificate.'}</p>
+      ${allDone?`<input type="text" id="certName" placeholder="Your Full Name"><br><button class="btn btn-gold" onclick="generateCert()">Generate Certificate</button>`:`<p style="color:var(--gold)">Progress: ${Object.keys(completed).length}/${MODULES.reduce((a,m)=>a+m.lessons.length,0)} lessons completed</p>`}
+      <canvas id="certCanvas" style="display:none;margin:20px auto;max-width:100%"></canvas>
+    </div>`;
+    return;
+  }
+
+  // Find lesson
+  for(const m of MODULES){
+    for(const l of m.lessons){
+      if(l.id===id){
+        let html=`<div class="module-header"><span class="tag">${m.icon} ${m.title}</span><h1>${l.title}</h1><p>${m.subtitle}</p></div>`;
+        html+=`<div class="lesson-card"><div class="lesson-content">${l.content}</div></div>`;
+        if(l.prompts&&l.prompts.length){
+          html+=`<div class="lesson-card"><h3><span class="icon">💡</span> Prompt Templates</h3><div class="lesson-content">`;
+          l.prompts.forEach(p=>{
+            html+=`<div class="prompt-box"><button class="copy-btn" onclick="copyPrompt(this)">Copy</button><code>${p}</code></div>`;
+          });
+          html+=`</div></div>`;
+        }
+        html+=`<button class="complete-btn ${completed[l.id]?'done':''}" onclick="toggleComplete('${l.id}')">${completed[l.id]?'✓ Lesson Completed':'Mark Lesson Complete'}</button>`;
+        area.innerHTML=html;
+        return;
+      }
+    }
+  }
+}
+
+function toggleComplete(id){
+  completed[id]=!completed[id];
+  localStorage.setItem('copilot_completed',JSON.stringify(completed));
+  showSection(id);
+}
+
+function copyPrompt(btn){
+  const code=btn.parentElement.querySelector('code');
+  navigator.clipboard.writeText(code.textContent);
+  btn.textContent='Copied!';
+  setTimeout(()=>btn.textContent='Copy',1500);
+}
+
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+function generateCert(){
+  const name=document.getElementById('certName').value;
+  if(!name)return;
+  const canvas=document.getElementById('certCanvas');
+  canvas.style.display='block';
+  canvas.width=800;canvas.height=500;
+  const ctx=canvas.getContext('2d');
+  ctx.fillStyle='#0a0a0f';ctx.fillRect(0,0,800,500);
+  ctx.strokeStyle='#c8a84b';ctx.lineWidth=3;ctx.strokeRect(20,20,760,460);
+  ctx.strokeRect(30,30,740,440);
+  ctx.fillStyle='#c8a84b';ctx.font='16px serif';ctx.textAlign='center';
+  ctx.fillText('T. LOTT CREATIVE',400,80);
+  ctx.fillStyle='#f5f0e8';ctx.font='bold 32px serif';
+  ctx.fillText('Certificate of Completion',400,130);
+  ctx.fillStyle='#888';ctx.font='14px sans-serif';
+  ctx.fillText('This certifies that',400,180);
+  ctx.fillStyle='#c8a84b';ctx.font='bold 28px serif';
+  ctx.fillText(name,400,220);
+  ctx.fillStyle='#888';ctx.font='14px sans-serif';
+  ctx.fillText('has successfully completed',400,260);
+  ctx.fillStyle='#f5f0e8';ctx.font='bold 20px sans-serif';
+  ctx.fillText('COPILOT UNLOCKED: Complete AI Mastery Course',400,300);
+  ctx.fillStyle='#888';ctx.font='12px sans-serif';
+  ctx.fillText('6 Modules | 50+ Prompt Templates | Workflow Blueprints | Open-Source Guides',400,340);
+  ctx.fillText(new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}),400,400);
+  ctx.fillStyle='#c8a84b';ctx.font='italic 14px serif';
+  ctx.fillText('T. Lott Creative - Empowering Creators with AI',400,440);
+}
+
+renderNav();
+showSection('l1_1');
+</script>
+</body>
+</html>
