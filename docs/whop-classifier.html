@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whop Support Classifier</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .header { text-align: center; color: white; margin-bottom: 30px; }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .header p { font-size: 1.1em; opacity: 0.9; }
+        .card { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); margin-bottom: 20px; }
+        .setup-card { background: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .setup-card h3 { color: #856404; margin-bottom: 10px; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #f0f0f0; }
+        .tab-button { background: none; border: none; padding: 15px 20px; cursor: pointer; font-size: 1em; color: #666; border-bottom: 3px solid transparent; transition: all 0.3s; }
+        .tab-button.active { color: #667eea; border-bottom-color: #667eea; }
+        .tab-button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
+        input[type="password"], textarea { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-family: monospace; font-size: 0.95em; }
+        textarea { resize: vertical; min-height: 200px; }
+        input[type="password"]:focus, textarea:focus { outline: none; border-color: #667eea; }
+        button { background: #667eea; color: white; border: none; padding: 12px 30px; border-radius: 8px; font-size: 1em; cursor: pointer; transition: all 0.3s; }
+        button:hover { background: #764ba2; transform: translateY(-2px); }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        button.secondary { background: #6c757d; }
+        button.secondary:hover { background: #5a6268; }
+        .results { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-top: 20px; }
+        .result-item { background: white; padding: 15px; margin-bottom: 15px; border-left: 4px solid #667eea; border-radius: 4px; }
+        .category-badge { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 0.9em; font-weight: bold; margin-right: 10px; }
+        .badge-high { background: #dc3545; color: white; }
+        .badge-medium { background: #ffc107; color: #333; }
+        .badge-low { background: #28a745; color: white; }
+        .message-preview { color: #666; margin-top: 10px; font-style: italic; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 15px; border-radius: 8px; margin: 15px 0; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 15px; border-radius: 8px; margin: 15px 0; }
+        .loading { display: none; text-align: center; margin: 20px 0; }
+        .loading.show { display: block; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .info-box { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Whop Support Classifier</h1>
+            <p>Auto-classify your support messages with AI. Powered by Groq LLM.</p>
+        </div>
+
+        <div id="setupSection" class="card">
+            <div class="setup-card">
+                <h3>🔑 Step 1: Add Your Groq API Key</h3>
+                <p style="margin-bottom: 15px;">Get a free Groq API key from <a href="https://console.groq.com/keys" target="_blank" style="color: #667eea;">console.groq.com/keys</a></p>
+                <div class="form-group">
+                    <label for="apiKey">Groq API Key:</label>
+                    <input type="password" id="apiKey" placeholder="gsk_..." />
+                </div>
+                <button onclick="setupAPI()">✅ Save API Key</button>
+                <div id="setupStatus"></div>
+            </div>
+        </div>
+
+        <div id="mainSection" style="display: none;">
+            <div class="card">
+                <div class="tabs">
+                    <button class="tab-button active" onclick="switchTab(event, 'paste')">📋 Paste Messages</button>
+                    <button class="tab-button" onclick="switchTab(event, 'export')">📊 Export Results</button>
+                    <button class="tab-button" onclick="switchTab(event, 'help')">❓ Help</button>
+                    <button class="tab-button" onclick="resetAPI()" style="margin-left: auto;">🔄 Change API Key</button>
+                </div>
+
+                <!-- Paste Tab -->
+                <div id="paste" class="tab-content active">
+                    <h3 style="margin-bottom: 15px;">Paste your support messages (one per line):</h3>
+                    <textarea id="messagesInput" placeholder="Customer message 1&#10;Customer message 2&#10;Customer message 3..."></textarea>
+                    <div style="margin-top: 15px; display: flex; gap: 10px;">
+                        <button onclick="classifyMessages()">🤖 Classify All Messages</button>
+                        <button class="secondary" onclick="clearInput()">Clear</button>
+                    </div>
+                    <div id="classifyLoading" class="loading">
+                        <div class="spinner"></div>
+                        <p>Classifying messages...</p>
+                    </div>
+                    <div id="resultsContainer"></div>
+                </div>
+
+                <!-- Export Tab -->
+                <div id="export" class="tab-content">
+                    <h3 style="margin-bottom: 15px;">Export classified messages as CSV:</h3>
+                    <textarea id="exportInput" placeholder="Paste the same messages from above to export..."></textarea>
+                    <div style="margin-top: 15px; display: flex; gap: 10px;">
+                        <button onclick="exportCSV()">📥 Download CSV</button>
+                    </div>
+                </div>
+
+                <!-- Help Tab -->
+                <div id="help" class="tab-content">
+                    <h3 style="margin-bottom: 15px;">How to use:</h3>
+                    <ol style="line-height: 1.8; margin-left: 20px;">
+                        <li>Get a free Groq API key from <a href="https://console.groq.com/keys" target="_blank">console.groq.com</a></li>
+                        <li>Click "Change API Key" and paste your key</li>
+                        <li>Go to your Whop dashboard → Support Chats</li>
+                        <li>Copy all customer messages you want to classify</li>
+                        <li>Paste them in the "Paste Messages" tab (one per line)</li>
+                        <li>Click "Classify All Messages"</li>
+                        <li>View results or export as CSV</li>
+                    </ol>
+                    <div style="margin-top: 20px; padding: 15px; background: #f0f0f0; border-radius: 8px;">
+                        <strong>Categories:</strong>
+                        <ul style="margin-top: 10px; margin-left: 20px;">
+                            <li><strong>billing</strong> - Payment, refund, subscription issues</li>
+                            <li><strong>product-bug</strong> - Technical issues</li>
+                            <li><strong>access</strong> - Login or account access issues</li>
+                            <li><strong>feature-request</strong> - User wants new features</li>
+                            <li><strong>general-inquiry</strong> - General questions</li>
+                            <li><strong>complaint</strong> - Negative feedback</li>
+                            <li><strong>praise</strong> - Positive feedback</li>
+                            <li><strong>other</strong> - Doesn't fit above</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const GROQ_ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions';
+        let GROQ_API_KEY = localStorage.getItem('groq_api_key') || null;
+
+        function setupAPI() {
+            const key = document.getElementById('apiKey').value.trim();
+            if (!key) {
+                document.getElementById('setupStatus').innerHTML = '<div class="error">❌ Please enter an API key</div>';
+                return;
+            }
+            localStorage.setItem('groq_api_key', key);
+            GROQ_API_KEY = key;
+            document.getElementById('setupStatus').innerHTML = '<div class="success">✅ API key saved! You\'re ready to go.</div>';
+            setTimeout(() => {
+                document.getElementById('setupSection').style.display = 'none';
+                document.getElementById('mainSection').style.display = 'block';
+            }, 1500);
+        }
+
+        function resetAPI() {
+            localStorage.removeItem('groq_api_key');
+            GROQ_API_KEY = null;
+            document.getElementById('setupSection').style.display = 'block';
+            document.getElementById('mainSection').style.display = 'none';
+            document.getElementById('apiKey').value = '';
+            document.getElementById('setupStatus').innerHTML = '';
+        }
+
+        function switchTab(event, tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        async function classifyMessage(message) {
+            const systemPrompt = `You are a support message classifier for Ting's products.
+Classify into ONE category: billing, product-bug, feature-request, access, general-inquiry, complaint, praise, other
+Respond ONLY with JSON: {"category": "...", "priority": "high/medium/low", "summary": "..."}`;
+
+            try {
+                const response = await fetch(GROQ_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${GROQ_API_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: 'llama-3.3-70b-versatile',
+                        messages: [
+                            { role: 'system', content: systemPrompt },
+                            { role: 'user', content: `Classify this message: ${message}` }
+                        ],
+                        temperature: 0.3,
+                        max_tokens: 200
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const content = data.choices[0].message.content;
+                    try {
+                        return JSON.parse(content);
+                    } catch {
+                        return { category: 'other', priority: 'medium', summary: content.substring(0, 100) };
+                    }
+                } else {
+                    return { error: `API error: ${response.status}` };
+                }
+            } catch (e) {
+                return { error: e.message };
+            }
+        }
+
+        async function classifyMessages() {
+            const input = document.getElementById('messagesInput').value.trim();
+            if (!input) {
+                alert('Please paste some messages first.');
+                return;
+            }
+
+            const messages = input.split('\n').filter(m => m.trim().length > 10);
+            const loading = document.getElementById('classifyLoading');
+            const resultsContainer = document.getElementById('resultsContainer');
+            
+            loading.classList.add('show');
+            resultsContainer.innerHTML = '';
+
+            const results = [];
+            for (const msg of messages) {
+                const classified = await classifyMessage(msg);
+                results.push({ message: msg, ...classified });
+            }
+
+            loading.classList.remove('show');
+
+            let html = `<div class="success">✅ Classified ${results.length} messages</div><div class="results">`;
+            for (const r of results) {
+                const badgeClass = r.priority === 'high' ? 'badge-high' : r.priority === 'medium' ? 'badge-medium' : 'badge-low';
+                html += `<div class="result-item">
+                    <strong>${r.category?.toUpperCase() || 'OTHER'}</strong>
+                    <span class="category-badge ${badgeClass}">${r.priority?.toUpperCase() || 'MEDIUM'}</span>
+                    <div class="message-preview">"${r.message.substring(0, 100)}..."</div>
+                    <div style="margin-top: 8px; color: #666; font-size: 0.9em;">${r.summary || ''}</div>
+                </div>`;
+            }
+            html += '</div>';
+            resultsContainer.innerHTML = html;
+        }
+
+        function clearInput() {
+            document.getElementById('messagesInput').value = '';
+            document.getElementById('resultsContainer').innerHTML = '';
+        }
+
+        async function exportCSV() {
+            const input = document.getElementById('exportInput').value.trim();
+            if (!input) {
+                alert('Please paste messages first.');
+                return;
+            }
+
+            const messages = input.split('\n').filter(m => m.trim().length > 10);
+            const results = [];
+
+            for (const msg of messages) {
+                const classified = await classifyMessage(msg);
+                results.push({ message: msg, category: classified.category, priority: classified.priority, summary: classified.summary });
+            }
+
+            let csv = 'Message,Category,Priority,Summary\n';
+            for (const r of results) {
+                csv += `"${r.message.replace(/"/g, '""')}","${r.category}","${r.priority}","${(r.summary || '').replace(/"/g, '""')}"\n`;
+            }
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `whop-classifications-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+        }
+
+        // Check if API key is already set
+        if (GROQ_API_KEY) {
+            document.getElementById('setupSection').style.display = 'none';
+            document.getElementById('mainSection').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
