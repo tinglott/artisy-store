@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sacred Cycles — Video Library</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 50px;
+        }
+        
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.95;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 40px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid white;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            cursor: pointer;
+            border-radius: 25px;
+            transition: all 0.3s;
+            font-size: 1em;
+            font-weight: 600;
+        }
+        
+        .filter-btn:hover, .filter-btn.active {
+            background: white;
+            color: #667eea;
+        }
+        
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+        
+        .video-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: none;
+        }
+        
+        .video-card.show {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .video-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+        
+        .video-frame {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%;
+            background: #000;
+            overflow: hidden;
+        }
+        
+        .video-frame iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .video-info {
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .video-title {
+            font-size: 1.1em;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .video-series {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-bottom: 10px;
+            width: fit-content;
+        }
+        
+        .video-desc {
+            font-size: 0.95em;
+            color: #666;
+            line-height: 1.5;
+            flex: 1;
+        }
+        
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            color: white;
+            font-size: 1.2em;
+        }
+        
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 50px;
+            opacity: 0.9;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2em; }
+            .video-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌙 Sacred Cycles Video Library</h1>
+            <p>Complete 8-Week Wellness Curriculum — Grounding, Breathwork, Sound, & More</p>
+        </div>
+        
+        <div class="filter-buttons">
+            <button class="filter-btn active" onclick="filterVideos('all')">All Videos</button>
+            <button class="filter-btn" onclick="filterVideos('hhintro')">Happy Hormones</button>
+            <button class="filter-btn" onclick="filterVideos('ff')">Female Freedom</button>
+            <button class="filter-btn" onclick="filterVideos('hh')">Healing Heart</button>
+            <button class="filter-btn" onclick="filterVideos('core')">Core Library</button>
+        </div>
+        
+        <div class="video-grid" id="videoGrid"></div>
+        
+        <div class="footer">
+            <p>💜 Access all content through your Sacred Renewal wellness portal</p>
+        </div>
+    </div>
+    
+    <script>
+        const videos = [
+            // Happy Hormones (HHR) Series
+            {name: "Happy Hormones — Introduction", series: "Happy Hormones", category: "hhintro", id: "1lcFZBzp99VqwSdP_BJYYdmwdn_TWp-qc"},
+            {name: "Happy Hormones — Chapter 1", series: "Happy Hormones", category: "hhintro", id: "1lk6b94c96b6UCx2KUhfXQw8CdMfeAd4C"},
+            {name: "Happy Hormones — Chapter 2", series: "Happy Hormones", category: "hhintro", id: "1X8cLAJWSSq-zu8yLgyN8elW8dOKrkpa"},
+            {name: "Happy Hormones — Chapter 3", series: "Happy Hormones", category: "hhintro", id: "1ymvdjh0JBOlRNfe_3oprY5CbMS4KkYua"},
+            {name: "Happy Hormones — Chapter 4", series: "Happy Hormones", category: "hhintro", id: "1wCpFInMoWmcX92UQ7PAR2U4pox7bvYLC"},
+            {name: "Happy Hormones — Chapter 5", series: "Happy Hormones", category: "hhintro", id: "1rg41bHOG-m0S2y4Nw7_98KPewmKsV2OQ"},
+            {name: "Happy Hormones — Conclusion", series: "Happy Hormones", category: "hhintro", id: "16_q996SdV0-C7hSPsAP1D2hVwlusabZ_"},
+            
+            // Female Freedom (FF) Series
+            {name: "Female Freedom — Introduction", series: "Female Freedom", category: "ff", id: "1dUiHyHjKrSpYuLaBXHFtnf705BCMCAUs"},
+            {name: "Female Freedom — Chapter 1", series: "Female Freedom", category: "ff", id: "1tOsGH-rmG4RhxpDfaLDuY1AFoi-uo6Cj"},
+            {name: "Female Freedom — Chapter 2", series: "Female Freedom", category: "ff", id: "1DXokMo4_Tx-X413PlBHX6-BOh0BHeYfv"},
+            {name: "Female Freedom — Chapter 3", series: "Female Freedom", category: "ff", id: "1JPAqCKDYWbxjQ0V-nCnLGPFEJiWXm3PF"},
+            {name: "Female Freedom — Chapter 4", series: "Female Freedom", category: "ff", id: "1bMGeHo6Rt6iasI30z49sBSTnmybmCdPG"},
+            {name: "Female Freedom — Chapter 5", series: "Female Freedom", category: "ff", id: "1CTsvivFM3_ZQKDCtCeekctrnQTVfUUp7"},
+            {name: "Female Freedom — Chapter 6", series: "Female Freedom", category: "ff", id: "1-zXEtbqj7HLdznsHeyokR1tk--RKFL-z"},
+            {name: "Female Freedom — Chapter 7", series: "Female Freedom", category: "ff", id: "10kRWEMdG82SA1CF0RJ0axztCZIF0xShy"},
+            {name: "Female Freedom — Chapter 8", series: "Female Freedom", category: "ff", id: "1Hie_BOQpwl8TftfpmnTZLGPH-msORhDf"},
+            {name: "Female Freedom — Conclusion", series: "Female Freedom", category: "ff", id: "1_4vQI50mzDIHOdVh4jg7Tbp29GHOTMYx"},
+            
+            // Healing Heart (HH) Series
+            {name: "Healing Heart — Introduction", series: "Healing Heart", category: "hh", id: "1SP4RGlShGI6f35jeteInrifaWkIeBP-A"},
+            {name: "Healing Heart — Chapter 1", series: "Healing Heart", category: "hh", id: "178cKlu7ErdkLL2WJdom8IE1VMQSDIjBG"},
+            {name: "Healing Heart — Chapter 2", series: "Healing Heart", category: "hh", id: "1o86Tih2hZxJMVSSLWj0QIvyXXjFomDvp"},
+            {name: "Healing Heart — Chapter 3", series: "Healing Heart", category: "hh", id: "1WCp5BZ14sDOvJL9QqlwBW45qNfhrbqye"},
+            {name: "Healing Heart — Chapter 4", series: "Healing Heart", category: "hh", id: "1JIapuskgiRNyCrRAA8aK7--P9kRTg3KS"},
+            {name: "Healing Heart — Chapter 5", series: "Healing Heart", category: "hh", id: "1FVw90vW2LcLF_KNNCLAC-0SgT60bgT2C"},
+            {name: "Healing Heart — Chapter 6", series: "Healing Heart", category: "hh", id: "1NHYmk02xSI2YRjhPVblePHRFzajSpa5n"},
+            {name: "Healing Heart — Chapter 7", series: "Healing Heart", category: "hh", id: "1f1IGNpJG3rULcvQrYCPYYzJIM9DrLr6-"},
+            {name: "Healing Heart — Chapter 8", series: "Healing Heart", category: "hh", id: "1RoV0Zb4ikqfm7xkHGnQ6tjDs7oVm2wVQ"},
+            {name: "Healing Heart — Conclusion", series: "Healing Heart", category: "hh", id: "1pcZFEBeJzYj5TieNy2QJtwjEUU3EkhV3"},
+            
+            // Core Library Videos
+            {name: "Core Video 1", series: "Core Library", category: "core", id: "1d7Lik9Q_6ZHhQ8ElKssMLGS6mnz00Ep0"},
+            {name: "Core Video 2", series: "Core Library", category: "core", id: "1pb6OcgcjaKW4jKDAE0iYgPsfIx4V8zdj"},
+            {name: "Core Video 3", series: "Core Library", category: "core", id: "1JPkIGnVEMIr4B07wEp7XDiDLdrg99GXM"},
+            {name: "Core Video 4", series: "Core Library", category: "core", id: "1Vky0Au3NVxvVNIOPoIf82McKQ4ebcYj0"},
+            {name: "Core Video 5", series: "Core Library", category: "core", id: "1KQMLNAuzK1RG4lDWod-oD9NZ2XOwKe8_"},
+            {name: "Core Video 6", series: "Core Library", category: "core", id: "1luNf_3-OlJKZBtRp0P5WRpBgO3meKR1n"},
+            {name: "Core Video 7", series: "Core Library", category: "core", id: "1hTrhJuQvejpET1HaDjcM9tCyhhq7dl8G"},
+            {name: "Core Video 8", series: "Core Library", category: "core", id: "1Jw179R44WrEMraQZc_QH4ZOdCoy5vwmA"},
+            {name: "Core Video 9", series: "Core Library", category: "core", id: "1Qqd0xBULUvIZg1Z-uzVIcaICYM8BetjE"},
+            {name: "Core Video 10", series: "Core Library", category: "core", id: "1Pk7lIWWH3Btmtcsou3jtqdYLUFpaFxJi"},
+            {name: "Core Video 11", series: "Core Library", category: "core", id: "1wKngiVyXtt5Pu6RST-GUU8KS13xqmKOW"},
+            {name: "Core Video 12", series: "Core Library", category: "core", id: "1g1NcQhdUpkZd0d_48f5Z9_7uHvwb91DP"},
+            {name: "Core Video 13", series: "Core Library", category: "core", id: "1rT0jsKOCar6uuMVtd7ogMbmwgDkC56ph"},
+            {name: "Core Video 14", series: "Core Library", category: "core", id: "13hyfCwmS7UoDFWRRuEoM69BEZ1v30w03"},
+            {name: "Core Video 15", series: "Core Library", category: "core", id: "1-vlYwcYbzE0NK6A5usZKdlALoSn6ZYPy"},
+        ];
+        
+        function renderVideos(filter = 'all') {
+            const grid = document.getElementById('videoGrid');
+            grid.innerHTML = '';
+            
+            let shown = 0;
+            videos.forEach(video => {
+                if (filter === 'all' || video.category === filter) {
+                    const card = document.createElement('div');
+                    card.className = 'video-card show';
+                    card.innerHTML = `
+                        <div class="video-frame">
+                            <iframe src="https://drive.google.com/file/${video.id}/preview" allowfullscreen="" loading="lazy"></iframe>
+                        </div>
+                        <div class="video-info">
+                            <span class="video-series">${video.series}</span>
+                            <h3 class="video-title">${video.name}</h3>
+                            <p class="video-desc">Watch full video • Access anytime • Download available</p>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                    shown++;
+                }
+            });
+            
+            if (shown === 0) {
+                grid.innerHTML = '<div class="empty-state">No videos found in this category</div>';
+            }
+        }
+        
+        function filterVideos(category) {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderVideos(category);
+        }
+        
+        // Initial render
+        renderVideos();
+    </script>
+</body>
+</html>
