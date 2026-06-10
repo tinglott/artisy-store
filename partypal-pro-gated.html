@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Free Party Planning Tool - PartyPal Pro</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 450px;
+      width: 100%;
+      padding: 50px 30px;
+      text-align: center;
+    }
+    .logo {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 25px;
+      font-size: 40px;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+    .tagline {
+      color: #666;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    .benefits {
+      background: #f8f9ff;
+      border-left: 4px solid #667eea;
+      padding: 15px;
+      margin: 25px 0;
+      text-align: left;
+      border-radius: 6px;
+    }
+    .benefits li {
+      list-style: none;
+      margin: 8px 0;
+      color: #555;
+      font-size: 14px;
+      padding-left: 25px;
+      position: relative;
+    }
+    .benefits li:before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: #667eea;
+      font-weight: bold;
+    }
+    form {
+      margin: 30px 0;
+    }
+    input[type="email"] {
+      width: 100%;
+      padding: 14px;
+      margin-bottom: 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+    input[type="email"]:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    .loading {
+      display: none;
+      text-align: center;
+      color: #667eea;
+    }
+    .error {
+      color: #e74c3c;
+      font-size: 13px;
+      margin-top: 10px;
+      display: none;
+    }
+    .success {
+      color: #27ae60;
+      font-size: 13px;
+      margin-top: 10px;
+      display: none;
+    }
+    .privacy {
+      font-size: 12px;
+      color: #999;
+      margin-top: 20px;
+    }
+    a {
+      color: #667eea;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="logo">🎉</div>
+  
+  <h1>PartyPal Pro</h1>
+  <p class="tagline">Free Party Planning Tool — Limited Time</p>
+  
+  <div class="benefits">
+    <li>Plan perfect parties in minutes</li>
+    <li>Guest management & RSVP tracking</li>
+    <li>Budget calculator & timeline planner</li>
+    <li>Vendor finder & checklist templates</li>
+    <li>100% free, no credit card required</li>
+  </div>
+
+  <form id="emailForm">
+    <input 
+      type="email" 
+      id="email" 
+      placeholder="Enter your email address" 
+      required
+      autocomplete="email"
+    >
+    <button type="submit">Get Free Access Now</button>
+    
+    <div class="loading" id="loading">
+      ⏳ Unlocking your access...
+    </div>
+    <div class="error" id="error"></div>
+    <div class="success" id="success">✓ Welcome! Redirecting...</div>
+  </form>
+
+  <p class="privacy">
+    We'll never spam you. <a href="#" onclick="return false;">Privacy policy</a>
+  </p>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://wmvvvqkfquhvnqknjxfl.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1bXZ2cWtmcXVodm5xa25qeGZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTcwMDAwMDAsImV4cCI6MTczMjYzOTk5OX0.dummykey';
+  const PARTYPAL_URL = 'https://fast-party-plan-pulse.base44.app';
+  
+  document.getElementById('emailForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const email = document.getElementById('email').value.trim();
+    const form = document.getElementById('emailForm');
+    const loading = document.getElementById('loading');
+    const error = document.getElementById('error');
+    const success = document.getElementById('success');
+    
+    // Reset messages
+    error.style.display = 'none';
+    success.style.display = 'none';
+    error.textContent = '';
+    
+    // Show loading
+    loading.style.display = 'block';
+    form.style.opacity = '0.6';
+    form.style.pointerEvents = 'none';
+    
+    try {
+      // Save to Supabase
+      const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/email_signups`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+          },
+          body: JSON.stringify({
+            email: email,
+            source: 'partypal-pro-gated',
+            created_at: new Date().toISOString()
+          })
+        }
+      );
+      
+      if (!response.ok) {
+        throw new Error('Failed to save email');
+      }
+      
+      // Show success and redirect
+      loading.style.display = 'none';
+      success.style.display = 'block';
+      
+      // Redirect after 1.5 seconds
+      setTimeout(() => {
+        window.location.href = PARTYPAL_URL;
+      }, 1500);
+      
+    } catch (err) {
+      console.error('Error:', err);
+      loading.style.display = 'none';
+      error.style.display = 'block';
+      error.textContent = 'Something went wrong. Redirecting anyway...';
+      
+      // Redirect after 2 seconds anyway
+      setTimeout(() => {
+        window.location.href = PARTYPAL_URL;
+      }, 2000);
+    }
+  });
+  
+  // Fallback: redirect if JavaScript fails
+  setTimeout(() => {
+    // If form still visible after 30 seconds, redirect anyway
+    const form = document.getElementById('emailForm');
+    if (form && form.style.display !== 'none') {
+      window.location.href = PARTYPAL_URL;
+    }
+  }, 30000);
+</script>
+
+</body>
+</html>
