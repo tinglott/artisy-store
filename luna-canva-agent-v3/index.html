@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUNA 3.0 • Lumina Canva Agent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap');
+        body { font-family: 'Inter', system-ui, sans-serif; }
+        .logo-font { font-family: 'Space Grotesk', sans-serif; }
+        .chat-bg { background: linear-gradient(180deg, #0a0a0a 0%, #111111 100%); }
+        .message-agent { background: #1f1f1f; border-left: 4px solid #a78bfa; }
+        .message-user { background: #312e81; }
+        .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(12px); }
+    </style>
+</head>
+<body class="bg-zinc-950 text-zinc-200 min-h-screen overflow-hidden">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-80 bg-black border-r border-zinc-800 flex flex-col">
+            <div class="p-6 border-b border-zinc-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-500 via-fuchsia-500 to-cyan-400 flex items-center justify-center text-white font-bold text-2xl shadow-lg">L</div>
+                    <div>
+                        <div class="logo-font text-3xl font-semibold tracking-tighter">LUNA</div>
+                        <div class="text-xs text-zinc-500 -mt-1">3.0 • LUMINA CANVA AGENT</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Brands -->
+            <div class="p-6">
+                <div class="text-xs uppercase tracking-widest text-zinc-500 mb-3">Brand Voice</div>
+                <select id="brand-select" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-violet-500">
+                    <option value="Sacred Cycles">Sacred Cycles</option>
+                    <option value="Lunar Bloom">Lunar Bloom</option>
+                    <option value="Cosmic Ritual">Cosmic Ritual</option>
+                    <option value="Ethereal Studio">Ethereal Studio</option>
+                </select>
+            </div>
+
+            <!-- Modes -->
+            <div class="px-6">
+                <div class="text-xs uppercase tracking-widest text-zinc-500 mb-3">Agent Mode</div>
+                <div class="grid grid-cols-2 gap-2 text-sm">
+                    <button onclick="setMode('strategist')" class="mode-btn active px-4 py-3 bg-zinc-900 hover:bg-zinc-800 rounded-2xl border border-violet-500">Strategist</button>
+                    <button onclick="setMode('executor')" class="mode-btn px-4 py-3 bg-zinc-900 hover:bg-zinc-800 rounded-2xl">Canva Executor</button>
+                    <button onclick="setMode('creative')" class="mode-btn px-4 py-3 bg-zinc-900 hover:bg-zinc-800 rounded-2xl">Creative Director</button>
+                    <button onclick="setMode('analyst')" class="mode-btn px-4 py-3 bg-zinc-900 hover:bg-zinc-800 rounded-2xl">Brand Analyst</button>
+                </div>
+            </div>
+
+            <div class="mt-auto p-6 border-t border-zinc-800 text-xs text-zinc-500 space-y-4">
+                <div>Quick Actions</div>
+                <button onclick="quickAction('Launch kit')" class="w-full text-left px-4 py-2 hover:bg-zinc-900 rounded-xl">📦 Launch Kit</button>
+                <button onclick="quickAction('Social carousel')" class="w-full text-left px-4 py-2 hover:bg-zinc-900 rounded-xl">📱 Social Carousel</button>
+                <button onclick="quickAction('Brand deck')" class="w-full text-left px-4 py-2 hover:bg-zinc-900 rounded-xl">📋 Brand Deck</button>
+            </div>
+        </div>
+
+        <!-- Main Chat -->
+        <div class="flex-1 flex flex-col">
+            <header class="h-16 border-b border-zinc-800 bg-black flex items-center px-8 justify-between">
+                <div class="flex items-center gap-4">
+                    <div id="current-brand" class="font-medium">Sacred Cycles</div>
+                    <div class="text-xs px-3 py-1 bg-emerald-950 text-emerald-400 rounded-full">Online • Groq + Lumina</div>
+                </div>
+                <div class="flex items-center gap-6 text-sm">
+                    <button onclick="showHealth()" class="hover:text-white flex items-center gap-1.5">
+                        <i class="fas fa-heartbeat"></i> Health
+                    </button>
+                    <a href="https://github.com" target="_blank" class="hover:text-white">GitHub</a>
+                </div>
+            </header>
+
+            <div id="chat-messages" class="flex-1 overflow-auto p-8 space-y-6 chat-bg"></div>
+
+            <div class="p-6 border-t border-zinc-800 bg-black">
+                <div class="flex gap-3">
+                    <textarea id="user-input" rows="2"
+                        class="flex-1 bg-zinc-900 border border-zinc-700 rounded-3xl px-6 py-4 resize-none focus:outline-none focus:border-violet-500"
+                        placeholder="Describe your design brief..."></textarea>
+                    
+                    <div class="flex flex-col gap-2">
+                        <button onclick="sendMessage()" 
+                            class="flex-1 bg-violet-600 hover:bg-violet-700 px-8 rounded-3xl font-medium flex items-center justify-center">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                        <button onclick="generateLuminaImage()" 
+                            class="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-3xl text-sm flex items-center gap-2">
+                            <i class="fas fa-image"></i> Lumina
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="flex gap-2 mt-4 text-xs">
+                    <button onclick="exportToCanva()" class="flex-1 py-3 bg-zinc-900 hover:bg-emerald-950 border border-emerald-900 rounded-2xl">Export to Canva</button>
+                    <button onclick="syncToGitHub()" class="flex-1 py-3 bg-zinc-900 hover:bg-amber-950 border border-amber-900 rounded-2xl">Sync GitHub</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentMode = 'strategist';
+        let currentBrand = 'Sacred Cycles';
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active', 'border-violet-500'));
+            event.target.classList.add('active', 'border-violet-500');
+        }
+
+        function addMessage(text, type) {
+            const chat = document.getElementById('chat-messages');
+            const div = document.createElement('div');
+            div.className = `max-w-3xl ${type === 'user' ? 'ml-auto message-user' : 'message-agent'} p-5 rounded-3xl`;
+            div.innerHTML = `<div class="prose prose-invert">${text}</div>`;
+            chat.appendChild(div);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('user-input');
+            const prompt = input.value.trim();
+            if (!prompt) return;
+
+            addMessage(prompt, 'user');
+            input.value = '';
+
+            try {
+                const res = await fetch('/api/groq', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        messages: [
+                            { role: 'system', content: `You are LUNA 3.0, a premium creative strategist for ${currentBrand}. Mode: ${currentMode}. Always output actionable Canva steps, brand-aligned ideas, and visual suggestions.` },
+                            { role: 'user', content: prompt }
+                        ],
+                        temperature: 0.75,
+                        max_tokens: 1500
+                    })
+                });
+                const data = await res.json();
+                const reply = data.choices?.[0]?.message?.content || "Error processing request.";
+                addMessage(reply, 'agent');
+            } catch (e) {
+                addMessage("Connection error. Check backend.", 'agent');
+            }
+        }
+
+        async function generateLuminaImage() {
+            const prompt = document.getElementById('user-input').value || "ethereal sacred cycles brand visual";
+            const res = await fetch('/api/lumina-generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt })
+            });
+            const data = await res.json();
+            addMessage(`<img src="${data.image_url}" class="rounded-2xl mt-3 max-w-md"> <p class="text-xs mt-2">${data.message}</p>`, 'agent');
+        }
+
+        async function exportToCanva() {
+            const res = await fetch('/api/canva-export', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ brand: currentBrand })
+            });
+            const data = await res.json();
+            addMessage(`✅ Canva Design Ready!<br><a href="${data.edit_url}" target="_blank" class="underline">Open in Canva →</a>`, 'agent');
+        }
+
+        async function syncToGitHub() {
+            const res = await fetch('/api/github-sync', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ brand: currentBrand })
+            });
+            const data = await res.json();
+            addMessage(data.message, 'agent');
+        }
+
+        function quickAction(action) {
+            document.getElementById('user-input').value = `Create a full ${action} for ${currentBrand}`;
+            sendMessage();
+        }
+
+        async function showHealth() {
+            const res = await fetch('/api/health');
+            const data = await res.json();
+            addMessage(`<strong>System Status:</strong><br>${JSON.stringify(data, null, 2)}`, 'agent');
+        }
+
+        // Keyboard support
+        document.getElementById('user-input').addEventListener('keydown', e => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Welcome message
+        window.onload = () => {
+            addMessage("Hello! I'm <strong>LUNA 3.0</strong> — your intelligent Canva + Lumina creative partner.<br><br>What would you like to design today?", 'agent');
+        };
+    </script>
+</body>
+</html>
