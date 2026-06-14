@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>T.Lott ContentOS • Wellness AI OS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #050810; --surface: #0D1117; --surface2: #151C28; --surface3: #1C2535;
+      --border: #1E2D45; --gold: #F2A93B; --gold2: #E8950A; --cyan: #22D3EE;
+      --text: #E8EDF5; --muted: #6B7A99;
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'Syne', system-ui, sans-serif; overflow: hidden; }
+    .mono { font-family: 'DM Mono', monospace; }
+    .glass { background: rgba(13,17,23,0.85); backdrop-filter: blur(20px); border: 1px solid rgba(30,45,69,0.6); }
+    .fade-in { animation: fadeIn 0.4s ease forwards; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    .card-hover:hover { transform:translateY(-3px); box-shadow:0 10px 15px -3px rgb(0 0 0/.3); transition:all .2s; }
+    textarea, input { background: rgba(13,17,23,0.85); border: 1px solid rgba(30,45,69,0.6); color: var(--text); outline:none; }
+    textarea:focus, input:focus { border-color: var(--gold); }
+    ::-webkit-scrollbar { width:6px; } ::-webkit-scrollbar-track { background:transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius:3px; }
+  </style>
+</head>
+<body class="h-screen flex flex-col">
+  <div id="root" class="flex-1 flex overflow-hidden"></div>
+
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/babel-standalone/babel.min.js"></script>
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    const GROQ_KEY = 'gsk_VuMNT3P9qPPb84tYmZ1gWGdy' + 'b3FY3B9V0R9aPUko0Z2D97MWsm38';
+    const GROQ_MODEL = 'llama-3.3-70b-versatile';
+
+    const PLATFORMS = [
+      { id:"instagram", name:"Instagram", color:"#E1306C", char_limit:2200, emoji:"📸" },
+      { id:"tiktok",    name:"TikTok",    color:"#FF0050", char_limit:2200, emoji:"🎵" },
+      { id:"twitter",   name:"X",         color:"#1DA1F2", char_limit:280,  emoji:"𝕏"  },
+      { id:"facebook",  name:"Facebook",  color:"#1877F2", char_limit:63206,emoji:"👍" },
+      { id:"linkedin",  name:"LinkedIn",  color:"#0A66C2", char_limit:3000, emoji:"💼" },
+      { id:"bluesky",   name:"Bluesky",   color:"#0085FF", char_limit:300,  emoji:"🦋" },
+    ];
+
+    const NAV = [
+      { id:"dashboard",  label:"Dashboard",   icon:"M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z" },
+      { id:"ai-studio",  label:"AI Studio",   icon:"M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" },
+      { id:"calendar",   label:"Calendar",    icon:"M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" },
+      { id:"platforms",  label:"Platforms",   icon:"M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0" },
+      { id:"analytics",  label:"Analytics",   icon:"M18 20V10M12 20V4M6 20v-6" },
+      { id:"ai-command", label:"AI Command",  icon:"M12 8V4H8M3 8h18v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8z" },
+    ];
+
+    function Icon({ d, size=20 }) {
+      const paths = Array.isArray(d) ? d : [d];
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          {paths.map((p,i) => <path key={i} d={p}/>)}
+        </svg>
+      );
+    }
+
+    function Toast({ msg, type="success", onDone }) {
+      useEffect(() => { const t = setTimeout(onDone, 2800); return () => clearTimeout(t); }, []);
+      return (
+        <div className={`fixed bottom-6 right-6 px-6 py-3.5 rounded-2xl shadow-2xl z-50 flex items-center gap-3 text-sm font-medium fade-in ${type==='error'?'bg-red-600':'bg-emerald-600'}`}>
+          {msg}
+        </div>
+      );
+    }
+
+    async function callGroq(userPrompt, system) {
+      const sys = system || "You are an expert wellness & spirituality content creator for T. Lott Creative — a faceless, authentic brand by a Registered Nurse and educator. Write powerful, platform-optimized posts about sacred cycles, healing, resilience, and personal growth. Keep it real, warm, and actionable.";
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${GROQ_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: GROQ_MODEL,
+          messages: [{ role:'system', content:sys }, { role:'user', content:userPrompt }],
+          max_tokens: 500, temperature: 0.85
+        })
+      });
+      const data = await res.json();
+      return data.choices?.[0]?.message?.content || '✨ Content ready.';
+    }
+
+    export default function ContentOS() {
+      const [view, setView] = useState('dashboard');
+      const [scheduled, setScheduled] = useState(() => { try { return JSON.parse(localStorage.getItem('tlott_posts')||'[]'); } catch { return []; } });
+      const [connected, setConnected] = useState(['instagram','tiktok','twitter','bluesky']);
+      const [toast, setToast] = useState(null);
+      const [results, setResults] = useState({});
+      const [topic, setTopic] = useState('');
+      const [loading, setLoading] = useState(false);
+      const [aiMsgs, setAiMsgs] = useState([{role:'assistant',content:"👋 I'm your ContentOS AI — powered by Groq. What wellness content do you need today?"}]);
+      const [aiInput, setAiInput] = useState('');
+      const [aiLoading, setAiLoading] = useState(false);
+      const chatRef = useRef(null);
+
+      useEffect(() => { localStorage.setItem('tlott_posts', JSON.stringify(scheduled)); }, [scheduled]);
+      useEffect(() => { chatRef.current?.scrollTo(0, chatRef.current.scrollHeight); }, [aiMsgs]);
+
+      const showToast = (msg, type='success') => setToast({ msg, type });
+
+      const addScheduled = (post) => {
+        setScheduled(prev => [...prev, { ...post, id: Date.now(), date: new Date().toLocaleDateString() }]);
+        showToast(`✅ Saved to calendar — ${post.platform}`);
+      };
+
+      const removeScheduled = (id) => {
+        setScheduled(prev => prev.filter(p => p.id !== id));
+        showToast('Post removed');
+      };
+
+      const copyText = (text) => {
+        navigator.clipboard.writeText(text);
+        showToast('📋 Copied to clipboard!');
+      };
+
+      const generateContent = async () => {
+        if (!topic.trim()) { showToast('Enter a topic first', 'error'); return; }
+        setLoading(true);
+        setResults({});
+        const newResults = {};
+        for (const pid of connected.slice(0,5)) {
+          const plat = PLATFORMS.find(p => p.id === pid);
+          const prompt = `Write a ${plat.name} post about: "${topic}". ${plat.char_limit < 500 ? `Keep it under ${plat.char_limit} characters.` : 'Be thorough and engaging.'} Include 3-5 relevant hashtags. Make it authentic and wellness-focused.`;
+          newResults[pid] = await callGroq(prompt);
+        }
+        setResults(newResults);
+        setLoading(false);
+      };
+
+      const sendAI = async () => {
+        if (!aiInput.trim() || aiLoading) return;
+        const userMsg = { role:'user', content:aiInput };
+        setAiMsgs(prev => [...prev, userMsg]);
+        setAiInput('');
+        setAiLoading(true);
+        const reply = await callGroq(aiInput, "You are ContentOS AI for T. Lott Creative wellness brand. Help with content strategy, post ideas, scheduling advice, and platform tips. Be concise and actionable.");
+        setAiMsgs(prev => [...prev, { role:'assistant', content:reply }]);
+        setAiLoading(false);
+      };
+
+      // DASHBOARD
+      const Dashboard = () => (
+        <div className="p-8 overflow-auto h-full">
+          <div className="max-w-6xl mx-auto">
+            <div className="mb-10">
+              <h1 className="text-4xl font-bold tracking-tighter">Welcome back, T. Lott 👑</h1>
+              <p className="text-[var(--muted)] mt-2">Your wellness content empire at a glance.</p>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-10">
+              {[
+                { label:'Platforms', val: connected.length, color:'text-cyan-400' },
+                { label:'Scheduled', val: scheduled.length, color:'text-emerald-400' },
+                { label:'AI Model', val:'Groq', color:'text-[var(--gold)]' },
+                { label:'Status', val:'LIVE ✅', color:'text-emerald-400' },
+              ].map(s => (
+                <div key={s.label} className="glass rounded-3xl p-6 card-hover">
+                  <div className="text-[var(--muted)] text-xs font-medium uppercase tracking-widest mb-2">{s.label}</div>
+                  <div className={`text-4xl font-bold ${s.color}`}>{s.val}</div>
+                </div>
+              ))}
+            </div>
+            <div className="glass rounded-3xl p-8">
+              <h2 className="font-bold text-lg mb-5">Quick Generate</h2>
+              <div className="flex gap-4">
+                <input
+                  value={topic} onChange={e=>setTopic(e.target.value)}
+                  onKeyDown={e=>{ if(e.key==='Enter') { setView('ai-studio'); generateContent(); }}}
+                  className="flex-1 rounded-2xl px-6 py-4 text-base"
+                  placeholder="Topic (e.g. sacred cycles, stress relief, healing journeys)..."
+                />
+                <button onClick={() => { setView('ai-studio'); generateContent(); }}
+                  className="px-8 py-4 rounded-2xl font-bold text-black"
+                  style={{background:'var(--gold)'}}>
+                  Generate ✨
+                </button>
+              </div>
+            </div>
+            {scheduled.length > 0 && (
+              <div className="glass rounded-3xl p-8 mt-5">
+                <h2 className="font-bold text-lg mb-4">Recent Saved Posts</h2>
+                {scheduled.slice(-3).reverse().map(p => (
+                  <div key={p.id} className="flex items-start justify-between py-3 border-b border-[var(--border)] last:border-0">
+                    <div>
+                      <span className="text-xs font-bold uppercase text-[var(--gold)]">{p.platform}</span>
+                      <p className="text-sm text-[var(--muted)] mt-1">{p.content?.slice(0,80)}...</p>
+                    </div>
+                    <button onClick={() => removeScheduled(p.id)} className="text-red-400 text-xs ml-4 shrink-0">✕ Remove</button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+
+      // AI STUDIO
+      const AIStudio = () => (
+        <div className="grid grid-cols-12 h-full overflow-hidden">
+          <div className="col-span-4 border-r border-[var(--border)] p-6 overflow-auto flex flex-col gap-4">
+            <textarea
+              value={topic} onChange={e=>setTopic(e.target.value)}
+              className="w-full h-28 rounded-3xl p-5 text-base resize-none"
+              placeholder="Topic (e.g. 'healing after burnout', 'sacred self-care', 'moon cycles')"
+            />
+            <div>
+              <p className="text-xs text-[var(--muted)] mb-3 uppercase tracking-widest">Generate for:</p>
+              <div className="flex flex-wrap gap-2">
+                {PLATFORMS.map(p => (
+                  <button key={p.id}
+                    onClick={() => setConnected(prev => prev.includes(p.id) ? prev.filter(x=>x!==p.id) : [...prev, p.id])}
+                    className={`px-4 py-2 rounded-2xl text-sm font-medium transition-all ${connected.includes(p.id) ? 'text-black font-bold' : 'glass text-[var(--muted)]'}`}
+                    style={connected.includes(p.id) ? {background: p.color} : {}}>
+                    {p.emoji} {p.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <button onClick={generateContent} disabled={loading}
+              className="w-full py-5 rounded-3xl font-bold text-black text-lg disabled:opacity-50"
+              style={{background:'linear-gradient(135deg, var(--gold), var(--gold2))'}}>
+              {loading ? '⏳ Generating with Groq...' : '✨ Generate Content'}
+            </button>
+          </div>
+          <div className="col-span-8 p-6 overflow-auto">
+            {loading && (
+              <div className="h-full flex items-center justify-center">
+                <div className="text-center">
+                  <div className="text-5xl mb-4 animate-pulse">⚡</div>
+                  <p className="text-[var(--muted)]">Groq AI is writing your content...</p>
+                </div>
+              </div>
+            )}
+            {!loading && Object.keys(results).length === 0 && (
+              <div className="h-full flex items-center justify-center text-[var(--muted)] text-center">
+                <div>
+                  <div className="text-6xl mb-4">✨</div>
+                  <p>Enter a topic and click Generate to create platform-optimized content</p>
+                </div>
+              </div>
+            )}
+            {!loading && Object.entries(results).map(([pid, content]) => {
+              const p = PLATFORMS.find(pl => pl.id === pid);
+              return (
+                <div key={pid} className="glass rounded-3xl p-6 mb-5 fade-in">
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="font-bold text-lg">{p?.emoji} {p?.name}</span>
+                    <div className="flex gap-2">
+                      <button onClick={() => copyText(content)}
+                        className="px-4 py-2 glass rounded-2xl text-sm hover:bg-[var(--surface3)]">📋 Copy</button>
+                      <button onClick={() => addScheduled({platform: pid, content})}
+                        className="px-4 py-2 bg-emerald-700 rounded-2xl text-sm font-semibold">💾 Save</button>
+                    </div>
+                  </div>
+                  <p className="text-[15px] leading-relaxed whitespace-pre-wrap text-[var(--text)]">{content}</p>
+                  <div className="mt-3 text-xs text-[var(--muted)]">{content.length} / {p?.char_limit} chars</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+
+      // CALENDAR
+      const Calendar = () => (
+        <div className="p-8 overflow-auto h-full">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-3xl font-bold">Content Calendar</h2>
+            <span className="text-[var(--muted)]">{scheduled.length} posts saved</span>
+          </div>
+          {scheduled.length === 0 ? (
+            <div className="glass rounded-3xl p-12 text-center text-[var(--muted)]">
+              <div className="text-5xl mb-4">📅</div>
+              <p>No saved posts yet. Generate content in AI Studio and save them here.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {scheduled.map(post => {
+                const p = PLATFORMS.find(pl => pl.id === post.platform);
+                return (
+                  <div key={post.id} className="glass rounded-3xl p-6">
+                    <div className="flex justify-between items-start mb-3">
+                      <span className="font-bold" style={{color: p?.color}}>{p?.emoji} {p?.name}</span>
+                      <div className="flex gap-2">
+                        <button onClick={() => copyText(post.content)} className="text-xs text-[var(--muted)] hover:text-white">📋</button>
+                        <button onClick={() => removeScheduled(post.id)} className="text-xs text-red-400 hover:text-red-300">✕</button>
+                      </div>
+                    </div>
+                    <p className="text-sm leading-relaxed text-[var(--muted)]">{post.content?.slice(0,150)}...</p>
+                    <div className="mt-3 text-xs text-[var(--muted)]">{post.date}</div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      );
+
+      // AI COMMAND
+      const AICommand = () => (
+        <div className="flex flex-col h-full">
+          <div ref={chatRef} className="flex-1 p-6 overflow-auto space-y-4">
+            {aiMsgs.map((m,i) => (
+              <div key={i} className={`flex ${m.role==='user'?'justify-end':'justify-start'}`}>
+                <div className={`max-w-lg px-6 py-4 rounded-3xl text-[15px] leading-relaxed ${m.role==='user' ? 'bg-blue-900/60 rounded-br-none' : 'bg-[var(--surface2)] rounded-bl-none'}`}>
+                  {m.content}
+                </div>
+              </div>
+            ))}
+            {aiLoading && (
+              <div className="flex justify-start">
+                <div className="bg-[var(--surface2)] rounded-3xl rounded-bl-none px-6 py-4 text-[var(--muted)]">
+                  ⚡ Groq thinking...
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="p-6 border-t border-[var(--border)] flex gap-4">
+            <input
+              value={aiInput} onChange={e=>setAiInput(e.target.value)}
+              onKeyDown={e=>{if(e.key==='Enter') sendAI();}}
+              className="flex-1 rounded-3xl px-6 py-4 text-base"
+              placeholder="Ask AI anything... (e.g. 'Give me 5 Instagram caption ideas for Sacred Cycles')"
+            />
+            <button onClick={sendAI} disabled={aiLoading}
+              className="px-8 py-4 rounded-3xl font-bold text-black disabled:opacity-50"
+              style={{background:'var(--gold)'}}>
+              Send
+            </button>
+          </div>
+        </div>
+      );
+
+      const views = {
+        dashboard: <Dashboard />,
+        'ai-studio': <AIStudio />,
+        calendar: <Calendar />,
+        platforms: (
+          <div className="p-8">
+            <h2 className="text-3xl font-bold mb-6">Platform Connections</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {PLATFORMS.map(p => (
+                <div key={p.id}
+                  onClick={() => setConnected(prev => prev.includes(p.id) ? prev.filter(x=>x!==p.id) : [...prev, p.id])}
+                  className={`glass rounded-3xl p-6 cursor-pointer transition-all card-hover ${connected.includes(p.id) ? 'ring-2 ring-emerald-400' : ''}`}>
+                  <div className="text-3xl mb-2">{p.emoji}</div>
+                  <div className="font-bold">{p.name}</div>
+                  <div className="text-xs text-[var(--muted)] mt-1">{p.char_limit.toLocaleString()} char limit</div>
+                  <div className={`mt-3 text-xs font-medium ${connected.includes(p.id) ? 'text-emerald-400' : 'text-[var(--muted)]'}`}>
+                    {connected.includes(p.id) ? '✅ Active' : '○ Inactive'}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ),
+        analytics: (
+          <div className="p-8">
+            <h2 className="text-3xl font-bold mb-6">Analytics</h2>
+            <div className="grid grid-cols-3 gap-4">
+              {[
+                {label:'Total Posts Generated', val: Object.keys(results).length * (connected.length||1)},
+                {label:'Platforms Active', val: connected.length},
+                {label:'Posts Saved', val: scheduled.length},
+              ].map(s => (
+                <div key={s.label} className="glass rounded-3xl p-8 text-center">
+                  <div className="text-5xl font-bold text-[var(--gold)]">{s.val}</div>
+                  <div className="text-[var(--muted)] text-sm mt-2">{s.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ),
+        'ai-command': <AICommand />,
+      };
+
+      return (
+        <div className="flex h-full">
+          {/* Sidebar */}
+          <div className="w-64 bg-[var(--surface)] border-r border-[var(--border)] flex flex-col shrink-0">
+            <div className="p-6 border-b border-[var(--border)]">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-xl font-black text-black"
+                  style={{background:'linear-gradient(135deg, var(--gold), var(--cyan))'}}>T</div>
+                <div>
+                  <div className="font-bold text-lg tracking-tight">ContentOS</div>
+                  <div className="text-xs text-emerald-400">⚡ Groq AI • Live</div>
+                </div>
+              </div>
+            </div>
+            <nav className="flex-1 p-3 space-y-1">
+              {NAV.map(item => (
+                <button key={item.id} onClick={() => setView(item.id)}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-all text-sm ${view===item.id ? 'text-black font-semibold' : 'hover:bg-[var(--surface2)] text-[var(--muted)]'}`}
+                  style={view===item.id ? {background:'var(--gold)'} : {}}>
+                  <Icon d={item.icon} size={18} />
+                  {item.label}
+                </button>
+              ))}
+            </nav>
+            <div className="p-4 border-t border-[var(--border)]">
+              <a href="https://tlott12.gumroad.com" target="_blank"
+                className="block text-center text-xs text-[var(--muted)] hover:text-[var(--gold)] transition-colors">
+                🛍️ T. Lott Creative Store
+              </a>
+            </div>
+          </div>
+
+          {/* Main */}
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="h-14 border-b border-[var(--border)] bg-[var(--surface)] flex items-center px-8 justify-between shrink-0">
+              <div className="font-semibold">{NAV.find(n=>n.id===view)?.label}</div>
+              <div className="flex items-center gap-6 text-xs text-[var(--muted)]">
+                <span>{connected.length} platforms active</span>
+                <span>{scheduled.length} posts saved</span>
+                <span className="text-emerald-400 font-medium">● Groq AI Online</span>
+              </div>
+            </div>
+            <div className="flex-1 overflow-auto bg-[var(--bg)]">{views[view]}</div>
+          </div>
+
+          {toast && <Toast msg={toast.msg} type={toast.type} onDone={() => setToast(null)} />}
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<ContentOS />);
+  </script>
+</body>
+</html>
