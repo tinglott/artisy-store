@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T Lott Music Store</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #d4af37, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            color: #aaa;
+        }
+
+        .albums-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .album-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .album-card:hover {
+            border-color: #d4af37;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .album-cover {
+            width: 100%;
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #2c1a4d, #d4af37);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 80px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .album-info {
+            padding: 20px;
+        }
+
+        .album-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .album-description {
+            font-size: 0.9em;
+            color: #bbb;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .album-songs {
+            font-size: 0.8em;
+            color: #888;
+            margin-bottom: 15px;
+        }
+
+        .album-price {
+            font-size: 1.3em;
+            color: #d4af37;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .buy-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #d4af37, #ffd700);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .buy-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+        }
+
+        .player-section {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 50px;
+        }
+
+        .player-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .player-header h2 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            color: #d4af37;
+        }
+
+        .player-header p {
+            color: #aaa;
+            font-size: 0.95em;
+        }
+
+        .player-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            padding: 10px 20px;
+            background: rgba(212, 175, 55, 0.2);
+            border: 2px solid #d4af37;
+            color: #d4af37;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: #d4af37;
+            color: #000;
+        }
+
+        .control-btn.active {
+            background: #d4af37;
+            color: #000;
+        }
+
+        .playlist {
+            max-height: 400px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .playlist-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 4px solid #d4af37;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .playlist-item:hover {
+            background: rgba(212, 175, 55, 0.2);
+        }
+
+        .playlist-item.active {
+            background: rgba(212, 175, 55, 0.3);
+            font-weight: bold;
+        }
+
+        .song-name {
+            flex: 1;
+        }
+
+        .song-duration {
+            color: #888;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+
+        audio {
+            width: 100%;
+            margin-top: 20px;
+            accent-color: #d4af37;
+        }
+
+        .now-playing {
+            text-align: center;
+            padding: 20px;
+            background: rgba(212, 175, 55, 0.1);
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .now-playing h3 {
+            color: #d4af37;
+            margin-bottom: 5px;
+        }
+
+        .now-playing p {
+            color: #bbb;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .albums-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #d4af37;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 T Lott Music</h1>
+            <p>Professional Instrumental & Orchestral Compositions</p>
+        </div>
+
+        <!-- Albums Grid -->
+        <div class="albums-grid" id="albumsGrid"></div>
+
+        <!-- Music Player -->
+        <div class="player-section" style="display: none;" id="playerSection">
+            <div class="player-header">
+                <h2>🎧 Music Player</h2>
+                <p>Stream Your Favorite Album</p>
+            </div>
+
+            <div class="now-playing">
+                <h3 id="nowPlayingTitle">Select a song to play</h3>
+                <p id="nowPlayingAlbum"></p>
+            </div>
+
+            <audio id="audioPlayer" controls></audio>
+
+            <div class="playlist">
+                <div id="playlistContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Album data with Google Drive file IDs
+        const albums = [
+            {
+                id: 'classical_epics_vol1',
+                name: 'Classical Epics Vol 1',
+                emoji: '🎼',
+                price: '$4.99',
+                description: 'Modern orchestral masterpieces inspired by the greatest classical composers',
+                songs_count: 6,
+                gumroad_link: 'https://tlott12.gumroad.com/l/classical-epics-v-1',
+                cover_color: '#2c1a4d',
+                songs: [
+                    { name: 'Sugar plums', id: '14dnRZF1YLh44N2OpJzSp2jCffx-poJ7O' },
+                    { name: 'Out of Control', id: '14j6NO4ys_nkJZOf1GPjfqJDDvMG7adgc' },
+                    { name: 'The Chosen One', id: '1ruYyp8ibPtVJ8DRu4KUlalGuIu9DjMxf' },
+                    { name: 'Back to the Green', id: '1jfBa_T82YN8hLsP2HnPPmM0Ypr8tmrrB' },
+                    { name: 'Unstoppable', id: '1SfjgykQHudm81IONF6LnGEYSd_HdY4ne' },
+                    { name: 'Lightning in a Bottle', id: '1_bnmsJQi2FHw0_sktXEb5RZhLfnmrQYj' }
+                ]
+            },
+            {
+                id: 'classical_epics_vol2',
+                name: 'Classical Epics Vol 2',
+                emoji: '🎭',
+                price: '$4.99',
+                description: 'Powerful symphonic compositions inspired by classical grandeur',
+                songs_count: 6,
+                gumroad_link: 'https://tlott12.gumroad.com/l/classical-epics-v-2',
+                cover_color: '#1a1a2e',
+                songs: [
+                    { name: 'Orchestral Triumph', id: '1WP1ikPBpSHIsSZY8386--SZTaamyt7-o' },
+                    { name: 'Cathedral of the Mind', id: '1neIPgq4hp53JiBWfZ8FZgd-YsfmQfLvd' },
+                    { name: 'Twenty-Four', id: '1hRHEjY6i1gw0jIuM5NVdCtjtMyFDehG_' },
+                    { name: 'Until the Dawn', id: '1m31NdQNvmBVms9mzyY3obSyrr1xlxoAr' },
+                    { name: 'Come Back to Me', id: '1cVyvb0Nz07VPkfNzHOpNQAEuXPiFN-XB' },
+                    { name: 'Into the Storm', id: '1Hmom3qV4yjYciM-KbZRZ--WWxys6Ww62' }
+                ]
+            },
+            {
+                id: 'serene_sanctuary',
+                name: 'Serene Sanctuary',
+                emoji: '🧘',
+                price: '$4.99',
+                description: 'Peaceful instrumental music for meditation, relaxation & healing',
+                songs_count: 6,
+                gumroad_link: 'https://tlott12.gumroad.com/l/serene-sanctuary',
+                cover_color: '#0f4c5c',
+                songs: [
+                    { name: 'Celestial Echoes', id: '1d7sgJezirvwoHXZMJePRyzOBn0vPDZ43' },
+                    { name: 'Velvet Counterpoint', id: '1yMe97iIqbRsSZEhHjn5a4C82OlQF-til' },
+                    { name: 'Brouillard Bleu', id: '1ixfutMHHl733tH3391KGzDvt37QsLtRk' },
+                    { name: 'Still Water Room', id: '1euuuAy9JXtlvZoM6dhuUoaydF86aKghX' },
+                    { name: 'Open the Gates', id: '1pUFcPzihZQJg7VatoWTeRFpLJZYyDd0J' },
+                    { name: 'Unbroken Beauty Angel', id: '1L1T8DKV0T13Le47D4gd-LKI14boGch-p' }
+                ]
+            },
+            {
+                id: 'spiritual_uplift',
+                name: 'Spiritual Uplift',
+                emoji: '✨',
+                price: '$4.99',
+                description: 'Inspirational melodies for your soul journey',
+                songs_count: 3,
+                gumroad_link: 'https://tlott12.gumroad.com/l/spiritual-uplift',
+                cover_color: '#6b4c9a',
+                songs: [
+                    { name: 'Higher Love', id: '1me1vXHQ0J6ouKsaGF7Cum2-2DHruhFo9' },
+                    { name: 'Glass Tide', id: '1aV-TvdZVnTS9ifNACJBJe-KNnGG28zZH' },
+                    { name: 'Not A Place For Angels', id: '1QC4rP_NgVY0lyKHZo-AfSmT5pXWAL5xC' }
+                ]
+            },
+            {
+                id: 'modern_vibes',
+                name: 'Modern Vibes',
+                emoji: '🎵',
+                price: '$4.99',
+                description: 'Contemporary instrumental & vocal tracks',
+                songs_count: 3,
+                gumroad_link: 'https://tlott12.gumroad.com/l/modern-vibes',
+                cover_color: '#1a1a1a',
+                songs: [
+                    { name: 'The Neon in My Head', id: '1g-m9Qjp-f5grI53EBrQ7_YxOQx-6MfN4' },
+                    { name: 'Mad About You', id: '1pCBSc5D4moFeT-lpx6ttK_gz6ube5da2' },
+                    { name: 'Zoom Zoom Zoom', id: '1p3tDE2eRlYK5_WW0NFLjLvMrasdZ2jM1' }
+                ]
+            }
+        ];
+
+        let currentAlbum = null;
+        let currentSongIndex = 0;
+
+        // Render albums grid
+        function renderAlbums() {
+            const grid = document.getElementById('albumsGrid');
+            grid.innerHTML = albums.map(album => `
+                <div class="album-card" onclick="selectAlbum('${album.id}')">
+                    <div class="album-cover" style="background: linear-gradient(135deg, ${album.cover_color}, #d4af37);">
+                        ${album.emoji}
+                    </div>
+                    <div class="album-info">
+                        <div class="album-name">${album.name}</div>
+                        <div class="album-description">${album.description}</div>
+                        <div class="album-songs">${album.songs_count} Tracks</div>
+                        <div class="album-price">${album.price}</div>
+                        <a href="${album.gumroad_link}" target="_blank" style="text-decoration: none;">
+                            <button class="buy-btn">🛒 Buy Now</button>
+                        </a>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Select album and show player
+        function selectAlbum(albumId) {
+            currentAlbum = albums.find(a => a.id === albumId);
+            currentSongIndex = 0;
+            
+            document.getElementById('playerSection').style.display = 'block';
+            renderPlaylist();
+            playSong(0);
+            
+            // Scroll to player
+            setTimeout(() => {
+                document.getElementById('playerSection').scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        }
+
+        // Render playlist
+        function renderPlaylist() {
+            const container = document.getElementById('playlistContainer');
+            container.innerHTML = currentAlbum.songs.map((song, index) => `
+                <div class="playlist-item ${index === currentSongIndex ? 'active' : ''}" onclick="playSong(${index})">
+                    <span class="song-name">${index + 1}. ${song.name}</span>
+                    <span class="song-duration">🎵</span>
+                </div>
+            `).join('');
+        }
+
+        // Play song
+        function playSong(index) {
+            if (!currentAlbum) return;
+            
+            currentSongIndex = index;
+            const song = currentAlbum.songs[index];
+            
+            // Google Drive streaming URL
+            const streamUrl = `https://drive.google.com/uc?id=${song.id}&export=download`;
+            
+            const player = document.getElementById('audioPlayer');
+            player.src = streamUrl;
+            player.play().catch(err => console.log('Autoplay blocked'));
+            
+            // Update UI
+            document.getElementById('nowPlayingTitle').textContent = song.name;
+            document.getElementById('nowPlayingAlbum').textContent = `Album: ${currentAlbum.name}`;
+            
+            renderPlaylist();
+            
+            // Auto-play next song when current ends
+            player.onended = () => {
+                if (currentSongIndex < currentAlbum.songs.length - 1) {
+                    playSong(currentSongIndex + 1);
+                }
+            };
+        }
+
+        // Initialize
+        renderAlbums();
+    </script>
+</body>
+</html>
