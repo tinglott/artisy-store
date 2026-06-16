@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T. Lott Music Store 🎵</title>
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.10/plyr.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeIn 0.6s ease-in;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(138, 43, 226, 0.6);
+            background: linear-gradient(45deg, #9945ff, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            color: #a0a0a0;
+        }
+
+        .player-container {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(138, 43, 226, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 40px;
+            backdrop-filter: blur(10px);
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: 0 8px 32px rgba(138, 43, 226, 0.2);
+        }
+
+        .now-playing {
+            text-align: center;
+            margin-bottom: 20px;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .now-playing .album {
+            font-size: 0.9em;
+            color: #9945ff;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .now-playing .track {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+
+        .plyr {
+            --plyr-color-main: #9945ff;
+            --plyr-video-control-background: rgba(138, 43, 226, 0.9);
+        }
+
+        .albums-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .album-card {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(138, 43, 226, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            animation: slideIn 0.6s ease-out forwards;
+        }
+
+        .album-card:hover {
+            transform: translateY(-5px);
+            border-color: #9945ff;
+            box-shadow: 0 10px 30px rgba(138, 43, 226, 0.3);
+        }
+
+        .album-art {
+            width: 100%;
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #9945ff, #7c3aed);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(138, 43, 226, 0.4);
+        }
+
+        .album-info h3 {
+            font-size: 1.3em;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+
+        .album-info p {
+            font-size: 0.9em;
+            color: #a0a0a0;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .song-list {
+            display: none;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+        }
+
+        .song-list.show {
+            display: block;
+        }
+
+        .song-item {
+            padding: 8px;
+            margin-bottom: 6px;
+            background: rgba(138, 43, 226, 0.1);
+            border-left: 3px solid #9945ff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.2s ease;
+        }
+
+        .song-item:hover {
+            background: rgba(138, 43, 226, 0.2);
+            transform: translateX(5px);
+        }
+
+        .song-item.playing {
+            background: rgba(138, 43, 226, 0.3);
+            font-weight: bold;
+        }
+
+        .toggle-songs {
+            width: 100%;
+            background: linear-gradient(45deg, #9945ff, #7c3aed);
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+            font-size: 0.95em;
+        }
+
+        .toggle-songs:hover {
+            box-shadow: 0 5px 15px rgba(138, 43, 226, 0.4);
+            transform: scale(1.02);
+        }
+
+        .buy-button {
+            width: 100%;
+            background: linear-gradient(45deg, #00d084, #00c26f);
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-size: 0.95em;
+        }
+
+        .buy-button:hover {
+            box-shadow: 0 5px 15px rgba(0, 208, 132, 0.4);
+            transform: scale(1.02);
+        }
+
+        .price {
+            font-size: 1.2em;
+            color: #00d084;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .emoji-icons {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .album-icons {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .albums-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .player-container {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎵 T. Lott Music Store</h1>
+        <p>Professional Instrumental & Spiritual Music Collections</p>
+    </div>
+
+    <div class="player-container">
+        <div class="now-playing">
+            <div class="album">Now Playing</div>
+            <div class="track" id="nowPlayingTrack">Select a song to play</div>
+        </div>
+        <audio id="audioPlayer" controls style="width: 100%;"></audio>
+    </div>
+
+    <div class="albums-grid" id="albumsGrid"></div>
+
+    <script src="https://cdn.plyr.io/3.7.10/plyr.js"></script>
+    <script>
+        // Album Data with Google Drive IDs
+        const albums = {
+            "Classical Epics Vol 1": {
+                emoji: "🎼",
+                description: "Modern orchestral masterpieces inspired by the greatest classical composers",
+                price: 4.99,
+                link: "https://tlott12.gumroad.com/l/classical-epics-vol-1",
+                songs: [
+                    { name: "Sugar Plums", id: "14dnRZF1YLh44N2OpJzSp2jCffx-poJ7O" },
+                    { name: "Out of Control", id: "14j6NO4ys_nkJZOf1GPjfqJDDvMG7adgc" },
+                    { name: "The Chosen One", id: "1ruYyp8ibPtVJ8DRu4KUlalGuIu9DjMxf" },
+                    { name: "Back to the Green", id: "1jfBa_T82YN8hLsP2HnPPmM0Ypr8tmrrB" },
+                    { name: "Unstoppable", id: "1SfjgykQHudm81IONF6LnGEYSd_HdY4ne" },
+                    { name: "Lightning in a Bottle", id: "1_bnmsJQi2FHw0_sktXEb5RZhLfnmrQYj" }
+                ]
+            },
+            "Classical Epics Vol 2": {
+                emoji: "🎻",
+                description: "Powerful symphonic compositions inspired by classical grandeur",
+                price: 4.99,
+                link: "https://tlott12.gumroad.com/l/classical-epics-vol-2",
+                songs: [
+                    { name: "Orchestral Triumph", id: "1WP1ikPBpSHIsSZY8386--SZTaamyt7-o" },
+                    { name: "Cathedral of the Mind", id: "1neIPgq4hp53JiBWfZ8FZgd-YsfmQfLvd" },
+                    { name: "Twenty-Four", id: "1hRHEjY6i1gw0jIuM5NVdCtjtMyFDehG_" },
+                    { name: "Until the Dawn", id: "1m31NdQNvmBVms9mzyY3obSyrr1xlxoAr" },
+                    { name: "Come Back to Me", id: "1cVyvb0Nz07VPkfNzHOpNQAEuXPiFN-XB" },
+                    { name: "Into the Storm", id: "1Hmom3qV4yjYciM-KbZRZ--WWxys6Ww62" }
+                ]
+            },
+            "Serene Sanctuary": {
+                emoji: "🧘",
+                description: "Peaceful instrumental music for meditation, relaxation & healing",
+                price: 4.99,
+                link: "https://tlott12.gumroad.com/l/serene-sanctuary",
+                songs: [
+                    { name: "Celestial Echoes", id: "1d7sgJezirvwoHXZMJePRyzOBn0vPDZ43" },
+                    { name: "Velvet Counterpoint", id: "1yMe97iIqbRsSZEhHjn5a4C82OlQF-til" },
+                    { name: "Brouillard Bleu", id: "1ixfutMHHl733tH3391KGzDvt37QsLtRk" },
+                    { name: "Still Water Room", id: "1euuuAy9JXtlvZoM6dhuUoaydF86aKghX" },
+                    { name: "Open the Gates", id: "1pUFcPzihZQJg7VatoWTeRFpLJZYyDd0J" },
+                    { name: "Unbroken Beauty Angel", id: "1L1T8DKV0T13Le47D4gd-LKI14boGch-p" }
+                ]
+            },
+            "Spiritual Uplift": {
+                emoji: "✨",
+                description: "Inspirational melodies for your soul journey",
+                price: 4.99,
+                link: "https://tlott12.gumroad.com/l/spiritual-uplift",
+                songs: [
+                    { name: "Higher Love", id: "1me1vXHQ0J6ouKsaGF7Cum2-2DHruhFo9" },
+                    { name: "Glass Tide", id: "1aV-TvdZVnTS9ifNACJBJe-KNnGG28zZH" },
+                    { name: "Not A Place For Angels", id: "1QC4rP_NgVY0lyKHZo-AfSmT5pXWAL5xC" }
+                ]
+            },
+            "Modern Vibes": {
+                emoji: "🎧",
+                description: "Contemporary instrumental & vocal tracks",
+                price: 4.99,
+                link: "https://tlott12.gumroad.com/l/modern-vibes",
+                songs: [
+                    { name: "The Neon in My Head", id: "1g-m9Qjp-f5grI53EBrQ7_YxOQx-6MfN4" },
+                    { name: "Mad About You", id: "1pCBSc5D4moFeT-lpx6ttK_gz6ube5da2" },
+                    { name: "Zoom Zoom Zoom", id: "1p3tDE2eRlYK5_WW0NFLjLvMrasdZ2jM1" }
+                ]
+            }
+        };
+
+        const audioPlayer = document.getElementById('audioPlayer');
+        const nowPlayingTrack = document.getElementById('nowPlayingTrack');
+        const albumsGrid = document.getElementById('albumsGrid');
+        let player = new Plyr(audioPlayer);
+
+        // Helper to convert Google Drive ID to stream URL
+        function getStreamUrl(id) {
+            return `https://drive.google.com/uc?id=${id}&export=download`;
+        }
+
+        // Build Album Cards
+        Object.entries(albums).forEach(([albumName, albumData], index) => {
+            const card = document.createElement('div');
+            card.className = 'album-card';
+            card.style.animationDelay = `${index * 0.1}s`;
+
+            let songsHtml = '';
+            albumData.songs.forEach(song => {
+                songsHtml += `<div class="song-item" onclick="playSong('${song.name}', '${song.id}', '${albumName}')">${song.name}</div>`;
+            });
+
+            card.innerHTML = `
+                <div class="album-art">
+                    <div class="emoji-icons">${albumData.emoji}</div>
+                </div>
+                <div class="album-info">
+                    <h3>${albumName}</h3>
+                    <p>${albumData.description}</p>
+                    <div class="price">$${albumData.price}</div>
+                    <button class="toggle-songs" onclick="toggleSongs(this)">🎵 Show Tracks</button>
+                    <div class="song-list">
+                        ${songsHtml}
+                    </div>
+                    <a href="${albumData.link}" target="_blank" class="buy-button">🛒 Buy Album</a>
+                </div>
+            `;
+            albumsGrid.appendChild(card);
+        });
+
+        // Play Song Function
+        function playSong(songName, googleDriveId, albumName) {
+            audioPlayer.src = getStreamUrl(googleDriveId);
+            nowPlayingTrack.innerText = `${songName} • ${albumName}`;
+            player.play();
+        }
+
+        // Toggle Songs List
+        function toggleSongs(button) {
+            const songList = button.nextElementSibling;
+            songList.classList.toggle('show');
+            button.innerText = songList.classList.contains('show') ? '⏷ Hide Tracks' : '🎵 Show Tracks';
+        }
+
+        // Update player styling
+        player.on('play', () => {
+            document.querySelector('.now-playing').style.animation = 'fadeIn 0.3s ease';
+        });
+    </script>
+</body>
+</html>
