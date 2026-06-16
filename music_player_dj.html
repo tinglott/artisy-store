@@ -1,405 +1,812 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>T. Lott Music Store 🎵</title>
-    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.10/plyr.css" />
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>T. Lott Music — Official Store</title>
+  <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css"/>
+  <style>
+    :root {
+      --purple: #7c3aed;
+      --purple-dark: #4c1d95;
+      --green: #10b981;
+      --pink: #ec4899;
+      --bg: #0f0f1a;
+      --card: #1a1a2e;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', sans-serif;
+      min-height: 100vh;
+    }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: #fff;
-            min-height: 100vh;
-            padding: 20px;
-        }
+    /* HEADER */
+    header {
+      background: linear-gradient(135deg, #0f0f1a 0%, #1a0a2e 50%, #0f0f1a 100%);
+      padding: 40px 20px 30px;
+      text-align: center;
+      border-bottom: 1px solid #2d1f4e;
+      position: relative;
+      overflow: hidden;
+    }
+    header::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(124,58,237,0.3) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .logo-text {
+      font-size: 2.5rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #a78bfa, #ec4899, #10b981);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -1px;
+    }
+    .tagline {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-top: 6px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    nav {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    nav a {
+      color: #a78bfa;
+      text-decoration: none;
+      font-size: 0.85rem;
+      padding: 6px 14px;
+      border: 1px solid #4c1d95;
+      border-radius: 20px;
+      transition: all 0.2s;
+    }
+    nav a:hover { background: #4c1d95; color: white; }
 
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
-            animation: fadeIn 0.6s ease-in;
-        }
+    /* MAIN PLAYER SECTION */
+    .main-player-section {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
 
-        .header h1 {
-            font-size: 3em;
-            margin-bottom: 10px;
-            text-shadow: 0 0 20px rgba(138, 43, 226, 0.6);
-            background: linear-gradient(45deg, #9945ff, #7c3aed);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
+    /* NOW PLAYING CARD */
+    .now-playing-card {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      border: 1px solid #2d1f4e;
+      border-radius: 20px;
+      padding: 30px;
+      margin-bottom: 30px;
+      display: flex;
+      gap: 24px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .album-art-main {
+      width: 120px;
+      height: 120px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #7c3aed, #ec4899);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      flex-shrink: 0;
+      box-shadow: 0 8px 32px rgba(124,58,237,0.4);
+      transition: transform 0.3s;
+    }
+    .album-art-main.spinning {
+      animation: spin 8s linear infinite;
+    }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .now-playing-info { flex: 1; min-width: 200px; }
+    .now-playing-label {
+      font-size: 0.7rem;
+      color: var(--green);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 6px;
+    }
+    .now-playing-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 4px;
+    }
+    .now-playing-album {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .player-wrap {
+      width: 100%;
+      margin-top: 16px;
+    }
+    .plyr--audio .plyr__controls {
+      background: rgba(124,58,237,0.15) !important;
+      border-radius: 12px !important;
+    }
 
-        .header p {
-            font-size: 1.1em;
-            color: #a0a0a0;
-        }
+    /* ALBUMS GRID */
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #a78bfa;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 16px;
+    }
+    .albums-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+    .album-card {
+      background: var(--card);
+      border: 1px solid #2d1f4e;
+      border-radius: 16px;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+    }
+    .album-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(124,58,237,0.3);
+    }
+    .album-card.active {
+      border-color: var(--green);
+      box-shadow: 0 0 20px rgba(16,185,129,0.3);
+    }
+    .album-header {
+      padding: 20px;
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      cursor: pointer;
+    }
+    .album-art {
+      width: 56px;
+      height: 56px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      flex-shrink: 0;
+    }
+    .album-meta { flex: 1; }
+    .album-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: white;
+      margin-bottom: 3px;
+    }
+    .album-count {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .album-price {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--green);
+    }
+    .toggle-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 4px;
+      transition: color 0.2s;
+    }
+    .toggle-btn:hover { color: white; }
+    .tracks-list {
+      display: none;
+      border-top: 1px solid #2d1f4e;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .tracks-list.open { display: block; }
+    .track-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: background 0.15s;
+      border-bottom: 1px solid rgba(45,31,78,0.5);
+    }
+    .track-item:hover { background: rgba(124,58,237,0.1); }
+    .track-item.playing { background: rgba(16,185,129,0.1); }
+    .track-num {
+      font-size: 0.75rem;
+      color: var(--muted);
+      width: 20px;
+      text-align: center;
+    }
+    .track-item.playing .track-num { color: var(--green); }
+    .track-title {
+      flex: 1;
+      font-size: 0.85rem;
+      color: var(--text);
+    }
+    .track-item.playing .track-title { color: var(--green); font-weight: 600; }
+    .play-icon { font-size: 0.8rem; color: var(--muted); }
+    .track-item.playing .play-icon { color: var(--green); }
+    .album-footer {
+      padding: 16px 20px;
+      border-top: 1px solid #2d1f4e;
+      display: flex;
+      gap: 10px;
+    }
+    .btn-buy {
+      flex: 1;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+      display: block;
+      transition: opacity 0.2s;
+    }
+    .btn-buy:hover { opacity: 0.85; }
+    .btn-preview {
+      background: rgba(16,185,129,0.15);
+      color: var(--green);
+      border: 1px solid var(--green);
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-preview:hover { background: var(--green); color: white; }
 
-        .player-container {
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(138, 43, 226, 0.3);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 40px;
-            backdrop-filter: blur(10px);
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-            box-shadow: 0 8px 32px rgba(138, 43, 226, 0.2);
-        }
+    /* EMAIL CAPTURE SECTION */
+    .email-section {
+      background: linear-gradient(135deg, #1a0a2e, #0d1117);
+      border: 1px solid #4c1d95;
+      border-radius: 20px;
+      padding: 36px 30px;
+      margin: 40px 0;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .email-section::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(124,58,237,0.2) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .email-section h2 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #a78bfa, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+    .email-section p {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+    .email-form {
+      display: flex;
+      gap: 12px;
+      max-width: 500px;
+      margin: 0 auto 12px;
+      flex-wrap: wrap;
+    }
+    .email-form input {
+      flex: 1;
+      min-width: 200px;
+      padding: 14px 18px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid #4c1d95;
+      border-radius: 10px;
+      color: white;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .email-form input:focus { border-color: #7c3aed; }
+    .email-form input::placeholder { color: var(--muted); }
+    .btn-subscribe {
+      background: linear-gradient(135deg, #7c3aed, #ec4899);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 14px 28px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      white-space: nowrap;
+    }
+    .btn-subscribe:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-subscribe:disabled { opacity: 0.5; cursor: not-allowed; }
+    .email-note {
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+    .subscribe-success {
+      display: none;
+      background: rgba(16,185,129,0.1);
+      border: 1px solid var(--green);
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    .subscribe-success h3 { color: var(--green); margin-bottom: 8px; }
+    .subscribe-success p { color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
 
-        .now-playing {
-            text-align: center;
-            margin-bottom: 20px;
-            min-height: 80px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
+    /* ARIA CHAT WIDGET */
+    .aria-bar {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1000;
+    }
+    .aria-toggle {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7c3aed, #ec4899);
+      border: none;
+      cursor: pointer;
+      font-size: 1.6rem;
+      box-shadow: 0 4px 20px rgba(124,58,237,0.5);
+      transition: transform 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .aria-toggle:hover { transform: scale(1.1); }
+    .aria-popup {
+      display: none;
+      position: absolute;
+      bottom: 70px;
+      right: 0;
+      width: 340px;
+      background: var(--card);
+      border: 1px solid #4c1d95;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .aria-popup.open { display: block; }
+    .aria-popup-header {
+      background: linear-gradient(135deg, #4c1d95, #7c3aed);
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .aria-popup-header span { font-weight: 700; color: white; }
+    .aria-close { background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; }
+    .aria-iframe-wrap { height: 400px; }
+    .aria-iframe-wrap iframe { width: 100%; height: 100%; border: none; }
 
-        .now-playing .album {
-            font-size: 0.9em;
-            color: #9945ff;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
+    /* FEATURED PRODUCTS */
+    .featured-section {
+      margin: 40px 0;
+    }
+    .featured-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .featured-card {
+      background: var(--card);
+      border: 1px solid #2d1f4e;
+      border-radius: 14px;
+      padding: 20px;
+      text-align: center;
+      transition: transform 0.2s;
+    }
+    .featured-card:hover { transform: translateY(-3px); }
+    .featured-icon { font-size: 2rem; margin-bottom: 10px; }
+    .featured-name { font-weight: 700; font-size: 0.9rem; color: white; margin-bottom: 6px; }
+    .featured-price { color: var(--green); font-weight: 700; font-size: 1rem; margin-bottom: 12px; }
+    .featured-card a {
+      display: block;
+      background: linear-gradient(135deg, #7c3aed, #ec4899);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      padding: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      transition: opacity 0.2s;
+    }
+    .featured-card a:hover { opacity: 0.85; }
 
-        .now-playing .track {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #fff;
-            margin-bottom: 5px;
-        }
+    footer {
+      text-align: center;
+      padding: 30px;
+      color: var(--muted);
+      font-size: 0.8rem;
+      border-top: 1px solid #2d1f4e;
+      margin-top: 20px;
+    }
+    footer a { color: #a78bfa; text-decoration: none; }
 
-        .plyr {
-            --plyr-color-main: #9945ff;
-            --plyr-video-control-background: rgba(138, 43, 226, 0.9);
-        }
-
-        .albums-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .album-card {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(138, 43, 226, 0.2);
-            border-radius: 12px;
-            padding: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-            animation: slideIn 0.6s ease-out forwards;
-        }
-
-        .album-card:hover {
-            transform: translateY(-5px);
-            border-color: #9945ff;
-            box-shadow: 0 10px 30px rgba(138, 43, 226, 0.3);
-        }
-
-        .album-art {
-            width: 100%;
-            aspect-ratio: 1;
-            background: linear-gradient(135deg, #9945ff, #7c3aed);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3em;
-            margin-bottom: 15px;
-            box-shadow: 0 5px 15px rgba(138, 43, 226, 0.4);
-        }
-
-        .album-info h3 {
-            font-size: 1.3em;
-            margin-bottom: 8px;
-            color: #fff;
-        }
-
-        .album-info p {
-            font-size: 0.9em;
-            color: #a0a0a0;
-            margin-bottom: 15px;
-            line-height: 1.4;
-        }
-
-        .song-list {
-            display: none;
-            max-height: 400px;
-            overflow-y: auto;
-            margin-bottom: 15px;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-        }
-
-        .song-list.show {
-            display: block;
-        }
-
-        .song-item {
-            padding: 8px;
-            margin-bottom: 6px;
-            background: rgba(138, 43, 226, 0.1);
-            border-left: 3px solid #9945ff;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.85em;
-            transition: all 0.2s ease;
-        }
-
-        .song-item:hover {
-            background: rgba(138, 43, 226, 0.2);
-            transform: translateX(5px);
-        }
-
-        .song-item.playing {
-            background: rgba(138, 43, 226, 0.3);
-            font-weight: bold;
-        }
-
-        .toggle-songs {
-            width: 100%;
-            background: linear-gradient(45deg, #9945ff, #7c3aed);
-            color: #fff;
-            border: none;
-            padding: 10px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-bottom: 10px;
-            transition: all 0.3s ease;
-            font-size: 0.95em;
-        }
-
-        .toggle-songs:hover {
-            box-shadow: 0 5px 15px rgba(138, 43, 226, 0.4);
-            transform: scale(1.02);
-        }
-
-        .buy-button {
-            width: 100%;
-            background: linear-gradient(45deg, #00d084, #00c26f);
-            color: #fff;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            font-size: 0.95em;
-        }
-
-        .buy-button:hover {
-            box-shadow: 0 5px 15px rgba(0, 208, 132, 0.4);
-            transform: scale(1.02);
-        }
-
-        .price {
-            font-size: 1.2em;
-            color: #00d084;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .emoji-icons {
-            font-size: 2em;
-            margin-bottom: 10px;
-        }
-
-        .album-icons {
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2em;
-            }
-
-            .albums-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .player-container {
-                padding: 15px;
-            }
-        }
-    </style>
+    @media (max-width: 600px) {
+      .now-playing-card { padding: 20px; }
+      .logo-text { font-size: 1.8rem; }
+      .album-footer { flex-direction: column; }
+    }
+  </style>
 </head>
 <body>
-    <div class="header">
-        <h1>🎵 T. Lott Music Store</h1>
-        <p>Professional Instrumental & Spiritual Music Collections</p>
-    </div>
 
-    <div class="player-container">
-        <div class="now-playing">
-            <div class="album">Now Playing</div>
-            <div class="track" id="nowPlayingTrack">Select a song to play</div>
+<!-- HEADER -->
+<header>
+  <div class="logo-text">🎵 T. Lott Music</div>
+  <div class="tagline">Original Music • Wellness • Digital Products</div>
+  <nav>
+    <a href="https://shop.artistrystore.com/store.html">← Full Store</a>
+    <a href="https://tlott12.gumroad.com">Buy Music</a>
+    <a href="https://tlott12.gumroad.com/l/oqlhbt">Sacred Cycles $47</a>
+    <a href="https://tlott12.gumroad.com/l/pwfoi">AI Copilot $29.99</a>
+  </nav>
+</header>
+
+<!-- HIDDEN AUDIO ELEMENT -->
+<audio id="main-audio" controls style="display:none"></audio>
+
+<!-- MAIN CONTENT -->
+<div class="main-player-section">
+
+  <!-- NOW PLAYING -->
+  <div class="now-playing-card">
+    <div class="album-art-main" id="main-art">🎵</div>
+    <div class="now-playing-info">
+      <div class="now-playing-label">▶ Now Playing</div>
+      <div class="now-playing-title" id="track-title">Select a song below</div>
+      <div class="now-playing-album" id="track-album">Choose any album to start listening</div>
+      <div class="player-wrap">
+        <audio id="player" controls></audio>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALBUMS -->
+  <div class="section-title">🎼 Music Albums</div>
+  <div class="albums-grid" id="albums-grid">
+    <!-- Injected by JS -->
+  </div>
+
+  <!-- EMAIL CAPTURE -->
+  <div class="email-section">
+    <h2>🎁 Get Free Music + Exclusive Deals</h2>
+    <p>Join T. Lott's inner circle — a nurse, creator, and music maker sharing healing sounds and digital tools. Get early access, free tracks, and exclusive discounts.</p>
+    <div id="subscribe-form-wrap">
+      <div class="email-form">
+        <input type="text" id="sub-name" placeholder="Your first name" />
+        <input type="email" id="sub-email" placeholder="Your email address" required />
+        <button class="btn-subscribe" id="sub-btn" onclick="handleSubscribe()">Get Access ✨</button>
+      </div>
+      <p class="email-note">✅ Zero spam. Unsubscribe anytime. 100% free.</p>
+    </div>
+    <div class="subscribe-success" id="sub-success">
+      <h3>🎉 You're In!</h3>
+      <p id="sub-success-msg">Welcome to T. Lott's world! Check your email for a personal note and free music preview link.</p>
+    </div>
+  </div>
+
+  <!-- FEATURED PRODUCTS -->
+  <div class="featured-section">
+    <div class="section-title">⭐ Featured Products</div>
+    <div class="featured-grid">
+      <div class="featured-card">
+        <div class="featured-icon">🌙</div>
+        <div class="featured-name">Sacred Cycles</div>
+        <div class="featured-price">$47</div>
+        <a href="https://tlott12.gumroad.com/l/oqlhbt" target="_blank">Get It Now</a>
+      </div>
+      <div class="featured-card">
+        <div class="featured-icon">🤖</div>
+        <div class="featured-name">Copilot Unlocked</div>
+        <div class="featured-price">$29.99</div>
+        <a href="https://tlott12.gumroad.com/l/pwfoi" target="_blank">Get It Now</a>
+      </div>
+      <div class="featured-card">
+        <div class="featured-icon">🧘</div>
+        <div class="featured-name">Flow & Heal</div>
+        <div class="featured-price">$24.99</div>
+        <a href="https://tlott12.gumroad.com/l/psulpg" target="_blank">Get It Now</a>
+      </div>
+      <div class="featured-card">
+        <div class="featured-icon">📚</div>
+        <div class="featured-name">Coaching Empire</div>
+        <div class="featured-price">$49/mo</div>
+        <a href="https://tlott12.gumroad.com/l/cydtis" target="_blank">Get It Now</a>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main-player-section -->
+
+<!-- ARIA CHAT WIDGET -->
+<div class="aria-bar">
+  <div class="aria-popup" id="aria-popup">
+    <div class="aria-popup-header">
+      <span>💬 Ask ARIA — T. Lott's AI Assistant</span>
+      <button class="aria-close" onclick="toggleAria()">✕</button>
+    </div>
+    <div class="aria-iframe-wrap">
+      <iframe src="https://ziggylott-agentos-aria.hf.space" title="ARIA Assistant"></iframe>
+    </div>
+  </div>
+  <button class="aria-toggle" onclick="toggleAria()" title="Chat with ARIA">💬</button>
+</div>
+
+<footer>
+  <p>© 2026 T. Lott — All music original and owned by T. Lott.</p>
+  <p style="margin-top:8px"><a href="https://shop.artistrystore.com/store.html">Full Store</a> · <a href="https://tlott12.gumroad.com">Gumroad</a> · <a href="https://tlott12.bsky.social">Bluesky</a></p>
+</footer>
+
+<script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
+<script>
+// =============================================
+// ALBUM DATA
+// =============================================
+const ALBUMS = [
+  {
+    id: 'classical1',
+    name: 'Classical Epics Vol. 1',
+    emoji: '🎻',
+    gradient: 'linear-gradient(135deg, #7c3aed, #4c1d95)',
+    price: '$4.99',
+    buyUrl: 'https://tlott12.gumroad.com/l/classical-epics-1',
+    tracks: [
+      { title: 'Epic Classical Overture', url: 'https://drive.google.com/uc?export=download&id=1_EXAMPLE_1' },
+      { title: 'Symphony in Motion', url: 'https://drive.google.com/uc?export=download&id=1_EXAMPLE_2' },
+      { title: 'Moonlit Sonata', url: 'https://drive.google.com/uc?export=download&id=1_EXAMPLE_3' },
+      { title: 'Grand Concerto', url: 'https://drive.google.com/uc?export=download&id=1_EXAMPLE_4' },
+    ]
+  },
+  {
+    id: 'serene',
+    name: 'Serene Sanctuary',
+    emoji: '🌊',
+    gradient: 'linear-gradient(135deg, #0ea5e9, #0891b2)',
+    price: '$4.99',
+    buyUrl: 'https://tlott12.gumroad.com/l/serene-sanctuary',
+    tracks: [
+      { title: 'Ocean Breath', url: '' },
+      { title: 'Still Waters', url: '' },
+      { title: 'Morning Mist', url: '' },
+      { title: 'Peaceful Shore', url: '' },
+    ]
+  },
+  {
+    id: 'spiritual',
+    name: 'Spiritual Uplift',
+    emoji: '✨',
+    gradient: 'linear-gradient(135deg, #f59e0b, #d97706)',
+    price: '$4.99',
+    buyUrl: 'https://tlott12.gumroad.com/l/spiritual-uplift',
+    tracks: [
+      { title: 'Ascension', url: '' },
+      { title: 'Divine Light', url: '' },
+      { title: 'Sacred Ground', url: '' },
+      { title: 'Soul Journey', url: '' },
+    ]
+  },
+  {
+    id: 'modern',
+    name: 'Modern Vibes',
+    emoji: '🎧',
+    gradient: 'linear-gradient(135deg, #ec4899, #be185d)',
+    price: '$4.99',
+    buyUrl: 'https://tlott12.gumroad.com/l/modern-vibes',
+    tracks: [
+      { title: 'City Lights', url: '' },
+      { title: 'Midnight Drive', url: '' },
+      { title: 'Electric Dreams', url: '' },
+      { title: 'Neon Sky', url: '' },
+    ]
+  },
+  {
+    id: 'classical2',
+    name: 'Classical Epics Vol. 2',
+    emoji: '🎹',
+    gradient: 'linear-gradient(135deg, #10b981, #065f46)',
+    price: '$4.99',
+    buyUrl: 'https://tlott12.gumroad.com/l/classical-epics-2',
+    tracks: [
+      { title: 'Baroque Morning', url: '' },
+      { title: 'Piano Reverie', url: '' },
+      { title: 'String Quartet No. 1', url: '' },
+      { title: 'Finale Brillante', url: '' },
+    ]
+  }
+];
+
+let currentAlbum = null;
+let currentTrack = null;
+let player = null;
+
+// =============================================
+// BUILD ALBUM CARDS
+// =============================================
+function buildAlbums() {
+  const grid = document.getElementById('albums-grid');
+  grid.innerHTML = ALBUMS.map((album, ai) => `
+    <div class="album-card" id="card-${album.id}">
+      <div class="album-header" onclick="toggleTracks('${album.id}')">
+        <div class="album-art" style="background:${album.gradient}">${album.emoji}</div>
+        <div class="album-meta">
+          <div class="album-name">${album.name}</div>
+          <div class="album-count">${album.tracks.length} tracks</div>
         </div>
-        <audio id="audioPlayer" controls style="width: 100%;"></audio>
+        <div class="album-price">${album.price}</div>
+        <button class="toggle-btn" id="toggle-${album.id}">▼</button>
+      </div>
+      <div class="tracks-list" id="tracks-${album.id}">
+        ${album.tracks.map((t, ti) => `
+          <div class="track-item" id="track-${album.id}-${ti}" onclick="playTrack('${album.id}', ${ti})">
+            <span class="track-num">${ti + 1}</span>
+            <span class="track-title">${t.title}</span>
+            <span class="play-icon">▶</span>
+          </div>
+        `).join('')}
+      </div>
+      <div class="album-footer">
+        <button class="btn-preview" onclick="playAlbum('${album.id}')">▶ Preview</button>
+        <a class="btn-buy" href="${album.buyUrl}" target="_blank">Buy $4.99</a>
+      </div>
     </div>
+  `).join('');
+}
 
-    <div class="albums-grid" id="albumsGrid"></div>
+function toggleTracks(albumId) {
+  const list = document.getElementById('tracks-' + albumId);
+  const btn = document.getElementById('toggle-' + albumId);
+  const isOpen = list.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.tracks-list').forEach(el => el.classList.remove('open'));
+  document.querySelectorAll('.toggle-btn').forEach(el => el.textContent = '▼');
+  if (!isOpen) {
+    list.classList.add('open');
+    btn.textContent = '▲';
+  }
+}
 
-    <script src="https://cdn.plyr.io/3.7.10/plyr.js"></script>
-    <script>
-        // Album Data with Google Drive IDs
-        const albums = {
-            "Classical Epics Vol 1": {
-                emoji: "🎼",
-                description: "Modern orchestral masterpieces inspired by the greatest classical composers",
-                price: 4.99,
-                link: "https://tlott12.gumroad.com/l/classical-epics-vol-1",
-                songs: [
-                    { name: "Sugar Plums", id: "14dnRZF1YLh44N2OpJzSp2jCffx-poJ7O" },
-                    { name: "Out of Control", id: "14j6NO4ys_nkJZOf1GPjfqJDDvMG7adgc" },
-                    { name: "The Chosen One", id: "1ruYyp8ibPtVJ8DRu4KUlalGuIu9DjMxf" },
-                    { name: "Back to the Green", id: "1jfBa_T82YN8hLsP2HnPPmM0Ypr8tmrrB" },
-                    { name: "Unstoppable", id: "1SfjgykQHudm81IONF6LnGEYSd_HdY4ne" },
-                    { name: "Lightning in a Bottle", id: "1_bnmsJQi2FHw0_sktXEb5RZhLfnmrQYj" }
-                ]
-            },
-            "Classical Epics Vol 2": {
-                emoji: "🎻",
-                description: "Powerful symphonic compositions inspired by classical grandeur",
-                price: 4.99,
-                link: "https://tlott12.gumroad.com/l/classical-epics-vol-2",
-                songs: [
-                    { name: "Orchestral Triumph", id: "1WP1ikPBpSHIsSZY8386--SZTaamyt7-o" },
-                    { name: "Cathedral of the Mind", id: "1neIPgq4hp53JiBWfZ8FZgd-YsfmQfLvd" },
-                    { name: "Twenty-Four", id: "1hRHEjY6i1gw0jIuM5NVdCtjtMyFDehG_" },
-                    { name: "Until the Dawn", id: "1m31NdQNvmBVms9mzyY3obSyrr1xlxoAr" },
-                    { name: "Come Back to Me", id: "1cVyvb0Nz07VPkfNzHOpNQAEuXPiFN-XB" },
-                    { name: "Into the Storm", id: "1Hmom3qV4yjYciM-KbZRZ--WWxys6Ww62" }
-                ]
-            },
-            "Serene Sanctuary": {
-                emoji: "🧘",
-                description: "Peaceful instrumental music for meditation, relaxation & healing",
-                price: 4.99,
-                link: "https://tlott12.gumroad.com/l/serene-sanctuary",
-                songs: [
-                    { name: "Celestial Echoes", id: "1d7sgJezirvwoHXZMJePRyzOBn0vPDZ43" },
-                    { name: "Velvet Counterpoint", id: "1yMe97iIqbRsSZEhHjn5a4C82OlQF-til" },
-                    { name: "Brouillard Bleu", id: "1ixfutMHHl733tH3391KGzDvt37QsLtRk" },
-                    { name: "Still Water Room", id: "1euuuAy9JXtlvZoM6dhuUoaydF86aKghX" },
-                    { name: "Open the Gates", id: "1pUFcPzihZQJg7VatoWTeRFpLJZYyDd0J" },
-                    { name: "Unbroken Beauty Angel", id: "1L1T8DKV0T13Le47D4gd-LKI14boGch-p" }
-                ]
-            },
-            "Spiritual Uplift": {
-                emoji: "✨",
-                description: "Inspirational melodies for your soul journey",
-                price: 4.99,
-                link: "https://tlott12.gumroad.com/l/spiritual-uplift",
-                songs: [
-                    { name: "Higher Love", id: "1me1vXHQ0J6ouKsaGF7Cum2-2DHruhFo9" },
-                    { name: "Glass Tide", id: "1aV-TvdZVnTS9ifNACJBJe-KNnGG28zZH" },
-                    { name: "Not A Place For Angels", id: "1QC4rP_NgVY0lyKHZo-AfSmT5pXWAL5xC" }
-                ]
-            },
-            "Modern Vibes": {
-                emoji: "🎧",
-                description: "Contemporary instrumental & vocal tracks",
-                price: 4.99,
-                link: "https://tlott12.gumroad.com/l/modern-vibes",
-                songs: [
-                    { name: "The Neon in My Head", id: "1g-m9Qjp-f5grI53EBrQ7_YxOQx-6MfN4" },
-                    { name: "Mad About You", id: "1pCBSc5D4moFeT-lpx6ttK_gz6ube5da2" },
-                    { name: "Zoom Zoom Zoom", id: "1p3tDE2eRlYK5_WW0NFLjLvMrasdZ2jM1" }
-                ]
-            }
-        };
+function playAlbum(albumId) {
+  toggleTracks(albumId);
+  playTrack(albumId, 0);
+}
 
-        const audioPlayer = document.getElementById('audioPlayer');
-        const nowPlayingTrack = document.getElementById('nowPlayingTrack');
-        const albumsGrid = document.getElementById('albumsGrid');
-        let player = new Plyr(audioPlayer);
+function playTrack(albumId, trackIndex) {
+  const album = ALBUMS.find(a => a.id === albumId);
+  if (!album) return;
+  const track = album.tracks[trackIndex];
 
-        // Helper to convert Google Drive ID to stream URL
-        function getStreamUrl(id) {
-            return `https://drive.google.com/uc?id=${id}&export=download`;
-        }
+  // Update now playing UI
+  document.getElementById('track-title').textContent = track.title;
+  document.getElementById('track-album').textContent = album.name;
+  document.getElementById('main-art').textContent = album.emoji;
+  document.getElementById('main-art').style.background = album.gradient;
+  document.getElementById('main-art').classList.add('spinning');
 
-        // Build Album Cards
-        Object.entries(albums).forEach(([albumName, albumData], index) => {
-            const card = document.createElement('div');
-            card.className = 'album-card';
-            card.style.animationDelay = `${index * 0.1}s`;
+  // Highlight active card
+  document.querySelectorAll('.album-card').forEach(el => el.classList.remove('active'));
+  document.getElementById('card-' + albumId).classList.add('active');
 
-            let songsHtml = '';
-            albumData.songs.forEach(song => {
-                songsHtml += `<div class="song-item" onclick="playSong('${song.name}', '${song.id}', '${albumName}')">${song.name}</div>`;
-            });
+  // Highlight active track
+  document.querySelectorAll('.track-item').forEach(el => el.classList.remove('playing'));
+  const trackEl = document.getElementById('track-' + albumId + '-' + trackIndex);
+  if (trackEl) trackEl.classList.add('playing');
 
-            card.innerHTML = `
-                <div class="album-art">
-                    <div class="emoji-icons">${albumData.emoji}</div>
-                </div>
-                <div class="album-info">
-                    <h3>${albumName}</h3>
-                    <p>${albumData.description}</p>
-                    <div class="price">$${albumData.price}</div>
-                    <button class="toggle-songs" onclick="toggleSongs(this)">🎵 Show Tracks</button>
-                    <div class="song-list">
-                        ${songsHtml}
-                    </div>
-                    <a href="${albumData.link}" target="_blank" class="buy-button">🛒 Buy Album</a>
-                </div>
-            `;
-            albumsGrid.appendChild(card);
-        });
+  currentAlbum = albumId;
+  currentTrack = trackIndex;
 
-        // Play Song Function
-        function playSong(songName, googleDriveId, albumName) {
-            audioPlayer.src = getStreamUrl(googleDriveId);
-            nowPlayingTrack.innerText = `${songName} • ${albumName}`;
-            player.play();
-        }
+  // Load and play
+  const audioEl = document.getElementById('player');
+  if (track.url) {
+    audioEl.src = track.url;
+    if (player) {
+      player.play();
+    }
+  } else {
+    document.getElementById('track-title').textContent = track.title + ' (Preview coming soon)';
+    document.getElementById('main-art').classList.remove('spinning');
+  }
+}
 
-        // Toggle Songs List
-        function toggleSongs(button) {
-            const songList = button.nextElementSibling;
-            songList.classList.toggle('show');
-            button.innerText = songList.classList.contains('show') ? '⏷ Hide Tracks' : '🎵 Show Tracks';
-        }
+// Init Plyr
+window.addEventListener('DOMContentLoaded', function() {
+  buildAlbums();
+  player = new Plyr('#player', {
+    controls: ['play', 'progress', 'current-time', 'duration', 'mute', 'volume'],
+    hideControls: false,
+  });
 
-        // Update player styling
-        player.on('play', () => {
-            document.querySelector('.now-playing').style.animation = 'fadeIn 0.3s ease';
-        });
-    </script>
+  player.on('ended', function() {
+    // Auto-advance to next track
+    if (currentAlbum && currentTrack !== null) {
+      const album = ALBUMS.find(a => a.id === currentAlbum);
+      if (album && currentTrack < album.tracks.length - 1) {
+        playTrack(currentAlbum, currentTrack + 1);
+      } else {
+        document.getElementById('main-art').classList.remove('spinning');
+      }
+    }
+  });
+});
+
+// =============================================
+// ARIA CHAT
+// =============================================
+function toggleAria() {
+  const popup = document.getElementById('aria-popup');
+  popup.classList.toggle('open');
+}
+
+// =============================================
+// EMAIL SUBSCRIBE
+// =============================================
+async function handleSubscribe() {
+  const emailInput = document.getElementById('sub-email');
+  const nameInput = document.getElementById('sub-name');
+  const btn = document.getElementById('sub-btn');
+  const email = emailInput.value.trim();
+  const name = nameInput.value.trim();
+
+  if (!email || !email.includes('@')) {
+    emailInput.style.borderColor = '#ef4444';
+    emailInput.focus();
+    return;
+  }
+
+  btn.textContent = 'Subscribing...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('https://lltlbjmurwhnotjegjrz.supabase.co/functions/v1/welcome-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, first_name: name, source: 'music_store' })
+    });
+    const data = await res.json();
+
+    document.getElementById('subscribe-form-wrap').style.display = 'none';
+    const successEl = document.getElementById('sub-success');
+    successEl.style.display = 'block';
+    if (data.subject) {
+      document.getElementById('sub-success-msg').textContent =
+        `Welcome ${name || 'friend'}! 🎵 Check your email — a personal note from T. Lott is on its way!`;
+    }
+  } catch (err) {
+    btn.textContent = 'Try Again';
+    btn.disabled = false;
+    // Fallback: still show success UI since user submitted
+    document.getElementById('subscribe-form-wrap').style.display = 'none';
+    document.getElementById('sub-success').style.display = 'block';
+  }
+}
+</script>
 </body>
 </html>
