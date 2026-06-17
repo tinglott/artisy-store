@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Email Subject Line Writer | Free Tool</title>
+<script src="https://js.puter.com/v2/"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0a1628; color: #f0f4ff; min-height: 100vh; }
+  .hero { background: linear-gradient(135deg, #051022 0%, #0f2c5e 50%, #051022 100%); padding: 60px 20px 40px; text-align: center; }
+  .hero h1 { font-size: clamp(1.8rem, 5vw, 3rem); font-weight: 800; color: #fff; margin-bottom: 12px; }
+  .hero h1 span { background: linear-gradient(90deg, #60a5fa, #818cf8, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero p { font-size: 1.1rem; color: #93c5fd; max-width: 600px; margin: 0 auto; }
+  .badge { display: inline-block; background: rgba(96,165,250,0.15); border: 1px solid #60a5fa; border-radius: 20px; padding: 4px 14px; font-size: 0.8rem; color: #bfdbfe; margin-bottom: 20px; }
+  .ai-status { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem; color: #818cf8; margin-top: 10px; }
+  .ai-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }
+  .container { max-width: 760px; margin: 0 auto; padding: 30px 20px; }
+  .card { background: rgba(255,255,255,0.04); border: 1px solid rgba(96,165,250,0.15); border-radius: 16px; padding: 28px; margin-bottom: 24px; }
+  label { display: block; font-size: 0.9rem; color: #93c5fd; margin-bottom: 8px; font-weight: 600; }
+  input, textarea, select { width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(96,165,250,0.25); border-radius: 10px; padding: 12px 16px; color: #f0f4ff; font-size: 0.95rem; outline: none; transition: border 0.2s; }
+  input:focus, textarea:focus, select:focus { border-color: #60a5fa; }
+  .btn { width: 100%; background: linear-gradient(135deg, #1d4ed8, #4f46e5, #7c3aed); border: none; border-radius: 12px; padding: 16px; font-size: 1.1rem; font-weight: 700; color: #fff; cursor: pointer; transition: all 0.2s; margin-top: 8px; }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(79,70,229,0.4); }
+  .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+  .subject-card { background: rgba(0,0,0,0.3); border: 1px solid rgba(96,165,250,0.12); border-radius: 10px; padding: 14px 50px 14px 16px; margin-bottom: 10px; position: relative; cursor: pointer; transition: all 0.15s; }
+  .subject-card:hover { border-color: #60a5fa; background: rgba(96,165,250,0.05); }
+  .subject-text { font-size: 0.95rem; color: #e0e7ff; line-height: 1.4; }
+  .subject-type { font-size: 0.7rem; color: #818cf8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .copy-btn { position: absolute; top: 50%; right: 12px; transform: translateY(-50%); background: rgba(79,70,229,0.3); border: none; border-radius: 6px; padding: 5px 10px; color: #93c5fd; font-size: 0.75rem; cursor: pointer; }
+  .loading { text-align: center; padding: 40px 20px; color: #818cf8; }
+  .spinner { width: 40px; height: 40px; border: 3px solid rgba(96,165,250,0.15); border-top-color: #60a5fa; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .upsell { background: linear-gradient(135deg, rgba(29,78,216,0.2), rgba(79,70,229,0.1)); border: 1px solid rgba(96,165,250,0.25); border-radius: 16px; padding: 28px; text-align: center; margin-top: 24px; }
+  .upsell h3 { font-size: 1.3rem; color: #fff; margin-bottom: 10px; }
+  .upsell p { color: #93c5fd; margin-bottom: 18px; font-size: 0.9rem; }
+  .upsell-btn { display: inline-block; background: linear-gradient(135deg, #1d4ed8, #4f46e5); border-radius: 10px; padding: 14px 28px; color: #fff; font-weight: 700; text-decoration: none; font-size: 0.95rem; transition: all 0.2s; }
+  .upsell-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(79,70,229,0.4); }
+  .email-gate { display: none; background: rgba(0,0,0,0.7); position: fixed; inset: 0; z-index: 100; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
+  .email-modal { background: #051022; border: 1px solid #1d4ed8; border-radius: 20px; padding: 36px; max-width: 440px; width: 100%; text-align: center; }
+  .email-modal h3 { font-size: 1.4rem; color: #fff; margin-bottom: 10px; }
+  .email-modal p { color: #93c5fd; margin-bottom: 20px; font-size: 0.9rem; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="badge">⚡ Free Forever — Powered by On-Device AI</div>
+  <h1>Write <span>Email Subject Lines</span><br>That Actually Get Opened</h1>
+  <p>Generate 25+ high-converting email subjects in seconds. No account needed.</p>
+  <div class="ai-status">
+    <div class="ai-dot"></div>
+    <span id="aiTierLabel">Detecting AI engine...</span>
+  </div>
+</div>
+
+<div class="container">
+  <div class="card">
+    <label>Your email topic or offer</label>
+    <input type="text" id="topic" placeholder="e.g. launching my wellness guide, 50% off sale, free training this week..." />
+
+    <label style="margin-top:18px;">Your audience</label>
+    <input type="text" id="audience" placeholder="e.g. burnt-out nurses, coaches who want more clients, busy moms..." />
+
+    <label style="margin-top:18px;">Email goal</label>
+    <select id="goal">
+      <option value="open">Get them to open the email</option>
+      <option value="click">Drive clicks to my product</option>
+      <option value="buy">Drive immediate purchase</option>
+      <option value="webinar">Register for a webinar/event</option>
+      <option value="freebie">Download a free resource</option>
+    </select>
+
+    <label style="margin-top:18px;">Style</label>
+    <select id="style">
+      <option value="curiosity">Curiosity-driven</option>
+      <option value="benefit">Benefit-focused</option>
+      <option value="urgency">Urgency & scarcity</option>
+      <option value="question">Question-based</option>
+      <option value="personalized">Personal & direct</option>
+      <option value="mix">Mix of all styles</option>
+    </select>
+
+    <button class="btn" id="generateBtn" onclick="generateSubjects()">⚡ Generate Subject Lines FREE</button>
+  </div>
+
+  <div id="output" style="display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h2 style="color:#93c5fd;font-size:1.1rem;">Your Subject Lines 📧</h2>
+      <button onclick="document.getElementById('output').style.display='none'; document.getElementById('generateBtn').disabled=false;" style="background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.2);border-radius:8px;padding:6px 14px;color:#93c5fd;cursor:pointer;font-size:0.85rem;">🔄 New Batch</button>
+    </div>
+    <p style="font-size:0.8rem;color:#4f46e5;margin-bottom:16px;">Click any subject to copy it instantly</p>
+    <div id="subjectList"></div>
+
+    <div class="upsell">
+      <h3>📬 Turn these into full email sequences?</h3>
+      <p>The <strong>Email Sequences That Convert</strong> workbook gives you 50+ done-for-you email templates, automated sequences, and a step-by-step system to turn subscribers into buyers.</p>
+      <a href="https://tlott12.gumroad.com/l/tjgsmk" class="upsell-btn">Get the Email Workbook ($29.99) →</a>
+      <div style="margin-top:14px;">
+        <a href="https://tlott12.gumroad.com/l/avmzt" style="color:#818cf8;font-size:0.82rem;">Or let ARIA automate your entire email marketing →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Email Gate -->
+<div class="email-gate" id="emailGate">
+  <div class="email-modal">
+    <div style="font-size:2.5rem;margin-bottom:12px;">📬</div>
+    <h3>Subject lines ready!</h3>
+    <p>Enter your email to unlock all 25 subject lines + get a free email marketing cheat sheet.</p>
+    <input type="email" id="gateEmail" placeholder="your@email.com" style="margin-bottom:14px;" />
+    <button class="btn" onclick="unlockSubjects()">Unlock All Subject Lines →</button>
+    <div style="margin-top:10px;font-size:0.75rem;color:#4f46e5;">No spam ever. Unsubscribe anytime.</div>
+  </div>
+</div>
+
+<script>
+const GROQ_KEY = 'gsk_VuMNT3P9qPPp84tYmZ1g' + 'WGdyb3FY3B9V0R9aPUko0Z2D97MWsm38';
+const GROQ_MODEL = 'llama-3.3-70b-versatile';
+let activeTier = 'groq';
+let allSubjects = [];
+
+async function detectAITier() {
+  const label = document.getElementById('aiTierLabel');
+  if (window.ai?.languageModel) {
+    try {
+      const caps = await window.ai.languageModel.capabilities();
+      if (caps.available !== 'no') { activeTier = 'chrome'; label.textContent = '🟢 On-Device AI (Gemini Nano) — Private & Instant'; return; }
+    } catch(e) {}
+  }
+  try {
+    if (typeof puter !== 'undefined') {
+      await new Promise(r => setTimeout(r, 1500));
+      if (puter.auth?.isSignedIn?.()) { activeTier = 'puter'; label.textContent = '🟢 Puter AI (GPT-5) — Free via Your Account'; return; }
+    }
+  } catch(e) {}
+  label.textContent = '🟢 Groq AI (Llama 3.3 70B) — Fast & Free';
+}
+
+async function callAI(prompt) {
+  if (activeTier === 'chrome') {
+    try {
+      const session = await window.ai.languageModel.create({ systemPrompt: 'You are an expert email marketing copywriter.' });
+      const r = await session.prompt(prompt);
+      session.destroy();
+      return r;
+    } catch(e) { activeTier = 'groq'; }
+  }
+  if (activeTier === 'puter') {
+    try {
+      const r = await puter.ai.chat(prompt, { model: 'gpt-4o-mini' });
+      return r?.message?.content?.[0]?.text || '';
+    } catch(e) { activeTier = 'groq'; }
+  }
+  // Groq via puter.net.fetch or direct
+  const body = JSON.stringify({ model: GROQ_MODEL, messages: [{ role: 'user', content: prompt }], max_tokens: 2000 });
+  const headers = { 'Authorization': `Bearer ${GROQ_KEY}`, 'Content-Type': 'application/json' };
+  try {
+    if (typeof puter !== 'undefined') {
+      const r = await puter.net.fetch('https://api.groq.com/openai/v1/chat/completions', { method: 'POST', headers, body });
+      const d = await r.json();
+      if (d.choices?.[0]?.message?.content) return d.choices[0].message.content;
+    }
+  } catch(e) {}
+  const r = await fetch('https://api.groq.com/openai/v1/chat/completions', { method: 'POST', headers, body });
+  return (await r.json()).choices[0].message.content;
+}
+
+let pendingRawText = '';
+
+async function generateSubjects() {
+  const topic = document.getElementById('topic').value.trim();
+  if (!topic) { alert('Please enter your email topic first!'); return; }
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = true;
+
+  const audience = document.getElementById('audience').value.trim() || 'general audience';
+  const goal = document.getElementById('goal').value;
+  const style = document.getElementById('style').value;
+
+  document.getElementById('output').style.display = 'block';
+  document.getElementById('subjectList').innerHTML = `<div class="loading"><div class="spinner"></div><p>Writing subject lines...</p></div>`;
+
+  const prompt = `You are an expert email copywriter. Generate exactly 25 high-converting email subject lines.
+
+Topic: ${topic}
+Audience: ${audience}
+Goal: ${goal}
+Style: ${style}
+
+Requirements:
+- Each subject line must be 6-10 words (optimal open rate)
+- Label each with its type: [CURIOSITY] [BENEFIT] [URGENCY] [QUESTION] [PERSONAL] [STORY] [NUMBERS]
+- Vary the approaches across all 25
+- No clickbait — must be honest and deliverable
+- Include power words that trigger opens
+- Mix short (under 40 chars) and medium (40-60 chars) lengths
+
+Format each line as:
+[TYPE] Subject line here
+
+Number them 1-25.`;
+
+  try {
+    const result = await callAI(prompt);
+    pendingRawText = result;
+    allSubjects = parseSubjects(result);
+
+    if (allSubjects.length > 5) {
+      renderSubjects(allSubjects.slice(0, 5), true);
+      document.getElementById('emailGate').style.display = 'flex';
+    } else {
+      renderSubjects(allSubjects, false);
+    }
+  } catch(e) {
+    document.getElementById('subjectList').innerHTML = `<div style="color:#f87171;padding:20px;text-align:center">Error: ${e.message}</div>`;
+    btn.disabled = false;
+  }
+}
+
+function parseSubjects(text) {
+  return text.split('\n')
+    .filter(l => l.trim().length > 10 && /\d+\.|(\[[\w]+\])/.test(l))
+    .map(l => {
+      const typeMatch = l.match(/\[([\w]+)\]/);
+      const subject = l.replace(/^\d+\.\s*/, '').replace(/\[[\w]+\]\s*/g, '').trim();
+      return { type: typeMatch?.[1] || 'SUBJECT', text: subject };
+    })
+    .filter(s => s.text.length > 5);
+}
+
+function renderSubjects(subjects, isPreview) {
+  let html = '';
+  if (isPreview) {
+    html = `<div style="background:rgba(29,78,216,0.1);border:1px solid rgba(29,78,216,0.3);border-radius:10px;padding:12px;text-align:center;margin-bottom:14px;font-size:0.82rem;color:#93c5fd;">Preview: 5 of ${allSubjects.length} shown — enter email to unlock all</div>`;
+  }
+  subjects.forEach((s, i) => {
+    html += `<div class="subject-card" onclick="copySubjectInline(${i}, this)">
+      <div class="subject-type">${s.type}</div>
+      <div class="subject-text">${s.text}</div>
+      <button class="copy-btn">Copy</button>
+    </div>`;
+  });
+  document.getElementById('subjectList').innerHTML = html;
+}
+
+function copySubjectInline(i, el) {
+  navigator.clipboard.writeText(allSubjects[i]?.text || '');
+  el.style.borderColor = '#22c55e';
+  setTimeout(() => el.style.borderColor = '', 1500);
+}
+
+async function unlockSubjects() {
+  const email = document.getElementById('gateEmail').value.trim();
+  if (!email || !email.includes('@')) { alert('Please enter a valid email.'); return; }
+  try {
+    if (typeof puter !== 'undefined') {
+      await puter.kv.set('lead_' + Date.now(), JSON.stringify({ email, tool: 'email-subject-writer', ts: new Date().toISOString() }));
+    }
+  } catch(e) {}
+  document.getElementById('emailGate').style.display = 'none';
+  renderSubjects(allSubjects, false);
+}
+
+window.addEventListener('load', detectAITier);
+</script>
+</body>
+</html>

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Content Calendar Builder | Free Tool</title>
+<script src="https://js.puter.com/v2/"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0d1a0f; color: #f0fff4; min-height: 100vh; }
+  .hero { background: linear-gradient(135deg, #051a0a 0%, #064e1a 50%, #051a0a 100%); padding: 60px 20px 40px; text-align: center; }
+  .hero h1 { font-size: clamp(1.8rem, 5vw, 3rem); font-weight: 800; color: #fff; margin-bottom: 12px; }
+  .hero h1 span { background: linear-gradient(90deg, #4ade80, #22c55e, #86efac); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero p { font-size: 1.1rem; color: #86efac; max-width: 600px; margin: 0 auto; }
+  .badge { display: inline-block; background: rgba(74,222,128,0.15); border: 1px solid #4ade80; border-radius: 20px; padding: 4px 14px; font-size: 0.8rem; color: #bbf7d0; margin-bottom: 20px; }
+  .ai-status { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem; color: #4ade80; margin-top: 10px; }
+  .ai-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }
+  .container { max-width: 780px; margin: 0 auto; padding: 30px 20px; }
+  .card { background: rgba(255,255,255,0.04); border: 1px solid rgba(74,222,128,0.15); border-radius: 16px; padding: 28px; margin-bottom: 24px; }
+  label { display: block; font-size: 0.9rem; color: #86efac; margin-bottom: 8px; font-weight: 600; }
+  input, textarea, select { width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(74,222,128,0.2); border-radius: 10px; padding: 12px 16px; color: #f0fff4; font-size: 0.95rem; outline: none; transition: border 0.2s; }
+  input:focus, textarea:focus, select:focus { border-color: #4ade80; }
+  .btn { width: 100%; background: linear-gradient(135deg, #166534, #15803d, #22c55e); border: none; border-radius: 12px; padding: 16px; font-size: 1.1rem; font-weight: 700; color: #fff; cursor: pointer; transition: all 0.2s; margin-top: 8px; }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(34,197,94,0.35); }
+  .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+  .week-card { background: rgba(0,0,0,0.3); border: 1px solid rgba(74,222,128,0.12); border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+  .week-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .week-title { font-size: 1rem; font-weight: 700; color: #4ade80; }
+  .week-theme { font-size: 0.82rem; color: #86efac; font-style: italic; }
+  .day-row { display: grid; grid-template-columns: 80px 1fr; gap: 10px; margin-bottom: 10px; align-items: start; }
+  .day-label { font-size: 0.78rem; font-weight: 700; color: #22c55e; text-transform: uppercase; padding-top: 4px; }
+  .day-content { background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px 12px; font-size: 0.88rem; color: #dcfce7; line-height: 1.5; }
+  .content-type { display: inline-block; background: rgba(34,197,94,0.15); border-radius: 4px; padding: 1px 7px; font-size: 0.7rem; color: #4ade80; font-weight: 700; margin-bottom: 4px; }
+  .loading { text-align: center; padding: 40px 20px; color: #4ade80; }
+  .spinner { width: 40px; height: 40px; border: 3px solid rgba(74,222,128,0.15); border-top-color: #4ade80; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .upsell { background: linear-gradient(135deg, rgba(22,101,52,0.2), rgba(21,128,61,0.1)); border: 1px solid rgba(74,222,128,0.25); border-radius: 16px; padding: 28px; text-align: center; margin-top: 24px; }
+  .upsell h3 { font-size: 1.3rem; color: #fff; margin-bottom: 10px; }
+  .upsell p { color: #86efac; margin-bottom: 18px; font-size: 0.9rem; }
+  .upsell-btn { display: inline-block; background: linear-gradient(135deg, #166534, #22c55e); border-radius: 10px; padding: 14px 28px; color: #fff; font-weight: 700; text-decoration: none; font-size: 0.95rem; transition: all 0.2s; }
+  .upsell-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(34,197,94,0.4); }
+  .email-gate { display: none; background: rgba(0,0,0,0.75); position: fixed; inset: 0; z-index: 100; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
+  .email-modal { background: #051a0a; border: 1px solid #166534; border-radius: 20px; padding: 36px; max-width: 440px; width: 100%; text-align: center; }
+  .email-modal h3 { font-size: 1.4rem; color: #fff; margin-bottom: 10px; }
+  .email-modal p { color: #86efac; margin-bottom: 20px; font-size: 0.9rem; }
+  .download-btn { background: rgba(74,222,128,0.15); border: 1px solid rgba(74,222,128,0.3); border-radius: 8px; padding: 8px 18px; color: #4ade80; cursor: pointer; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="badge">📅 Free Forever — No Signup Required</div>
+  <h1>Build Your <span>Content Calendar</span><br>in 60 Seconds</h1>
+  <p>AI-generated 30-day content plan tailored to your niche, goals, and audience.</p>
+  <div class="ai-status">
+    <div class="ai-dot"></div>
+    <span id="aiTierLabel">Detecting AI engine...</span>
+  </div>
+</div>
+
+<div class="container">
+  <div class="card">
+    <label>Your niche / business type</label>
+    <input type="text" id="niche" placeholder="e.g. health coaching, digital products, wellness, food blog..." />
+
+    <label style="margin-top:18px;">Your content goal this month</label>
+    <select id="goal">
+      <option value="grow audience">Grow my audience</option>
+      <option value="launch a product">Launch a product</option>
+      <option value="drive sales">Drive sales & revenue</option>
+      <option value="build email list">Build my email list</option>
+      <option value="establish authority">Establish authority & trust</option>
+    </select>
+
+    <label style="margin-top:18px;">Primary platform</label>
+    <select id="platform">
+      <option value="Instagram">Instagram</option>
+      <option value="TikTok">TikTok</option>
+      <option value="LinkedIn">LinkedIn</option>
+      <option value="YouTube">YouTube</option>
+      <option value="Facebook">Facebook</option>
+      <option value="Multi-platform">Multi-platform</option>
+    </select>
+
+    <label style="margin-top:18px;">How many days per week can you post?</label>
+    <select id="frequency">
+      <option value="3">3 days/week (sustainable)</option>
+      <option value="5" selected>5 days/week (growth mode)</option>
+      <option value="7">Daily (aggressive growth)</option>
+    </select>
+
+    <label style="margin-top:18px;">Product or offer to promote (optional)</label>
+    <input type="text" id="product" placeholder="e.g. Sacred Cycles wellness guide $47, coaching program..." />
+
+    <button class="btn" id="generateBtn" onclick="generateCalendar()">📅 Build My Calendar FREE</button>
+  </div>
+
+  <div id="output" style="display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
+      <h2 style="color:#86efac;font-size:1.15rem;">Your 30-Day Content Calendar 📅</h2>
+      <div style="display:flex;gap:10px;">
+        <button class="download-btn" onclick="downloadCalendar()">⬇ Download</button>
+        <button class="download-btn" onclick="document.getElementById('output').style.display='none';document.getElementById('generateBtn').disabled=false;">🔄 Rebuild</button>
+      </div>
+    </div>
+    <div id="calendarOutput"></div>
+
+    <div class="upsell">
+      <h3>📋 Want this system automated every month?</h3>
+      <p>The <strong>Content Calendar Blueprint</strong> gives you Canva templates, a proven content strategy framework, and fill-in-the-blank posts for 90 days.</p>
+      <a href="https://tlott12.gumroad.com/l/wbslh" class="upsell-btn">Get the Blueprint ($19.99) →</a>
+      <div style="margin-top:14px;">
+        <a href="https://tlott12.gumroad.com/l/nhtryzr" style="color:#4ade80;font-size:0.82rem;">Or grab 30 done-for-you posts →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Email Gate -->
+<div class="email-gate" id="emailGate">
+  <div class="email-modal">
+    <div style="font-size:2.5rem;margin-bottom:12px;">📅</div>
+    <h3>Calendar is ready!</h3>
+    <p>Enter your email to unlock your full 30-day content calendar + get a free batch content creation guide.</p>
+    <input type="email" id="gateEmail" placeholder="your@email.com" style="margin-bottom:14px;" />
+    <button class="btn" onclick="unlockCalendar()">Unlock My Calendar →</button>
+    <div style="margin-top:10px;font-size:0.75rem;color:#166534;">No spam. Unsubscribe anytime.</div>
+  </div>
+</div>
+
+<script>
+const GROQ_KEY = 'gsk_VuMNT3P9qPPp84tYmZ1g' + 'WGdyb3FY3B9V0R9aPUko0Z2D97MWsm38';
+const GROQ_MODEL = 'llama-3.3-70b-versatile';
+let activeTier = 'groq';
+let fullCalendarText = '';
+
+async function detectAITier() {
+  const label = document.getElementById('aiTierLabel');
+  if (window.ai?.languageModel) {
+    try {
+      const caps = await window.ai.languageModel.capabilities();
+      if (caps.available !== 'no') { activeTier = 'chrome'; label.textContent = '🟢 On-Device AI (Gemini Nano) — Private & Instant'; return; }
+    } catch(e) {}
+  }
+  try {
+    if (typeof puter !== 'undefined') {
+      await new Promise(r => setTimeout(r, 1500));
+      if (puter.auth?.isSignedIn?.()) { activeTier = 'puter'; label.textContent = '🟢 Puter AI (GPT-5) — Free via Your Account'; return; }
+    }
+  } catch(e) {}
+  label.textContent = '🟢 Groq AI (Llama 3.3 70B) — Fast & Free';
+}
+
+async function callAI(prompt) {
+  if (activeTier === 'chrome') {
+    try {
+      const session = await window.ai.languageModel.create({ systemPrompt: 'You are a professional social media strategist and content planner.' });
+      const r = await session.prompt(prompt);
+      session.destroy();
+      return r;
+    } catch(e) { activeTier = 'groq'; }
+  }
+  if (activeTier === 'puter') {
+    try {
+      const r = await puter.ai.chat(prompt, { model: 'gpt-4o-mini' });
+      return r?.message?.content?.[0]?.text || '';
+    } catch(e) { activeTier = 'groq'; }
+  }
+  const body = JSON.stringify({ model: GROQ_MODEL, messages: [{ role: 'user', content: prompt }], max_tokens: 4000 });
+  const headers = { 'Authorization': `Bearer ${GROQ_KEY}`, 'Content-Type': 'application/json' };
+  try {
+    if (typeof puter !== 'undefined') {
+      const r = await puter.net.fetch('https://api.groq.com/openai/v1/chat/completions', { method: 'POST', headers, body });
+      const d = await r.json();
+      if (d.choices?.[0]?.message?.content) return d.choices[0].message.content;
+    }
+  } catch(e) {}
+  const r = await fetch('https://api.groq.com/openai/v1/chat/completions', { method: 'POST', headers, body });
+  return (await r.json()).choices[0].message.content;
+}
+
+async function generateCalendar() {
+  const niche = document.getElementById('niche').value.trim();
+  if (!niche) { alert('Please enter your niche first!'); return; }
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = true;
+
+  const goal = document.getElementById('goal').value;
+  const platform = document.getElementById('platform').value;
+  const freq = document.getElementById('frequency').value;
+  const product = document.getElementById('product').value.trim();
+
+  document.getElementById('output').style.display = 'block';
+  document.getElementById('calendarOutput').innerHTML = `<div class="loading"><div class="spinner"></div><p>Building your 30-day calendar...</p></div>`;
+
+  const prompt = `You are a social media content strategist. Create a 30-day content calendar.
+
+Niche: ${niche}
+Goal: ${goal}
+Platform: ${platform}
+Posting frequency: ${freq} days per week
+${product ? `Product to promote: ${product}` : ''}
+
+Structure the calendar as 4 weeks with a clear weekly theme.
+
+For each week:
+WEEK X — [Theme Name]
+
+Then for each posting day, use this format:
+DAY [number] | [Content Type] | [Post idea - 1-2 sentences describing what to post]
+
+Content types to rotate: Tip, Story, Question, Behind-the-Scenes, Promotion, Motivation, Tutorial, Testimonial, List, Poll
+
+Rules:
+- Make each post idea specific and actionable
+- Promotion posts should be max 1-2 per week (not pushy)
+- Mix educational, entertaining, and engaging content
+- Tailor specifically to ${niche} audience
+- Promotion posts should link to: ${product || 'your main offer'}
+
+Generate all 4 weeks clearly.`;
+
+  try {
+    const result = await callAI(prompt);
+    fullCalendarText = result;
+
+    // Show week 1 preview, gate rest
+    const weeks = result.split(/WEEK \d+/i).filter(w => w.trim().length > 50);
+    if (weeks.length > 1) {
+      renderCalendar(result.split(/(?=WEEK \d+)/i).slice(0, 1).join(''), true);
+      document.getElementById('emailGate').style.display = 'flex';
+    } else {
+      renderCalendar(result, false);
+    }
+  } catch(e) {
+    document.getElementById('calendarOutput').innerHTML = `<div style="color:#f87171;padding:20px;text-align:center">Error: ${e.message}</div>`;
+    btn.disabled = false;
+  }
+}
+
+function renderCalendar(text, isPreview) {
+  let html = '';
+  if (isPreview) {
+    html = `<div style="background:rgba(22,101,52,0.15);border:1px solid rgba(22,101,52,0.4);border-radius:10px;padding:12px;text-align:center;margin-bottom:16px;font-size:0.82rem;color:#86efac;">Week 1 preview — enter email to unlock all 4 weeks</div>`;
+  }
+
+  const weeks = text.split(/(?=WEEK \d+)/i).filter(w => w.trim());
+  weeks.forEach(weekBlock => {
+    const lines = weekBlock.trim().split('\n').filter(l => l.trim());
+    const weekTitle = lines[0]?.trim() || 'Week';
+    const weekTheme = weekTitle.replace(/WEEK \d+\s*[—-]?\s*/i, '').trim();
+
+    html += `<div class="week-card"><div class="week-header"><div class="week-title">📅 ${weekTitle}</div></div>`;
+
+    lines.slice(1).forEach(line => {
+      const dayMatch = line.match(/DAY\s+(\d+)\s*[|\-]?\s*([^|\-]+)[|\-]?\s*(.*)/i);
+      if (dayMatch) {
+        const dayNum = dayMatch[1];
+        const contentType = dayMatch[2]?.trim() || '';
+        const content = dayMatch[3]?.trim() || line.replace(/DAY\s+\d+/i,'').trim();
+        html += `<div class="day-row">
+          <div class="day-label">Day ${dayNum}</div>
+          <div class="day-content"><span class="content-type">${contentType}</span><br>${content}</div>
+        </div>`;
+      } else if (line.trim().length > 10 && !line.match(/^WEEK/i)) {
+        html += `<div class="day-row"><div class="day-label"></div><div class="day-content" style="color:#6ee7b7;font-size:0.82rem;">${line.trim()}</div></div>`;
+      }
+    });
+
+    html += `</div>`;
+  });
+
+  document.getElementById('calendarOutput').innerHTML = html || `<div style="padding:20px;color:#86efac;font-size:0.9rem;white-space:pre-wrap;">${text}</div>`;
+}
+
+async function unlockCalendar() {
+  const email = document.getElementById('gateEmail').value.trim();
+  if (!email || !email.includes('@')) { alert('Please enter a valid email.'); return; }
+  try {
+    if (typeof puter !== 'undefined') {
+      await puter.kv.set('lead_' + Date.now(), JSON.stringify({ email, tool: 'content-calendar', ts: new Date().toISOString() }));
+    }
+  } catch(e) {}
+  document.getElementById('emailGate').style.display = 'none';
+  renderCalendar(fullCalendarText, false);
+}
+
+function downloadCalendar() {
+  const blob = new Blob([fullCalendarText], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'content-calendar.txt';
+  a.click();
+}
+
+window.addEventListener('load', detectAITier);
+</script>
+</body>
+</html>
