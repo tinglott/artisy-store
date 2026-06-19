@@ -3,372 +3,415 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FinFlow Pro v3 • Wealth OS + Invisible Fortress • Grok-Powered</title>
+    <title>FinFlow Pro - Sovereign Wealth & Legacy Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Bebas+Neue&family=Share+Tech+Mono&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #d4a574; --cyan: #3dd6f5; --navy: #0a1628; --orange: #c45c1a; }
-        body { font-family: 'Outfit', sans-serif; background: #0a0e1a; color: #f1f5f9; }
-        .fortress-font { font-family: 'Bebas Neue', sans-serif; }
-        .mono { font-family: 'Share Tech Mono', monospace; }
-        .glass { background: rgba(17,24,39,0.95); backdrop-filter: blur(24px); border: 1px solid rgba(212,165,116,0.25); }
-        .fortress-glass { background: rgba(10,22,40,0.95); border: 1px solid rgba(61,214,245,0.3); }
-        .scan { animation: scan 4s linear infinite; }
-        @keyframes scan { 0% { transform: translateY(-100%); } 100% { transform: translateY(500%); } }
-        .node { transition: all 0.3s cubic-bezier(0.4,0,0.2,1); }
-        .youtube-embed { position: relative; padding-top: 56.25%; }
-        .youtube-embed iframe { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 16px; box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25); }
-        .api-status { animation: pulse 2s infinite; }
-        .nav-item { color: #94a3b8; font-size: 0.95rem; font-weight: 500; }
-        .nav-item.active, .nav-item:hover { color: #f1f5f9; background: rgba(255,255,255,0.08); }
+        :root {
+            --primary: #6366f1;
+            --accent: #10b981;
+        }
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #0f172a; color: #f1f5f9; }
+        .glass-card { background: #1e293b; border: 1px solid rgba(99,102,241,0.2); border-radius: 16px; }
+        .nav-tab.active { background: var(--primary); color: white; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
     </style>
 </head>
-<body class="min-h-screen">
-
-<div class="fixed inset-0 bg-[radial-gradient(#1a2235_1px,transparent_1px)] [background-size:50px_50px] opacity-20 pointer-events-none z-[-1]"></div>
-
-<aside class="fixed left-0 top-0 h-full w-72 bg-[#0a0e1a]/95 border-r border-cyan-400/20 flex flex-col z-50 overflow-y-auto shadow-2xl">
-    <div class="p-6 border-b border-white/10 flex items-center gap-3">
-        <div class="w-11 h-11 rounded-3xl bg-gradient-to-br from-amber-400 to-cyan-400 flex items-center justify-center shadow-inner">
-            <i class="fas fa-crown text-white text-xl"></i>
-        </div>
-        <div class="flex-1">
-            <h1 class="fortress-font text-3xl tracking-[-1px]">FinFlow Pro</h1>
-            <p class="text-[10px] mono text-cyan-400 flex items-center gap-1"><span class="api-status inline-block w-2 h-2 bg-emerald-400 rounded-full"></span>v3 • GROK + PLAID + FORTRESS</p>
-        </div>
-    </div>
-    <nav class="flex-1 px-4 py-6 space-y-1">
-        <div onclick="switchTab('dashboard')" class="nav-item active flex items-center gap-3 px-5 py-4 rounded-3xl cursor-pointer"><i class="fas fa-th-large w-5"></i><span>Command Center</span></div>
-        <div onclick="switchTab('fortress')" class="nav-item flex items-center gap-3 px-5 py-4 rounded-3xl cursor-pointer"><i class="fas fa-shield-halved w-5"></i><span>Invisible Fortress</span><span class="ml-auto text-xs bg-orange-500 px-2 rounded-full">LIVE</span></div>
-        <div onclick="switchTab('education')" class="nav-item flex items-center gap-3 px-5 py-4 rounded-3xl cursor-pointer"><i class="fas fa-graduation-cap w-5"></i><span>Learn &amp; Grow</span></div>
-        <div onclick="switchTab('wealth')" class="nav-item flex items-center gap-3 px-5 py-4 rounded-3xl cursor-pointer"><i class="fas fa-building-columns w-5"></i><span>Wealth Simulator</span></div>
-        <div onclick="switchTab('ai')" class="nav-item flex items-center gap-3 px-5 py-4 rounded-3xl cursor-pointer bg-gradient-to-r from-cyan-500/10 to-amber-400/10"><i class="fas fa-robot w-5"></i><span>Grok AI Advisor</span></div>
-    </nav>
-    <div class="p-6 mt-auto border-t border-white/10">
-        <div onclick="openGrokChat()" class="fortress-glass p-5 rounded-3xl cursor-pointer flex items-center gap-3 hover:border-cyan-400 transition-colors">
-            <i class="fas fa-robot text-2xl text-cyan-400"></i>
-            <div>
-                <div class="text-sm font-semibold">Grok AI Live</div>
-                <div class="text-xs text-slate-400">Ask anything about your portfolio</div>
+<body class="min-h-screen pb-12">
+    <!-- HEADER -->
+    <header class="fixed top-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-md border-b border-slate-700 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 to-emerald-500 flex items-center justify-center text-white font-bold text-2xl">F</div>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight" style="font-family: 'Space Grotesk', sans-serif;">FinFlow Pro</h1>
+                    <p class="text-xs text-slate-400">Sovereign Wealth • Legacy Architecture</p>
+                </div>
             </div>
-        </div>
-    </div>
-</aside>
-
-<main class="ml-72 min-h-screen">
-    <header class="sticky top-0 z-50 bg-[#0a0e1a]/95 backdrop-blur-2xl border-b border-white/10 px-8 py-5 flex items-center justify-between">
-        <h2 id="pageTitle" class="fortress-font text-4xl tracking-tighter">Command Center</h2>
-        <div class="flex items-center gap-6">
-            <div onclick="mockPlaidConnect()" class="flex items-center gap-2 px-5 py-2 bg-emerald-400/10 hover:bg-emerald-400/20 text-emerald-400 rounded-3xl cursor-pointer text-sm font-medium transition-colors">
-                <i class="fas fa-link"></i> Connect Bank (Plaid)
-            </div>
-            <button onclick="toggleDeliberateMode()" id="deliberateBtn" class="flex items-center gap-3 px-6 py-3 rounded-3xl bg-white/5 text-sm font-medium hover:bg-orange-400/10 transition-colors">
-                <i class="fas fa-hand-paper"></i> Deliberate Mode <span id="deliberateStatus" class="text-emerald-400 ml-1">ON</span>
-            </button>
-            <div class="flex items-center gap-2">
-                <div class="text-right text-sm">Alex Rivera</div>
-                <div class="w-9 h-9 bg-gradient-to-br from-amber-400 to-cyan-400 rounded-2xl flex items-center justify-center text-white font-bold text-sm">AR</div>
+            <nav class="hidden md:flex items-center gap-2 text-sm">
+                <div onclick="switchTab('dashboard')" class="nav-tab active px-4 py-2 rounded-xl cursor-pointer">Dashboard</div>
+                <div onclick="switchTab('leverage')" class="nav-tab px-4 py-2 rounded-xl cursor-pointer">Leverage Lab</div>
+                <div onclick="switchTab('income')" class="nav-tab px-4 py-2 rounded-xl cursor-pointer">Income Engine</div>
+                <div onclick="switchTab('insurance')" class="nav-tab px-4 py-2 rounded-xl cursor-pointer">Protection Shield</div>
+                <div onclick="switchTab('legacy')" class="nav-tab px-4 py-2 rounded-xl cursor-pointer">Legacy Vault</div>
+                <div onclick="switchTab('habits')" class="nav-tab px-4 py-2 rounded-xl cursor-pointer">Wealth Habits</div>
+                <div onclick="switchTab('crypto')" class="nav-tab px-4 py-2 rounded-xl cursor-pointer">Crypto</div>
+            </nav>
+            <div class="flex items-center gap-4">
+                <button onclick="toggleAI()" class="bg-indigo-600 hover:bg-indigo-700 px-5 py-2 rounded-2xl text-sm font-medium flex items-center gap-2">
+                    <span>🤖</span> AI Advisor
+                </button>
+                <button onclick="toggleTheme()" class="p-3 rounded-2xl hover:bg-slate-800">🌗</button>
             </div>
         </div>
     </header>
 
-    <!-- DASHBOARD TAB -->
-    <div id="dashboardTab" class="tab-content active p-8">
-        <div class="grid grid-cols-12 gap-6">
-            <div class="col-span-12 lg:col-span-8 glass rounded-3xl p-8">
-                <div class="flex justify-between items-start">
+    <main class="pt-24 max-w-7xl mx-auto px-6">
+        <!-- DASHBOARD -->
+        <div id="dashboard" class="tab-content active">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="glass-card p-6">
+                    <p class="text-slate-400 text-sm">Net Worth</p>
+                    <p id="netWorth" class="text-4xl font-bold mt-2">$1,248,500</p>
+                    <p class="text-emerald-400 text-sm mt-1">↑ 8.4% MoM</p>
+                </div>
+                <div class="glass-card p-6">
+                    <p class="text-slate-400 text-sm">Projected Dividend Income</p>
+                    <p id="divIncome" class="text-4xl font-bold mt-2">$42,800</p>
+                    <p class="text-emerald-400 text-sm mt-1">Yield-on-Cost 6.8%</p>
+                </div>
+                <div class="glass-card p-6">
+                    <p class="text-slate-400 text-sm">Insurance Coverage Gap</p>
+                    <p id="insGap" class="text-4xl font-bold mt-2 text-amber-400">$850K</p>
+                </div>
+                <div class="glass-card p-6">
+                    <p class="text-slate-400 text-sm">Wealth Habits Score</p>
+                    <p id="habitsScore" class="text-4xl font-bold mt-2 text-emerald-400">87%</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="glass-card p-6">
+                    <h3 class="font-semibold mb-4">Portfolio Allocation</h3>
+                    <canvas id="allocChart" height="220"></canvas>
+                </div>
+                <div class="glass-card p-6">
+                    <h3 class="font-semibold mb-4">5-Year Projection</h3>
+                    <canvas id="projChart" height="220"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- LEVERAGE LAB -->
+        <div id="leverage" class="tab-content">
+            <div class="glass-card p-8">
+                <h2 class="text-3xl font-bold mb-6">Leverage Lab • SBA 504 &amp; Real Estate Strategies</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
-                        <div class="text-slate-400 text-sm uppercase tracking-wider mb-2">Total Net Worth</div>
-                        <div id="netWorth" class="text-6xl font-mono font-bold text-amber-400">$1,248,920</div>
-                        <div class="text-emerald-400 text-sm mt-2">↑ +$12,450 this month</div>
-                    </div>
-                    <div class="text-right">
-                        <div class="text-orange-400 text-xs font-medium uppercase tracking-wider">Real Estate Exposure</div>
-                        <div id="exposedAmount" class="text-4xl font-mono text-rose-400 mt-1">$362,000</div>
-                        <div class="text-xs text-slate-400 mt-1">3 properties in personal name • HIGH RISK</div>
-                    </div>
-                </div>
-                <div class="h-72 mt-8"><canvas id="netWorthChart"></canvas></div>
-            </div>
-            <div class="col-span-12 lg:col-span-4 glass rounded-3xl p-8 flex flex-col justify-between">
-                <div>
-                    <div class="mono text-cyan-400 text-xs uppercase tracking-wider">Invisible Fortress Status</div>
-                    <div class="text-5xl font-bold text-emerald-400 mt-3">92%</div>
-                    <div class="text-slate-400 mt-1">2/3 properties protected</div>
-                    <div class="mt-6 space-y-3">
-                        <div class="flex justify-between text-sm"><span>Wyoming LLC</span><span class="text-emerald-400">✓ Done</span></div>
-                        <div class="flex justify-between text-sm"><span>Land Trust #1</span><span class="text-emerald-400">✓ Done</span></div>
-                        <div class="flex justify-between text-sm"><span>Land Trust #2</span><span class="text-rose-400">⚠ Pending</span></div>
-                    </div>
-                </div>
-                <button onclick="switchTab('fortress')" class="mt-6 w-full py-5 bg-gradient-to-r from-orange-400 to-amber-400 text-white font-bold rounded-3xl flex items-center justify-center gap-3 hover:opacity-90 transition-opacity">
-                    <i class="fas fa-shield-halved"></i> Fix the Remaining 8%
-                </button>
-            </div>
-            <div class="col-span-12 glass rounded-3xl p-8">
-                <h3 class="text-xl font-semibold mb-6">Recent Activity + Grok Insight</h3>
-                <div class="grid grid-cols-12 gap-6">
-                    <div class="col-span-12 md:col-span-7" id="recentTx">
+                        <h3 class="font-semibold mb-4">SBA 504 Calculator</h3>
                         <div class="space-y-4">
-                            <div class="flex justify-between items-center py-3 border-b border-white/10"><span class="text-slate-300">Mortgage Payment - Property #1</span><span class="font-mono text-rose-400">-$2,400</span></div>
-                            <div class="flex justify-between items-center py-3 border-b border-white/10"><span class="text-slate-300">Rental Income - 123 Main St</span><span class="font-mono text-emerald-400">+$1,850</span></div>
-                            <div class="flex justify-between items-center py-3 border-b border-white/10"><span class="text-slate-300">Dividend - VTSAX</span><span class="font-mono text-emerald-400">+$340</span></div>
-                            <div class="flex justify-between items-center py-3"><span class="text-slate-300">Wyoming LLC Annual Fee</span><span class="font-mono text-rose-400">-$50</span></div>
+                            <input id="projCost" type="number" placeholder="Project Cost ($)" class="w-full bg-slate-800 p-4 rounded-2xl">
+                            <input id="downPct" type="number" value="10" placeholder="Down Payment %" class="w-full bg-slate-800 p-4 rounded-2xl">
+                            <button onclick="calcSBA504()" class="w-full bg-emerald-600 py-4 rounded-2xl font-semibold">Calculate Financing</button>
+                            <div id="sbaResult" class="mt-4 text-sm"></div>
                         </div>
                     </div>
-                    <div class="col-span-12 md:col-span-5">
-                        <div onclick="openGrokChat()" class="cursor-pointer p-6 bg-gradient-to-br from-cyan-900/30 to-transparent rounded-3xl border border-cyan-400/30 hover:border-cyan-400/60 transition-colors">
-                            <div class="flex justify-between items-center mb-3"><span class="text-cyan-400 text-sm font-semibold mono">GROK SAYS</span><i class="fas fa-robot text-cyan-400"></i></div>
-                            <p id="grokInsight" class="text-sm leading-relaxed">"Your $362k exposure is the #1 Reddit regret pattern. Run the 24-hour rule today — transfer to Land Trust in under 60 minutes."</p>
-                            <div class="mt-4 text-xs text-cyan-400/70">Tap to chat with Grok →</div>
+                    <div class="prose text-slate-300">
+                        <h4 class="text-white">SBA 504 Highlights</h4>
+                        <ul class="list-disc pl-5 space-y-1 text-sm">
+                            <li>10% down for most projects</li>
+                            <li>Fixed rate on 40% SBA portion</li>
+                            <li>Owner-occupied real estate &amp; equipment</li>
+                            <li>Ideal for trust-held properties</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- INCOME ENGINE -->
+        <div id="income" class="tab-content">
+            <div class="glass-card p-8">
+                <h2 class="text-3xl font-bold mb-6">Income Engine • Dividend Growth vs High Yield</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2">
+                        <h3 class="font-semibold mb-4">Yield-on-Cost Projector</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <input id="initYield" type="number" value="3.5" class="bg-slate-800 p-4 rounded-2xl" placeholder="Initial Yield %">
+                            <input id="divGrowth" type="number" value="7" class="bg-slate-800 p-4 rounded-2xl" placeholder="Annual Growth %">
+                            <input id="years" type="number" value="10" class="bg-slate-800 p-4 rounded-2xl" placeholder="Years">
+                            <button onclick="calcYOC()" class="bg-indigo-600 py-4 rounded-2xl col-span-2 font-semibold">Project</button>
+                        </div>
+                        <div id="yocOutput" class="mt-6 p-6 bg-slate-800 rounded-3xl text-center"></div>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold mb-4">Strategy Comparison</h3>
+                        <div class="space-y-4 text-sm">
+                            <div class="p-4 bg-slate-800 rounded-2xl">Growth (Aristocrats): 3-4% yield, 6-8% growth</div>
+                            <div class="p-4 bg-slate-800 rounded-2xl">High Yield (JEPI/JEPQ): 7-10% via covered calls</div>
+                            <div class="p-4 bg-slate-800 rounded-2xl text-emerald-400">Total Return Focus Recommended</div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- FORTRESS TAB -->
-    <div id="fortressTab" class="tab-content p-8">
-        <div class="glass rounded-3xl p-12 mb-8 text-center relative overflow-hidden">
-            <div class="scan absolute inset-x-0 h-px bg-gradient-to-r from-transparent via-cyan-400 to-transparent top-0"></div>
-            <h1 class="fortress-font text-7xl mb-4 leading-none">OWN NOTHING.<br><span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-cyan-400">CONTROL EVERYTHING.</span></h1>
-            <p class="text-xl max-w-lg mx-auto text-slate-300">Plaid-connected • Grok-audited • Legally bulletproof</p>
-            <button onclick="runFortressAudit()" class="mt-8 px-12 py-5 bg-gradient-to-r from-orange-500 to-orange-400 text-white font-bold rounded-3xl text-lg hover:opacity-90 transition-opacity">
-                🛡️ Run Instant Fortress Audit (Grok Powered)
-            </button>
-        </div>
-        <div class="glass rounded-3xl p-12 mb-8">
-            <h2 class="fortress-font text-5xl text-center mb-12">You → LLC → Land Trust → Property</h2>
-            <div class="flex justify-center items-center gap-8 flex-wrap" id="blueprintDiagram"></div>
-        </div>
-        <div class="grid grid-cols-2 gap-8">
-            <div class="glass rounded-3xl p-8">
-                <h3 class="text-2xl font-semibold mb-6">Implementation Checklist</h3>
-                <div id="checklist" class="space-y-4"></div>
-            </div>
-            <div class="glass rounded-3xl p-8">
-                <h3 class="text-2xl font-semibold mb-6">Jurisdiction Scores (Grok-Ranked)</h3>
-                <div class="space-y-4">
-                    <div class="flex justify-between items-center p-4 bg-amber-400/10 rounded-2xl border border-amber-400/30"><span class="font-bold">🏆 Wyoming</span><span class="text-amber-400">98/100</span></div>
-                    <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl"><span>Delaware</span><span class="text-slate-400">87/100</span></div>
-                    <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl"><span>Nevada</span><span class="text-slate-400">82/100</span></div>
+        <!-- PROTECTION SHIELD -->
+        <div id="insurance" class="tab-content">
+            <div class="glass-card p-8">
+                <h2 class="text-3xl font-bold mb-6">Protection Shield • Life Insurance</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="font-semibold mb-4">Coverage Needs Calculator</h3>
+                        <input id="annualIncome" type="number" placeholder="Annual Income" class="w-full bg-slate-800 p-4 rounded-2xl mb-4">
+                        <button onclick="calcInsurance()" class="w-full bg-emerald-600 py-4 rounded-2xl font-semibold">Calculate Recommended Coverage</button>
+                        <div id="insResult" class="mt-6"></div>
+                    </div>
+                    <div class="prose text-sm text-slate-300">
+                        <p><strong>ILIT Recommendation</strong>: Place permanent policies in Irrevocable Life Insurance Trust to remove from taxable estate.</p>
+                        <p>Living benefits, riders, and term + permanent laddering included in AI advice.</p>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- EDUCATION TAB -->
-    <div id="educationTab" class="tab-content p-8">
-        <h2 class="text-4xl fortress-font mb-8">Learn &amp; Grow • Grok-Powered</h2>
-        <div class="grid grid-cols-3 gap-6">
-            <div onclick="watchVideo('f5xcfL8DJO4')" class="glass p-6 rounded-3xl cursor-pointer hover:border-amber-400/50 transition-colors">
-                <div class="text-4xl mb-4">🏦</div>
-                <div class="font-semibold">Land Trust + LLC 2026</div>
-                <div class="text-sm text-slate-400 mt-2">13 min • Complete walkthrough</div>
+        <!-- LEGACY VAULT -->
+        <div id="legacy" class="tab-content">
+            <div class="glass-card p-8">
+                <h2 class="text-3xl font-bold mb-6">Legacy Vault • Trusts &amp; Estate Planning</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="font-semibold mb-3">Trust Funding Checklist</h3>
+                        <ul id="trustChecklist" class="space-y-3 text-sm"></ul>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold mb-3">ILIT / SNT Simulator</h3>
+                        <button onclick="simulateTrust()" class="w-full bg-purple-600 py-4 rounded-2xl">Run Estate Simulation</button>
+                        <div id="trustSim" class="mt-6 p-4 bg-slate-800 rounded-3xl"></div>
+                    </div>
+                </div>
             </div>
-            <div onclick="watchVideo('DmppovLIT_Y')" class="glass p-6 rounded-3xl cursor-pointer hover:border-amber-400/50 transition-colors">
-                <div class="text-4xl mb-4">🛡️</div>
-                <div class="font-semibold">Wyoming LLC Charging Order</div>
-                <div class="text-sm text-slate-400 mt-2">8 min • Asset protection deep dive</div>
+        </div>
+
+        <!-- WEALTH HABITS -->
+        <div id="habits" class="tab-content">
+            <div class="glass-card p-8">
+                <h2 class="text-3xl font-bold mb-6">Wealth Habits Lab</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="p-6 bg-slate-800 rounded-3xl">
+                        <h4 class="font-medium">Daily Habit Stack</h4>
+                        <input id="newHabit" placeholder="New habit (e.g. Review portfolio)" class="w-full mt-4 bg-slate-700 p-3 rounded-2xl">
+                        <button onclick="addHabit()" class="mt-3 w-full py-3 bg-indigo-600 rounded-2xl">Add</button>
+                        <ul id="habitList" class="mt-6 space-y-2 text-sm"></ul>
+                    </div>
+                    <div class="col-span-2">
+                        <canvas id="habitChart" height="180"></canvas>
+                    </div>
+                </div>
             </div>
-            <div onclick="watchVideo('tb-iyO6ygvc')" class="glass p-6 rounded-3xl cursor-pointer hover:border-amber-400/50 transition-colors">
-                <div class="text-4xl mb-4">🤖</div>
-                <div class="font-semibold">Grok-Powered Strategy 2026</div>
-                <div class="text-sm text-slate-400 mt-2">11 min • AI-optimized wealth building</div>
+        </div>
+
+        <!-- CRYPTO -->
+        <div id="crypto" class="tab-content">
+            <div class="glass-card p-8">
+                <h2 class="text-3xl font-bold mb-6">Crypto Hub • Live Data</h2>
+                <div id="cryptoGrid" class="grid grid-cols-1 sm:grid-cols-3 gap-6"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- AI PANEL -->
+    <div id="aiPanel" class="fixed bottom-4 right-4 w-96 bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl hidden flex-col max-h-[80vh]">
+        <div class="p-4 border-b border-slate-700 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-emerald-500 rounded-2xl flex items-center justify-center text-white">G</div>
+                <div>
+                    <p class="font-semibold">FinFlow AI Advisor</p>
+                    <p class="text-xs text-slate-400">Grok-powered</p>
+                </div>
+            </div>
+            <button onclick="toggleAI()" class="text-slate-400 hover:text-white">✕</button>
+        </div>
+        <div id="aiMessages" class="flex-1 p-4 overflow-y-auto text-sm"></div>
+        <div class="p-4 border-t border-slate-700">
+            <div class="flex gap-2">
+                <input id="aiInput" placeholder="Ask about dividends, trusts, insurance..." class="flex-1 bg-slate-800 rounded-2xl px-4 py-3 text-sm">
+                <button onclick="sendAI()" class="bg-indigo-600 px-6 rounded-2xl">Send</button>
             </div>
         </div>
     </div>
 
-    <!-- WEALTH SIMULATOR TAB -->
-    <div id="wealthTab" class="tab-content p-8">
-        <h2 class="text-4xl fortress-font mb-8">Wealth Simulator</h2>
-        <div class="glass rounded-3xl p-8">
-            <div class="grid grid-cols-3 gap-6 mb-8">
-                <div><label class="text-sm text-slate-400 block mb-2">Monthly Savings ($)</label><input id="simSavings" type="number" value="2000" class="w-full bg-white/10 border border-white/20 rounded-2xl px-4 py-3 text-lg font-mono"></div>
-                <div><label class="text-sm text-slate-400 block mb-2">Annual Return (%)</label><input id="simReturn" type="number" value="7" class="w-full bg-white/10 border border-white/20 rounded-2xl px-4 py-3 text-lg font-mono"></div>
-                <div><label class="text-sm text-slate-400 block mb-2">Years</label><input id="simYears" type="number" value="20" class="w-full bg-white/10 border border-white/20 rounded-2xl px-4 py-3 text-lg font-mono"></div>
-            </div>
-            <button onclick="runSimulator()" class="px-8 py-4 bg-gradient-to-r from-cyan-500 to-cyan-400 text-black font-bold rounded-2xl mb-6">Calculate Wealth Path</button>
-            <div id="simResult" class="text-2xl font-mono text-amber-400"></div>
-        </div>
-    </div>
+    <script>
+        // ============== CORE STATE & UTILITIES ==============
+        let currentTab = 'dashboard';
+        let charts = {};
+        let habits = JSON.parse(localStorage.getItem('habits')) || [];
+        let xaiKey = localStorage.getItem('xai_key') || '';
 
-    <!-- AI TAB -->
-    <div id="aiTab" class="tab-content p-8">
-        <h2 class="text-4xl fortress-font mb-8">Grok AI Advisor</h2>
-        <div class="glass rounded-3xl p-8 max-w-3xl">
-            <div id="aiMessages" class="h-96 overflow-y-auto space-y-4 mb-6 p-4 bg-black/30 rounded-2xl">
-                <div class="text-cyan-400">Grok: Hello! I've analyzed your portfolio. Net worth $1.24M, exposure risk $362K. How can I help you protect and grow your wealth today?</div>
-            </div>
-            <div class="flex gap-3">
-                <input id="aiInput" placeholder="Ask Grok anything about your finances..." class="flex-1 bg-white/10 border border-white/20 rounded-3xl px-6 py-4 outline-none focus:border-cyan-400 transition-colors">
-                <button onclick="sendAI()" class="px-8 bg-cyan-400 text-black font-bold rounded-3xl hover:bg-cyan-300 transition-colors">SEND</button>
-            </div>
-        </div>
-    </div>
-</main>
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+            currentTab = tab;
+            if (tab === 'crypto') loadCrypto();
+        }
 
-<!-- AI MODAL -->
-<div onclick="if(event.target.id==='aiModal')closeGrokChat()" id="aiModal" class="hidden fixed inset-0 bg-black/80 z-[9999] flex items-center justify-center">
-    <div class="max-w-2xl w-full mx-4 bg-[#111827] rounded-3xl p-8 border border-cyan-400/30">
-        <div class="flex justify-between mb-6"><h3 class="text-2xl font-semibold">Grok AI Financial Advisor</h3><button onclick="closeGrokChat()" class="text-3xl text-slate-400 hover:text-white transition-colors">×</button></div>
-        <div id="chatMessages" class="h-96 overflow-y-auto space-y-4 mb-6 p-4 bg-black/30 rounded-2xl"></div>
-        <div class="flex gap-3">
-            <input id="grokInput" placeholder="Ask Grok anything about your portfolio..." class="flex-1 bg-white/10 border border-white/20 rounded-3xl px-6 py-4 outline-none focus:border-cyan-400">
-            <button onclick="sendToGrok()" class="px-8 bg-cyan-400 text-black font-bold rounded-3xl">SEND</button>
-        </div>
-        <div class="text-xs text-slate-400 mt-4">Powered by xAI Grok API • Real-time wealth intelligence</div>
-    </div>
-</div>
+        function toggleTheme() {
+            document.documentElement.classList.toggle('light');
+        }
 
-<script>
-let store = {
-    netWorth: 1248920, exposed: 362000,
-    checklist: [
-        {id:1,text:"Form Wyoming LLC",done:false},
-        {id:2,text:"Create Land Trust per property",done:true},
-        {id:3,text:"Assign beneficial interest (24hr rule)",done:false},
-        {id:4,text:"Update insurance policies",done:true}
-    ]
-};
+        // ============== CALCULATORS ==============
+        function calcSBA504() {
+            const cost = parseFloat(document.getElementById('projCost').value) || 500000;
+            const down = parseFloat(document.getElementById('downPct').value) || 10;
+            const downAmt = cost * (down / 100);
+            const financed = cost - downAmt;
+            const result = `
+                <div class="text-emerald-400 font-medium">Financing Breakdown</div>
+                <div class="mt-2 text-sm">Down Payment: $${downAmt.toLocaleString()}</div>
+                <div class="text-sm">Bank Loan (~50%): $${(financed * 0.5).toLocaleString()}</div>
+                <div class="text-sm">SBA 504 (~40%): $${(financed * 0.4).toLocaleString()} fixed rate</div>
+                <div class="text-xs text-slate-400 mt-3">Owner-occupied • Long-term fixed • Trust compatible</div>
+            `;
+            document.getElementById('sbaResult').innerHTML = result;
+        }
 
-function switchTab(tab) {
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    document.getElementById(tab+'Tab').classList.add('active');
-    const titles = {dashboard:'Command Center',fortress:'Invisible Fortress',education:'Learn & Grow',wealth:'Wealth Simulator',ai:'Grok AI Advisor'};
-    document.getElementById('pageTitle').textContent = titles[tab] || 'Command Center';
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    const navMap = {dashboard:0,fortress:1,education:2,wealth:3,ai:4};
-    document.querySelectorAll('.nav-item')[navMap[tab]]?.classList.add('active');
-    if (tab === 'fortress') buildBlueprint();
-}
+        function calcYOC() {
+            const initY = parseFloat(document.getElementById('initYield').value) || 3.5;
+            const g = parseFloat(document.getElementById('divGrowth').value) || 7;
+            const yrs = parseFloat(document.getElementById('years').value) || 10;
+            let yoc = initY;
+            for (let i = 0; i < yrs; i++) yoc *= (1 + g/100);
+            document.getElementById('yocOutput').innerHTML = `
+                <div class="text-5xl font-bold text-emerald-400">${yoc.toFixed(1)}%</div>
+                <div class="text-slate-400">Yield-on-Cost after ${yrs} years</div>
+                <div class="text-xs mt-4">Growth strategy compounds faster than pure high-yield</div>
+            `;
+        }
 
-function buildBlueprint() {
-    const bp = document.getElementById('blueprintDiagram');
-    bp.innerHTML = `
-        <div class="node border-2 border-cyan-400 bg-[#0d1f3c] rounded-3xl p-8 text-center w-44 cursor-pointer hover:scale-105 transition-transform"><div class="mono text-xs text-cyan-400">YOU</div><div class="text-3xl fortress-font mt-2">Beneficial Owner</div></div>
-        <div class="text-5xl text-amber-400">→</div>
-        <div class="node border-2 border-amber-400 bg-[#0d1f3c] rounded-3xl p-8 text-center w-44 cursor-pointer hover:scale-105 transition-transform"><div class="mono text-xs text-amber-400">WYOMING LLC</div><div class="text-3xl fortress-font mt-2">Asset Shield</div></div>
-        <div class="text-5xl text-amber-400">→</div>
-        <div class="node border-2 border-cyan-400 bg-[#0d1f3c] rounded-3xl p-8 text-center w-44 cursor-pointer hover:scale-105 transition-transform"><div class="mono text-xs text-cyan-400">LAND TRUST</div><div class="text-3xl fortress-font mt-2">Privacy Veil</div></div>
-        <div class="text-5xl text-amber-400">→</div>
-        <div class="node border-2 border-emerald-400 bg-[#0d1f3c] rounded-3xl p-8 text-center w-44"><div class="mono text-xs text-emerald-400">PROPERTY</div><div class="text-3xl fortress-font mt-2">Protected Asset</div></div>`;
-    renderChecklist();
-}
+        function calcInsurance() {
+            const income = parseFloat(document.getElementById('annualIncome').value) || 120000;
+            const recommended = income * 12; // rough 10-15x rule
+            document.getElementById('insResult').innerHTML = `
+                <div class="text-4xl font-bold">$${recommended.toLocaleString()}</div>
+                <div class="text-sm text-slate-400">Recommended Death Benefit</div>
+                <div class="mt-4 text-xs">Place in ILIT for estate tax efficiency</div>
+            `;
+        }
 
-function renderChecklist() {
-    const cl = document.getElementById('checklist');
-    cl.innerHTML = store.checklist.map(item => `
-        <label onclick="toggleChecklist(${item.id})" class="flex items-center gap-4 cursor-pointer p-3 rounded-2xl hover:bg-white/5 transition-colors">
-            <div class="w-6 h-6 rounded-full border-2 ${item.done?'bg-emerald-400 border-emerald-400':'border-slate-500'} flex items-center justify-center flex-shrink-0">
-                ${item.done?'<i class="fas fa-check text-black text-xs"></i>':''}
-            </div>
-            <span class="${item.done?'line-through text-slate-500':'text-slate-200'}">${item.text}</span>
-        </label>`).join('');
-}
+        function simulateTrust() {
+            document.getElementById('trustSim').innerHTML = `
+                <div class="text-emerald-400">ILIT Simulation</div>
+                <div class="text-sm mt-2">Death benefit removed from taxable estate → Estate tax savings estimated at 40% bracket</div>
+                <div class="text-xs text-slate-400 mt-4">Assets properly funded + RUFADAA digital access enabled</div>
+            `;
+        }
 
-function toggleChecklist(id) {
-    const item = store.checklist.find(i => i.id === id);
-    if (item) { item.done = !item.done; renderChecklist(); }
-}
+        // ============== HABITS ==============
+        function renderHabits() {
+            const list = document.getElementById('habitList');
+            list.innerHTML = habits.map((h, i) => `
+                <li class="flex justify-between items-center">
+                    <span>${h}</span>
+                    <button onclick="removeHabit(${i})" class="text-red-400 text-xs">×</button>
+                </li>
+            `).join('');
+        }
 
-let deliberateMode = true;
-function toggleDeliberateMode() {
-    deliberateMode = !deliberateMode;
-    document.getElementById('deliberateStatus').textContent = deliberateMode ? 'ON' : 'OFF';
-    document.getElementById('deliberateStatus').className = deliberateMode ? 'text-emerald-400 ml-1' : 'text-rose-400 ml-1';
-}
+        function addHabit() {
+            const input = document.getElementById('newHabit');
+            if (input.value.trim()) {
+                habits.push(input.value.trim());
+                localStorage.setItem('habits', JSON.stringify(habits));
+                renderHabits();
+                input.value = '';
+            }
+        }
 
-function mockPlaidConnect() {
-    store.netWorth += 1240;
-    document.getElementById('netWorth').textContent = '$' + store.netWorth.toLocaleString();
-    alert('✅ Plaid Mock connected!\n+$1,240 synced from Chase • 3 accounts linked\n(Production: use Plaid Link SDK with your API keys)');
-}
+        function removeHabit(i) {
+            habits.splice(i, 1);
+            localStorage.setItem('habits', JSON.stringify(habits));
+            renderHabits();
+        }
 
-function runFortressAudit() {
-    store.exposed = 48000;
-    document.getElementById('exposedAmount').textContent = '$' + store.exposed.toLocaleString();
-    alert('🛡️ Grok Fortress Audit Complete\n\n✅ Wyoming LLC: Active\n✅ Land Trust #1: Recorded\n⚠️ Land Trust #2: Transfer pending\n\nRisk reduced from 29% → 4%\nNext step: File deed transfer within 24 hours\n\n(Real Grok API: full legal analysis + state-specific advice)');
-    switchTab('fortress');
-}
+        // ============== CRYPTO ==============
+        async function loadCrypto() {
+            try {
+                const res = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=6');
+                const data = await res.json();
+                const grid = document.getElementById('cryptoGrid');
+                grid.innerHTML = data.map(c => `
+                    <div class="glass-card p-6 text-center">
+                        <div class="text-3xl mb-2">${c.symbol.toUpperCase()}</div>
+                        <div class="text-2xl font-bold">$${c.current_price.toLocaleString()}</div>
+                        <div class="${c.price_change_percentage_24h > 0 ? 'text-emerald-400' : 'text-red-400'} text-sm">
+                            ${c.price_change_percentage_24h.toFixed(2)}% (24h)
+                        </div>
+                    </div>
+                `).join('');
+            } catch(e) {
+                document.getElementById('cryptoGrid').innerHTML = '<p class="text-slate-400">Live data unavailable</p>';
+            }
+        }
 
-function openGrokChat() {
-    document.getElementById('aiModal').classList.remove('hidden');
-    document.getElementById('chatMessages').innerHTML = '<div class="text-cyan-400 text-sm">Grok: Hello! I\'ve analyzed your portfolio. Your $362K exposure is the #1 wealth-building mistake. Want me to walk you through the Land Trust transfer in 3 steps?</div>';
-}
-function closeGrokChat() { document.getElementById('aiModal').classList.add('hidden'); }
+        // ============== CHARTS ==============
+        function initCharts() {
+            const ctx1 = document.getElementById('allocChart');
+            if (ctx1) {
+                charts.alloc = new Chart(ctx1, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Growth Dividends', 'High Yield', 'Real Estate', 'Crypto', 'Cash'],
+                        datasets: [{ data: [35, 25, 20, 15, 5], backgroundColor: ['#6366f1','#10b981','#f59e0b','#f97316','#64748b'] }]
+                    }
+                });
+            }
 
-async function sendToGrok() {
-    const input = document.getElementById('grokInput');
-    const msg = input.value.trim(); if (!msg) return;
-    const chat = document.getElementById('chatMessages');
-    chat.innerHTML += `<div class="text-right text-slate-300 text-sm">${msg}</div>`;
-    input.value = '';
-    chat.scrollTop = chat.scrollHeight;
-    const replies = {
-        fortress: "Your $362K is exposed in 3 properties. Wyoming LLC + Land Trust = 94% risk reduction. File online at wyomingagents.com for $50. Do it today.",
-        invest: "Based on your $1.24M net worth: 60% index funds (VTSAX), 30% real estate (protected), 10% cash. FIRE in 9.1 years at current savings rate.",
-        default: "Based on your portfolio data: increase savings rate to 28% and automate your monthly transfers. Compound interest will do the rest."
-    };
-    const key = msg.toLowerCase().includes('fortress') || msg.toLowerCase().includes('llc') ? 'fortress' : msg.toLowerCase().includes('invest') ? 'invest' : 'default';
-    setTimeout(() => {
-        chat.innerHTML += `<div class="text-cyan-400 text-sm">Grok: ${replies[key]}</div>`;
-        chat.scrollTop = chat.scrollHeight;
-    }, 900);
-}
+            const ctx2 = document.getElementById('projChart');
+            if (ctx2) {
+                charts.proj = new Chart(ctx2, {
+                    type: 'line',
+                    data: {
+                        labels: ['2026','2027','2028','2029','2030'],
+                        datasets: [{ label: 'Projected Net Worth', data: [1248500,1480000,1750000,2100000,2550000], borderColor: '#10b981', tension: 0.4 }]
+                    }
+                });
+            }
+        }
 
-function sendAI() {
-    const input = document.getElementById('aiInput');
-    const msg = input.value.trim(); if (!msg) return;
-    const chat = document.getElementById('aiMessages');
-    chat.innerHTML += `<div class="text-right text-slate-300 text-sm">${msg}</div>`;
-    input.value = '';
-    setTimeout(() => {
-        chat.innerHTML += `<div class="text-cyan-400 text-sm">Grok: Great question. Based on your current net worth trajectory and the 24-hour deliberate rule, I recommend prioritizing the Land Trust transfer this week. Your FIRE number is $2.1M — you're 59% there.</div>`;
-        chat.scrollTop = chat.scrollHeight;
-    }, 800);
-}
+        // ============== AI (GROK) ==============
+        async function sendAI() {
+            const input = document.getElementById('aiInput');
+            const msg = input.value.trim();
+            if (!msg) return;
 
-function watchVideo(id) {
-    const modal = document.createElement('div');
-    modal.className = 'fixed inset-0 bg-black/90 z-[99999] flex items-center justify-center p-4';
-    modal.innerHTML = `<div class="max-w-4xl w-full"><div class="flex justify-end mb-4"><button onclick="this.closest('.fixed').remove()" class="text-white text-5xl leading-none hover:text-slate-300">×</button></div><div class="youtube-embed"><iframe src="https://www.youtube.com/embed/${id}?autoplay=1" allowfullscreen allow="autoplay"></iframe></div></div>`;
-    document.body.appendChild(modal);
-}
+            const messagesDiv = document.getElementById('aiMessages');
+            messagesDiv.innerHTML += `<div class="mb-4 text-right"><div class="inline-block bg-indigo-600 text-white px-4 py-3 rounded-3xl">${msg}</div></div>`;
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
 
-function runSimulator() {
-    const savings = parseFloat(document.getElementById('simSavings').value) || 2000;
-    const rate = parseFloat(document.getElementById('simReturn').value) / 100 || 0.07;
-    const years = parseInt(document.getElementById('simYears').value) || 20;
-    const monthly = rate / 12;
-    const months = years * 12;
-    const fv = savings * ((Math.pow(1 + monthly, months) - 1) / monthly);
-    document.getElementById('simResult').textContent = `In ${years} years: $${Math.round(fv).toLocaleString()} 🎯`;
-}
+            input.value = '';
 
-window.onload = function() {
-    new Chart(document.getElementById('netWorthChart'), {
-        type: 'line',
-        data: {
-            labels: ['Jan','Feb','Mar','Apr','May','Jun'],
-            datasets: [{
-                label: 'Net Worth', fill: true,
-                data: [980000,1050000,1120000,1180000,1220000,1248920],
-                borderColor: '#d4a574', backgroundColor: 'rgba(212,165,116,0.1)', tension: 0.4, pointRadius: 4
-            },{
-                label: 'Exposure', fill: false,
-                data: [420000,410000,395000,380000,370000,362000],
-                borderColor: '#f87171', borderDash: [5,5], tension: 0.4, pointRadius: 3
-            }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'Outfit' } } } }, scales: { x: { ticks: { color: '#64748b' }, grid: { color: 'rgba(255,255,255,0.05)' } }, y: { ticks: { color: '#64748b', callback: v => '$'+v.toLocaleString() }, grid: { color: 'rgba(255,255,255,0.05)' } } } }
-    });
-};
-</script>
+            // Simulate Grok call with book knowledge
+            let response = "Based on dividend growth principles, trusts, and insurance strategies: ";
+            if (msg.toLowerCase().includes('dividend')) response += "Focus on total return and yield-on-cost. Aristocrats for growth.";
+            else if (msg.toLowerCase().includes('trust') || msg.toLowerCase().includes('ilit')) response += "Use ILIT for life insurance to reduce estate taxes.";
+            else response += "Review your full financial picture including habits, leverage, and legacy goals.";
+
+            setTimeout(() => {
+                messagesDiv.innerHTML += `<div class="mb-4"><div class="inline-block bg-slate-800 px-4 py-3 rounded-3xl">${response}</div></div>`;
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }, 800);
+        }
+
+        function toggleAI() {
+            const panel = document.getElementById('aiPanel');
+            panel.classList.toggle('hidden');
+            if (!panel.classList.contains('hidden') && document.getElementById('aiMessages').children.length === 0) {
+                document.getElementById('aiMessages').innerHTML = `<div class="text-slate-400 italic">Ask me about dividend strategies, ILITs, SBA 504, or habit systems.</div>`;
+            }
+        }
+
+        // ============== MAIN INIT ==============
+        function init() {
+            // Tailwind already loaded
+            initCharts();
+            renderHabits();
+            loadCrypto();
+            switchTab('dashboard');
+
+            // Demo data updates
+            setTimeout(() => {
+                if (document.getElementById('netWorth')) document.getElementById('netWorth').textContent = '$1,378,200';
+            }, 1500);
+
+            console.log('%cFinFlow Pro SaaS initialized - All features active', 'color:#10b981; font-weight:bold');
+        }
+
+        window.onload = init;
+    </script>
 </body>
 </html>
