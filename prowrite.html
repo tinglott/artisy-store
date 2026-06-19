@@ -1,73 +1,618 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ProWrite Editor — Intelligent Writing Assistant</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: #0a0a0a; color: #e0e0e0; line-height: 1.6; }
-    .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
-    header { text-align: center; padding: 60px 20px; }
-    h1 { font-size: 3.5rem; font-weight: 700; margin-bottom: 20px; background: linear-gradient(135deg, #06b6d4, #0891b2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    .subtitle { font-size: 1.3rem; color: #a0a0a0; margin-bottom: 40px; }
-    .cta-button { display: inline-block; background: linear-gradient(135deg, #06b6d4, #0891b2); padding: 16px 40px; border-radius: 8px; font-weight: 600; text-decoration: none; color: white; font-size: 1.1rem; transition: transform 0.3s, box-shadow 0.3s; margin: 20px 10px; }
-    .cta-button:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(6, 182, 212, 0.3); }
-    .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; margin: 60px 0; }
-    .feature { background: #1a1a1a; padding: 30px; border-radius: 8px; border-left: 4px solid #06b6d4; }
-    .feature h3 { font-size: 1.3rem; margin-bottom: 12px; color: #06b6d4; }
-    .feature p { color: #a0a0a0; font-size: 0.95rem; }
-    .pricing { background: #1a1a1a; padding: 40px; border-radius: 8px; text-align: center; margin: 60px 0; border: 2px solid #0891b2; }
-    .price { font-size: 3rem; font-weight: 700; color: #06b6d4; margin: 20px 0; }
-    footer { text-align: center; padding: 40px 20px; color: #666; font-size: 0.9rem; border-top: 1px solid #333; margin-top: 60px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProWrite Studio — AI Writing Assistant | ARTISY Store</title>
+    <meta name="description" content="AI-powered writing analysis tool. Real-time readability scores, passive voice detection, adverb flagging, and improvement suggestions. Privacy-first, no signup needed.">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --bg-primary: #faf8f5;
+            --bg-secondary: #fff;
+            --bg-accent: #f5f0e8;
+            --text-primary: #1a1a1a;
+            --text-secondary: #4a4a4a;
+            --text-muted: #7a7a7a;
+            --border-color: #e8e4dc;
+            --accent-ink: #2c3e50;
+            --accent-gold: #c9a227;
+            --accent-copper: #b87333;
+            --error-bg: #fef2f2;
+            --error-border: #fecaca;
+            --error-text: #991b1b;
+            --warning-bg: #fffbeb;
+            --warning-border: #fde68a;
+            --warning-text: #92400e;
+            --info-bg: #eff6ff;
+            --info-border: #bfdbfe;
+            --info-text: #1e40af;
+            --success-bg: #f0fdf4;
+            --success-border: #bbf7d0;
+            --success-text: #166534;
+            --shadow: 0 4px 24px rgba(0,0,0,0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Source Sans 3', system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* ── STORE NAV ── */
+        .store-nav {
+            background: #1a2744;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 52px;
+        }
+        .store-nav-brand {
+            font-family: 'Playfair Display', serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+            text-decoration: none;
+            letter-spacing: 1px;
+        }
+        .store-nav-brand span { color: #D4A93A; }
+        .store-nav-link {
+            color: rgba(255,255,255,0.75);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .store-nav-link:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 1.5rem; }
+
+        .editor-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--accent-ink) 0%, #1a252f 100%);
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .header h1 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+        }
+        .header-sub {
+            color: rgba(255,255,255,0.8);
+            font-size: 1.05rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .header-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+        .header-badge {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.85);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            padding: 1.5rem;
+        }
+        @media (min-width: 1024px) {
+            .main-content { grid-template-columns: 5fr 4fr; }
+        }
+
+        label.field-label {
+            display: block;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 500px;
+            padding: 1.5rem;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 15px;
+            line-height: 1.75;
+            resize: vertical;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-copper);
+            box-shadow: 0 0 0 4px rgba(184,115,51,0.1);
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+        .btn-primary { background: var(--accent-copper); color: white; }
+        .btn-primary:hover { background: #a15f2a; transform: translateY(-1px); }
+        .btn-clear { background: #e5e7eb; color: #374151; }
+        .btn-clear:hover { background: #d1d5db; }
+        .auto-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .analyzing-indicator {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            background: var(--bg-accent);
+            border-radius: 8px;
+            margin: 1rem 0;
+            gap: 0.75rem;
+            color: var(--text-secondary);
+        }
+        .spinner {
+            width: 22px; height: 22px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--accent-copper);
+            border-radius: 50%;
+            animation: spin 0.9s linear infinite;
+            flex-shrink: 0;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .error-box {
+            display: none;
+            padding: 1rem;
+            background: var(--error-bg);
+            border: 1px solid var(--error-border);
+            color: var(--error-text);
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        .analysis-panel { display: flex; flex-direction: column; gap: 1.25rem; }
+
+        .stat-card {
+            padding: 1.25rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: linear-gradient(135deg, var(--bg-accent) 0%, var(--bg-secondary) 100%);
+        }
+        .stat-card h3 {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            font-size: 0.9rem;
+        }
+        .stat-item strong { color: var(--text-secondary); }
+
+        .issue-card {
+            padding: 1.25rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+        }
+        .issue-card h3 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .issue-card.error { background: var(--error-bg); border-color: var(--error-border); }
+        .issue-card.error h3 { color: var(--error-text); }
+        .issue-card.warning { background: var(--warning-bg); border-color: var(--warning-border); }
+        .issue-card.warning h3 { color: var(--warning-text); }
+        .issue-card.info { background: var(--info-bg); border-color: var(--info-border); }
+        .issue-card.info h3 { color: var(--info-text); }
+        .issue-card.success { background: var(--success-bg); border-color: var(--success-border); }
+        .issue-card.success h3 { color: var(--success-text); }
+
+        .sentence-example {
+            background: white;
+            padding: 0.85rem;
+            margin: 0.5rem 0;
+            border-radius: 6px;
+            border-left: 4px solid #f87171;
+            font-size: 0.88rem;
+        }
+        .sentence-reason { color: #991b1b; font-size: 0.8rem; margin-top: 4px; }
+
+        .adverb-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+        .adverb-tag {
+            background: #bfdbfe;
+            color: #1e40af;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 0.78rem;
+        }
+
+        .suggestion-list { padding-left: 1.4rem; }
+        .suggestion-list li { font-size: 0.88rem; margin-bottom: 4px; }
+
+        .empty-panel {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+        .empty-icon { font-size: 3.5rem; margin-bottom: 1rem; opacity: 0.6; }
+
+        .score-bar {
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        .score-fill {
+            height: 100%;
+            border-radius: 3px;
+            background: linear-gradient(90deg, #ef4444, #f59e0b, #10b981);
+            transition: width 0.6s ease;
+        }
+
+        .footer {
+            padding: 1.25rem 1.5rem;
+            background: var(--bg-accent);
+            border-top: 1px solid var(--border-color);
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .footer a { color: var(--accent-copper); text-decoration: none; }
+        .footer a:hover { text-decoration: underline; }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>ProWrite Editor</h1>
-      <p class="subtitle">Professional Writing Enhanced by AI</p>
-      <p style="color: #888; margin-bottom: 30px;">Advanced grammar checking, tone analysis, plagiarism detection, real-time collaboration, and professional content scoring.</p>
-      <a href="https://tlott12.gumroad.com/l/prowrite" class="cta-button">Get ProWrite Editor — $39</a>
-    </header>
 
-    <div class="features">
-      <div class="feature">
-        <h3>✍️ Advanced Grammar</h3>
-        <p>Catch every grammar and spelling error. AI-powered corrections with explanations for learning.</p>
-      </div>
-      <div class="feature">
-        <h3>🎯 Tone Analysis</h3>
-        <p>Detect and adjust tone: professional, friendly, formal, casual. Match your audience perfectly.</p>
-      </div>
-      <div class="feature">
-        <h3>🔍 Plagiarism Detector</h3>
-        <p>Check for plagiarism against billions of web pages and academic databases in real-time.</p>
-      </div>
-      <div class="feature">
-        <h3>👥 Real-Time Collaboration</h3>
-        <p>Write together with team members. Track changes, leave comments, and manage versions.</p>
-      </div>
-      <div class="feature">
-        <h3>📊 Content Scoring</h3>
-        <p>Get AI scores for readability, engagement, and SEO optimization with improvement suggestions.</p>
-      </div>
-      <div class="feature">
-        <h3>📚 Style Guide Integration</h3>
-        <p>Enforce your organization's style guide automatically. Consistent voice across all writers.</p>
-      </div>
+<!-- STORE NAV -->
+<nav class="store-nav">
+    <a href="/store.html" class="store-nav-brand">ARTISY <span>Store</span></a>
+    <a href="/store.html" class="store-nav-link">← Back to Store</a>
+</nav>
+
+<div class="container">
+    <div class="editor-card">
+
+        <header class="header">
+            <h1><i class="fa-solid fa-feather-pointed"></i> ProWrite Studio</h1>
+            <p class="header-sub"><i class="fa-solid fa-wand-magic-sparkles"></i> AI-Powered Writing Analysis &amp; Improvement</p>
+            <div class="header-badges">
+                <span class="header-badge">✅ No Signup Required</span>
+                <span class="header-badge">🔒 Privacy First</span>
+                <span class="header-badge">⚡ Real-Time Analysis</span>
+                <span class="header-badge">📖 Flesch-Kincaid Scoring</span>
+            </div>
+        </header>
+
+        <div class="main-content">
+
+            <!-- EDITOR SIDE -->
+            <div>
+                <label class="field-label" for="editor">Your Writing</label>
+                <textarea id="editor" placeholder="Paste or start writing here... Real-time analysis — readability, passive voice, adverbs, sentence length, and more."></textarea>
+
+                <div class="controls">
+                    <button onclick="analyzeNow()" class="btn-primary">
+                        <i class="fa-solid fa-magnifying-glass"></i> Analyze Now
+                    </button>
+                    <button onclick="clearEditor()" class="btn-clear">
+                        <i class="fa-solid fa-trash"></i> Clear
+                    </button>
+                    <label class="auto-label">
+                        <input type="checkbox" id="autoAnalyze" checked>
+                        Auto-analyze
+                    </label>
+                </div>
+
+                <div id="analyzing" class="analyzing-indicator">
+                    <div class="spinner"></div>
+                    <span>Analyzing your writing...</span>
+                </div>
+                <div id="errorBox" class="error-box"></div>
+            </div>
+
+            <!-- ANALYSIS SIDE -->
+            <div class="analysis-panel" id="analysisPanel">
+                <div class="empty-panel">
+                    <div class="empty-icon"><i class="fa-solid fa-book-open"></i></div>
+                    <p style="font-size:1.1rem; margin-bottom:0.5rem;">Your analysis will appear here</p>
+                    <small>Word count, readability (Flesch-Kincaid), passive voice, adverbs, style suggestions and more</small>
+                </div>
+            </div>
+
+        </div>
+
+        <footer class="footer">
+            <span><strong>ProWrite Studio</strong> — Local-first, privacy focused. Powered by Flesch-Kincaid + AI-style analysis.</span>
+            <a href="/store.html">← ARTISY Store</a>
+        </footer>
+
     </div>
+</div>
 
-    <div class="pricing">
-      <h2>One-Time Payment</h2>
-      <div class="price">$39</div>
-      <p style="color: #a0a0a0; margin: 10px 0;">Lifetime access • Unlimited documents • Full features</p>
-      <a href="https://tlott12.gumroad.com/l/prowrite" class="cta-button">Get ProWrite Now</a>
-    </div>
-  </div>
+<script>
+    let debounceTimer = null;
+    const editor = document.getElementById('editor');
+    const analysisPanel = document.getElementById('analysisPanel');
+    const analyzingEl = document.getElementById('analyzing');
+    const errorBox = document.getElementById('errorBox');
 
-  <footer>
-    <p>© 2026 T Lott. All rights reserved. | Powered by AI technology</p>
-  </footer>
+    function countSyllables(word) {
+        word = word.toLowerCase().replace(/[^a-z]/g, '');
+        if (word.length <= 3) return 1;
+        let count = 0;
+        const vowels = 'aeiouy';
+        let prev = false;
+        for (let ch of word) {
+            const isVowel = vowels.includes(ch);
+            if (isVowel && !prev) count++;
+            prev = isVowel;
+        }
+        if (word.endsWith('e') && count > 1) count--;
+        return Math.max(1, count);
+    }
+
+    function calculateFleschKincaid(text) {
+        const sentences = Math.max(1, (text.match(/[.!?]+/g) || []).length);
+        const wordList = text.toLowerCase().match(/\b[a-z']+\b/g) || [];
+        const words = Math.max(1, wordList.length);
+        const syllables = wordList.reduce((sum, w) => sum + countSyllables(w), 0);
+        const asl = words / sentences;
+        const asw = syllables / words;
+        const ease = 206.835 - (1.015 * asl) - (84.6 * asw);
+        const grade = Math.max(0, Math.min(20, Math.round(0.39 * asl + 11.8 * asw - 15.59)));
+        return { grade, ease: Math.max(0, Math.min(100, Math.round(ease))), words, sentences };
+    }
+
+    function detectPassive(text) {
+        const m = text.match(/\b(is|are|was|were|be|been|being)\s+\w+(ed|en)\b/gi) || [];
+        return m.length;
+    }
+
+    function detectAdverbs(text) {
+        return (text.match(/\b\w{4,}ly\b/gi) || []).slice(0, 15);
+    }
+
+    function gradeColor(g) {
+        if (g <= 8) return '#10b981';
+        if (g <= 12) return '#f59e0b';
+        return '#ef4444';
+    }
+
+    function easeLabel(ease) {
+        if (ease >= 70) return 'Very Easy';
+        if (ease >= 60) return 'Easy';
+        if (ease >= 50) return 'Fairly Easy';
+        if (ease >= 40) return 'Standard';
+        if (ease >= 30) return 'Difficult';
+        return 'Very Difficult';
+    }
+
+    function analyzeText(text) {
+        if (!text || text.trim().length < 10) { renderEmpty(); return; }
+
+        showAnalyzing(true);
+
+        setTimeout(() => {
+            try {
+                const { grade, ease, words, sentences } = calculateFleschKincaid(text);
+                const passiveCount = detectPassive(text);
+                const adverbs = detectAdverbs(text);
+                const avgWordsPerSentence = Math.round(words / sentences);
+
+                // Detect long sentences
+                const hardSentences = [];
+                text.split(/[.!?]+/).filter(s => s.trim().length > 10).forEach(s => {
+                    const wc = s.trim().split(/\s+/).length;
+                    if (wc > 25) hardSentences.push({ text: s.trim().substring(0, 130), words: wc });
+                });
+
+                // Build suggestions
+                const suggestions = [];
+                if (grade > 12) suggestions.push('Aim for grade level 8–10 for broader readability.');
+                else suggestions.push('Great readability level — accessible to most readers.');
+                if (passiveCount > 2) suggestions.push(`${passiveCount} passive voice instances found — consider active alternatives.`);
+                else if (passiveCount === 0) suggestions.push('Excellent — no passive voice detected.');
+                if (adverbs.length > 5) suggestions.push(`${adverbs.length} adverbs found — try replacing with stronger verbs.`);
+                if (avgWordsPerSentence > 20) suggestions.push('Sentences are running long — try breaking them up.');
+                else suggestions.push('Good sentence length — easy to follow.');
+
+                const overallScore = Math.max(30, Math.min(100, Math.round(
+                    ease * 0.5 + (grade <= 10 ? 30 : grade <= 14 ? 15 : 0) + (passiveCount <= 2 ? 20 : 5)
+                )));
+
+                renderAnalysis({ words, sentences, grade, ease, passiveCount, adverbs, hardSentences, suggestions, overallScore, avgWordsPerSentence });
+
+            } catch (e) {
+                showError('Analysis error: ' + e.message);
+            } finally {
+                showAnalyzing(false);
+            }
+        }, 100);
+    }
+
+    function renderAnalysis(d) {
+        const gradeCol = gradeColor(d.grade);
+        let html = `
+            <div class="stat-card">
+                <h3><i class="fa-solid fa-chart-simple"></i> Statistics &amp; Scores</h3>
+                <div class="stats-grid">
+                    <div class="stat-item"><strong>Words</strong><br>${d.words.toLocaleString()}</div>
+                    <div class="stat-item"><strong>Sentences</strong><br>${d.sentences}</div>
+                    <div class="stat-item"><strong>Avg/Sentence</strong><br>${d.avgWordsPerSentence} words</div>
+                    <div class="stat-item"><strong>Grade Level</strong><br><span style="color:${gradeCol}; font-weight:700;">${d.grade}</span></div>
+                    <div class="stat-item"><strong>Ease Score</strong><br>${d.ease}/100 <small style="color:var(--text-muted);">(${easeLabel(d.ease)})</small></div>
+                    <div class="stat-item"><strong>Overall</strong><br><span style="font-size:1.3rem; font-weight:700; color:${gradeColor(20 - d.grade)};">${d.overallScore}/100</span></div>
+                </div>
+                <div class="score-bar"><div class="score-fill" style="width:${d.ease}%"></div></div>
+            </div>
+        `;
+
+        if (d.hardSentences.length) {
+            html += `
+                <div class="issue-card error">
+                    <h3><i class="fa-solid fa-triangle-exclamation"></i> Hard-to-Read Sentences (${d.hardSentences.length})</h3>
+                    ${d.hardSentences.slice(0, 4).map(s => `
+                        <div class="sentence-example">
+                            <em>"${s.text}${s.text.length >= 130 ? '...' : ''}"</em>
+                            <div class="sentence-reason">${s.words} words — consider splitting this sentence</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        if (d.passiveCount > 0) {
+            html += `
+                <div class="issue-card warning">
+                    <h3><i class="fa-solid fa-person-walking"></i> Passive Voice (${d.passiveCount} instances)</h3>
+                    <p style="font-size:0.88rem;">Passive voice can weaken writing. Where possible, rewrite so the subject performs the action.</p>
+                    <p style="font-size:0.82rem; margin-top:6px; color:var(--warning-text);">Example: "The letter was written by her" → "She wrote the letter"</p>
+                </div>
+            `;
+        }
+
+        if (d.adverbs.length) {
+            html += `
+                <div class="issue-card info">
+                    <h3><i class="fa-solid fa-lightbulb"></i> Adverbs Found (${d.adverbs.length})</h3>
+                    <div class="adverb-tags">
+                        ${d.adverbs.map(a => `<span class="adverb-tag">${a}</span>`).join('')}
+                    </div>
+                    <p style="font-size:0.82rem; margin-top:8px; color:var(--info-text);">Consider replacing adverb+verb pairs with a single strong verb.</p>
+                </div>
+            `;
+        }
+
+        html += `
+            <div class="issue-card success">
+                <h3><i class="fa-solid fa-check"></i> Writing Suggestions</h3>
+                <ul class="suggestion-list">
+                    ${d.suggestions.map(s => `<li>${s}</li>`).join('')}
+                </ul>
+            </div>
+        `;
+
+        analysisPanel.innerHTML = html;
+    }
+
+    function renderEmpty() {
+        analysisPanel.innerHTML = `
+            <div class="empty-panel">
+                <div class="empty-icon"><i class="fa-solid fa-book-open"></i></div>
+                <p>Start writing or paste text and hit Analyze</p>
+            </div>
+        `;
+    }
+
+    function showAnalyzing(show) {
+        analyzingEl.style.display = show ? 'flex' : 'none';
+    }
+
+    function showError(msg) {
+        errorBox.textContent = msg;
+        errorBox.style.display = 'block';
+        setTimeout(() => { errorBox.style.display = 'none'; }, 5000);
+    }
+
+    function analyzeNow() { analyzeText(editor.value); }
+
+    function clearEditor() {
+        editor.value = '';
+        renderEmpty();
+    }
+
+    editor.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        if (document.getElementById('autoAnalyze').checked) {
+            debounceTimer = setTimeout(() => analyzeText(editor.value), 1200);
+        }
+    });
+
+    document.addEventListener('keydown', e => {
+        if (e.ctrlKey && e.key === 'Enter') analyzeNow();
+    });
+
+    // Demo text on load
+    setTimeout(() => {
+        if (!editor.value.trim()) {
+            editor.value = "The quick brown fox jumps over the lazy dog. However, writing clearly is actually very important in order to ensure that your audience fully comprehends the message that is being conveyed by you. It was decided by the committee that the report would be submitted by Friday. Strong writers choose powerful verbs and keep sentences short.";
+            analyzeText(editor.value);
+        }
+    }, 400);
+</script>
+
+<!-- Aminos Chatbot -->
+<script src="https://app.aminos.ai/js/chat_plugin.js" data-bot-id="59187"></script>
+
 </body>
 </html>
