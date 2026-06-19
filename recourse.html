@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recourse — AI Appeal Letters for Denied Insurance Claims</title>
+<style>
+  :root{
+    --navy:#16243B;
+    --paper:#FAF7F0;
+    --paper-dim:#F1ECE1;
+    --teal:#3E7068;
+    --teal-deep:#2A4F49;
+    --amber:#C97A2B;
+    --redline:#A23E2C;
+    --ink:#23241F;
+    --line:#D9D2C0;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Iowan Old Style','Palatino Linotype',Georgia,serif;
+    line-height:1.55;
+  }
+  .sans{font-family:'Helvetica Neue',Arial,sans-serif;}
+  .mono{font-family:'Courier New',monospace; letter-spacing:0.02em;}
+
+  /* HEADER with store nav */
+  header{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:16px 6vw; border-bottom:1px solid var(--line);
+    position:sticky; top:0; background:var(--paper); z-index:50;
+  }
+  .header-left{display:flex; align-items:center; gap:28px;}
+  .logo{font-weight:700; font-size:1.25rem; letter-spacing:0.01em; color:var(--navy);}
+  .logo span{color:var(--redline); text-decoration:line-through; text-decoration-thickness:2px;}
+  .logo a{text-decoration:none; color:inherit;}
+  nav{display:flex; gap:24px; align-items:center;}
+  nav a{
+    font-family:'Helvetica Neue',Arial,sans-serif; font-size:0.78rem; text-transform:uppercase;
+    letter-spacing:0.08em; color:var(--ink); text-decoration:none;
+  }
+  nav a:hover{color:var(--teal);}
+  nav a.active{color:var(--teal); font-weight:700;}
+
+  /* HERO */
+  .hero{
+    padding:8vh 6vw 7vh; display:grid; grid-template-columns:1.1fr 0.9fr; gap:5vw; align-items:center;
+  }
+  .hero h1{
+    font-size:clamp(2.3rem,4.2vw,3.6rem); color:var(--navy); line-height:1.08; font-weight:400;
+  }
+  .hero h1 em{font-style:normal; color:var(--teal); font-weight:700;}
+  .hero p.lede{
+    margin-top:22px; max-width:520px; font-size:1.12rem; color:#4a4a42;
+  }
+  .cta-row{margin-top:34px; display:flex; gap:16px; align-items:center; flex-wrap:wrap;}
+  .btn{
+    font-family:'Helvetica Neue',Arial,sans-serif; font-weight:600; font-size:0.95rem;
+    padding:15px 30px; border-radius:2px; cursor:pointer; border:none;
+    text-decoration:none; display:inline-block; letter-spacing:0.01em;
+  }
+  .btn-primary{background:var(--teal-deep); color:var(--paper);}
+  .btn-primary:hover{background:var(--navy);}
+  .btn-ghost{background:transparent; color:var(--navy); border:1px solid var(--navy);}
+  .stat-note{font-family:'Helvetica Neue',Arial,sans-serif; font-size:0.8rem; color:#7a7568;}
+
+  /* DENIAL LETTER VISUAL */
+  .letter-stack{position:relative; height:420px;}
+  .doc{
+    position:absolute; width:88%; background:#fff; border:1px solid var(--line);
+    box-shadow:0 14px 30px -10px rgba(22,36,59,0.25); padding:26px 28px;
+    font-family:'Courier New',monospace; font-size:0.78rem; color:#555;
+  }
+  .doc.back{top:30px; left:6%; transform:rotate(-3deg); opacity:0.55;}
+  .doc.front{top:0; left:0; transform:rotate(2deg);}
+  .doc .stamp-line{height:9px; background:#2b2b2b; opacity:0.78; margin:7px 0; border-radius:1px;}
+  .doc .w60{width:60%;} .doc .w80{width:80%;} .doc .w40{width:40%;} .doc .w95{width:95%;}
+  .doc .denied{
+    color:var(--redline); font-weight:700; border:2px solid var(--redline);
+    display:inline-block; padding:4px 10px; transform:rotate(-6deg); margin-top:14px;
+    font-family:'Helvetica Neue',Arial,sans-serif; letter-spacing:0.1em;
+  }
+  .strike{position:absolute; bottom:38px; left:24px; right:24px; height:3px;
+    background:var(--teal); transform:rotate(-2deg);}
+  .approved-tag{
+    position:absolute; top:-14px; right:8%; background:var(--teal-deep); color:#fff;
+    font-family:'Helvetica Neue',Arial,sans-serif; font-size:0.72rem; font-weight:700;
+    letter-spacing:0.1em; padding:7px 13px; transform:rotate(4deg); box-shadow:0 6px 14px rgba(0,0,0,0.2);
+  }
+
+  /* SECTIONS */
+  section{padding:9vh 6vw;}
+  .section-label{
+    font-family:'Helvetica Neue',Arial,sans-serif; font-size:0.78rem; text-transform:uppercase;
+    letter-spacing:0.14em; color:var(--teal); margin-bottom:14px; font-weight:700;
+  }
+  .section-title{font-size:clamp(1.7rem,2.6vw,2.3rem); color:var(--navy); max-width:680px; font-weight:400;}
+
+  /* STATS BAR */
+  .stats{
+    background:var(--navy); color:var(--paper); display:grid; grid-template-columns:repeat(4,1fr);
+    gap:0; padding:6vh 6vw;
+  }
+  .stat{padding:0 20px; border-left:1px solid rgba(250,247,240,0.18);}
+  .stat:first-child{border-left:none;}
+  .stat .num{font-size:2.4rem; color:#E8C9A0; font-weight:700; font-family:'Helvetica Neue',Arial,sans-serif;}
+  .stat .label{font-family:'Helvetica Neue',Arial,sans-serif; font-size:0.82rem; color:#cfd6dd; margin-top:6px;}
+
+  /* HOW IT WORKS */
+  .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:36px; margin-top:48px;}
+  .step{border-top:3px solid var(--teal); padding-top:18px;}
+  .step .step-num{font-family:'Helvetica Neue',Arial,sans-serif; color:var(--amber); font-weight:700; font-size:0.85rem; letter-spacing:0.08em;}
+  .step h3{margin-top:10px; font-size:1.25rem; color:var(--navy); font-weight:700;}
+  .step p{margin-top:8px; color:#544f44; font-size:0.97rem;}
+
+  /* TOOL */
+  #tool{background:var(--paper-dim); border-top:1px solid var(--line); border-bottom:1px solid var(--line);}
+  .tool-grid{display:grid; grid-template-columns:1fr 1fr; gap:48px; margin-top:40px;}
+  .field{margin-bottom:20px;}
+  .field label{
+    display:block; font-family:'Helvetica Neue',Arial,sans-serif; font-size:0.8rem; font-weight:700;
+    text-transform:uppercase; letter-spacing:0.06em; color:var(--navy); margin-bottom:7px;
+  }
+  .field textarea, .field input, .field select{
+    width:100%; padding:12px 14px; border:1px solid var(--line); background:#fff;
+    font-family:'Helvetica Neue',Arial,sans-serif; font-size:0.95rem; color:var(--ink); border-radius:2px;
+    resize:vertical;
+  }
+  .field textarea:focus, .field input:focus, .field select:focus{outline:2px solid var(--teal); border-color:var(--teal);}
+  .field .hint{font-size:0.78rem; color:#8a8474; margin-top:5px; font-family:'Helvetica Neue',Arial,sans-serif;}
+  .gen-btn{width:100%; margin-top:6px; font-size:1rem; padding:16px;}
+  .gen-btn:disabled{background:#9aa6a3; cursor:not-allowed;}
+
+  .output-panel{
+    background:#fff; border:1px solid var(--line); padding:0; min-height:480px;
+    display:flex; flex-direction:column;
+  }
+  .output-head{
+    padding:16px 22px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center;
+    font-family:'Helvetica Neue',Arial,sans-serif;
+  }
+  .output-head .title{font-weight:700; color:var(--navy); font-size:0.9rem; text-transform:uppercase; letter-spacing:0.06em;}
+  .copy-btn{
+    font-family:'Helvetica Neue',Arial,sans-serif; font-size:0.78rem; background:none; border:1px solid var(--navy);
+    padding:6px 12px; cursor:pointer; border-radius:2px; color:var(--navy);
+  }
+  .output-body{
+    padding:26px 28px; font-size:0.95rem; white-space:pre-wrap; overflow-y:auto; flex:1; color:#2b2b26;
+  }
+  .placeholder{color:#a39d8c; font-family:'Helvetica Neue',Arial,sans-serif; font-size:0.92rem; line-height:1.7;}
+  .loading{display:flex; align-items:center; gap:10px; color:var(--teal-deep); font-family:'Helvetica Neue',Arial,sans-serif;}
+  .spinner{width:16px; height:16px; border:2px solid var(--line); border-top-color:var(--teal-deep); border-radius:50%; animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .error-box{background:#FBEAE5; border:1px solid var(--redline); color:var(--redline); padding:14px 16px; font-family:'Helvetica Neue',Arial,sans-serif; font-size:0.88rem;}
+
+  .disclaimer{
+    margin-top:30px; padding:18px 20px; background:#fff; border-left:3px solid var(--amber);
+    font-family:'Helvetica Neue',Arial,sans-serif; font-size:0.84rem; color:#5c5644; grid-column:1/-1;
+  }
+
+  /* FAQ */
+  .faq-item{border-bottom:1px solid var(--line); padding:22px 0;}
+  .faq-item h4{color:var(--navy); font-size:1.08rem; font-weight:700;}
+  .faq-item p{margin-top:8px; color:#544f44; font-size:0.96rem; max-width:760px;}
+
+  footer{
+    background:var(--navy); color:#aab4be; padding:6vh 6vw 4vh; font-family:'Helvetica Neue',Arial,sans-serif; font-size:0.82rem;
+  }
+  footer .foot-grid{display:flex; justify-content:space-between; flex-wrap:wrap; gap:24px;}
+  footer a{color:#dfe6ec; text-decoration:none;}
+  .foot-legal{margin-top:30px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.12); max-width:900px; line-height:1.6;}
+
+  @media (max-width:860px){
+    .hero{grid-template-columns:1fr;}
+    .letter-stack{height:320px; margin-top:20px;}
+    .stats{grid-template-columns:repeat(2,1fr); gap:24px;}
+    .stat{border-left:none; border-top:1px solid rgba(250,247,240,0.18); padding-top:18px;}
+    .steps{grid-template-columns:1fr;}
+    .tool-grid{grid-template-columns:1fr;}
+    .header-left{flex-direction:column; gap:8px; align-items:flex-start;}
+    nav{flex-direction:column; gap:12px;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="logo"><a href="/">ARTISY</a></div>
+    <nav class="sans">
+      <a href="/">Store</a>
+      <a href="/gumroad.html">All Products</a>
+      <a href="/free-tools.html">Free Tools</a>
+      <a href="/recourse.html" class="active">Recourse</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div>
+    <h1>Your claim was denied.<br><em>That's not the final answer.</em></h1>
+    <p class="lede">One in five in-network health insurance claims gets rejected — and fewer than 1% of people ever appeal, mostly because they don't know where to start. Recourse drafts a fact-driven, policy-specific appeal letter from your denial details in minutes, free.</p>
+    <div class="cta-row">
+      <a href="#tool" class="btn btn-primary">Build my appeal letter</a>
+      <a href="#how" class="btn btn-ghost">See how it works</a>
+    </div>
+    <p class="stat-note" style="margin-top:18px;">No account required. Nothing you enter is stored or sent anywhere besides the letter you generate.</p>
+  </div>
+  <div class="letter-stack">
+    <div class="doc back">
+      <div class="stamp-line w60"></div>
+      <div class="stamp-line w95"></div>
+      <div class="stamp-line w40"></div>
+    </div>
+    <div class="doc front">
+      <div class="stamp-line w80"></div>
+      <div class="stamp-line w60"></div>
+      <div class="stamp-line w95"></div>
+      <div class="stamp-line w40"></div>
+      <div class="denied">CLAIM DENIED</div>
+      <div class="strike"></div>
+    </div>
+    <div class="approved-tag">APPEAL SUBMITTED →</div>
+  </div>
+</section>
+
+<div class="stats">
+  <div class="stat"><div class="num">1 in 5</div><div class="label">in-network claims are denied each year</div></div>
+  <div class="stat"><div class="num">&lt;1%</div><div class="label">of denials are ever appealed by patients</div></div>
+  <div class="stat"><div class="num">~50%+</div><div class="label">of properly filed appeals succeed</div></div>
+  <div class="stat"><div class="num">&lt;5 min</div><div class="label">to generate a first draft with Recourse</div></div>
+</div>
+
+<section id="how">
+  <div class="section-label">How it works</div>
+  <h2 class="section-title">Three things turn a form denial into a real argument: the specific reason given, the language of your plan, and a clear account of medical need.</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">STEP 01</div>
+      <h3>Tell us what happened</h3>
+      <p>Enter the denial reason from your insurer's letter, your plan type, and the treatment or claim in question — as much or as little detail as you have on hand.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">STEP 02</div>
+      <h3>Recourse drafts your letter</h3>
+      <p>The AI structures a formal appeal that directly answers the stated denial reason, in the format insurers expect, citing the specifics you've provided.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">STEP 03</div>
+      <h3>Review, verify, and send</h3>
+      <p>Have your clinician confirm the medical claims, fill in any missing specifics, and submit it through your insurer's appeals process before the deadline on your denial letter.</p>
+    </div>
+  </div>
+</section>
+
+<section id="tool">
+  <div class="section-label">The tool</div>
+  <h2 class="section-title">Build your appeal letter</h2>
+  <div class="tool-grid">
+    <div>
+      <div class="field">
+        <label for="claimType">What was denied?</label>
+        <select id="claimType">
+          <option value="Medication / prescription drug">Medication / prescription drug</option>
+          <option value="Medical procedure or surgery">Medical procedure or surgery</option>
+          <option value="Diagnostic test or imaging (MRI, PET, CT, etc.)">Diagnostic test or imaging</option>
+          <option value="Specialist referral or out-of-network care">Specialist referral / out-of-network care</option>
+          <option value="Durable medical equipment">Durable medical equipment</option>
+          <option value="Mental health or therapy services">Mental health or therapy services</option>
+          <option value="Hospital stay or emergency care">Hospital stay or emergency care</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="denialReason">What reason did the insurer give? (copy from the denial letter if you can)</label>
+        <textarea id="denialReason" rows="3" placeholder="e.g. &quot;Not medically necessary&quot;, &quot;Step therapy not completed&quot;, &quot;Out-of-network provider&quot;"></textarea>
+      </div>
+      <div class="field">
+        <label for="condition">Diagnosis / condition and treatment requested</label>
+        <textarea id="condition" rows="2" placeholder="e.g. Rheumatoid arthritis; requested Humira after failing two cheaper DMARDs"></textarea>
+      </div>
+      <div class="field">
+        <label for="history">Relevant history (prior treatments tried, how this affects daily life, urgency)</label>
+        <textarea id="history" rows="3" placeholder="e.g. Tried methotrexate for 6 months with no improvement and worsening joint damage."></textarea>
+      </div>
+      <div class="field">
+        <label for="insurer">Insurer / plan name (optional)</label>
+        <input id="insurer" type="text" placeholder="e.g. Blue Cross Blue Shield PPO">
+      </div>
+      <div class="field">
+        <label for="name">Your name and date, for the letter header (optional)</label>
+        <input id="name" type="text" placeholder="e.g. Jordan Avery, June 19, 2026">
+      </div>
+      <button class="btn btn-primary gen-btn sans" id="generateBtn">Generate appeal letter</button>
+    </div>
+
+    <div class="output-panel">
+      <div class="output-head">
+        <span class="title">Draft appeal letter</span>
+        <button class="copy-btn" id="copyBtn" style="display:none;">Copy</button>
+      </div>
+      <div class="output-body" id="outputBody">
+        <p class="placeholder">Your draft will appear here. Fill in the denial reason and condition at minimum — the more specifics you give, the stronger the draft.</p>
+      </div>
+    </div>
+
+    <div class="disclaimer">
+      <strong>Recourse drafts letters — it doesn't practice law or medicine.</strong> This tool produces a starting-point appeal letter based only on what you enter; it is not legal advice, not medical advice, and not a guarantee of any outcome. Have a clinician verify every medical claim and citation before you submit, check your plan's appeal deadline, and consider contacting your state insurance commissioner for complex denials.
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="section-label">Questions</div>
+  <h2 class="section-title">Before you start</h2>
+  <div class="faq-item">
+    <h4>Is this a lawyer?</h4>
+    <p>No. Recourse is a drafting tool, not an attorney. It writes a letter based on what you tell it. For denials involving large sums, ongoing care, or repeated denials, consider consulting a patient advocate or attorney who specializes in insurance disputes.</p>
+  </div>
+  <div class="faq-item">
+    <h4>Will this letter definitely get my claim approved?</h4>
+    <p>No tool can promise that — insurers weigh medical necessity and documentation differently case by case. A clear, specific letter measurably improves your odds, which is the gap this tool is built to close: most denials are never appealed at all.</p>
+  </div>
+  <div class="faq-item">
+    <h4>What happens to the information I type in?</h4>
+    <p>It's sent only to generate your letter and isn't stored after you close the page. Avoid typing your full Social Security number, passwords, or other sensitive identifiers you wouldn't want in a draft document.</p>
+  </div>
+  <div class="faq-item">
+    <h4>What should I do after I get my draft?</h4>
+    <p>Read it against your actual denial letter and policy documents, have a treating clinician confirm the medical details, and submit it by your insurer's deadline — most plans require appeals within 60–180 days of the denial.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="foot-grid">
+    <div><strong style="color:#fff;">Recourse</strong><br>AI-drafted appeal letters for denied insurance claims.</div>
+    <div><a href="#tool">Build an appeal</a></div>
+  </div>
+  <div class="foot-legal">
+    Recourse is an informational drafting tool only. It does not provide legal, medical, or insurance advice. Always verify medical claims with a licensed clinician and review your specific plan documents and appeal deadlines before submitting any appeal.
+  </div>
+</footer>
+
+<script>
+const BACKEND_URL = "https://script.google.com/macros/d/RECOURSE_BACKEND_ID/usercontent";
+const generateBtn = document.getElementById('generateBtn');
+const outputBody = document.getElementById('outputBody');
+const copyBtn = document.getElementById('copyBtn');
+
+generateBtn.addEventListener('click', async () => {
+  const claimType = document.getElementById('claimType').value;
+  const denialReason = document.getElementById('denialReason').value.trim();
+  const condition = document.getElementById('condition').value.trim();
+  const history = document.getElementById('history').value.trim();
+  const insurer = document.getElementById('insurer').value.trim();
+  const name = document.getElementById('name').value.trim();
+
+  if(!denialReason || !condition){
+    outputBody.innerHTML = '<div class="error-box">Please fill in at least the denial reason and the diagnosis/treatment fields — those are what the letter is built around.</div>';
+    copyBtn.style.display = 'none';
+    return;
+  }
+
+  generateBtn.disabled = true;
+  generateBtn.textContent = 'Generating…';
+  outputBody.innerHTML = '<div class="loading"><div class="spinner"></div> Drafting your appeal letter…</div>';
+  copyBtn.style.display = 'none';
+
+  try{
+    const response = await fetch(BACKEND_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        claimType,
+        denialReason,
+        condition,
+        history,
+        insurer,
+        name
+      })
+    });
+
+    const data = await response.json();
+    if(data.error){
+      throw new Error(data.error);
+    }
+
+    outputBody.textContent = data.letter || 'No response generated.';
+    copyBtn.style.display = 'inline-block';
+  }catch(err){
+    outputBody.innerHTML = '<div class="error-box">Something went wrong generating your letter. Please try again in a moment.</div>';
+    console.error('Generation error:', err);
+  }finally{
+    generateBtn.disabled = false;
+    generateBtn.textContent = 'Generate appeal letter';
+  }
+});
+
+copyBtn.addEventListener('click', () => {
+  navigator.clipboard.writeText(outputBody.textContent).then(() => {
+    copyBtn.textContent = 'Copied!';
+    setTimeout(() => copyBtn.textContent = 'Copy', 1500);
+  });
+});
+</script>
+
+</body>
+</html>
