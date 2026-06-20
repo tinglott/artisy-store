@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIGNAL — AI Context Profile Builder</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#f59e0b;--gold-l:#fbbf24;--violet:#8b5cf6;--violet-l:#a78bfa;
+  --slate:#0f172a;--slate2:#1e293b;--slate3:#334155;
+  --text:#f1f5f9;--muted:#94a3b8;--dim:#475569;
+  --green:#22c55e;--red:#f87171;
+}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--slate);color:var(--text);min-height:100vh}
+/* HEADER */
+.header{background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 100%);border-bottom:1px solid rgba(139,92,246,.3);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--gold),var(--violet));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#fff}
+.logo-text{font-size:1.3rem;font-weight:800;letter-spacing:2px;color:var(--gold)}
+.logo-sub{font-size:.7rem;color:var(--muted);letter-spacing:1px;margin-top:1px}
+.header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.score-badge{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);border-radius:20px;padding:5px 14px;font-size:.8rem;color:var(--gold-l)}
+.btn{border:none;border-radius:8px;padding:8px 16px;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-ghost{background:rgba(255,255,255,.06);color:var(--muted);border:1px solid rgba(255,255,255,.1)}
+.btn-ghost:hover{background:rgba(255,255,255,.1);color:var(--text)}
+.btn-gold{background:var(--gold);color:#000}
+.btn-gold:hover{background:var(--gold-l)}
+.btn-violet{background:var(--violet);color:#fff}
+.btn-violet:hover{background:var(--violet-l)}
+.btn-sm{padding:6px 12px;font-size:.78rem}
+
+/* TABS */
+.tabs{background:var(--slate2);border-bottom:1px solid var(--slate3);display:flex;overflow-x:auto;padding:0 24px;gap:2px}
+.tab{padding:12px 18px;font-size:.82rem;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+
+/* LAYOUT */
+.main{max-width:900px;margin:0 auto;padding:28px 20px}
+
+/* PROFILE SECTION */
+.section-card{background:var(--slate2);border:1px solid var(--slate3);border-radius:14px;padding:24px;margin-bottom:20px}
+.section-header{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.section-icon{font-size:1.4rem;color:var(--gold)}
+.section-title{font-size:1.05rem;font-weight:700;color:var(--text)}
+.section-desc{font-size:.8rem;color:var(--muted);margin-top:2px}
+.field-group{margin-bottom:18px}
+.field-label{font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:.5px}
+.field-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:var(--text);padding:9px 13px;font-size:.88rem;outline:none;font-family:inherit;transition:border .15s}
+.field-input:focus{border-color:rgba(139,92,246,.5)}
+textarea.field-input{resize:vertical;min-height:80px;line-height:1.5}
+.tags-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.tag{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35);color:var(--gold-l);border-radius:20px;padding:3px 10px;font-size:.78rem;display:flex;align-items:center;gap:5px}
+.tag-x{background:none;border:none;color:var(--gold-l);cursor:pointer;font-size:14px;line-height:1;padding:0;opacity:.7}
+.tag-x:hover{opacity:1}
+.tag-row{display:flex;gap:8px}
+.tag-row input{flex:1}
+.tag-add{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);color:var(--gold-l);border-radius:8px;padding:9px 14px;cursor:pointer;font-size:.78rem;white-space:nowrap;font-family:inherit}
+.tag-add:hover{background:rgba(245,158,11,.25)}
+
+/* PROFILES */
+.profiles-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:24px;background:var(--slate2);border:1px solid var(--slate3);border-radius:12px;padding:14px 18px}
+.profile-select{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:var(--text);padding:7px 12px;font-size:.85rem;outline:none;font-family:inherit;min-width:160px}
+.profile-name-input{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:var(--text);padding:7px 12px;font-size:.85rem;outline:none;font-family:inherit;width:160px}
+
+/* EXPORT */
+.export-card{background:var(--slate2);border:1px solid var(--slate3);border-radius:14px;padding:24px;margin-bottom:20px}
+.format-btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.format-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:8px 16px;color:var(--muted);cursor:pointer;font-size:.82rem;font-weight:600;transition:all .15s}
+.format-btn:hover,.format-btn.active{background:rgba(139,92,246,.15);border-color:rgba(139,92,246,.4);color:var(--violet-l)}
+.output-box{background:rgba(0,0,0,.3);border:1px solid var(--slate3);border-radius:10px;padding:16px;font-family:'Courier New',monospace;font-size:.78rem;color:var(--muted);white-space:pre-wrap;max-height:320px;overflow-y:auto;line-height:1.6}
+.copy-row{display:flex;gap:8px;margin-top:12px;align-items:center}
+.copy-status{font-size:.8rem;color:var(--green);opacity:0;transition:opacity .3s}
+.token-badge{font-size:.75rem;color:var(--dim);margin-left:auto}
+
+/* AI PANEL */
+.ai-panel{background:var(--slate2);border:1px solid var(--slate3);border-radius:14px;overflow:hidden;margin-bottom:20px}
+.ai-header{background:rgba(139,92,246,.1);border-bottom:1px solid rgba(139,92,246,.2);padding:14px 20px;display:flex;align-items:center;gap:10px}
+.ai-title{font-size:.95rem;font-weight:700;color:var(--violet-l)}
+.ai-subtitle{font-size:.78rem;color:var(--muted);margin-top:1px}
+.key-row{display:flex;gap:8px;padding:16px 20px;border-bottom:1px solid var(--slate3)}
+.key-row input{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:var(--text);padding:8px 12px;font-size:.82rem;outline:none;font-family:'Courier New',monospace}
+.key-row input:focus{border-color:rgba(139,92,246,.5)}
+.chat-msgs{padding:16px 20px;min-height:200px;max-height:380px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
+.msg{border-radius:10px;padding:10px 14px;font-size:.85rem;line-height:1.6;max-width:88%}
+.msg-user{background:rgba(139,92,246,.2);border:1px solid rgba(139,92,246,.3);color:var(--text);align-self:flex-end}
+.msg-ai{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:var(--text);align-self:flex-start}
+.msg-ai strong{color:var(--gold-l)}
+.msg-system{color:var(--dim);font-size:.78rem;font-style:italic;align-self:center;background:none;border:none;padding:4px 0}
+.chat-input-row{display:flex;gap:8px;padding:12px 20px;border-top:1px solid var(--slate3)}
+.chat-input{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:var(--text);padding:9px 13px;font-size:.85rem;outline:none;font-family:inherit}
+.chat-input:focus{border-color:rgba(139,92,246,.5)}
+.analyze-btn-row{padding:12px 20px;border-top:1px solid var(--slate3)}
+.analyze-out{padding:16px 20px;font-size:.85rem;line-height:1.7;color:var(--text);border-top:1px solid var(--slate3);white-space:pre-wrap}
+.analyze-out h3{color:var(--gold-l);font-size:.9rem;margin-bottom:6px;margin-top:14px}
+
+/* LOADING */
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.2);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* WELCOME */
+.welcome{background:linear-gradient(135deg,#1e1b4b,#312e81);border-bottom:2px solid rgba(139,92,246,.3);padding:28px 24px;text-align:center}
+.welcome h1{font-size:1.8rem;font-weight:800;color:var(--gold);letter-spacing:2px}
+.welcome p{color:rgba(255,255,255,.75);max-width:580px;margin:10px auto 0;font-size:.9rem;line-height:1.7}
+
+/* PROGRESS */
+.progress-bar{height:4px;background:var(--slate3);border-radius:2px;overflow:hidden;margin-bottom:24px}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--violet),var(--gold));transition:width .4s;border-radius:2px}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:48px 20px;color:var(--dim)}
+.empty-icon{font-size:3rem;margin-bottom:12px;opacity:.4}
+
+/* RESPONSIVE */
+@media(max-width:600px){
+  .header{padding:12px 16px}
+  .main{padding:20px 12px}
+  .tabs{padding:0 12px}
+}
+</style>
+</head>
+<body>
+
+<div class="welcome">
+  <div class="logo" style="justify-content:center;margin-bottom:10px">
+    <div class="logo-icon">S</div>
+    <div><div class="logo-text">SIGNAL</div><div class="logo-sub" style="text-align:left">AI CONTEXT PROFILE BUILDER</div></div>
+  </div>
+  <p>Build a rich context profile so every AI model — Claude, ChatGPT, Gemini, Groq — understands exactly who you are, what you're building, and how to help you best. Fill once. Paste anywhere.</p>
+</div>
+
+<div class="header">
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <div class="profiles-bar" style="margin-bottom:0;background:transparent;border:none;padding:0">
+      <select class="profile-select" id="profileSelect" onchange="switchProfile(this.value)">
+        <option value="">— Select Profile —</option>
+      </select>
+      <input class="profile-name-input" id="profileName" placeholder="Profile name..." />
+      <button class="btn btn-gold btn-sm" onclick="saveProfile()">Save</button>
+      <button class="btn btn-ghost btn-sm" onclick="newProfile()">+ New</button>
+      <button class="btn btn-ghost btn-sm" onclick="deleteProfile()">Delete</button>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="score-badge" id="scoreBadge">Score: 0%</span>
+    <button class="btn btn-ghost btn-sm" onclick="exportJSON()">↓ Export JSON</button>
+    <button class="btn btn-ghost btn-sm" onclick="importJSON()">↑ Import JSON</button>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('build')">⬡ Build Profile</div>
+  <div class="tab" onclick="showTab('export')">⬢ Generate Prompt</div>
+  <div class="tab" onclick="showTab('analyze')">⬟ AI Analysis</div>
+  <div class="tab" onclick="showTab('chat')">⬠ AI Chat</div>
+</div>
+
+<div class="main">
+
+<!-- BUILD TAB -->
+<div id="tab-build">
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  <div id="sectionsContainer"></div>
+</div>
+
+<!-- EXPORT TAB -->
+<div id="tab-export" style="display:none">
+  <div class="export-card">
+    <h3 style="font-size:1rem;font-weight:700;color:var(--text);margin-bottom:14px">📋 Generate Your AI Context Block</h3>
+    <p style="font-size:.83rem;color:var(--muted);margin-bottom:16px">Choose a format, copy the block, and paste it into your AI tool of choice to supercharge every conversation.</p>
+    <div class="format-btns">
+      <button class="format-btn active" onclick="setFormat('universal')" id="fmt-universal">Universal</button>
+      <button class="format-btn" onclick="setFormat('claude')" id="fmt-claude">Claude</button>
+      <button class="format-btn" onclick="setFormat('chatgpt')" id="fmt-chatgpt">ChatGPT</button>
+      <button class="format-btn" onclick="setFormat('gemini')" id="fmt-gemini">Gemini</button>
+    </div>
+    <div class="output-box" id="outputBox">Fill in your profile on the Build tab to generate your context block...</div>
+    <div class="copy-row">
+      <button class="btn btn-violet" onclick="copyOutput()">Copy to Clipboard</button>
+      <span class="copy-status" id="copyStatus">✓ Copied!</span>
+      <span class="token-badge" id="tokenBadge"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ANALYZE TAB -->
+<div id="tab-analyze" style="display:none">
+  <div class="ai-panel">
+    <div class="ai-header">
+      <div>
+        <div class="ai-title">⚡ Strategic Profile Analysis</div>
+        <div class="ai-subtitle">AI reads your profile and surfaces your biggest opportunities and blind spots</div>
+      </div>
+    </div>
+    <div class="key-row">
+      <input type="password" id="analyzeKey" placeholder="Groq API key (free at console.groq.com)" oninput="saveKey(this.value)"/>
+      <button class="btn btn-violet btn-sm" onclick="window.open('https://console.groq.com','_blank')">Get Free Key</button>
+    </div>
+    <div class="analyze-btn-row">
+      <button class="btn btn-gold" id="analyzeBtn" onclick="runAnalysis()">Analyze My Profile</button>
+    </div>
+    <div class="analyze-out" id="analyzeOut" style="display:none"></div>
+  </div>
+</div>
+
+<!-- CHAT TAB -->
+<div id="tab-chat" style="display:none">
+  <div class="ai-panel">
+    <div class="ai-header">
+      <div>
+        <div class="ai-title">💬 AI Chat with Full Context</div>
+        <div class="ai-subtitle">Your profile is the system prompt — the AI already knows everything about you</div>
+      </div>
+    </div>
+    <div class="key-row">
+      <input type="password" id="chatKey" placeholder="Groq API key (free at console.groq.com)" oninput="saveKey(this.value)"/>
+      <button class="btn btn-ghost btn-sm" onclick="clearChat()">Clear Chat</button>
+    </div>
+    <div class="chat-msgs" id="chatMsgs">
+      <div class="msg msg-system">Your full context profile is loaded as system context. Ask anything.</div>
+    </div>
+    <div class="chat-input-row">
+      <input class="chat-input" id="chatInput" placeholder="Ask something..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"/>
+      <button class="btn btn-violet" id="chatSendBtn" onclick="sendChat()">Send</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+// ─── DATA ────────────────────────────────────────────────────────────────────
+const STORAGE_KEY  = 'signal_v2_profiles';
+const HISTORY_KEY  = 'signal_v2_history';
+const ACTIVE_KEY   = 'signal_v2_active';
+const API_KEY_KEY  = 'signal_groq_key';
+
+const SECTIONS = [
+  {
+    id:'identity', label:'Identity', icon:'◈', desc:'Who you are — roles, background, authority',
+    fields:[
+      {key:'name',label:'Full Name',type:'text',ph:'Ting Lott'},
+      {key:'roles',label:'Core Roles',type:'tags',ph:'Author, Nurse, Entrepreneur — press Enter'},
+      {key:'expertise',label:'Deep Expertise',type:'textarea',ph:'13 years mental health nursing, teaching, digital product creation...'},
+      {key:'credentials',label:'Authority Credentials',type:'textarea',ph:'What makes you uniquely qualified and credible...'},
+      {key:'location',label:'Location / Timezone',type:'text',ph:'e.g. United States, EST'},
+    ]
+  },
+  {
+    id:'mission', label:'Mission', icon:'◎', desc:'What matters most — purpose, values, non-negotiables',
+    fields:[
+      {key:'mission',label:'Core Mission Statement',type:'textarea',ph:'One powerful sentence: what you are here to do...'},
+      {key:'values',label:'Non-Negotiable Values',type:'tags',ph:'Authenticity, Healing, Empowerment — press Enter'},
+      {key:'antiValues',label:'What AI Must Never Do',type:'textarea',ph:'Generic advice, corporate speak, ignoring my niche...'},
+      {key:'voice',label:'Your Voice & Tone',type:'textarea',ph:'How you speak — warm but direct, spiritual yet practical...'},
+    ]
+  },
+  {
+    id:'brands', label:'Brands', icon:'◉', desc:'Your brand ecosystem — verticals, audience, positioning',
+    fields:[
+      {key:'brands',label:'Brand / Company Names',type:'tags',ph:'T. Lott Creative, BLG INC, Sacred Cycles — press Enter'},
+      {key:'brandVoice',label:'Brand Voice per Brand',type:'textarea',ph:'T. Lott Creative: master brand. Sacred Cycles: spiritual...'},
+      {key:'audience',label:'Who You Serve',type:'textarea',ph:'Primary audience — who they are, their pain points, what they need...'},
+      {key:'positioning',label:'Unique Market Position',type:'textarea',ph:'What makes your brand impossible to replicate...'},
+      {key:'platforms',label:'Active Platforms',type:'tags',ph:'Gumroad, TikTok, YouTube, Bluesky — press Enter'},
+    ]
+  },
+  {
+    id:'goals', label:'Goals', icon:'◐', desc:'What you\'re building right now — priorities, projects, timelines',
+    fields:[
+      {key:'topGoal',label:'Biggest Goal Right Now',type:'text',ph:'Launch SIGNAL to digital creators by Q3 2026...'},
+      {key:'activeProjects',label:'Active Projects',type:'tags',ph:'SIGNAL, ARIA, Sacred Cycles — press Enter'},
+      {key:'timeline',label:'Timeline & Milestones',type:'textarea',ph:'Key dates, deadlines, launch windows...'},
+      {key:'revenue',label:'Revenue Goals',type:'text',ph:'e.g. $50K by December 2026'},
+    ]
+  },
+  {
+    id:'context', label:'AI Context', icon:'◑', desc:'Instructions for AI — always assume, preferred style, hard rules',
+    fields:[
+      {key:'alwaysKnow',label:'Always Assume AI Knows',type:'textarea',ph:'Background every response should be aware of...'},
+      {key:'style',label:'Preferred Response Style',type:'tags',ph:'Direct, Show code, No fluff, Creative — press Enter'},
+      {key:'avoid',label:'AI Should Avoid',type:'textarea',ph:'Repetitive summaries, over-explaining basics...'},
+      {key:'tools',label:'AI Tools You Use',type:'tags',ph:'Claude, ChatGPT, Groq, Gemini, Perplexity — press Enter'},
+    ]
+  },
+];
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let profiles = {};
+let activeProfile = '';
+let currentProfile = {};
+let chatHistory = [];
+let currentFormat = 'universal';
+
+function loadAll(){
+  try{ profiles = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }catch{ profiles={}; }
+  try{ chatHistory = JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; }catch{ chatHistory=[]; }
+  activeProfile = localStorage.getItem(ACTIVE_KEY) || '';
+  if(activeProfile && profiles[activeProfile]) currentProfile = JSON.parse(JSON.stringify(profiles[activeProfile]));
+  else currentProfile = {};
+}
+function saveAll(){
+  if(activeProfile) profiles[activeProfile] = JSON.parse(JSON.stringify(currentProfile));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(profiles));
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(chatHistory.slice(-50)));
+  localStorage.setItem(ACTIVE_KEY, activeProfile);
+  updateScore();
+  updateOutput();
+}
+function saveKey(v){ if(v) localStorage.setItem(API_KEY_KEY,v); }
+function getKey(){ 
+  return document.getElementById('chatKey')?.value || document.getElementById('analyzeKey')?.value || localStorage.getItem(API_KEY_KEY)||''; 
+}
+
+// ─── PROFILES ────────────────────────────────────────────────────────────────
+function refreshProfileSelect(){
+  const sel = document.getElementById('profileSelect');
+  const names = Object.keys(profiles);
+  sel.innerHTML = '<option value="">— Select Profile —</option>' + names.map(n=>`<option value="${n}"${n===activeProfile?' selected':''}>${n}</option>`).join('');
+  document.getElementById('profileName').value = activeProfile || '';
+}
+function switchProfile(name){
+  if(!name) return;
+  if(activeProfile && profiles[activeProfile]) profiles[activeProfile] = JSON.parse(JSON.stringify(currentProfile));
+  activeProfile = name;
+  currentProfile = JSON.parse(JSON.stringify(profiles[name]||{}));
+  document.getElementById('profileName').value = name;
+  renderSections();
+  saveAll();
+}
+function saveProfile(){
+  const name = document.getElementById('profileName').value.trim();
+  if(!name){ alert('Enter a profile name first'); return; }
+  activeProfile = name;
+  profiles[name] = JSON.parse(JSON.stringify(currentProfile));
+  saveAll();
+  refreshProfileSelect();
+  showToast('Profile saved ✓');
+}
+function newProfile(){
+  if(activeProfile) profiles[activeProfile] = JSON.parse(JSON.stringify(currentProfile));
+  activeProfile = '';
+  currentProfile = {};
+  document.getElementById('profileName').value = '';
+  document.getElementById('profileSelect').value = '';
+  renderSections();
+  updateScore();
+}
+function deleteProfile(){
+  if(!activeProfile || !confirm(`Delete profile "${activeProfile}"?`)) return;
+  delete profiles[activeProfile];
+  activeProfile = '';
+  currentProfile = {};
+  document.getElementById('profileName').value = '';
+  saveAll();
+  refreshProfileSelect();
+  renderSections();
+}
+
+// ─── SCORE ───────────────────────────────────────────────────────────────────
+function calcScore(){
+  let filled=0, total=0;
+  SECTIONS.forEach(s=>s.fields.forEach(f=>{
+    total++;
+    const v = currentProfile[s.id]?.[f.key];
+    if(v&&(Array.isArray(v)?v.length>0:String(v).trim().length>0)) filled++;
+  }));
+  return total>0?Math.round(filled/total*100):0;
+}
+function updateScore(){
+  const s=calcScore();
+  document.getElementById('scoreBadge').textContent=`Score: ${s}%`;
+  document.getElementById('progressFill').style.width=s+'%';
+}
+
+// ─── RENDER SECTIONS ─────────────────────────────────────────────────────────
+function getVal(secId, key){ return currentProfile[secId]?.[key] ?? (SECTIONS.find(s=>s.id===secId)?.fields.find(f=>f.key===key)?.type==='tags'?[]:'' ); }
+function setVal(secId, key, val){
+  if(!currentProfile[secId]) currentProfile[secId]={};
+  currentProfile[secId][key]=val;
+  updateScore();
+  updateOutput();
+}
+
+function renderSections(){
+  const c = document.getElementById('sectionsContainer');
+  c.innerHTML = SECTIONS.map(s=>`
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-icon">${s.icon}</div>
+        <div><div class="section-title">${s.label}</div><div class="section-desc">${s.desc}</div></div>
+      </div>
+      ${s.fields.map(f=>renderField(s.id,f)).join('')}
+    </div>
+  `).join('');
+}
+function renderField(secId, f){
+  const v = getVal(secId, f.key);
+  if(f.type==='tags'){
+    const tags = Array.isArray(v)?v:[];
+    return `<div class="field-group">
+      <label class="field-label">${f.label}</label>
+      <div class="tags-wrap" id="tags-${secId}-${f.key}">${tags.map(t=>tagHTML(secId,f.key,t)).join('')}</div>
+      <div class="tag-row">
+        <input class="field-input" id="taginput-${secId}-${f.key}" placeholder="${f.ph}" 
+          onkeydown="if(event.key==='Enter'){event.preventDefault();addTag('${secId}','${f.key}')}"/>
+        <button class="tag-add" onclick="addTag('${secId}','${f.key}')">+ Add</button>
+      </div>
+    </div>`;
+  }
+  if(f.type==='textarea'){
+    return `<div class="field-group">
+      <label class="field-label">${f.label}</label>
+      <textarea class="field-input" placeholder="${f.ph}" oninput="setVal('${secId}','${f.key}',this.value)">${v}</textarea>
+    </div>`;
+  }
+  return `<div class="field-group">
+    <label class="field-label">${f.label}</label>
+    <input class="field-input" type="text" placeholder="${f.ph}" value="${v}" oninput="setVal('${secId}','${f.key}',this.value)"/>
+  </div>`;
+}
+function tagHTML(secId, key, tag){
+  return `<span class="tag">${tag}<button class="tag-x" onclick="removeTag('${secId}','${key}','${tag.replace(/'/g,"\\'")}')">×</button></span>`;
+}
+function addTag(secId,key){
+  const inp = document.getElementById(`taginput-${secId}-${key}`);
+  const t = inp.value.trim();
+  if(!t) return;
+  const arr = Array.isArray(getVal(secId,key))?getVal(secId,key):[];
+  if(!arr.includes(t)){
+    setVal(secId,key,[...arr,t]);
+    const wrap = document.getElementById(`tags-${secId}-${key}`);
+    wrap.insertAdjacentHTML('beforeend', tagHTML(secId,key,t));
+  }
+  inp.value='';
+}
+function removeTag(secId,key,tag){
+  const arr = (Array.isArray(getVal(secId,key))?getVal(secId,key):[]).filter(t=>t!==tag);
+  setVal(secId,key,arr);
+  const wrap = document.getElementById(`tags-${secId}-${key}`);
+  if(wrap){
+    const existing = [...wrap.querySelectorAll('.tag')].find(el=>el.textContent.replace('×','').trim()===tag);
+    if(existing) existing.remove();
+  }
+}
+
+// ─── PROMPT BUILDER ──────────────────────────────────────────────────────────
+function buildPrompt(fmt='universal'){
+  const p = currentProfile;
+  const id = p.identity||{};
+  const mi = p.mission||{};
+  const br = p.brands||{};
+  const go = p.goals||{};
+  const cx = p.context||{};
+  const lines = [];
+  if(fmt==='claude') lines.push('<!-- Paste in Claude.ai → Settings → Profile → What should Claude know about you -->\n');
+  if(fmt==='chatgpt') lines.push('<!-- ABOUT: Paste in "What would you like ChatGPT to know about you?"\n   RESPOND: Paste in "How would you like ChatGPT to respond?" -->\n');
+  lines.push('=== WHO I AM ===');
+  if(id.name) lines.push(`Name: ${id.name}`);
+  if(id.roles?.length) lines.push(`Roles: ${id.roles.join(', ')}`);
+  if(id.expertise) lines.push(`Expertise: ${id.expertise.trim()}`);
+  if(id.credentials) lines.push(`Authority: ${id.credentials.trim()}`);
+  if(id.location) lines.push(`Location: ${id.location}`);
+  lines.push('\n=== WHAT MATTERS MOST ===');
+  if(mi.mission) lines.push(`Mission: ${mi.mission.trim()}`);
+  if(mi.values?.length) lines.push(`Core values: ${mi.values.join(', ')}`);
+  if(mi.voice) lines.push(`My voice/tone: ${mi.voice.trim()}`);
+  if(mi.antiValues) lines.push(`Never do: ${mi.antiValues.trim()}`);
+  lines.push('\n=== MY BRANDS & BUSINESS ===');
+  if(br.brands?.length) lines.push(`Brands: ${br.brands.join(', ')}`);
+  if(br.brandVoice) lines.push(`Brand voice: ${br.brandVoice.trim()}`);
+  if(br.audience) lines.push(`Audience: ${br.audience.trim()}`);
+  if(br.positioning) lines.push(`Positioning: ${br.positioning.trim()}`);
+  if(br.platforms?.length) lines.push(`Platforms: ${br.platforms.join(', ')}`);
+  lines.push('\n=== CURRENT GOALS ===');
+  if(go.topGoal) lines.push(`Top goal: ${go.topGoal}`);
+  if(go.activeProjects?.length) lines.push(`Active projects: ${go.activeProjects.join(', ')}`);
+  if(go.timeline) lines.push(`Timeline: ${go.timeline.trim()}`);
+  if(go.revenue) lines.push(`Revenue goal: ${go.revenue}`);
+  lines.push('\n=== HOW TO HELP ME ===');
+  if(cx.alwaysKnow) lines.push(`Always assume: ${cx.alwaysKnow.trim()}`);
+  if(cx.style?.length) lines.push(`Response style: ${cx.style.join(', ')}`);
+  if(cx.avoid) lines.push(`Avoid: ${cx.avoid.trim()}`);
+  if(cx.tools?.length) lines.push(`AI tools I use: ${cx.tools.join(', ')}`);
+  return lines.filter(Boolean).join('\n');
+}
+function setFormat(f){
+  currentFormat=f;
+  document.querySelectorAll('.format-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('fmt-'+f)?.classList.add('active');
+  updateOutput();
+}
+function updateOutput(){
+  const box = document.getElementById('outputBox');
+  if(!box) return;
+  const p = buildPrompt(currentFormat);
+  box.textContent = p || 'Fill in your profile on the Build tab to generate your context block...';
+  const tokens = Math.ceil(p.length/4);
+  const tb = document.getElementById('tokenBadge');
+  if(tb) tb.textContent = p ? `~${tokens} tokens` : '';
+}
+function copyOutput(){
+  const text = document.getElementById('outputBox').textContent;
+  navigator.clipboard.writeText(text).then(()=>{
+    const s=document.getElementById('copyStatus');
+    s.style.opacity='1';
+    setTimeout(()=>s.style.opacity='0',2000);
+  });
+}
+
+// ─── AI ──────────────────────────────────────────────────────────────────────
+const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+
+async function callGroq(messages, key, maxTokens=1200){
+  const res = await fetch(GROQ_URL,{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+    body: JSON.stringify({model:'llama-3.3-70b-versatile',messages,max_tokens:maxTokens,temperature:.7})
+  });
+  const d = await res.json();
+  if(!res.ok) throw new Error(d.error?.message||'Groq error');
+  return d.choices[0].message.content;
+}
+
+async function runAnalysis(){
+  const key = document.getElementById('analyzeKey').value || localStorage.getItem(API_KEY_KEY) || '';
+  if(!key){ alert('Enter your Groq API key first'); return; }
+  saveKey(key);
+  const ctx = buildPrompt('universal');
+  if(!ctx || ctx.length < 50){ alert('Fill in your profile first'); return; }
+  const btn = document.getElementById('analyzeBtn');
+  const out = document.getElementById('analyzeOut');
+  btn.innerHTML='<span class="spinner"></span>Analyzing...';
+  btn.disabled=true;
+  out.style.display='block';
+  out.textContent='Analyzing your profile...';
+  const systemMsg = `You are a strategic AI advisor. Analyze this user's business context profile with precision. Structure your response with these exact sections:
+
+**What's Strong** — their clearest competitive advantages and unique positioning.
+**What's Missing** — the 3 biggest context gaps costing them in AI interactions.
+**One Blind Spot** — something they likely don't see about their own business.
+**Highest-Leverage Action** — the single most impactful thing they could do this week.
+
+Be specific to their actual data. No generic advice. Be direct and actionable.`;
+  try{
+    const resp = await callGroq([
+      {role:'system',content:systemMsg},
+      {role:'user',content:'Analyze this context profile:\n\n'+ctx}
+    ], key, 1200);
+    out.innerHTML = resp.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+  }catch(e){
+    out.textContent = '❌ Error: '+e.message;
+  }
+  btn.innerHTML='Analyze My Profile';
+  btn.disabled=false;
+}
+
+let chatMessages = [];
+async function sendChat(){
+  const key = document.getElementById('chatKey').value || localStorage.getItem(API_KEY_KEY)||'';
+  if(!key){ alert('Enter your Groq API key first'); return; }
+  saveKey(key);
+  const inp = document.getElementById('chatInput');
+  const msg = inp.value.trim();
+  if(!msg) return;
+  inp.value='';
+  const msgs = document.getElementById('chatMsgs');
+  msgs.insertAdjacentHTML('beforeend',`<div class="msg msg-user">${msg}</div>`);
+  msgs.scrollTop=msgs.scrollHeight;
+  chatMessages.push({role:'user',content:msg});
+  const btn = document.getElementById('chatSendBtn');
+  btn.disabled=true; btn.textContent='...';
+  const ctx = buildPrompt('universal');
+  const systemPrompt = ctx ? `You are a strategic AI assistant. The user has provided their full context profile below. Always remember this context in every response.\n\n${ctx}` : 'You are a helpful strategic AI assistant.';
+  try{
+    const reply = await callGroq([{role:'system',content:systemPrompt},...chatMessages.slice(-20)], key, 1000);
+    chatMessages.push({role:'assistant',content:reply});
+    msgs.insertAdjacentHTML('beforeend',`<div class="msg msg-ai">${reply.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')}</div>`);
+  }catch(e){
+    msgs.insertAdjacentHTML('beforeend',`<div class="msg msg-ai" style="color:var(--red)">Error: ${e.message}</div>`);
+  }
+  btn.disabled=false; btn.textContent='Send';
+  msgs.scrollTop=msgs.scrollHeight;
+}
+function clearChat(){
+  chatMessages=[];
+  const msgs=document.getElementById('chatMsgs');
+  msgs.innerHTML='<div class="msg msg-system">Chat cleared. Your profile context is still loaded.</div>';
+}
+
+// ─── TABS ────────────────────────────────────────────────────────────────────
+function showTab(t){
+  ['build','export','analyze','chat'].forEach(id=>{
+    document.getElementById('tab-'+id).style.display = id===t?'block':'none';
+  });
+  document.querySelectorAll('.tab').forEach((el,i)=>{
+    el.classList.toggle('active', ['build','export','analyze','chat'][i]===t);
+  });
+  if(t==='export') updateOutput();
+}
+
+// ─── IMPORT / EXPORT ─────────────────────────────────────────────────────────
+function exportJSON(){
+  const d = {profiles, activeProfile};
+  const a=document.createElement('a');
+  a.href='data:application/json,'+encodeURIComponent(JSON.stringify(d,null,2));
+  a.download='signal-profiles.json';
+  a.click();
+}
+function importJSON(){
+  const inp = document.createElement('input');
+  inp.type='file'; inp.accept='.json';
+  inp.onchange = e=>{
+    const f=e.target.files[0];
+    if(!f) return;
+    const r=new FileReader();
+    r.onload=ev=>{
+      try{
+        const d=JSON.parse(ev.target.result);
+        if(d.profiles){
+          profiles = d.profiles;
+          if(d.activeProfile) activeProfile=d.activeProfile;
+          if(activeProfile&&profiles[activeProfile]) currentProfile=JSON.parse(JSON.stringify(profiles[activeProfile]));
+          saveAll(); refreshProfileSelect(); renderSections();
+          showToast('Imported successfully ✓');
+        }
+      }catch{ alert('Invalid JSON file'); }
+    };
+    r.readAsText(f);
+  };
+  inp.click();
+}
+
+// ─── TOAST ───────────────────────────────────────────────────────────────────
+function showToast(msg){
+  const t=document.createElement('div');
+  t.style.cssText='position:fixed;bottom:24px;right:24px;background:var(--violet);color:#fff;padding:10px 20px;border-radius:8px;font-size:.85rem;font-weight:600;z-index:999;opacity:1;transition:opacity .4s';
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>{ t.style.opacity='0'; setTimeout(()=>t.remove(),400); },2200);
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+loadAll();
+renderSections();
+refreshProfileSelect();
+updateScore();
+const savedKey = localStorage.getItem(API_KEY_KEY)||'';
+if(savedKey){
+  const ck=document.getElementById('chatKey');
+  const ak=document.getElementById('analyzeKey');
+  if(ck) ck.value=savedKey;
+  if(ak) ak.value=savedKey;
+}
+</script>
+</body>
+</html>
