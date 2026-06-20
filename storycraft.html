@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StoryCraft AI — Interactive Storybook Platform</title>
+<style>
+  :root {
+    --primary: #6c3fc5;
+    --secondary: #f59e0b;
+    --accent: #ec4899;
+    --bg: #0f0a1e;
+    --card: #1a1133;
+    --text: #f0e6ff;
+    --muted: #9d89c4;
+    --success: #10b981;
+    --page-bg: #fffdf5;
+    --page-shadow: rgba(108,63,197,0.4);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; overflow-x: hidden; }
+
+  /* HEADER */
+  .header { background: linear-gradient(135deg, #1a0a3d 0%, #2d1b5e 50%, #1a0a3d 100%); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(108,63,197,0.3); position: sticky; top: 0; z-index: 100; }
+  .logo { font-size: 1.5rem; font-weight: 800; background: linear-gradient(90deg, #c084fc, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .logo span { font-size: 0.8rem; display: block; -webkit-text-fill-color: var(--muted); font-weight: 400; }
+  .header-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+  .badge { background: rgba(108,63,197,0.3); border: 1px solid rgba(108,63,197,0.5); border-radius: 20px; padding: 4px 12px; font-size: 0.7rem; color: #c084fc; }
+
+  /* TABS */
+  .tabs { display: flex; background: var(--card); border-bottom: 1px solid rgba(108,63,197,0.2); overflow-x: auto; }
+  .tab { padding: 14px 20px; cursor: pointer; font-size: 0.85rem; color: var(--muted); border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.2s; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: #c084fc; border-bottom-color: var(--primary); }
+
+  /* PANELS */
+  .panel { display: none; padding: 24px; max-width: 1100px; margin: 0 auto; }
+  .panel.active { display: block; }
+
+  /* SECTION TITLES */
+  .section-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 8px; }
+  .section-sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 24px; }
+
+  /* CARDS */
+  .card { background: var(--card); border: 1px solid rgba(108,63,197,0.3); border-radius: 16px; padding: 20px; }
+  .card h3 { font-size: 1rem; margin-bottom: 12px; color: #c084fc; }
+
+  /* FORM */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media(max-width:600px){ .form-grid { grid-template-columns: 1fr; } }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .form-group input, .form-group select, .form-group textarea {
+    background: rgba(108,63,197,0.1); border: 1px solid rgba(108,63,197,0.4); border-radius: 10px;
+    padding: 10px 14px; color: var(--text); font-size: 0.9rem; outline: none; transition: border-color 0.2s;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary); }
+  .form-group select option { background: #1a1133; }
+
+  /* TEMPLATES GRID */
+  .templates-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .template-card {
+    background: rgba(108,63,197,0.1); border: 2px solid rgba(108,63,197,0.3);
+    border-radius: 12px; padding: 14px; cursor: pointer; transition: all 0.2s; text-align: center;
+  }
+  .template-card:hover, .template-card.selected { border-color: var(--primary); background: rgba(108,63,197,0.25); }
+  .template-card .emoji { font-size: 2rem; margin-bottom: 6px; }
+  .template-card .name { font-size: 0.8rem; font-weight: 600; color: var(--text); }
+  .template-card .style { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+
+  /* BUTTONS */
+  .btn { padding: 12px 24px; border: none; border-radius: 10px; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+  .btn-primary { background: linear-gradient(135deg, var(--primary), #9333ea); color: white; }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(108,63,197,0.5); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .btn-secondary { background: rgba(108,63,197,0.2); border: 1px solid rgba(108,63,197,0.4); color: var(--text); }
+  .btn-secondary:hover { background: rgba(108,63,197,0.35); }
+  .btn-accent { background: linear-gradient(135deg, #ec4899, #f59e0b); color: white; }
+  .btn-accent:hover { transform: translateY(-2px); }
+  .btn-sm { padding: 7px 14px; font-size: 0.8rem; }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+
+  /* API KEY INPUT */
+  .api-key-section { background: rgba(108,63,197,0.08); border: 1px solid rgba(245,158,11,0.3); border-radius: 12px; padding: 16px; margin-bottom: 20px; }
+  .api-key-section h4 { color: var(--secondary); margin-bottom: 8px; font-size: 0.9rem; }
+  .api-key-row { display: flex; gap: 10px; align-items: center; }
+  .api-key-row input { flex: 1; }
+
+  /* PROGRESS / LOADING */
+  .progress-bar-wrap { background: rgba(108,63,197,0.15); border-radius: 100px; height: 8px; overflow: hidden; margin: 12px 0; }
+  .progress-bar { height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); border-radius: 100px; transition: width 0.3s; }
+  .status-msg { font-size: 0.85rem; color: var(--muted); margin-top: 6px; }
+
+  /* BOOK READER */
+  #reader { display: none; }
+  .reader-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+  .book-container { position: relative; width: 100%; max-width: 800px; margin: 0 auto; }
+  .page-view { background: var(--page-bg); border-radius: 16px; min-height: 460px; display: flex; overflow: hidden;
+    box-shadow: -8px 0 30px var(--page-shadow), 8px 0 30px var(--page-shadow); transition: opacity 0.4s; }
+  .page-left { width: 50%; padding: 30px; background: linear-gradient(to right, #fffdf5, #faf7ee); border-right: 2px solid #e8dfc5; display: flex; flex-direction: column; justify-content: center; }
+  .page-right { width: 50%; padding: 0; position: relative; overflow: hidden; }
+  .page-right img { width: 100%; height: 100%; object-fit: cover; }
+  @media(max-width:600px){ .page-view { flex-direction: column; } .page-left,.page-right { width: 100%; } .page-right { min-height: 220px; } }
+  .page-num { color: #9d89c4; font-size: 0.75rem; margin-bottom: 8px; }
+  .page-text { color: #2d1b5e; font-size: 1.1rem; line-height: 1.7; font-family: Georgia, serif; }
+  .page-text strong { color: var(--primary); }
+  .vocab-chip { display: inline-block; background: rgba(108,63,197,0.15); border: 1px solid rgba(108,63,197,0.3); border-radius: 20px; padding: 2px 10px; font-size: 0.7rem; color: var(--primary); margin: 4px 2px; cursor: pointer; }
+  .flip-controls { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 16px; }
+  .flip-btn { background: var(--primary); border: none; color: white; border-radius: 50%; width: 44px; height: 44px; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+  .flip-btn:hover { background: #9333ea; transform: scale(1.1); }
+  .flip-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+  .page-indicator { color: var(--muted); font-size: 0.85rem; }
+
+  /* COVER PAGE */
+  .cover-page { background: linear-gradient(135deg, #1a0a3d, #3d1a6e); border-radius: 16px; min-height: 460px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; text-align: center; position: relative; overflow: hidden; box-shadow: 0 20px 60px rgba(108,63,197,0.5); }
+  .cover-page img { width: 100%; height: 280px; object-fit: cover; border-radius: 12px; margin-bottom: 20px; }
+  .cover-title { font-size: 1.8rem; font-weight: 800; background: linear-gradient(90deg, #c084fc, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .cover-subtitle { color: var(--muted); margin-top: 6px; font-size: 0.95rem; }
+  .star-decoration { position: absolute; opacity: 0.2; font-size: 3rem; }
+
+  /* QUIZ */
+  .quiz-card { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.3); border-radius: 14px; padding: 20px; margin-top: 20px; }
+  .quiz-card h4 { color: var(--success); margin-bottom: 14px; }
+  .quiz-options { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+  .quiz-option { background: rgba(108,63,197,0.1); border: 1px solid rgba(108,63,197,0.3); border-radius: 10px; padding: 10px 14px; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; }
+  .quiz-option:hover { border-color: var(--primary); background: rgba(108,63,197,0.25); }
+  .quiz-option.correct { background: rgba(16,185,129,0.2); border-color: var(--success); color: #6ee7b7; }
+  .quiz-option.wrong { background: rgba(239,68,68,0.15); border-color: #ef4444; color: #fca5a5; }
+  .quiz-result { margin-top: 12px; padding: 10px; border-radius: 8px; text-align: center; font-weight: 600; display: none; }
+
+  /* GAMIFICATION */
+  .stats-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+  .stat-card { background: var(--card); border: 1px solid rgba(108,63,197,0.3); border-radius: 12px; padding: 16px 20px; flex: 1; min-width: 120px; text-align: center; }
+  .stat-card .num { font-size: 2rem; font-weight: 800; color: #c084fc; }
+  .stat-card .lbl { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; }
+  .badges-grid { display: flex; flex-wrap: wrap; gap: 12px; }
+  .badge-item { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); border-radius: 12px; padding: 12px 16px; text-align: center; min-width: 90px; }
+  .badge-item .b-icon { font-size: 1.8rem; }
+  .badge-item .b-name { font-size: 0.7rem; color: var(--secondary); margin-top: 4px; }
+  .badge-item.locked { opacity: 0.35; filter: grayscale(1); }
+  .streak-fire { font-size: 3rem; }
+
+  /* LIBRARY */
+  .library-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
+  .lib-card { background: var(--card); border: 1px solid rgba(108,63,197,0.25); border-radius: 14px; overflow: hidden; cursor: pointer; transition: all 0.2s; }
+  .lib-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(108,63,197,0.3); }
+  .lib-card img { width: 100%; height: 120px; object-fit: cover; }
+  .lib-card .lib-info { padding: 12px; }
+  .lib-card .lib-title { font-size: 0.85rem; font-weight: 600; }
+  .lib-card .lib-meta { font-size: 0.72rem; color: var(--muted); margin-top: 4px; }
+  .lib-empty { text-align: center; color: var(--muted); padding: 40px; }
+
+  /* LOADING OVERLAY */
+  .loading-overlay { position: fixed; inset: 0; background: rgba(15,10,30,0.92); z-index: 200; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
+  .loading-overlay.active { display: flex; }
+  .spinner { width: 56px; height: 56px; border: 4px solid rgba(108,63,197,0.2); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-title { font-size: 1.2rem; font-weight: 700; color: #c084fc; }
+  .loading-step { font-size: 0.9rem; color: var(--muted); }
+  .magic-dots::after { content: '...'; animation: dots 1.2s steps(4, end) infinite; }
+  @keyframes dots { 0%,20%{content:'.'} 40%{content:'..'} 60%,80%{content:'...'} 100%{content:''} }
+
+  /* NOTIFICATION */
+  .notif { position: fixed; top: 20px; right: 20px; background: rgba(16,185,129,0.9); color: white; padding: 12px 20px; border-radius: 10px; z-index: 300; transform: translateX(120%); transition: transform 0.3s; font-size: 0.9rem; max-width: 280px; }
+  .notif.show { transform: translateX(0); }
+  .notif.error { background: rgba(239,68,68,0.9); }
+
+  /* MODAL */
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 250; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .modal-bg.active { display: flex; }
+  .modal { background: var(--card); border: 1px solid rgba(108,63,197,0.4); border-radius: 16px; padding: 28px; max-width: 500px; width: 100%; }
+  .modal h3 { margin-bottom: 16px; font-size: 1.2rem; }
+
+  /* TOOLTIP */
+  .tooltip { position: relative; display: inline-block; }
+  .tooltip:hover::after { content: attr(data-tip); position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%); background: #2d1b5e; color: var(--text); padding: 6px 10px; border-radius: 8px; font-size: 0.75rem; white-space: nowrap; z-index: 50; }
+
+  /* ACCESSIBILITY */
+  .a11y-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .a11y-btn { background: rgba(108,63,197,0.15); border: 1px solid rgba(108,63,197,0.3); border-radius: 8px; padding: 6px 12px; color: var(--text); cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+  .a11y-btn.on { background: rgba(108,63,197,0.4); border-color: var(--primary); }
+
+  /* MISC */
+  .divider { border: none; border-top: 1px solid rgba(108,63,197,0.2); margin: 20px 0; }
+  .flex-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .tag { background: rgba(108,63,197,0.2); border-radius: 6px; padding: 3px 8px; font-size: 0.75rem; color: #c084fc; }
+  .moral-box { background: rgba(245,158,11,0.08); border-left: 4px solid var(--secondary); padding: 14px 18px; border-radius: 0 12px 12px 0; margin-top: 16px; }
+  .moral-box p { color: var(--secondary); font-style: italic; font-size: 0.95rem; }
+
+  /* DARK MODE sepia */
+  body.sepia { filter: sepia(0.35); }
+  body.large-text { font-size: 110%; }
+  body.high-contrast { --bg: #000; --card: #111; --text: #fff; --muted: #ccc; }
+  body.dyslexia { font-family: 'OpenDyslexic', Arial, sans-serif; }
+
+  /* FLIP ANIMATION */
+  .page-flip-anim { animation: flipPage 0.4s ease-in-out; }
+  @keyframes flipPage { 0%{transform:perspective(800px) rotateY(0deg) scale(1)} 50%{transform:perspective(800px) rotateY(-8deg) scale(0.98)} 100%{transform:perspective(800px) rotateY(0deg) scale(1)} }
+</style>
+</head>
+<body>
+
+<!-- LOADING OVERLAY -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-title">✨ Crafting Your Story<span class="magic-dots"></span></div>
+  <div class="loading-step" id="loadingStep">Summoning imagination...</div>
+  <div class="progress-bar-wrap" style="width:300px">
+    <div class="progress-bar" id="loadingBar" style="width:5%"></div>
+  </div>
+</div>
+
+<!-- NOTIFICATION -->
+<div class="notif" id="notif"></div>
+
+<!-- VOCAB MODAL -->
+<div class="modal-bg" id="vocabModal">
+  <div class="modal">
+    <h3 id="vocabWord" style="color:#c084fc"></h3>
+    <p id="vocabDef" style="color:var(--muted);margin-top:8px;line-height:1.6"></p>
+    <button class="btn btn-secondary btn-sm" style="margin-top:16px" onclick="closeVocabModal()">Close</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">📚 StoryCraft AI <span>World-Class Interactive Storybook Platform</span></div>
+  <div class="header-badges">
+    <span class="badge">🤖 AI-Powered</span>
+    <span class="badge">🎨 12 Art Styles</span>
+    <span class="badge">🌍 15+ Languages</span>
+    <span class="badge">♿ Accessible</span>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('create')">✨ Create Story</div>
+  <div class="tab" onclick="switchTab('reader')">📖 Read</div>
+  <div class="tab" onclick="switchTab('library')">🗄️ Library</div>
+  <div class="tab" onclick="switchTab('dashboard')">📊 Dashboard</div>
+  <div class="tab" onclick="switchTab('settings')">⚙️ Settings</div>
+</div>
+
+<!-- ═══════════════ CREATE PANEL ═══════════════ -->
+<div class="panel active" id="panel-create">
+  <div class="section-title">✨ Create Your Story</div>
+  <div class="section-sub">Choose a template or build from scratch — AI generates a fully illustrated 8-16 page storybook in seconds.</div>
+
+  <!-- API KEY -->
+  <div class="api-key-section">
+    <h4>🔑 Groq AI Key (Required for Story Generation)</h4>
+    <div class="api-key-row">
+      <div class="form-group" style="flex:1;margin:0">
+        <input type="password" id="groqKey" placeholder="gsk_..." />
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="saveKey()">Save Key</button>
+    </div>
+    <p style="font-size:0.75rem;color:var(--muted);margin-top:6px">Get a free key at <a href="https://console.groq.com" target="_blank" style="color:#c084fc">console.groq.com</a> — stories are generated privately in your browser.</p>
+  </div>
+
+  <!-- TEMPLATES -->
+  <div class="card" style="margin-bottom:20px">
+    <h3>🌟 12 Ready-to-Generate Templates</h3>
+    <div class="templates-grid" id="templatesGrid"></div>
+    <p style="font-size:0.78rem;color:var(--muted)">Click a template to pre-fill the form below, or customize everything yourself.</p>
+  </div>
+
+  <!-- FORM -->
+  <div class="card">
+    <h3>📝 Story Details</h3>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Hero Name</label>
+        <input type="text" id="heroName" placeholder="e.g. Luna, Kai, Mia..." />
+      </div>
+      <div class="form-group">
+        <label>Story Topic / Adventure</label>
+        <input type="text" id="storyTopic" placeholder="e.g. discovers a magic forest..." />
+      </div>
+      <div class="form-group">
+        <label>Age Group</label>
+        <select id="ageGroup">
+          <option value="ages 2-4, very simple words, max 2 sentences per page">Ages 2–4 (Toddler)</option>
+          <option value="ages 4-6, simple sentences, fun rhymes" selected>Ages 4–6 (Pre-K)</option>
+          <option value="ages 6-8, longer sentences, vocabulary words">Ages 6–8 (Early Reader)</option>
+          <option value="ages 8-12, chapter-book style, richer vocabulary">Ages 8–12 (Middle Grade)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Art Style</label>
+        <select id="artStyle">
+          <option value="soft watercolor">🎨 Soft Watercolor</option>
+          <option value="bright cartoon">🌈 Bright Cartoon</option>
+          <option value="anime style">✨ Anime Style</option>
+          <option value="pixel art">🕹️ Pixel Art</option>
+          <option value="pencil sketch">✏️ Pencil Sketch</option>
+          <option value="oil painting">🖼️ Oil Painting</option>
+          <option value="paper cutout">✂️ Paper Cutout</option>
+          <option value="stained glass">🪟 Stained Glass</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Pages</label>
+        <select id="pageCount">
+          <option value="6">6 pages (Quick)</option>
+          <option value="8" selected>8 pages (Standard)</option>
+          <option value="12">12 pages (Full)</option>
+          <option value="16">16 pages (Epic)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Story Type</label>
+        <select id="storyType">
+          <option value="linear adventure with a clear beginning, middle, and end">📖 Linear Adventure</option>
+          <option value="choose-your-own-adventure with 2 choices per page (format choices as [Choice A: ...] [Choice B: ...])">🔀 Branching Story</option>
+          <option value="educational with facts and vocabulary woven throughout">🎓 Educational</option>
+          <option value="bedtime story that is soothing and peaceful">🌙 Bedtime Story</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Language</label>
+        <select id="language">
+          <option value="English">🇺🇸 English</option>
+          <option value="Spanish">🇪🇸 Spanish</option>
+          <option value="French">🇫🇷 French</option>
+          <option value="Portuguese">🇧🇷 Portuguese</option>
+          <option value="German">🇩🇪 German</option>
+          <option value="Italian">🇮🇹 Italian</option>
+          <option value="Japanese">🇯🇵 Japanese</option>
+          <option value="Mandarin Chinese">🇨🇳 Mandarin</option>
+          <option value="Arabic">🇸🇦 Arabic</option>
+          <option value="Hindi">🇮🇳 Hindi</option>
+          <option value="Korean">🇰🇷 Korean</option>
+          <option value="Dutch">🇳🇱 Dutch</option>
+          <option value="Polish">🇵🇱 Polish</option>
+          <option value="Russian">🇷🇺 Russian</option>
+          <option value="Swahili">🌍 Swahili</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Hero Traits (comma-separated)</label>
+        <input type="text" id="traits" placeholder="brave, curious, kind..." />
+      </div>
+    </div>
+    <div class="form-group" style="margin-top:14px">
+      <label>Special Wishes for Your Story</label>
+      <textarea id="extraDetails" rows="2" placeholder="e.g. include a dragon friend, moral about sharing, set in outer space..."></textarea>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" id="generateBtn" onclick="generateStory()">
+        ✨ Generate Story
+      </button>
+      <button class="btn btn-secondary" onclick="clearForm()">🔄 Reset Form</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ READER PANEL ═══════════════ -->
+<div class="panel" id="panel-reader">
+  <div id="reader">
+    <div class="reader-header">
+      <div>
+        <div class="section-title" id="readerTitle">My Story</div>
+        <div style="color:var(--muted);font-size:0.85rem" id="readerMeta"></div>
+      </div>
+      <div class="flex-row">
+        <div class="a11y-bar">
+          <button class="a11y-btn tooltip" data-tip="Sepia mode" onclick="toggleA11y('sepia')">🌅</button>
+          <button class="a11y-btn tooltip" data-tip="Large text" onclick="toggleA11y('large-text')">🔤</button>
+          <button class="a11y-btn tooltip" data-tip="High contrast" onclick="toggleA11y('high-contrast')">🌑</button>
+          <button class="a11y-btn tooltip" data-tip="Read aloud" onclick="readAloud()">🔊</button>
+          <button class="a11y-btn tooltip" data-tip="Auto-play (5s)" onclick="toggleAutoplay()">⏯️</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="book-container" id="bookContainer"></div>
+
+    <div class="flip-controls">
+      <button class="flip-btn" id="prevBtn" onclick="flipPrev()" disabled>◀</button>
+      <span class="page-indicator" id="pageIndicator">Page 0 of 0</span>
+      <button class="flip-btn" id="nextBtn" onclick="flipNext()">▶</button>
+    </div>
+
+    <div id="quizArea"></div>
+
+    <div class="moral-box" id="moralBox" style="display:none">
+      <strong style="color:var(--secondary)">🌟 The Moral of the Story:</strong>
+      <p id="moralText"></p>
+    </div>
+
+    <div class="btn-row" style="margin-top:20px">
+      <button class="btn btn-secondary btn-sm" onclick="restartStory()">🔄 Restart</button>
+      <button class="btn btn-accent btn-sm" onclick="downloadPDF()">📥 Save as PDF</button>
+      <button class="btn btn-secondary btn-sm" onclick="shareStory()">🔗 Share Link</button>
+    </div>
+  </div>
+
+  <div id="noStoryMsg" style="text-align:center;padding:60px;color:var(--muted)">
+    <div style="font-size:3rem;margin-bottom:12px">📚</div>
+    <div style="font-size:1.1rem">No story loaded yet!</div>
+    <div style="margin-top:8px;font-size:0.9rem">Head to the <strong style="color:#c084fc">Create Story</strong> tab to generate one.</div>
+  </div>
+</div>
+
+<!-- ═══════════════ LIBRARY PANEL ═══════════════ -->
+<div class="panel" id="panel-library">
+  <div class="section-title">🗄️ My Story Library</div>
+  <div class="section-sub">All stories you've created — saved locally in your browser.</div>
+  <div class="library-grid" id="libraryGrid">
+    <div class="lib-empty" style="grid-column:1/-1">
+      <div style="font-size:2.5rem">📚</div>
+      <div style="margin-top:8px">No stories yet — create your first one!</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ DASHBOARD PANEL ═══════════════ -->
+<div class="panel" id="panel-dashboard">
+  <div class="section-title">📊 Your Reading Dashboard</div>
+  <div class="section-sub">Track progress, badges, and learning achievements.</div>
+
+  <div class="stats-row">
+    <div class="stat-card"><div class="num" id="statStories">0</div><div class="lbl">Stories Created</div></div>
+    <div class="stat-card"><div class="num" id="statPages">0</div><div class="lbl">Pages Read</div></div>
+    <div class="stat-card"><div class="num" id="statQuizzes">0</div><div class="lbl">Quizzes Passed</div></div>
+    <div class="stat-card"><div class="num" id="statStreak">0</div><div class="lbl">Day Streak 🔥</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:20px">
+    <h3>🏆 Badges</h3>
+    <div class="badges-grid" id="badgesGrid"></div>
+  </div>
+
+  <div class="card">
+    <h3>📈 Reading Progress</h3>
+    <div id="progressList"><p style="color:var(--muted);font-size:0.9rem">Complete stories to see your progress here.</p></div>
+  </div>
+</div>
+
+<!-- ═══════════════ SETTINGS PANEL ═══════════════ -->
+<div class="panel" id="panel-settings">
+  <div class="section-title">⚙️ Settings</div>
+  <div class="card" style="margin-bottom:16px">
+    <h3>🔑 AI Configuration</h3>
+    <div class="form-group">
+      <label>Groq API Key</label>
+      <div class="api-key-row">
+        <input type="password" id="groqKeySettings" placeholder="gsk_..." />
+        <button class="btn btn-secondary btn-sm" onclick="saveKeyFromSettings()">Save</button>
+        <button class="btn btn-secondary btn-sm" onclick="clearKey()">Clear</button>
+      </div>
+    </div>
+    <p style="margin-top:10px;font-size:0.8rem;color:var(--muted)">Your key is stored locally in your browser and never sent anywhere except directly to Groq's API.</p>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <h3>♿ Accessibility</h3>
+    <div class="a11y-bar">
+      <button class="a11y-btn" onclick="toggleA11y('sepia')">🌅 Sepia Mode</button>
+      <button class="a11y-btn" onclick="toggleA11y('large-text')">🔤 Large Text</button>
+      <button class="a11y-btn" onclick="toggleA11y('high-contrast')">🌑 High Contrast</button>
+    </div>
+  </div>
+  <div class="card">
+    <h3>🗑️ Data Management</h3>
+    <p style="color:var(--muted);font-size:0.9rem;margin-bottom:14px">All stories are saved in your browser's local storage.</p>
+    <button class="btn btn-secondary btn-sm" onclick="clearAllData()">🗑️ Clear All Stories</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+let currentStory = null;
+let currentPage = 0;
+let autoplayInterval = null;
+let stats = JSON.parse(localStorage.getItem('sc_stats') || '{"stories":0,"pages":0,"quizzes":0,"streak":0,"lastDate":""}');
+let library = JSON.parse(localStorage.getItem('sc_library') || '[]');
+
+// ═══════════════════════════════════════════════
+// TEMPLATES
+// ═══════════════════════════════════════════════
+const TEMPLATES = [
+  { emoji:'🦁', name:'Animal Hero', topic:'a brave lion cub who learns to roar for the first time', traits:'brave, gentle, shy', style:'soft watercolor', age:1 },
+  { emoji:'🚀', name:'Space Explorer', topic:'travels to a planet made entirely of candy', traits:'curious, clever, adventurous', style:'bright cartoon', age:2 },
+  { emoji:'🌲', name:'Magic Forest', topic:'discovers a hidden treehouse village in the enchanted forest', traits:'kind, imaginative, fearless', style:'soft watercolor', age:1 },
+  { emoji:'🐉', name:'Dragon Friend', topic:'befriends a tiny dragon who is afraid of fire', traits:'compassionate, patient, funny', style:'anime style', age:1 },
+  { emoji:'🌊', name:'Ocean Quest', topic:'dives deep to find the lost pearl of the sea queen', traits:'daring, fast, loyal', style:'oil painting', age:2 },
+  { emoji:'🧩', name:'Puzzle Kingdom', topic:'must solve magical riddles to save the kingdom', traits:'smart, calm, determined', style:'pixel art', age:2 },
+  { emoji:'🌙', name:'Dreamland', topic:'explores a dreamland where clouds are made of pillows', traits:'gentle, dreamy, caring', style:'soft watercolor', age:0 },
+  { emoji:'🦋', name:'Bug's World', topic:'a tiny butterfly learns the importance of being herself', traits:'unique, shy, blossoming', style:'pencil sketch', age:1 },
+  { emoji:'🏔️', name:'Mountain Climb', topic:'climbs the world's tallest rainbow mountain', traits:'persistent, strong, humble', style:'paper cutout', age:1 },
+  { emoji:'🎵', name:'Music Magic', topic:'discovers that music can bring people together', traits:'musical, joyful, generous', style:'stained glass', age:1 },
+  { emoji:'🌱', name:'Garden Guardian', topic:'plants a magical seed that grows into a tree of wishes', traits:'nurturing, hopeful, patient', style:'soft watercolor', age:0 },
+  { emoji:'🤖', name:'Robot Pal', topic:'a little robot learns what it means to have a heart', traits:'logical, curious, warm', style:'bright cartoon', age:2 },
+];
+
+function renderTemplates() {
+  const grid = document.getElementById('templatesGrid');
+  grid.innerHTML = TEMPLATES.map((t, i) => `
+    <div class="template-card" onclick="selectTemplate(${i})" id="tmpl_${i}">
+      <div class="emoji">${t.emoji}</div>
+      <div class="name">${t.name}</div>
+      <div class="style">${t.style}</div>
+    </div>
+  `).join('');
+}
+
+function selectTemplate(i) {
+  document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('tmpl_' + i).classList.add('selected');
+  const t = TEMPLATES[i];
+  document.getElementById('storyTopic').value = t.topic;
+  document.getElementById('traits').value = t.traits;
+  document.getElementById('artStyle').value = t.style;
+  document.getElementById('ageGroup').selectedIndex = t.age;
+  if (!document.getElementById('heroName').value) document.getElementById('heroName').value = 'Mia';
+  showNotif('Template loaded! ✨ Customize below and hit Generate.');
+}
+
+// ═══════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+  if (name === 'library') renderLibrary();
+  if (name === 'dashboard') renderDashboard();
+}
+
+// ═══════════════════════════════════════════════
+// API KEY
+// ═══════════════════════════════════════════════
+function saveKey() {
+  const k = document.getElementById('groqKey').value.trim();
+  if (!k) return showNotif('Please enter your Groq API key first.', true);
+  localStorage.setItem('sc_groq_key', k);
+  document.getElementById('groqKeySettings').value = k;
+  showNotif('✅ API key saved! Ready to generate stories.');
+}
+function saveKeyFromSettings() {
+  const k = document.getElementById('groqKeySettings').value.trim();
+  if (!k) return showNotif('Enter a key first.', true);
+  localStorage.setItem('sc_groq_key', k);
+  document.getElementById('groqKey').value = k;
+  showNotif('✅ API key saved!');
+}
+function clearKey() {
+  localStorage.removeItem('sc_groq_key');
+  document.getElementById('groqKeySettings').value = '';
+  document.getElementById('groqKey').value = '';
+  showNotif('Key cleared.');
+}
+function getKey() { return localStorage.getItem('sc_groq_key') || document.getElementById('groqKey').value.trim(); }
+
+// ═══════════════════════════════════════════════
+// GENERATE STORY
+// ═══════════════════════════════════════════════
+async function generateStory() {
+  const key = getKey();
+  if (!key) { showNotif('Please enter your Groq API key first!', true); return; }
+
+  const hero = document.getElementById('heroName').value.trim() || 'Alex';
+  const topic = document.getElementById('storyTopic').value.trim();
+  if (!topic) { showNotif('Please enter a story topic!', true); return; }
+
+  const age = document.getElementById('ageGroup').value;
+  const style = document.getElementById('artStyle').value;
+  const pages = parseInt(document.getElementById('pageCount').value);
+  const type = document.getElementById('storyType').value;
+  const lang = document.getElementById('language').value;
+  const traits = document.getElementById('traits').value || 'brave, kind';
+  const extra = document.getElementById('extraDetails').value;
+
+  showLoading('Summoning imagination...');
+  setLoadingProgress(10);
+  document.getElementById('generateBtn').disabled = true;
+
+  const prompt = `Create a ${pages}-page children's storybook for ${age}.
+Hero: ${hero} (${traits}).
+Story: ${hero} ${topic}.
+Type: ${type}.
+Language: ${lang}.
+Art style: ${style}.
+${extra ? 'Special notes: ' + extra : ''}
+
+Return ONLY valid JSON in this exact format, no markdown:
+{
+  "title": "Story title",
+  "moral": "The moral/lesson of this story",
+  "vocabulary": [{"word":"example","definition":"meaning"}],
+  "discussion_prompts": ["prompt1","prompt2","prompt3"],
+  "quiz": [
+    {"question":"?","options":["a","b","c","d"],"answer":0},
+    {"question":"?","options":["a","b","c","d"],"answer":1},
+    {"question":"?","options":["a","b","c","d"],"answer":2}
+  ],
+  "pages": [
+    {"page_number":1,"text":"story text for this page (keep appropriate for age)","image_prompt":"detailed visual description for illustration (describe scene, characters, colors, mood)"}
+  ]
+}`;
+
+  try {
+    setLoadingStep('Calling Groq AI...');
+    setLoadingProgress(20);
+
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.85,
+        max_tokens: 4000
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error?.message || 'Groq API error');
+    }
+
+    setLoadingProgress(50);
+    setLoadingStep('Parsing story...');
+
+    const data = await response.json();
+    let raw = data.choices[0].message.content.trim();
+    // Strip markdown code fences if present
+    raw = raw.replace(/^```json?\s*/i, '').replace(/\s*```$/i, '').trim();
+
+    let story;
+    try { story = JSON.parse(raw); }
+    catch(e) {
+      // Try to extract JSON from response
+      const match = raw.match(/\{[\s\S]+\}/);
+      if (match) story = JSON.parse(match[0]);
+      else throw new Error('Could not parse story JSON');
+    }
+
+    story.hero = hero;
+    story.artStyle = style;
+    story.language = lang;
+    story.createdAt = new Date().toISOString();
+    story.id = Date.now().toString();
+
+    setLoadingStep('Generating illustrations...');
+
+    // Generate images via Pollinations.ai
+    for (let i = 0; i < story.pages.length; i++) {
+      setLoadingProgress(55 + Math.round((i / story.pages.length) * 40));
+      setLoadingStep(`Illustrating page ${i + 1} of ${story.pages.length}...`);
+      const imgPrompt = encodeURIComponent(story.pages[i].image_prompt + ', ' + style + ', children's book illustration, high quality, colorful');
+      story.pages[i].image_url = `https://image.pollinations.ai/prompt/${imgPrompt}?width=600&height=450&nologo=true&seed=${story.id}${i}`;
+      await new Promise(r => setTimeout(r, 200)); // small delay
+    }
+
+    // Cover image
+    const coverPrompt = encodeURIComponent(`${story.title}, ${style}, children's book cover, magical, colorful, whimsical`);
+    story.cover_image_url = `https://image.pollinations.ai/prompt/${coverPrompt}?width=600&height=450&nologo=true&seed=${story.id}cover`;
+
+    setLoadingProgress(100);
+    setLoadingStep('Almost ready...');
+    await new Promise(r => setTimeout(r, 500));
+
+    hideLoading();
+    currentStory = story;
+    currentPage = -1; // -1 = cover page
+
+    // Save to library
+    library.unshift({ id: story.id, title: story.title, hero: story.hero, cover: story.cover_image_url, createdAt: story.createdAt, pageCount: story.pages.length, artStyle: story.artStyle });
+    if (library.length > 20) library = library.slice(0, 20);
+    localStorage.setItem('sc_library', JSON.stringify(library));
+    localStorage.setItem('sc_story_' + story.id, JSON.stringify(story));
+
+    // Update stats
+    stats.stories++;
+    stats.lastDate = new Date().toDateString();
+    saveStats();
+
+    showNotif('🎉 Your story is ready! Opening the reader...');
+    document.getElementById('generateBtn').disabled = false;
+
+    // Switch to reader
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelector('.tab:nth-child(2)').classList.add('active');
+    document.getElementById('panel-reader').classList.add('active');
+    renderReader();
+
+  } catch(err) {
+    hideLoading();
+    document.getElementById('generateBtn').disabled = false;
+    showNotif('Error: ' + err.message + '. Check your API key.', true);
+  }
+}
+
+// ═══════════════════════════════════════════════
+// READER
+// ═══════════════════════════════════════════════
+function renderReader() {
+  if (!currentStory) { document.getElementById('reader').style.display='none'; document.getElementById('noStoryMsg').style.display='block'; return; }
+  document.getElementById('reader').style.display='block';
+  document.getElementById('noStoryMsg').style.display='none';
+  document.getElementById('readerTitle').textContent = currentStory.title;
+  document.getElementById('readerMeta').textContent = `📖 Hero: ${currentStory.hero} | 🎨 ${currentStory.artStyle} | 📄 ${currentStory.pages.length} pages`;
+  renderPage();
+}
+
+function renderPage() {
+  if (!currentStory) return;
+  const container = document.getElementById('bookContainer');
+  container.classList.add('page-flip-anim');
+  setTimeout(() => container.classList.remove('page-flip-anim'), 400);
+
+  if (currentPage === -1) {
+    // Cover
+    container.innerHTML = `
+      <div class="cover-page">
+        <div class="star-decoration" style="top:10px;left:10px">✦</div>
+        <div class="star-decoration" style="top:20px;right:30px">✦</div>
+        <div class="star-decoration" style="bottom:30px;left:50px">✦</div>
+        <img src="${currentStory.cover_image_url}" alt="Cover" onerror="this.style.display='none'" />
+        <div class="cover-title">${currentStory.title}</div>
+        <div class="cover-subtitle">A story for ${currentStory.hero} · ${currentStory.artStyle}</div>
+        <div style="margin-top:16px">
+          ${currentStory.pages.length} pages · ${currentStory.language}
+        </div>
+      </div>`;
+    document.getElementById('prevBtn').disabled = true;
+    document.getElementById('nextBtn').disabled = false;
+    document.getElementById('pageIndicator').textContent = 'Cover';
+    document.getElementById('quizArea').innerHTML = '';
+    document.getElementById('moralBox').style.display = 'none';
+    return;
+  }
+
+  if (currentPage >= currentStory.pages.length) {
+    // End page
+    renderEndPage();
+    return;
+  }
+
+  const page = currentStory.pages[currentPage];
+  // Highlight vocab words
+  let text = page.text;
+  if (currentStory.vocabulary) {
+    currentStory.vocabulary.forEach(v => {
+      const re = new RegExp('\b(' + v.word.replace(/[.*+?^${}()|[\]\]/g,'\$&') + ')\b', 'gi');
+      text = text.replace(re, `<span class="vocab-chip" onclick="showVocab('${v.word.replace(/'/g,"\'")}','${v.definition.replace(/'/g,"\'")}')">$1</span>`);
+    });
+  }
+
+  container.innerHTML = `
+    <div class="page-view">
+      <div class="page-left">
+        <div class="page-num">Page ${page.page_number} of ${currentStory.pages.length}</div>
+        <div class="page-text">${text}</div>
+        ${currentStory.vocabulary && currentStory.vocabulary.length ? '<div style="margin-top:12px;font-size:0.72rem;color:var(--muted)">💡 Tap highlighted words to learn them</div>' : ''}
+      </div>
+      <div class="page-right">
+        <img src="${page.image_url}" alt="Illustration" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22><rect fill=%22%231a1133%22 width=%22400%22 height=%22300%22/><text x=%22200%22 y=%22150%22 font-size=%2240%22 text-anchor=%22middle%22 fill=%22%236c3fc5%22>🎨</text></svg>'" />
+      </div>
+    </div>`;
+
+  // Update page stats
+  stats.pages++;
+  saveStats();
+
+  document.getElementById('prevBtn').disabled = (currentPage <= -1);
+  document.getElementById('nextBtn').disabled = false;
+  document.getElementById('pageIndicator').textContent = `Page ${currentPage + 1} of ${currentStory.pages.length}`;
+
+  // Show quiz on last page
+  if (currentPage === currentStory.pages.length - 1) {
+    renderQuiz();
+  } else {
+    document.getElementById('quizArea').innerHTML = '';
+    document.getElementById('moralBox').style.display = 'none';
+  }
+}
+
+function renderEndPage() {
+  document.getElementById('bookContainer').innerHTML = `
+    <div class="cover-page" style="min-height:300px">
+      <div style="font-size:3rem">🎉</div>
+      <div class="cover-title" style="margin-top:12px">The End!</div>
+      <div style="color:var(--muted);margin-top:8px">You've finished "${currentStory.title}"</div>
+      <div style="margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-primary btn-sm" onclick="restartStory()">🔄 Read Again</button>
+        <button class="btn btn-secondary btn-sm" onclick="downloadPDF()">📥 Save PDF</button>
+      </div>
+    </div>`;
+  document.getElementById('prevBtn').disabled = false;
+  document.getElementById('nextBtn').disabled = true;
+  document.getElementById('pageIndicator').textContent = 'The End!';
+  document.getElementById('moralBox').style.display = 'block';
+  document.getElementById('moralText').textContent = currentStory.moral || 'Be brave, be kind, and never stop exploring.';
+}
+
+function flipNext() {
+  if (!currentStory) return;
+  if (currentPage < currentStory.pages.length) { currentPage++; renderPage(); }
+}
+function flipPrev() {
+  if (!currentStory) return;
+  if (currentPage > -1) { currentPage--; renderPage(); }
+}
+function restartStory() { currentPage = -1; renderPage(); }
+
+function renderQuiz() {
+  if (!currentStory || !currentStory.quiz || !currentStory.quiz.length) return;
+  const q = currentStory.quiz[Math.floor(Math.random() * currentStory.quiz.length)];
+  document.getElementById('quizArea').innerHTML = `
+    <div class="quiz-card">
+      <h4>📝 Quick Quiz!</h4>
+      <p style="font-size:0.95rem">${q.question}</p>
+      <div class="quiz-options">
+        ${q.options.map((o, i) => `<div class="quiz-option" onclick="answerQuiz(this, ${i === q.answer})">${o}</div>`).join('')}
+      </div>
+      <div class="quiz-result" id="quizResult"></div>
+    </div>`;
+}
+
+function answerQuiz(el, correct) {
+  document.querySelectorAll('.quiz-option').forEach(o => o.style.pointerEvents = 'none');
+  el.classList.add(correct ? 'correct' : 'wrong');
+  const res = document.getElementById('quizResult');
+  res.style.display = 'block';
+  if (correct) {
+    res.style.background = 'rgba(16,185,129,0.15)';
+    res.style.color = '#6ee7b7';
+    res.textContent = '🎉 Correct! Great job!';
+    stats.quizzes++;
+    saveStats();
+    showNotif('🎉 Correct answer! +1 quiz point!');
+  } else {
+    res.style.background = 'rgba(239,68,68,0.15)';
+    res.style.color = '#fca5a5';
+    res.textContent = '❌ Not quite — keep reading to understand better!';
+  }
+}
+
+// ═══════════════════════════════════════════════
+// ACCESSIBILITY
+// ═══════════════════════════════════════════════
+function toggleA11y(cls) {
+  document.body.classList.toggle(cls);
+  showNotif(document.body.classList.contains(cls) ? cls.replace('-',' ') + ' on' : cls.replace('-',' ') + ' off');
+}
+
+let speechSynth = window.speechSynthesis;
+let speakingUtterance = null;
+function readAloud() {
+  if (speechSynth.speaking) { speechSynth.cancel(); return; }
+  if (!currentStory || currentPage < 0 || currentPage >= currentStory.pages.length) return;
+  const text = currentStory.pages[currentPage].text.replace(/<[^>]+>/g, '');
+  speakingUtterance = new SpeechSynthesisUtterance(text);
+  speakingUtterance.rate = 0.85;
+  speechSynth.speak(speakingUtterance);
+  showNotif('🔊 Reading aloud...');
+}
+
+function toggleAutoplay() {
+  if (autoplayInterval) {
+    clearInterval(autoplayInterval);
+    autoplayInterval = null;
+    showNotif('⏸ Autoplay stopped.');
+  } else {
+    autoplayInterval = setInterval(() => {
+      if (!currentStory || currentPage >= currentStory.pages.length) {
+        clearInterval(autoplayInterval); autoplayInterval = null; return;
+      }
+      flipNext();
+    }, 5000);
+    showNotif('▶️ Autoplay started — 5s per page.');
+  }
+}
+
+// ═══════════════════════════════════════════════
+// VOCAB MODAL
+// ═══════════════════════════════════════════════
+function showVocab(word, def) {
+  document.getElementById('vocabWord').textContent = word;
+  document.getElementById('vocabDef').textContent = def;
+  document.getElementById('vocabModal').classList.add('active');
+}
+function closeVocabModal() { document.getElementById('vocabModal').classList.remove('active'); }
+
+// ═══════════════════════════════════════════════
+// LIBRARY
+// ═══════════════════════════════════════════════
+function renderLibrary() {
+  const grid = document.getElementById('libraryGrid');
+  if (!library.length) {
+    grid.innerHTML = '<div class="lib-empty" style="grid-column:1/-1"><div style="font-size:2.5rem">📚</div><div style="margin-top:8px">No stories yet!</div></div>';
+    return;
+  }
+  grid.innerHTML = library.map(s => `
+    <div class="lib-card" onclick="loadFromLibrary('${s.id}')">
+      <img src="${s.cover}" alt="${s.title}" loading="lazy" onerror="this.style.background='#1a1133';this.style.minHeight='120px'" />
+      <div class="lib-info">
+        <div class="lib-title">${s.title}</div>
+        <div class="lib-meta">🦸 ${s.hero} · ${s.pageCount} pages</div>
+        <div class="lib-meta">🎨 ${s.artStyle}</div>
+      </div>
+    </div>`).join('');
+}
+
+function loadFromLibrary(id) {
+  const saved = localStorage.getItem('sc_story_' + id);
+  if (!saved) { showNotif('Story data not found.', true); return; }
+  currentStory = JSON.parse(saved);
+  currentPage = -1;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelector('.tab:nth-child(2)').classList.add('active');
+  document.getElementById('panel-reader').classList.add('active');
+  renderReader();
+  showNotif('📖 Loading "' + currentStory.title + '"...');
+}
+
+// ═══════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════
+const BADGES = [
+  { icon:'📚', name:'First Story', condition: s => s.stories >= 1 },
+  { icon:'🔥', name:'3 Stories', condition: s => s.stories >= 3 },
+  { icon:'🏆', name:'10 Stories', condition: s => s.stories >= 10 },
+  { icon:'📖', name:'50 Pages', condition: s => s.pages >= 50 },
+  { icon:'🧠', name:'Quiz Master', condition: s => s.quizzes >= 5 },
+  { icon:'⚡', name:'Speed Reader', condition: s => s.pages >= 100 },
+  { icon:'🌍', name:'Multilingual', condition: () => library.some(s => s.language && s.language !== 'English') },
+  { icon:'🎨', name:'Art Lover', condition: () => new Set(library.map(s => s.artStyle)).size >= 4 },
+];
+function renderDashboard() {
+  document.getElementById('statStories').textContent = stats.stories;
+  document.getElementById('statPages').textContent = stats.pages;
+  document.getElementById('statQuizzes').textContent = stats.quizzes;
+  document.getElementById('statStreak').textContent = stats.streak;
+
+  document.getElementById('badgesGrid').innerHTML = BADGES.map(b => `
+    <div class="badge-item ${b.condition(stats) ? '' : 'locked'}">
+      <div class="b-icon">${b.icon}</div>
+      <div class="b-name">${b.name}</div>
+    </div>`).join('');
+
+  document.getElementById('progressList').innerHTML = library.slice(0, 5).map(s => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(108,63,197,0.1)">
+      <img src="${s.cover}" style="width:48px;height:36px;object-fit:cover;border-radius:6px" />
+      <div><div style="font-size:0.9rem;font-weight:600">${s.title}</div><div style="font-size:0.75rem;color:var(--muted)">${s.pageCount} pages · ${new Date(s.createdAt).toLocaleDateString()}</div></div>
+    </div>`).join('') || '<p style="color:var(--muted);font-size:0.9rem">Create your first story to track progress!</p>';
+}
+
+// ═══════════════════════════════════════════════
+// EXPORT PDF
+// ═══════════════════════════════════════════════
+function downloadPDF() {
+  if (!currentStory) return;
+  const pages = currentStory.pages.map((p, i) => `<div style="page-break-after:always;padding:40px;font-family:Georgia,serif">
+    <h2 style="color:#6c3fc5;margin-bottom:16px">${currentStory.title} — Page ${i+1}</h2>
+    <img src="${p.image_url}" style="width:100%;max-height:350px;object-fit:cover;border-radius:12px;margin-bottom:16px" />
+    <p style="font-size:1.1rem;line-height:1.7;color:#2d1b5e">${p.text.replace(/<[^>]+>/g,'')}</p>
+  </div>`).join('');
+  const win = window.open('', '_blank');
+  win.document.write(`<html><head><title>${currentStory.title}</title></head><body>${pages}</body></html>`);
+  win.document.close();
+  win.print();
+}
+
+function shareStory() {
+  if (navigator.share && currentStory) {
+    navigator.share({ title: currentStory.title, text: 'Check out this AI-generated storybook: ' + currentStory.title });
+  } else {
+    showNotif('📋 Share: Copy this page URL after saving the story!');
+  }
+}
+
+// ═══════════════════════════════════════════════
+// UTILITY
+// ═══════════════════════════════════════════════
+function showLoading(msg) { document.getElementById('loadingOverlay').classList.add('active'); setLoadingStep(msg); }
+function hideLoading() { document.getElementById('loadingOverlay').classList.remove('active'); }
+function setLoadingStep(msg) { document.getElementById('loadingStep').textContent = msg; }
+function setLoadingProgress(pct) { document.getElementById('loadingBar').style.width = pct + '%'; }
+
+let notifTimeout;
+function showNotif(msg, isErr) {
+  const n = document.getElementById('notif');
+  n.textContent = msg;
+  n.className = 'notif show' + (isErr ? ' error' : '');
+  clearTimeout(notifTimeout);
+  notifTimeout = setTimeout(() => n.classList.remove('show'), 3200);
+}
+
+function saveStats() {
+  localStorage.setItem('sc_stats', JSON.stringify(stats));
+}
+
+function clearForm() {
+  ['heroName','storyTopic','traits','extraDetails'].forEach(id => document.getElementById(id).value = '');
+  document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
+}
+
+function clearAllData() {
+  if (!confirm('Clear all saved stories? This cannot be undone.')) return;
+  Object.keys(localStorage).filter(k => k.startsWith('sc_')).forEach(k => localStorage.removeItem(k));
+  library = [];
+  stats = { stories:0, pages:0, quizzes:0, streak:0, lastDate:'' };
+  showNotif('All data cleared.');
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+renderTemplates();
+const savedKey = localStorage.getItem('sc_groq_key');
+if (savedKey) { document.getElementById('groqKey').value = savedKey; document.getElementById('groqKeySettings').value = savedKey; }
+
+// Streak check
+const today = new Date().toDateString();
+if (stats.lastDate !== today && stats.lastDate) {
+  const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+  if (stats.lastDate === yesterday.toDateString()) stats.streak++;
+  else stats.streak = 0;
+} else if (!stats.lastDate) stats.streak = 0;
+</script>
+</body>
+</html>
