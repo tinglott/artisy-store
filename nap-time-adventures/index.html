@@ -1,95 +1,527 @@
-<!doctype html>
-<html data-theme="alfred-light">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5" type="text/css" />
-    <style>/* Instant-app theme. Values mirror the canonical brand tokens in
-   app/webclient/src/index.css (Tasklet Brand Book). This is a standalone bundle
-   that cannot import those tokens, so the hexes are duplicated here — keep them
-   in sync with the alfred-light / alfred-dark theme blocks in index.css. */
-[data-theme='alfred-light'] {
-  color-scheme: light;
-  --radius-selector: 0rem;
-  --radius-field: 0.25rem;
-  --radius-box: 0.25rem;
-  --size-selector: 0.25rem;
-  --size-field: 0.25rem;
-  --border: 1px;
-  --depth: 1;
-  --noise: 0;
-  --color-base-100: #f5f5f5;
-  --color-base-200: #eaeaea;
-  --color-base-300: #dfdfdf;
-  --color-base-content: #121215;
-  --color-primary: #4e814e;
-  --color-primary-content: #f5f5f5;
-  --color-secondary: #676caa;
-  --color-secondary-content: #121215;
-  --color-accent: #676caa;
-  --color-accent-content: #121215;
-  --color-neutral: #09342a;
-  --color-neutral-content: #f5f5f5;
-  --color-info: #676caa;
-  --color-info-content: #121215;
-  --color-success: #4e814e;
-  --color-success-content: #f5f5f5;
-  --color-warning: #b8860b;
-  --color-warning-content: #121215;
-  --color-coral: #ff7542;
-  --color-coral-80: #803b21;
-  --color-error: #9e3d32;
-  --color-error-content: #f5f5f5;
-}
-[data-theme='alfred-dark'] {
-  color-scheme: dark;
-  --radius-selector: 0rem;
-  --radius-field: 0.25rem;
-  --radius-box: 0.25rem;
-  --size-selector: 0.25rem;
-  --size-field: 0.25rem;
-  --border: 1px;
-  --depth: 1;
-  --noise: 0;
-  --color-base-100: #121215;
-  --color-base-200: #1a1a1e;
-  --color-base-300: #252529;
-  --color-base-content: #f5f5f5;
-  --color-primary: #4e814e;
-  --color-primary-content: #f5f5f5;
-  --color-secondary: #9aa2ff;
-  --color-secondary-content: #121215;
-  --color-accent: #9aa2ff;
-  --color-accent-content: #121215;
-  --color-neutral: #3a3a42;
-  --color-neutral-content: #b8b8c0;
-  --color-info: #9aa2ff;
-  --color-info-content: #121215;
-  --color-success: #4e814e;
-  --color-success-content: #f5f5f5;
-  --color-warning: #b8860b;
-  --color-warning-content: #121215;
-  --color-coral: #ff7542;
-  --color-coral-80: #803b21;
-  --color-error: #9e3d32;
-  --color-error-content: #f5f5f5;
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Nap Time Adventures 🌙</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#0a0a1a;--card:#13132a;--card2:#1a1a35;--accent:#7c5cbf;--gold:#d4af37;
+    --teal:#4ecdc4;--text:#e8e0f0;--muted:#9b8fb0;--border:#2a2a4a;
+  }
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;min-height:100vh}
+  header{background:linear-gradient(135deg,#1a0a3a,#0a1a3a);padding:16px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border)}
+  header h1{font-size:1.3rem;background:linear-gradient(90deg,var(--gold),var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700}
+  header p{font-size:.75rem;color:var(--muted)}
+  .tabs{display:flex;background:var(--card);border-bottom:1px solid var(--border);overflow-x:auto}
+  .tab{flex:1;min-width:60px;padding:12px 8px;text-align:center;cursor:pointer;border:none;background:none;color:var(--muted);font-size:.75rem;transition:.2s;border-bottom:2px solid transparent}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+  .tab:hover{color:var(--text)}
+  .tab .emoji{font-size:1.2rem;display:block}
+  main{padding:16px;max-width:600px;margin:0 auto}
+  .section{display:none}
+  .section.active{display:block}
+  /* Sound Grid */
+  .sound-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
+  .sound-card{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;transition:.2s;text-align:center}
+  .sound-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+  .sound-card.active{border-color:var(--teal);background:#0a2a2a}
+  .sound-card .s-emoji{font-size:2rem;margin-bottom:6px}
+  .sound-card .s-name{font-size:.85rem;font-weight:600}
+  .sound-card .s-desc{font-size:.7rem;color:var(--muted);margin-top:2px}
+  .sound-card .s-fav{font-size:.8rem;float:right;background:none;border:none;cursor:pointer}
+  /* Player */
+  .player-card{background:var(--card2);border-radius:16px;padding:24px;text-align:center;border:1px solid var(--border);margin-top:12px}
+  .now-playing-emoji{font-size:4rem;margin-bottom:12px;animation:pulse 3s ease-in-out infinite}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+  .now-playing-name{font-size:1.3rem;font-weight:700;margin-bottom:4px}
+  .now-playing-sub{font-size:.8rem;color:var(--muted);margin-bottom:20px}
+  .timer-display{font-size:2.5rem;font-weight:700;color:var(--gold);margin:16px 0;font-variant-numeric:tabular-nums}
+  .controls{display:flex;gap:12px;justify-content:center;margin:16px 0}
+  .btn{padding:10px 20px;border:none;border-radius:8px;cursor:pointer;font-size:.9rem;font-weight:600;transition:.2s}
+  .btn-primary{background:var(--accent);color:#fff}
+  .btn-primary:hover{background:#9b6fe0}
+  .btn-secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
+  .btn-secondary:hover{border-color:var(--accent)}
+  .btn-gold{background:var(--gold);color:#000}
+  .volume-row{display:flex;align-items:center;gap:10px;margin-top:12px}
+  .volume-row label{font-size:.8rem;color:var(--muted);min-width:55px}
+  input[type=range]{flex:1;accent-color:var(--accent)}
+  .timer-presets{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+  .preset{padding:6px 14px;border:1px solid var(--border);border-radius:20px;cursor:pointer;font-size:.75rem;background:var(--card);color:var(--muted);transition:.2s}
+  .preset:hover,.preset.active{border-color:var(--teal);color:var(--teal)}
+  /* Journal */
+  .journal-form{background:var(--card2);border-radius:12px;padding:16px;margin-bottom:16px;border:1px solid var(--border)}
+  .journal-form textarea{width:100%;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-size:.85rem;resize:vertical;min-height:80px;margin:8px 0}
+  .mood-row{display:flex;gap:8px;margin:8px 0}
+  .mood-btn{font-size:1.4rem;background:none;border:2px solid var(--border);border-radius:8px;padding:4px 10px;cursor:pointer;transition:.2s}
+  .mood-btn.selected{border-color:var(--gold)}
+  .journal-entry{background:var(--card2);border-radius:10px;padding:12px;margin-bottom:10px;border:1px solid var(--border)}
+  .journal-entry .je-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .journal-entry .je-date{font-size:.7rem;color:var(--muted)}
+  .journal-entry .je-mood{font-size:1.2rem}
+  .journal-entry p{font-size:.82rem;line-height:1.5}
+  .journal-entry .del-btn{background:none;border:none;color:#e57373;cursor:pointer;font-size:.8rem}
+  /* Analytics */
+  .stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+  .stat-card{background:var(--card2);border-radius:12px;padding:16px;border:1px solid var(--border);text-align:center}
+  .stat-card .stat-val{font-size:2rem;font-weight:700;color:var(--gold)}
+  .stat-card .stat-label{font-size:.75rem;color:var(--muted);margin-top:4px}
+  .session-list{margin-top:10px}
+  .session-item{background:var(--card2);border-radius:10px;padding:12px;margin-bottom:8px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+  .session-item .si-info{font-size:.82rem}
+  .session-item .si-dur{font-size:.9rem;color:var(--teal);font-weight:600}
+  .session-item .del-btn{background:none;border:none;color:#e57373;cursor:pointer}
+  /* Settings */
+  .settings-group{background:var(--card2);border-radius:12px;padding:16px;margin-bottom:14px;border:1px solid var(--border)}
+  .settings-group h3{font-size:.85rem;color:var(--gold);margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em}
+  .setting-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)}
+  .setting-row:last-child{border-bottom:none}
+  .setting-row label{font-size:.85rem}
+  .setting-row small{display:block;color:var(--muted);font-size:.7rem}
+  select{background:var(--card);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:6px;font-size:.82rem}
+  .toggle{position:relative;display:inline-block;width:40px;height:22px}
+  .toggle input{opacity:0;width:0;height:0}
+  .slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#333;border-radius:22px;transition:.3s}
+  .slider:before{content:"";position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s}
+  input:checked+.slider{background:var(--accent)}
+  input:checked+.slider:before{transform:translateX(18px)}
+  /* Toast */
+  .toast{position:fixed;bottom:20px;right:20px;background:var(--accent);color:#fff;padding:10px 18px;border-radius:10px;font-size:.85rem;z-index:999;animation:slideIn .3s ease;pointer-events:none}
+  @keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+  .section-title{font-size:1rem;font-weight:700;margin-bottom:4px;color:var(--gold)}
+  .section-sub{font-size:.78rem;color:var(--muted);margin-bottom:14px}
+  .fav-badge{background:var(--gold);color:#000;font-size:.65rem;padding:1px 5px;border-radius:8px;font-weight:700;margin-left:4px}
+  .store-link{display:block;text-align:center;margin-top:24px;padding:12px;background:linear-gradient(135deg,var(--accent),#4a2a8f);border-radius:12px;color:#fff;text-decoration:none;font-weight:700;font-size:.9rem}
+  .store-link:hover{opacity:.9}
+  .empty{text-align:center;padding:32px;color:var(--muted);font-size:.85rem}
+  .empty .e-emoji{font-size:2.5rem;margin-bottom:8px}
 </style>
-    <link rel="stylesheet" href="styles.css" />
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body>
 
-    <script>
-      (function() {
-        var theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'alfred-dark' : 'alfred-light';
-        document.documentElement.setAttribute('data-theme', theme);
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
-          document.documentElement.setAttribute('data-theme', e.matches ? 'alfred-dark' : 'alfred-light');
-        });
-      })();
-    </script>
-  </head>
-  <body class="bg-base-100 text-base-content">
-    <div id="root"></div>
-    <script src="bundle.js"></script>
-  </body>
+<header>
+  <span style="font-size:1.8rem">🌙</span>
+  <div>
+    <h1>Nap Time Adventures</h1>
+    <p>Your therapeutic sleep & relaxation companion</p>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('player')"><span class="emoji">▶️</span>Play</button>
+  <button class="tab" onclick="switchTab('sounds')"><span class="emoji">🎵</span>Sounds</button>
+  <button class="tab" onclick="switchTab('journal')"><span class="emoji">📔</span>Journal</button>
+  <button class="tab" onclick="switchTab('history')"><span class="emoji">📋</span>History</button>
+  <button class="tab" onclick="switchTab('settings')"><span class="emoji">⚙️</span>Settings</button>
+</div>
+
+<main>
+
+<!-- PLAYER -->
+<div class="section active" id="sec-player">
+  <div class="player-card">
+    <div class="now-playing-emoji" id="nowEmoji">🌙</div>
+    <div class="now-playing-name" id="nowName">Select a Sound</div>
+    <div class="now-playing-sub" id="nowDesc">Choose from the Sounds tab to begin</div>
+    <div class="timer-display" id="timerDisplay">00:00:00</div>
+    <div class="controls">
+      <button class="btn btn-primary" id="playBtn" onclick="togglePlay()">▶ Start</button>
+      <button class="btn btn-secondary" onclick="resetTimer()">↺ Reset</button>
+      <button class="btn btn-secondary" onclick="saveSession()">💾 Save</button>
+    </div>
+    <div style="margin-top:12px;font-size:.75rem;color:var(--muted)">Sleep Timer</div>
+    <div class="timer-presets">
+      <div class="preset" onclick="setTimer(15)">15 min</div>
+      <div class="preset" onclick="setTimer(30)">30 min</div>
+      <div class="preset" onclick="setTimer(60)">1 hr</div>
+      <div class="preset" onclick="setTimer(90)">90 min</div>
+      <div class="preset" onclick="setTimer(0)">No limit</div>
+    </div>
+    <div class="volume-row" style="margin-top:16px">
+      <label>🔊 Volume</label>
+      <input type="range" min="0" max="100" value="70" id="volSlider" oninput="setVolume(this.value)"/>
+      <span id="volVal" style="font-size:.75rem;min-width:30px">70%</span>
+    </div>
+  </div>
+
+  <a class="store-link" href="https://shop.artistrystore.com/store.html">🛍️ Browse All Wellness Products</a>
+</div>
+
+<!-- SOUNDS -->
+<div class="section" id="sec-sounds">
+  <div class="section-title">Sound Library</div>
+  <div class="section-sub">Tap to select • ⭐ to favorite</div>
+  <div class="sound-grid" id="soundGrid"></div>
+</div>
+
+<!-- JOURNAL -->
+<div class="section" id="sec-journal">
+  <div class="section-title">Dream Journal</div>
+  <div class="section-sub">Record your dreams and reflections</div>
+  <div class="journal-form">
+    <div style="font-size:.82rem;margin-bottom:6px;color:var(--muted)">How was your rest?</div>
+    <div class="mood-row" id="moodRow">
+      <button class="mood-btn" onclick="selectMood(this,'😴')">😴</button>
+      <button class="mood-btn" onclick="selectMood(this,'😌')">😌</button>
+      <button class="mood-btn" onclick="selectMood(this,'😐')">😐</button>
+      <button class="mood-btn" onclick="selectMood(this,'😤')">😤</button>
+      <button class="mood-btn" onclick="selectMood(this,'🌟')">🌟</button>
+    </div>
+    <textarea id="journalText" placeholder="Describe your dream, feelings, or sleep notes..."></textarea>
+    <button class="btn btn-primary" style="width:100%" onclick="addJournalEntry()">📝 Save Entry</button>
+  </div>
+  <div id="journalList"></div>
+</div>
+
+<!-- HISTORY -->
+<div class="section" id="sec-history">
+  <div class="section-title">Session History</div>
+  <div class="section-sub">Your completed nap and sleep sessions</div>
+  <div class="stat-grid" id="statsGrid"></div>
+  <div class="session-list" id="sessionList"></div>
+</div>
+
+<!-- SETTINGS -->
+<div class="section" id="sec-settings">
+  <div class="section-title">Settings & Preferences</div>
+  <div class="section-sub">Personalize your experience</div>
+
+  <div class="settings-group">
+    <h3>🌙 Sleep Preferences</h3>
+    <div class="setting-row">
+      <div><label>Default Sleep Timer</label><small>Auto-stop after set duration</small></div>
+      <select id="defTimer" onchange="savePref('defaultTimer',this.value)">
+        <option value="0">No limit</option>
+        <option value="15">15 minutes</option>
+        <option value="30">30 minutes</option>
+        <option value="60">1 hour</option>
+        <option value="90">90 minutes</option>
+      </select>
+    </div>
+    <div class="setting-row">
+      <div><label>Fade Out on Stop</label><small>Gradually lower volume when stopping</small></div>
+      <label class="toggle"><input type="checkbox" id="fadeOut" onchange="savePref('fadeOut',this.checked)"/><span class="slider"></span></label>
+    </div>
+    <div class="setting-row">
+      <div><label>Auto-save Sessions</label><small>Save every session automatically</small></div>
+      <label class="toggle"><input type="checkbox" id="autoSave" checked onchange="savePref('autoSave',this.checked)"/><span class="slider"></span></label>
+    </div>
+  </div>
+
+  <div class="settings-group">
+    <h3>🎨 Display</h3>
+    <div class="setting-row">
+      <div><label>Reduce Motion</label><small>Disable animations</small></div>
+      <label class="toggle"><input type="checkbox" id="reduceMotion" onchange="applyMotion(this.checked)"/><span class="slider"></span></label>
+    </div>
+  </div>
+
+  <div class="settings-group">
+    <h3>📦 Data</h3>
+    <div class="setting-row">
+      <div><label>Clear All Sessions</label><small>Permanently delete history</small></div>
+      <button class="btn btn-secondary" onclick="clearSessions()">Clear</button>
+    </div>
+    <div class="setting-row">
+      <div><label>Clear Dream Journal</label><small>Permanently delete journal entries</small></div>
+      <button class="btn btn-secondary" onclick="clearJournal()">Clear</button>
+    </div>
+  </div>
+
+  <a class="store-link" href="https://shop.artistrystore.com/store.html">🌙 Get More Sleep Resources</a>
+</div>
+
+</main>
+
+<script>
+// ─── SOUNDS ──────────────────────────────────────────────────────────────────
+const SOUNDS = [
+  {id:'rain',emoji:'🌧️',name:'Rain & Thunder',desc:'Deep rumbling storm',freq:200,type:'brown'},
+  {id:'ocean',emoji:'🌊',name:'Ocean Waves',desc:'Rhythmic shoreline',freq:120,type:'pink'},
+  {id:'forest',emoji:'🌲',name:'Forest Night',desc:'Crickets & leaves',freq:400,type:'white'},
+  {id:'fireplace',emoji:'🔥',name:'Fireplace',desc:'Crackling fire',freq:300,type:'crackle'},
+  {id:'wind',emoji:'💨',name:'Gentle Wind',desc:'Soft breeze',freq:150,type:'pink'},
+  {id:'whitenoise',emoji:'📻',name:'White Noise',desc:'Pure focus blocker',freq:440,type:'white'},
+  {id:'lullaby',emoji:'🎵',name:'Lullaby Tone',desc:'Soft 432Hz hum',freq:432,type:'tone'},
+  {id:'meditation',emoji:'🧘',name:'Meditation Bowl',desc:'Tibetan singing bowl',freq:528,type:'bowl'},
+  {id:'cafe',emoji:'☕',name:'Café Ambience',desc:'Soft background chatter',freq:250,type:'brown'},
+  {id:'space',emoji:'🚀',name:'Space Drone',desc:'Deep cosmic hum',freq:60,type:'tone'},
+  {id:'brook',emoji:'🏞️',name:'Forest Brook',desc:'Babbling stream',freq:350,type:'pink'},
+  {id:'birdmorning',emoji:'🐦',name:'Morning Birds',desc:'Dawn chorus',freq:800,type:'white'},
+];
+
+let currentSound = null;
+let isPlaying = false;
+let audioCtx = null;
+let gainNode = null;
+let noiseNode = null;
+let timerInterval = null;
+let timerLimit = 0; // minutes, 0 = no limit
+let elapsed = 0;
+let selectedMood = '';
+let favorites = JSON.parse(localStorage.getItem('nta_favs')||'[]');
+let sessions = JSON.parse(localStorage.getItem('nta_sessions')||'[]');
+let journal = JSON.parse(localStorage.getItem('nta_journal')||'[]');
+
+// ─── TAB SWITCHING ────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('sec-'+tab).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if(tab==='sounds') renderSounds();
+  if(tab==='history') renderHistory();
+  if(tab==='journal') renderJournal();
+}
+
+// ─── AUDIO ENGINE ─────────────────────────────────────────────────────────────
+function getCtx(){
+  if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playSound(sound){
+  stopAudio();
+  const ctx = getCtx();
+  gainNode = ctx.createGain();
+  gainNode.gain.value = (document.getElementById('volSlider').value||70)/100;
+  gainNode.connect(ctx.destination);
+
+  if(sound.type==='tone'||sound.type==='bowl'){
+    const osc = ctx.createOscillator();
+    osc.frequency.value = sound.freq;
+    osc.type = sound.type==='bowl'?'sine':'sine';
+    const env = ctx.createGain();
+    env.gain.value = 0.3;
+    osc.connect(env); env.connect(gainNode);
+    osc.start();
+    noiseNode = {stop:()=>osc.stop()};
+  } else {
+    // Noise buffer
+    const bufLen = ctx.sampleRate * 4;
+    const buf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    let lastOut = 0;
+    for(let i=0;i<bufLen;i++){
+      const w = Math.random()*2-1;
+      if(sound.type==='brown'){
+        data[i] = (lastOut + (0.02*w))/1.02;
+        lastOut = data[i];
+        data[i] *= 3.5;
+      } else if(sound.type==='pink'){
+        data[i] = w * 0.5 + lastOut * 0.5;
+        lastOut = data[i];
+      } else if(sound.type==='crackle'){
+        data[i] = Math.random()<0.002 ? (Math.random()*2-1)*0.8 : lastOut*0.98;
+        lastOut = data[i];
+      } else {
+        data[i] = w;
+      }
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.loop = true;
+    src.connect(gainNode);
+    src.start();
+    noiseNode = src;
+  }
+}
+
+function stopAudio(){
+  if(noiseNode){try{noiseNode.stop();}catch(e){}}
+  noiseNode = null;
+}
+
+// ─── CONTROLS ─────────────────────────────────────────────────────────────────
+function togglePlay(){
+  if(!currentSound){showToast('Select a sound first 🎵');switchTab('sounds');return;}
+  isPlaying = !isPlaying;
+  const btn = document.getElementById('playBtn');
+  if(isPlaying){
+    playSound(currentSound);
+    startTimer();
+    btn.textContent = '⏸ Pause';
+  } else {
+    stopAudio();
+    stopTimer();
+    btn.textContent = '▶ Start';
+  }
+}
+
+function resetTimer(){
+  stopAudio();
+  stopTimer();
+  elapsed = 0;
+  isPlaying = false;
+  document.getElementById('playBtn').textContent = '▶ Start';
+  document.getElementById('timerDisplay').textContent = '00:00:00';
+}
+
+function saveSession(){
+  if(elapsed < 10){showToast('Play for a bit first! ⏱️');return;}
+  const s = {id:Date.now(),sound:currentSound?currentSound.name:'Unknown',duration:elapsed,date:new Date().toLocaleDateString()};
+  sessions.unshift(s);
+  localStorage.setItem('nta_sessions',JSON.stringify(sessions.slice(0,50)));
+  showToast('Session saved! 💾');
+}
+
+function startTimer(){
+  timerInterval = setInterval(()=>{
+    elapsed++;
+    const h=Math.floor(elapsed/3600),m=Math.floor((elapsed%3600)/60),s=elapsed%60;
+    document.getElementById('timerDisplay').textContent =
+      String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+    if(timerLimit>0 && elapsed>=timerLimit*60){
+      stopAudio(); stopTimer(); isPlaying=false;
+      document.getElementById('playBtn').textContent='▶ Start';
+      if(localStorage.getItem('nta_pref_autoSave')!=='false') saveSession();
+      showToast('Sleep timer ended 🌙');
+    }
+  },1000);
+}
+
+function stopTimer(){clearInterval(timerInterval);}
+
+function setTimer(min){
+  timerLimit = min;
+  document.querySelectorAll('.preset').forEach(p=>p.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+}
+
+function setVolume(val){
+  document.getElementById('volVal').textContent = val+'%';
+  if(gainNode) gainNode.gain.value = val/100;
+}
+
+// ─── SOUND SELECTION ──────────────────────────────────────────────────────────
+function selectSound(sound){
+  currentSound = sound;
+  document.getElementById('nowEmoji').textContent = sound.emoji;
+  document.getElementById('nowName').textContent = sound.name;
+  document.getElementById('nowDesc').textContent = sound.desc;
+  if(isPlaying) playSound(sound);
+  renderSounds();
+  showToast(sound.emoji+' '+sound.name+' selected');
+}
+
+function toggleFav(id, e){
+  e.stopPropagation();
+  if(favorites.includes(id)) favorites = favorites.filter(f=>f!==id);
+  else favorites.push(id);
+  localStorage.setItem('nta_favs',JSON.stringify(favorites));
+  renderSounds();
+}
+
+function renderSounds(){
+  const grid = document.getElementById('soundGrid');
+  grid.innerHTML = SOUNDS.map(s=>`
+    <div class="sound-card ${currentSound&&currentSound.id===s.id?'active':''}" onclick="selectSound(${JSON.stringify(s).replace(/"/g,'&quot;')})">
+      <button class="s-fav" onclick="toggleFav('${s.id}',event)">${favorites.includes(s.id)?'⭐':'☆'}</button>
+      <div class="s-emoji">${s.emoji}</div>
+      <div class="s-name">${s.name}${favorites.includes(s.id)?'<span class="fav-badge">FAV</span>':''}</div>
+      <div class="s-desc">${s.desc}</div>
+    </div>
+  `).join('');
+}
+
+// ─── JOURNAL ──────────────────────────────────────────────────────────────────
+function selectMood(btn, mood){
+  selectedMood = mood;
+  document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function addJournalEntry(){
+  const text = document.getElementById('journalText').value.trim();
+  if(!text){showToast('Write something first! 📝');return;}
+  const entry = {id:Date.now(),mood:selectedMood||'😌',text,date:new Date().toLocaleDateString()};
+  journal.unshift(entry);
+  localStorage.setItem('nta_journal',JSON.stringify(journal.slice(0,100)));
+  document.getElementById('journalText').value='';
+  selectedMood='';
+  document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('selected'));
+  renderJournal();
+  showToast('Dream saved! 🌙');
+}
+
+function deleteJournal(id){
+  journal = journal.filter(j=>j.id!==id);
+  localStorage.setItem('nta_journal',JSON.stringify(journal));
+  renderJournal();
+}
+
+function renderJournal(){
+  const list = document.getElementById('journalList');
+  if(!journal.length){list.innerHTML='<div class="empty"><div class="e-emoji">📔</div>No entries yet. Record your first dream!</div>';return;}
+  list.innerHTML = journal.map(j=>`
+    <div class="journal-entry">
+      <div class="je-header">
+        <span class="je-mood">${j.mood}</span>
+        <span class="je-date">${j.date}</span>
+        <button class="del-btn" onclick="deleteJournal(${j.id})">🗑</button>
+      </div>
+      <p>${j.text}</p>
+    </div>
+  `).join('');
+}
+
+// ─── HISTORY & STATS ──────────────────────────────────────────────────────────
+function deleteSession(id){
+  sessions = sessions.filter(s=>s.id!==id);
+  localStorage.setItem('nta_sessions',JSON.stringify(sessions));
+  renderHistory();
+}
+
+function renderHistory(){
+  const statsGrid = document.getElementById('statsGrid');
+  const totalSec = sessions.reduce((a,s)=>a+s.duration,0);
+  const totalHr = (totalSec/3600).toFixed(1);
+  const avgMin = sessions.length ? Math.round(totalSec/sessions.length/60) : 0;
+  statsGrid.innerHTML = `
+    <div class="stat-card"><div class="stat-val">${sessions.length}</div><div class="stat-label">Total Sessions</div></div>
+    <div class="stat-card"><div class="stat-val">${totalHr}h</div><div class="stat-label">Total Rest Time</div></div>
+    <div class="stat-card"><div class="stat-val">${avgMin}m</div><div class="stat-label">Avg Session</div></div>
+    <div class="stat-card"><div class="stat-val">${journal.length}</div><div class="stat-label">Journal Entries</div></div>
+  `;
+  const list = document.getElementById('sessionList');
+  if(!sessions.length){list.innerHTML='<div class="empty"><div class="e-emoji">📋</div>No sessions yet. Start resting!</div>';return;}
+  list.innerHTML = sessions.map(s=>`
+    <div class="session-item">
+      <div class="si-info">
+        <div style="font-weight:600">${s.sound}</div>
+        <div style="color:var(--muted);font-size:.7rem">${s.date}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="si-dur">${Math.floor(s.duration/60)}m ${s.duration%60}s</span>
+        <button class="del-btn" onclick="deleteSession(${s.id})">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ─── SETTINGS ─────────────────────────────────────────────────────────────────
+function savePref(key,val){localStorage.setItem('nta_pref_'+key,val);}
+function clearSessions(){if(confirm('Delete all sessions?')){sessions=[];localStorage.removeItem('nta_sessions');showToast('Sessions cleared');renderHistory();}}
+function clearJournal(){if(confirm('Delete all journal entries?')){journal=[];localStorage.removeItem('nta_journal');showToast('Journal cleared');renderJournal();}}
+function applyMotion(reduce){
+  if(reduce) document.querySelector('.now-playing-emoji').style.animation='none';
+  else document.querySelector('.now-playing-emoji').style.animation='';
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+function showToast(msg){
+  const t=document.createElement('div');
+  t.className='toast';t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2800);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+renderSounds();
+renderHistory();
+renderJournal();
+</script>
+</body>
 </html>
