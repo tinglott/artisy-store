@@ -1,527 +1,470 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Nap Time Adventures 🌙</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌙 Nap Time Adventures</title>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  :root{
-    --bg:#0a0a1a;--card:#13132a;--card2:#1a1a35;--accent:#7c5cbf;--gold:#d4af37;
-    --teal:#4ecdc4;--text:#e8e0f0;--muted:#9b8fb0;--border:#2a2a4a;
+  :root {
+    --bg: #0a0a2e;
+    --bg2: #111148;
+    --card: #1a1a4e;
+    --accent: #ffd700;
+    --accent2: #87ceeb;
+    --text: #e8e8ff;
+    --muted: #9999cc;
+    --green: #44ff99;
+    --radius: 16px;
   }
-  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;min-height:100vh}
-  header{background:linear-gradient(135deg,#1a0a3a,#0a1a3a);padding:16px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border)}
-  header h1{font-size:1.3rem;background:linear-gradient(90deg,var(--gold),var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700}
-  header p{font-size:.75rem;color:var(--muted)}
-  .tabs{display:flex;background:var(--card);border-bottom:1px solid var(--border);overflow-x:auto}
-  .tab{flex:1;min-width:60px;padding:12px 8px;text-align:center;cursor:pointer;border:none;background:none;color:var(--muted);font-size:.75rem;transition:.2s;border-bottom:2px solid transparent}
-  .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
-  .tab:hover{color:var(--text)}
-  .tab .emoji{font-size:1.2rem;display:block}
-  main{padding:16px;max-width:600px;margin:0 auto}
-  .section{display:none}
-  .section.active{display:block}
-  /* Sound Grid */
-  .sound-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
-  .sound-card{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;transition:.2s;text-align:center}
-  .sound-card:hover{border-color:var(--accent);transform:translateY(-2px)}
-  .sound-card.active{border-color:var(--teal);background:#0a2a2a}
-  .sound-card .s-emoji{font-size:2rem;margin-bottom:6px}
-  .sound-card .s-name{font-size:.85rem;font-weight:600}
-  .sound-card .s-desc{font-size:.7rem;color:var(--muted);margin-top:2px}
-  .sound-card .s-fav{font-size:.8rem;float:right;background:none;border:none;cursor:pointer}
-  /* Player */
-  .player-card{background:var(--card2);border-radius:16px;padding:24px;text-align:center;border:1px solid var(--border);margin-top:12px}
-  .now-playing-emoji{font-size:4rem;margin-bottom:12px;animation:pulse 3s ease-in-out infinite}
-  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
-  .now-playing-name{font-size:1.3rem;font-weight:700;margin-bottom:4px}
-  .now-playing-sub{font-size:.8rem;color:var(--muted);margin-bottom:20px}
-  .timer-display{font-size:2.5rem;font-weight:700;color:var(--gold);margin:16px 0;font-variant-numeric:tabular-nums}
-  .controls{display:flex;gap:12px;justify-content:center;margin:16px 0}
-  .btn{padding:10px 20px;border:none;border-radius:8px;cursor:pointer;font-size:.9rem;font-weight:600;transition:.2s}
-  .btn-primary{background:var(--accent);color:#fff}
-  .btn-primary:hover{background:#9b6fe0}
-  .btn-secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
-  .btn-secondary:hover{border-color:var(--accent)}
-  .btn-gold{background:var(--gold);color:#000}
-  .volume-row{display:flex;align-items:center;gap:10px;margin-top:12px}
-  .volume-row label{font-size:.8rem;color:var(--muted);min-width:55px}
-  input[type=range]{flex:1;accent-color:var(--accent)}
-  .timer-presets{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
-  .preset{padding:6px 14px;border:1px solid var(--border);border-radius:20px;cursor:pointer;font-size:.75rem;background:var(--card);color:var(--muted);transition:.2s}
-  .preset:hover,.preset.active{border-color:var(--teal);color:var(--teal)}
-  /* Journal */
-  .journal-form{background:var(--card2);border-radius:12px;padding:16px;margin-bottom:16px;border:1px solid var(--border)}
-  .journal-form textarea{width:100%;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-size:.85rem;resize:vertical;min-height:80px;margin:8px 0}
-  .mood-row{display:flex;gap:8px;margin:8px 0}
-  .mood-btn{font-size:1.4rem;background:none;border:2px solid var(--border);border-radius:8px;padding:4px 10px;cursor:pointer;transition:.2s}
-  .mood-btn.selected{border-color:var(--gold)}
-  .journal-entry{background:var(--card2);border-radius:10px;padding:12px;margin-bottom:10px;border:1px solid var(--border)}
-  .journal-entry .je-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-  .journal-entry .je-date{font-size:.7rem;color:var(--muted)}
-  .journal-entry .je-mood{font-size:1.2rem}
-  .journal-entry p{font-size:.82rem;line-height:1.5}
-  .journal-entry .del-btn{background:none;border:none;color:#e57373;cursor:pointer;font-size:.8rem}
-  /* Analytics */
-  .stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
-  .stat-card{background:var(--card2);border-radius:12px;padding:16px;border:1px solid var(--border);text-align:center}
-  .stat-card .stat-val{font-size:2rem;font-weight:700;color:var(--gold)}
-  .stat-card .stat-label{font-size:.75rem;color:var(--muted);margin-top:4px}
-  .session-list{margin-top:10px}
-  .session-item{background:var(--card2);border-radius:10px;padding:12px;margin-bottom:8px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
-  .session-item .si-info{font-size:.82rem}
-  .session-item .si-dur{font-size:.9rem;color:var(--teal);font-weight:600}
-  .session-item .del-btn{background:none;border:none;color:#e57373;cursor:pointer}
-  /* Settings */
-  .settings-group{background:var(--card2);border-radius:12px;padding:16px;margin-bottom:14px;border:1px solid var(--border)}
-  .settings-group h3{font-size:.85rem;color:var(--gold);margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em}
-  .setting-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)}
-  .setting-row:last-child{border-bottom:none}
-  .setting-row label{font-size:.85rem}
-  .setting-row small{display:block;color:var(--muted);font-size:.7rem}
-  select{background:var(--card);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:6px;font-size:.82rem}
-  .toggle{position:relative;display:inline-block;width:40px;height:22px}
-  .toggle input{opacity:0;width:0;height:0}
-  .slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#333;border-radius:22px;transition:.3s}
-  .slider:before{content:"";position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s}
-  input:checked+.slider{background:var(--accent)}
-  input:checked+.slider:before{transform:translateX(18px)}
-  /* Toast */
-  .toast{position:fixed;bottom:20px;right:20px;background:var(--accent);color:#fff;padding:10px 18px;border-radius:10px;font-size:.85rem;z-index:999;animation:slideIn .3s ease;pointer-events:none}
-  @keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
-  .section-title{font-size:1rem;font-weight:700;margin-bottom:4px;color:var(--gold)}
-  .section-sub{font-size:.78rem;color:var(--muted);margin-bottom:14px}
-  .fav-badge{background:var(--gold);color:#000;font-size:.65rem;padding:1px 5px;border-radius:8px;font-weight:700;margin-left:4px}
-  .store-link{display:block;text-align:center;margin-top:24px;padding:12px;background:linear-gradient(135deg,var(--accent),#4a2a8f);border-radius:12px;color:#fff;text-decoration:none;font-weight:700;font-size:.9rem}
-  .store-link:hover{opacity:.9}
-  .empty{text-align:center;padding:32px;color:var(--muted);font-size:.85rem}
-  .empty .e-emoji{font-size:2.5rem;margin-bottom:8px}
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+  /* Stars background */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.8) 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 5%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 55% 20%, rgba(255,255,255,0.9) 0%, transparent 100%),
+      radial-gradient(1px 1px at 75% 8%, rgba(255,255,255,0.7) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 25%, rgba(255,255,255,0.8) 0%, transparent 100%),
+      radial-gradient(1px 1px at 15% 40%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 45% 35%, rgba(255,255,255,0.7) 0%, transparent 100%),
+      radial-gradient(2px 2px at 65% 12%, rgba(255,220,100,0.9) 0%, transparent 100%),
+      radial-gradient(1px 1px at 85% 45%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 25% 60%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 55%, rgba(255,255,255,0.7) 0%, transparent 100%),
+      radial-gradient(1px 1px at 5% 75%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(2px 2px at 80% 70%, rgba(255,220,100,0.8) 0%, transparent 100%),
+      radial-gradient(1px 1px at 95% 85%, rgba(255,255,255,0.7) 0%, transparent 100%),
+      radial-gradient(1px 1px at 20% 90%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 90%, rgba(255,255,255,0.6) 0%, transparent 100%);
+  }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 20px; position: relative; z-index: 1; }
+  header { text-align: center; padding: 40px 0 30px; }
+  header .moon { font-size: 64px; line-height: 1; margin-bottom: 12px; animation: float 4s ease-in-out infinite; }
+  @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+  header h1 { font-size: 2.4rem; font-weight: 800; color: var(--accent); letter-spacing: -0.5px; }
+  header p { color: var(--accent2); margin-top: 8px; font-size: 1.05rem; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 8px; margin-bottom: 24px; background: var(--card); border-radius: var(--radius); padding: 6px; }
+  .tab { flex: 1; padding: 10px; border: none; border-radius: 12px; background: transparent; color: var(--muted); cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: all 0.2s; }
+  .tab.active { background: var(--bg2); color: var(--accent); }
+  .tab:hover:not(.active) { color: var(--text); }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* Lullaby section */
+  .song-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .song-card { background: var(--card); border-radius: var(--radius); padding: 16px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent; text-align: center; }
+  .song-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .song-card.playing { border-color: var(--green); background: #1a3a2a; }
+  .song-card .emoji { font-size: 2rem; margin-bottom: 8px; }
+  .song-card .name { font-weight: 600; font-size: 0.9rem; color: var(--text); }
+  .song-card .duration { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+  .song-card .play-btn { margin-top: 10px; font-size: 1.4rem; }
+
+  .player-bar { background: var(--card); border-radius: var(--radius); padding: 16px 20px; display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+  .player-bar .now-playing { flex: 1; }
+  .player-bar .now-playing .label { font-size: 0.75rem; color: var(--muted); }
+  .player-bar .now-playing .title { font-weight: 700; color: var(--accent); }
+  .player-controls { display: flex; gap: 10px; align-items: center; }
+  .btn-ctrl { background: var(--bg); border: 2px solid var(--muted); color: var(--text); width: 44px; height: 44px; border-radius: 50%; cursor: pointer; font-size: 1.1rem; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+  .btn-ctrl:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-ctrl.primary { background: var(--accent); border-color: var(--accent); color: var(--bg); font-size: 1.2rem; width: 52px; height: 52px; }
+  .volume-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+  .volume-row input[type=range] { flex: 1; accent-color: var(--accent); }
+  .volume-row label { color: var(--muted); font-size: 0.8rem; min-width: 50px; }
+
+  .section-title { font-size: 1.1rem; font-weight: 700; color: var(--accent2); margin-bottom: 12px; margin-top: 20px; }
+  .sounds-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  .sound-card { background: var(--card); border-radius: 12px; padding: 14px; cursor: pointer; text-align: center; border: 2px solid transparent; transition: all 0.2s; }
+  .sound-card:hover { border-color: var(--accent2); }
+  .sound-card.playing { border-color: var(--green); background: #0a2a1e; }
+  .sound-card .emoji { font-size: 1.8rem; }
+  .sound-card .name { font-size: 0.8rem; font-weight: 600; margin-top: 6px; }
+
+  /* Stories section */
+  .story-select { background: var(--card); border: 2px solid var(--muted); border-radius: var(--radius); padding: 12px 16px; width: 100%; color: var(--text); font-size: 1rem; cursor: pointer; margin-bottom: 16px; }
+  .story-select:focus { outline: none; border-color: var(--accent); }
+  .story-card { background: var(--card); border-radius: var(--radius); padding: 24px; line-height: 1.8; }
+  .story-card h2 { color: var(--accent); font-size: 1.4rem; margin-bottom: 16px; }
+  .story-card p { color: var(--text); margin-bottom: 12px; font-size: 1rem; }
+  .story-nav { display: flex; gap: 12px; margin-top: 20px; justify-content: center; }
+  .btn { background: var(--accent); color: var(--bg); padding: 10px 24px; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 0.95rem; transition: all 0.2s; }
+  .btn:hover { opacity: 0.85; transform: translateY(-1px); }
+  .btn.secondary { background: var(--card); color: var(--text); border: 2px solid var(--muted); }
+  .btn.secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Dream Journal */
+  .journal-form { background: var(--card); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; }
+  .journal-form textarea { width: 100%; background: var(--bg); border: 2px solid var(--muted); border-radius: 10px; color: var(--text); padding: 12px; font-size: 0.95rem; resize: vertical; min-height: 100px; font-family: inherit; }
+  .journal-form textarea:focus { outline: none; border-color: var(--accent); }
+  .journal-form input[type=text] { width: 100%; background: var(--bg); border: 2px solid var(--muted); border-radius: 10px; color: var(--text); padding: 10px 14px; font-size: 0.95rem; margin-bottom: 10px; font-family: inherit; }
+  .journal-form input:focus { outline: none; border-color: var(--accent); }
+  .entries { display: flex; flex-direction: column; gap: 12px; }
+  .entry { background: var(--card); border-radius: 12px; padding: 16px; border-left: 4px solid var(--accent); }
+  .entry .entry-date { font-size: 0.75rem; color: var(--muted); margin-bottom: 6px; }
+  .entry .entry-title { font-weight: 700; color: var(--accent2); margin-bottom: 6px; }
+  .entry .entry-text { font-size: 0.9rem; color: var(--text); line-height: 1.6; }
+  .entry .delete-btn { background: none; border: none; color: var(--muted); cursor: pointer; float: right; font-size: 1rem; }
+  .entry .delete-btn:hover { color: #ff6b6b; }
+  .empty-state { text-align: center; padding: 40px; color: var(--muted); }
+  .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    header h1 { font-size: 1.8rem; }
+    .song-grid { grid-template-columns: repeat(2, 1fr); }
+    .sounds-grid { grid-template-columns: repeat(3, 1fr); }
+  }
 </style>
 </head>
 <body>
-
-<header>
-  <span style="font-size:1.8rem">🌙</span>
-  <div>
+<div class="container">
+  <header>
+    <div class="moon">🌙</div>
     <h1>Nap Time Adventures</h1>
-    <p>Your therapeutic sleep & relaxation companion</p>
+    <p>Soothing lullabies & bedtime stories for little dreamers ✨</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('lullabies')">🎵 Lullabies</button>
+    <button class="tab" onclick="showTab('sounds')">🌿 Sleep Sounds</button>
+    <button class="tab" onclick="showTab('stories')">📖 Stories</button>
+    <button class="tab" onclick="showTab('journal')">✏️ Dream Journal</button>
   </div>
-</header>
 
-<div class="tabs">
-  <button class="tab active" onclick="switchTab('player')"><span class="emoji">▶️</span>Play</button>
-  <button class="tab" onclick="switchTab('sounds')"><span class="emoji">🎵</span>Sounds</button>
-  <button class="tab" onclick="switchTab('journal')"><span class="emoji">📔</span>Journal</button>
-  <button class="tab" onclick="switchTab('history')"><span class="emoji">📋</span>History</button>
-  <button class="tab" onclick="switchTab('settings')"><span class="emoji">⚙️</span>Settings</button>
-</div>
-
-<main>
-
-<!-- PLAYER -->
-<div class="section active" id="sec-player">
-  <div class="player-card">
-    <div class="now-playing-emoji" id="nowEmoji">🌙</div>
-    <div class="now-playing-name" id="nowName">Select a Sound</div>
-    <div class="now-playing-sub" id="nowDesc">Choose from the Sounds tab to begin</div>
-    <div class="timer-display" id="timerDisplay">00:00:00</div>
-    <div class="controls">
-      <button class="btn btn-primary" id="playBtn" onclick="togglePlay()">▶ Start</button>
-      <button class="btn btn-secondary" onclick="resetTimer()">↺ Reset</button>
-      <button class="btn btn-secondary" onclick="saveSession()">💾 Save</button>
+  <!-- Lullabies Panel -->
+  <div id="panel-lullabies" class="panel active">
+    <div class="player-bar" id="playerBar" style="display:none">
+      <span id="playerEmoji" style="font-size:2rem">🎵</span>
+      <div class="now-playing">
+        <div class="label">Now playing</div>
+        <div class="title" id="playerTitle">—</div>
+      </div>
+      <div class="player-controls">
+        <button class="btn-ctrl" onclick="prevTrack()" title="Previous">⏮</button>
+        <button class="btn-ctrl primary" id="playPauseBtn" onclick="togglePlay()">▶</button>
+        <button class="btn-ctrl" onclick="nextTrack()" title="Next">⏭</button>
+      </div>
     </div>
-    <div style="margin-top:12px;font-size:.75rem;color:var(--muted)">Sleep Timer</div>
-    <div class="timer-presets">
-      <div class="preset" onclick="setTimer(15)">15 min</div>
-      <div class="preset" onclick="setTimer(30)">30 min</div>
-      <div class="preset" onclick="setTimer(60)">1 hr</div>
-      <div class="preset" onclick="setTimer(90)">90 min</div>
-      <div class="preset" onclick="setTimer(0)">No limit</div>
-    </div>
-    <div class="volume-row" style="margin-top:16px">
+    <div class="volume-row">
       <label>🔊 Volume</label>
-      <input type="range" min="0" max="100" value="70" id="volSlider" oninput="setVolume(this.value)"/>
-      <span id="volVal" style="font-size:.75rem;min-width:30px">70%</span>
+      <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.8" oninput="setVolume(this.value)">
+    </div>
+
+    <div class="section-title" style="margin-top:20px">🎶 Lullabies</div>
+    <div class="song-grid" id="songGrid"></div>
+  </div>
+
+  <!-- Sleep Sounds Panel -->
+  <div id="panel-sounds" class="panel">
+    <p style="color:var(--muted);margin-bottom:16px;font-size:0.9rem">Mix soothing background sounds with your lullabies for deeper sleep 💤</p>
+    <div class="sounds-grid" id="soundsGrid"></div>
+    <div class="volume-row" style="margin-top:16px">
+      <label>🎚 Sound Vol</label>
+      <input type="range" id="soundVolumeSlider" min="0" max="1" step="0.05" value="0.5" oninput="setSoundVolume(this.value)">
     </div>
   </div>
 
-  <a class="store-link" href="https://shop.artistrystore.com/store.html">🛍️ Browse All Wellness Products</a>
-</div>
-
-<!-- SOUNDS -->
-<div class="section" id="sec-sounds">
-  <div class="section-title">Sound Library</div>
-  <div class="section-sub">Tap to select • ⭐ to favorite</div>
-  <div class="sound-grid" id="soundGrid"></div>
-</div>
-
-<!-- JOURNAL -->
-<div class="section" id="sec-journal">
-  <div class="section-title">Dream Journal</div>
-  <div class="section-sub">Record your dreams and reflections</div>
-  <div class="journal-form">
-    <div style="font-size:.82rem;margin-bottom:6px;color:var(--muted)">How was your rest?</div>
-    <div class="mood-row" id="moodRow">
-      <button class="mood-btn" onclick="selectMood(this,'😴')">😴</button>
-      <button class="mood-btn" onclick="selectMood(this,'😌')">😌</button>
-      <button class="mood-btn" onclick="selectMood(this,'😐')">😐</button>
-      <button class="mood-btn" onclick="selectMood(this,'😤')">😤</button>
-      <button class="mood-btn" onclick="selectMood(this,'🌟')">🌟</button>
-    </div>
-    <textarea id="journalText" placeholder="Describe your dream, feelings, or sleep notes..."></textarea>
-    <button class="btn btn-primary" style="width:100%" onclick="addJournalEntry()">📝 Save Entry</button>
-  </div>
-  <div id="journalList"></div>
-</div>
-
-<!-- HISTORY -->
-<div class="section" id="sec-history">
-  <div class="section-title">Session History</div>
-  <div class="section-sub">Your completed nap and sleep sessions</div>
-  <div class="stat-grid" id="statsGrid"></div>
-  <div class="session-list" id="sessionList"></div>
-</div>
-
-<!-- SETTINGS -->
-<div class="section" id="sec-settings">
-  <div class="section-title">Settings & Preferences</div>
-  <div class="section-sub">Personalize your experience</div>
-
-  <div class="settings-group">
-    <h3>🌙 Sleep Preferences</h3>
-    <div class="setting-row">
-      <div><label>Default Sleep Timer</label><small>Auto-stop after set duration</small></div>
-      <select id="defTimer" onchange="savePref('defaultTimer',this.value)">
-        <option value="0">No limit</option>
-        <option value="15">15 minutes</option>
-        <option value="30">30 minutes</option>
-        <option value="60">1 hour</option>
-        <option value="90">90 minutes</option>
-      </select>
-    </div>
-    <div class="setting-row">
-      <div><label>Fade Out on Stop</label><small>Gradually lower volume when stopping</small></div>
-      <label class="toggle"><input type="checkbox" id="fadeOut" onchange="savePref('fadeOut',this.checked)"/><span class="slider"></span></label>
-    </div>
-    <div class="setting-row">
-      <div><label>Auto-save Sessions</label><small>Save every session automatically</small></div>
-      <label class="toggle"><input type="checkbox" id="autoSave" checked onchange="savePref('autoSave',this.checked)"/><span class="slider"></span></label>
-    </div>
+  <!-- Stories Panel -->
+  <div id="panel-stories" class="panel">
+    <select class="story-select" id="storySelect" onchange="loadStory(this.value)">
+      <option value="">— Pick a bedtime story —</option>
+    </select>
+    <div id="storyContainer"></div>
   </div>
 
-  <div class="settings-group">
-    <h3>🎨 Display</h3>
-    <div class="setting-row">
-      <div><label>Reduce Motion</label><small>Disable animations</small></div>
-      <label class="toggle"><input type="checkbox" id="reduceMotion" onchange="applyMotion(this.checked)"/><span class="slider"></span></label>
+  <!-- Dream Journal Panel -->
+  <div id="panel-journal" class="panel">
+    <div class="journal-form">
+      <input type="text" id="entryTitle" placeholder="Dream title (e.g. The Flying Castle)">
+      <textarea id="entryText" placeholder="What did you dream about? Write it here while you still remember... 🌙"></textarea>
+      <div style="display:flex;justify-content:flex-end;margin-top:10px">
+        <button class="btn" onclick="saveEntry()">Save Dream ✨</button>
+      </div>
     </div>
+    <div id="entriesList"></div>
   </div>
-
-  <div class="settings-group">
-    <h3>📦 Data</h3>
-    <div class="setting-row">
-      <div><label>Clear All Sessions</label><small>Permanently delete history</small></div>
-      <button class="btn btn-secondary" onclick="clearSessions()">Clear</button>
-    </div>
-    <div class="setting-row">
-      <div><label>Clear Dream Journal</label><small>Permanently delete journal entries</small></div>
-      <button class="btn btn-secondary" onclick="clearJournal()">Clear</button>
-    </div>
-  </div>
-
-  <a class="store-link" href="https://shop.artistrystore.com/store.html">🌙 Get More Sleep Resources</a>
 </div>
 
-</main>
+<audio id="mainAudio" preload="none"></audio>
+<audio id="ambientAudio" preload="none" loop></audio>
 
 <script>
-// ─── SOUNDS ──────────────────────────────────────────────────────────────────
-const SOUNDS = [
-  {id:'rain',emoji:'🌧️',name:'Rain & Thunder',desc:'Deep rumbling storm',freq:200,type:'brown'},
-  {id:'ocean',emoji:'🌊',name:'Ocean Waves',desc:'Rhythmic shoreline',freq:120,type:'pink'},
-  {id:'forest',emoji:'🌲',name:'Forest Night',desc:'Crickets & leaves',freq:400,type:'white'},
-  {id:'fireplace',emoji:'🔥',name:'Fireplace',desc:'Crackling fire',freq:300,type:'crackle'},
-  {id:'wind',emoji:'💨',name:'Gentle Wind',desc:'Soft breeze',freq:150,type:'pink'},
-  {id:'whitenoise',emoji:'📻',name:'White Noise',desc:'Pure focus blocker',freq:440,type:'white'},
-  {id:'lullaby',emoji:'🎵',name:'Lullaby Tone',desc:'Soft 432Hz hum',freq:432,type:'tone'},
-  {id:'meditation',emoji:'🧘',name:'Meditation Bowl',desc:'Tibetan singing bowl',freq:528,type:'bowl'},
-  {id:'cafe',emoji:'☕',name:'Café Ambience',desc:'Soft background chatter',freq:250,type:'brown'},
-  {id:'space',emoji:'🚀',name:'Space Drone',desc:'Deep cosmic hum',freq:60,type:'tone'},
-  {id:'brook',emoji:'🏞️',name:'Forest Brook',desc:'Babbling stream',freq:350,type:'pink'},
-  {id:'birdmorning',emoji:'🐦',name:'Morning Birds',desc:'Dawn chorus',freq:800,type:'white'},
+const HF_CDN = "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/nap-time-audio";
+
+const LULLABIES = [
+  { id: "twinkle-twinkle", name: "Twinkle Twinkle", emoji: "⭐", file: "twinkle-twinkle.mp3" },
+  { id: "saties-lullaby", name: "Satie's Lullaby", emoji: "🎹", file: "saties-lullaby.mp3" },
+  { id: "sleep-tight", name: "Sleep Tight", emoji: "🛏️", file: "sleep-tight.mp3" },
+  { id: "summer-lullaby", name: "Summer Lullaby", emoji: "☀️", file: "summer-lullaby.mp3" },
+  { id: "sweet-lullaby", name: "Sweet Lullaby", emoji: "🍯", file: "sweet-lullaby.mp3" },
+  { id: "sweet-ay-ay", name: "Sweet Ay Ay", emoji: "🎵", file: "sweet-ay-ay.mp3" },
 ];
 
-let currentSound = null;
+const SOUNDS = [
+  { id: "gentle-rain", name: "Gentle Rain", emoji: "🌧️", file: "gentle-rain.mp3" },
+  { id: "ocean-waves", name: "Ocean Waves", emoji: "🌊", file: "ocean-waves.mp3" },
+  { id: "forest-sounds", name: "Forest", emoji: "🌲", file: "forest-sounds.mp3" },
+  { id: "babbling-stream", name: "Stream", emoji: "💧", file: "babbling-stream.mp3" },
+  { id: "white-noise", name: "White Noise", emoji: "📻", file: "white-noise.mp3" },
+  { id: "pink-noise", name: "Pink Noise", emoji: "🩷", file: "pink-noise.mp3" },
+  { id: "brown-noise", name: "Brown Noise", emoji: "🤎", file: "brown-noise.mp3" },
+];
+
+const STORIES = [
+  {
+    id: "luna-star",
+    title: "Luna and the Falling Star",
+    pages: [
+      "Once upon a time, high above the sleepy town of Willowbrook, lived a little star named Luna. Luna was the smallest star in the whole night sky, but she had the brightest twinkle of all.",
+      "One evening, Luna leaned a little too far over the edge of her cloud to wave at a child in a window below. Whoooosh! She tumbled through the night sky, spinning and glittering all the way down.",
+      "Luna landed softly in a garden, right in the middle of a bed of lavender. A little girl named Maisie looked out her window and gasped. 'A star! A real star fell into our garden!'",
+      "Maisie crept downstairs and out the back door in her pajamas. She found Luna nestled among the purple flowers, glowing warm and golden. 'Are you lost?' she whispered.",
+      "'A little,' admitted Luna. 'I was trying to wave hello, and I fell.' Maisie smiled and gently cupped Luna in her palms. The star felt like holding the warmth of a summer afternoon.",
+      "That night, Maisie fell asleep with Luna on her windowsill, lighting the room with the softest glow. And from then on, every night when Maisie looked up at the sky, she always found one star twinkling extra bright — just for her. 🌟 Sweet dreams.",
+    ],
+  },
+  {
+    id: "cloud-bunny",
+    title: "The Cloud Bunny's Bedtime Hop",
+    pages: [
+      "Up in the sky where the clouds are fluffiest lives a small white bunny named Pip. Pip isn't an ordinary bunny — she can hop from cloud to cloud all the way across the sky.",
+      "Every evening, it was Pip's special job to hop across the sky and pull the soft purple blanket of night over the horizon. Without Pip, the stars would have to wait forever to come out.",
+      "One evening, Pip found a baby cloud that was too small to hop onto. The little cloud was crying tiny raindrops. 'What's wrong?' asked Pip.",
+      "'I'm too little to be part of the sunset,' the baby cloud whimpered. Pip thought for a moment, then smiled. 'Every sky needs a little cloud. You're going to make the best, most beautiful pink wisp in the whole sunset.'",
+      "And she was right! As Pip hopped across, the tiny cloud turned the most magnificent shade of rose and gold, and all the other clouds cheered.",
+      "When the last star winked on and the moon rose up smiling, Pip curled into a soft cloud and closed her eyes. And somewhere below, a child looked up and whispered, 'I can see a bunny in the clouds.' 🐰 Sweet dreams.",
+    ],
+  },
+  {
+    id: "captain-yawn",
+    title: "Captain Yawn and the Sleepy Seas",
+    pages: [
+      "Every night, when the world grows quiet and the lamps go out, Captain Yawn sets sail on the Sleepy Seas. His ship is made of moonlight and his sails are made of the softest fog.",
+      "Captain Yawn's job is very important: he sails from house to house, sprinkling sleepy dust on pillows and tucking blankets under chins.",
+      "One night, he heard a small voice calling from a bedroom window. 'Captain Yawn! I can't sleep!' It was a boy named Theo, sitting up in bed with very wide eyes.",
+      "'Aha,' said the Captain, stroking his starry beard. 'I think I forgot your pillow.' He reached into his magic bag and pulled out a pinch of lavender-colored dust.",
+      "He sprinkled it gently over Theo's pillow. It smelled like warm cookies and night-blooming flowers. Theo lay back down and felt his eyes grow heavy almost immediately.",
+      "'Thank you, Captain Yawn,' he murmured sleepily. But the Captain was already gone, his ship leaving a trail of silver sparkles on the water. 🌊 Sleep well, little sailor.",
+    ],
+  },
+  {
+    id: "sleepy-dragon",
+    title: "Ember the Sleepy Dragon",
+    pages: [
+      "Deep inside Moonstone Mountain lived a very small dragon named Ember. Ember was different from other dragons — instead of breathing fire, she breathed warm golden light that made everything feel cozy.",
+      "Every night, Ember would fly through the village and peek into windows. When she found a child who couldn't sleep, she'd breathe her golden light gently through the crack in the curtains.",
+      "The light was like sunshine but softer — it smelled like chamomile tea and felt like a warm hug. Children who saw it would always, always fall asleep with a smile.",
+      "One evening, Ember peeked into a window and found a little girl named Zara staring at the ceiling. Zara was worried about something — she couldn't even say what.",
+      "Ember breathed her golden light, and Zara felt all her worries float away like bubbles. She imagined each bubble floating up, up, up into the night sky and popping into tiny stars.",
+      "Ember watched until Zara's eyes closed and her breathing became slow and deep. Then she flapped her tiny wings and flew back toward Moonstone Mountain, leaving a glow of gold behind her. 🐉 Dream warm dreams.",
+    ],
+  },
+  {
+    id: "moon-gardener",
+    title: "The Moon's Secret Garden",
+    pages: [
+      "Most people think the moon is bare and empty. But if you look very carefully on the clearest nights, you can just see the edges of the Moon Gardener's flowers.",
+      "The Moon Gardener is an old woman with silver hair who plants dreams. Each flower in her garden is a different dream — yellow ones are adventure dreams, blue ones are flying dreams, pink ones are dreams about home.",
+      "Every night before you fall asleep, the Moon Gardener walks through her garden and picks the perfect dream for you. She thinks carefully about who you are and what you love.",
+      "For children who love animals, she picks a dream about talking horses or friendly tigers. For children who love the sea, she picks a dream where you can breathe underwater.",
+      "She places the dream in a tiny seed pod and sends it drifting down on the night breeze, through your window, and into your pillow — ready for when you close your eyes.",
+      "So tonight, when you lay your head down, know that somewhere up on the moon, someone is choosing something wonderful just for you. 🌸 What will you dream?",
+    ],
+  },
+  {
+    id: "counting-sheep",
+    title: "101 Fluffy Sheep",
+    pages: [
+      "On the other side of sleep — just past where the yawns begin and the blinks slow down — there is a green meadow where 101 fluffy sheep are always waiting.",
+      "Their wool is cloud-soft and snow-white, and they know just what to do. One by one, they walk up to a little wooden fence and jump over it with a soft thump.",
+      "Sheep number one was named Biscuit. She had particularly bouncy hops. Sheep number two was named Fluff. Fluff always sneezed right before he jumped, which made everyone smile.",
+      "Sheep number three was Pudding, who was the fluffiest of all. You could barely see her legs under all that wool. She waddled up to the fence and floated over like a cotton ball on the breeze.",
+      "By the time sheep number twenty-seven — Marshmallow — had jumped the fence, your eyes had become very, very heavy. By sheep forty... it was hard to keep counting.",
+      "Sheep number one hundred and one — old Wooly, who wore tiny glasses — jumped the fence last with a gentle sigh. And by then, you were already dreaming. 🐑 One... two... three...",
+    ],
+  },
+];
+
+// State
+const mainAudio = document.getElementById('mainAudio');
+const ambientAudio = document.getElementById('ambientAudio');
+let currentTrack = -1;
 let isPlaying = false;
-let audioCtx = null;
-let gainNode = null;
-let noiseNode = null;
-let timerInterval = null;
-let timerLimit = 0; // minutes, 0 = no limit
-let elapsed = 0;
-let selectedMood = '';
-let favorites = JSON.parse(localStorage.getItem('nta_favs')||'[]');
-let sessions = JSON.parse(localStorage.getItem('nta_sessions')||'[]');
-let journal = JSON.parse(localStorage.getItem('nta_journal')||'[]');
+let activeSound = null;
 
-// ─── TAB SWITCHING ────────────────────────────────────────────────────────────
-function switchTab(tab) {
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('sec-'+tab).classList.add('active');
-  event.currentTarget.classList.add('active');
-  if(tab==='sounds') renderSounds();
-  if(tab==='history') renderHistory();
-  if(tab==='journal') renderJournal();
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', t.getAttribute('onclick').includes(name)));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
 }
 
-// ─── AUDIO ENGINE ─────────────────────────────────────────────────────────────
-function getCtx(){
-  if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-  return audioCtx;
+// Build song grid
+function buildSongGrid() {
+  const grid = document.getElementById('songGrid');
+  LULLABIES.forEach((song, i) => {
+    const card = document.createElement('div');
+    card.className = 'song-card';
+    card.id = 'song-' + i;
+    card.innerHTML = `<div class="emoji">${song.emoji}</div><div class="name">${song.name}</div><div class="play-btn">▶</div>`;
+    card.onclick = () => playTrack(i);
+    grid.appendChild(card);
+  });
 }
 
-function playSound(sound){
-  stopAudio();
-  const ctx = getCtx();
-  gainNode = ctx.createGain();
-  gainNode.gain.value = (document.getElementById('volSlider').value||70)/100;
-  gainNode.connect(ctx.destination);
+function buildSoundsGrid() {
+  const grid = document.getElementById('soundsGrid');
+  SOUNDS.forEach(sound => {
+    const card = document.createElement('div');
+    card.className = 'sound-card';
+    card.id = 'sound-' + sound.id;
+    card.innerHTML = `<div class="emoji">${sound.emoji}</div><div class="name">${sound.name}</div>`;
+    card.onclick = () => toggleSound(sound);
+    grid.appendChild(card);
+  });
+}
 
-  if(sound.type==='tone'||sound.type==='bowl'){
-    const osc = ctx.createOscillator();
-    osc.frequency.value = sound.freq;
-    osc.type = sound.type==='bowl'?'sine':'sine';
-    const env = ctx.createGain();
-    env.gain.value = 0.3;
-    osc.connect(env); env.connect(gainNode);
-    osc.start();
-    noiseNode = {stop:()=>osc.stop()};
+function playTrack(i) {
+  document.querySelectorAll('.song-card').forEach(c => c.classList.remove('playing'));
+  currentTrack = i;
+  const song = LULLABIES[i];
+  mainAudio.src = `${HF_CDN}/${song.file}`;
+  mainAudio.volume = document.getElementById('volumeSlider').value;
+  mainAudio.play().then(() => {
+    isPlaying = true;
+    document.getElementById('playPauseBtn').textContent = '⏸';
+    document.getElementById('playerEmoji').textContent = song.emoji;
+    document.getElementById('playerTitle').textContent = song.name;
+    document.getElementById('playerBar').style.display = 'flex';
+    document.getElementById('song-' + i).classList.add('playing');
+    document.querySelector('.play-btn', document.getElementById('song-' + i)).textContent = '⏸';
+  }).catch(e => console.warn('Playback error:', e));
+}
+
+function togglePlay() {
+  if (isPlaying) {
+    mainAudio.pause();
+    isPlaying = false;
+    document.getElementById('playPauseBtn').textContent = '▶';
   } else {
-    // Noise buffer
-    const bufLen = ctx.sampleRate * 4;
-    const buf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
-    const data = buf.getChannelData(0);
-    let lastOut = 0;
-    for(let i=0;i<bufLen;i++){
-      const w = Math.random()*2-1;
-      if(sound.type==='brown'){
-        data[i] = (lastOut + (0.02*w))/1.02;
-        lastOut = data[i];
-        data[i] *= 3.5;
-      } else if(sound.type==='pink'){
-        data[i] = w * 0.5 + lastOut * 0.5;
-        lastOut = data[i];
-      } else if(sound.type==='crackle'){
-        data[i] = Math.random()<0.002 ? (Math.random()*2-1)*0.8 : lastOut*0.98;
-        lastOut = data[i];
-      } else {
-        data[i] = w;
-      }
-    }
-    const src = ctx.createBufferSource();
-    src.buffer = buf;
-    src.loop = true;
-    src.connect(gainNode);
-    src.start();
-    noiseNode = src;
+    if (currentTrack === -1) { playTrack(0); return; }
+    mainAudio.play();
+    isPlaying = true;
+    document.getElementById('playPauseBtn').textContent = '⏸';
   }
 }
 
-function stopAudio(){
-  if(noiseNode){try{noiseNode.stop();}catch(e){}}
-  noiseNode = null;
-}
+function prevTrack() { playTrack((currentTrack - 1 + LULLABIES.length) % LULLABIES.length); }
+function nextTrack() { playTrack((currentTrack + 1) % LULLABIES.length); }
 
-// ─── CONTROLS ─────────────────────────────────────────────────────────────────
-function togglePlay(){
-  if(!currentSound){showToast('Select a sound first 🎵');switchTab('sounds');return;}
-  isPlaying = !isPlaying;
-  const btn = document.getElementById('playBtn');
-  if(isPlaying){
-    playSound(currentSound);
-    startTimer();
-    btn.textContent = '⏸ Pause';
+mainAudio.onended = () => nextTrack();
+
+function setVolume(v) { mainAudio.volume = v; }
+function setSoundVolume(v) { ambientAudio.volume = v; }
+
+function toggleSound(sound) {
+  const card = document.getElementById('sound-' + sound.id);
+  if (activeSound === sound.id) {
+    ambientAudio.pause();
+    card.classList.remove('playing');
+    activeSound = null;
   } else {
-    stopAudio();
-    stopTimer();
-    btn.textContent = '▶ Start';
+    document.querySelectorAll('.sound-card').forEach(c => c.classList.remove('playing'));
+    ambientAudio.src = `${HF_CDN}/${sound.file}`;
+    ambientAudio.volume = document.getElementById('soundVolumeSlider').value;
+    ambientAudio.play().catch(e => console.warn('Sound error:', e));
+    card.classList.add('playing');
+    activeSound = sound.id;
   }
 }
 
-function resetTimer(){
-  stopAudio();
-  stopTimer();
-  elapsed = 0;
-  isPlaying = false;
-  document.getElementById('playBtn').textContent = '▶ Start';
-  document.getElementById('timerDisplay').textContent = '00:00:00';
+// Stories
+function buildStorySelect() {
+  const sel = document.getElementById('storySelect');
+  STORIES.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    opt.textContent = s.title;
+    sel.appendChild(opt);
+  });
 }
 
-function saveSession(){
-  if(elapsed < 10){showToast('Play for a bit first! ⏱️');return;}
-  const s = {id:Date.now(),sound:currentSound?currentSound.name:'Unknown',duration:elapsed,date:new Date().toLocaleDateString()};
-  sessions.unshift(s);
-  localStorage.setItem('nta_sessions',JSON.stringify(sessions.slice(0,50)));
-  showToast('Session saved! 💾');
+let storyPage = 0;
+let currentStory = null;
+
+function loadStory(id) {
+  currentStory = STORIES.find(s => s.id === id);
+  storyPage = 0;
+  renderStory();
 }
 
-function startTimer(){
-  timerInterval = setInterval(()=>{
-    elapsed++;
-    const h=Math.floor(elapsed/3600),m=Math.floor((elapsed%3600)/60),s=elapsed%60;
-    document.getElementById('timerDisplay').textContent =
-      String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
-    if(timerLimit>0 && elapsed>=timerLimit*60){
-      stopAudio(); stopTimer(); isPlaying=false;
-      document.getElementById('playBtn').textContent='▶ Start';
-      if(localStorage.getItem('nta_pref_autoSave')!=='false') saveSession();
-      showToast('Sleep timer ended 🌙');
-    }
-  },1000);
-}
-
-function stopTimer(){clearInterval(timerInterval);}
-
-function setTimer(min){
-  timerLimit = min;
-  document.querySelectorAll('.preset').forEach(p=>p.classList.remove('active'));
-  event.currentTarget.classList.add('active');
-}
-
-function setVolume(val){
-  document.getElementById('volVal').textContent = val+'%';
-  if(gainNode) gainNode.gain.value = val/100;
-}
-
-// ─── SOUND SELECTION ──────────────────────────────────────────────────────────
-function selectSound(sound){
-  currentSound = sound;
-  document.getElementById('nowEmoji').textContent = sound.emoji;
-  document.getElementById('nowName').textContent = sound.name;
-  document.getElementById('nowDesc').textContent = sound.desc;
-  if(isPlaying) playSound(sound);
-  renderSounds();
-  showToast(sound.emoji+' '+sound.name+' selected');
-}
-
-function toggleFav(id, e){
-  e.stopPropagation();
-  if(favorites.includes(id)) favorites = favorites.filter(f=>f!==id);
-  else favorites.push(id);
-  localStorage.setItem('nta_favs',JSON.stringify(favorites));
-  renderSounds();
-}
-
-function renderSounds(){
-  const grid = document.getElementById('soundGrid');
-  grid.innerHTML = SOUNDS.map(s=>`
-    <div class="sound-card ${currentSound&&currentSound.id===s.id?'active':''}" onclick="selectSound(${JSON.stringify(s).replace(/"/g,'&quot;')})">
-      <button class="s-fav" onclick="toggleFav('${s.id}',event)">${favorites.includes(s.id)?'⭐':'☆'}</button>
-      <div class="s-emoji">${s.emoji}</div>
-      <div class="s-name">${s.name}${favorites.includes(s.id)?'<span class="fav-badge">FAV</span>':''}</div>
-      <div class="s-desc">${s.desc}</div>
-    </div>
-  `).join('');
-}
-
-// ─── JOURNAL ──────────────────────────────────────────────────────────────────
-function selectMood(btn, mood){
-  selectedMood = mood;
-  document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('selected'));
-  btn.classList.add('selected');
-}
-
-function addJournalEntry(){
-  const text = document.getElementById('journalText').value.trim();
-  if(!text){showToast('Write something first! 📝');return;}
-  const entry = {id:Date.now(),mood:selectedMood||'😌',text,date:new Date().toLocaleDateString()};
-  journal.unshift(entry);
-  localStorage.setItem('nta_journal',JSON.stringify(journal.slice(0,100)));
-  document.getElementById('journalText').value='';
-  selectedMood='';
-  document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('selected'));
-  renderJournal();
-  showToast('Dream saved! 🌙');
-}
-
-function deleteJournal(id){
-  journal = journal.filter(j=>j.id!==id);
-  localStorage.setItem('nta_journal',JSON.stringify(journal));
-  renderJournal();
-}
-
-function renderJournal(){
-  const list = document.getElementById('journalList');
-  if(!journal.length){list.innerHTML='<div class="empty"><div class="e-emoji">📔</div>No entries yet. Record your first dream!</div>';return;}
-  list.innerHTML = journal.map(j=>`
-    <div class="journal-entry">
-      <div class="je-header">
-        <span class="je-mood">${j.mood}</span>
-        <span class="je-date">${j.date}</span>
-        <button class="del-btn" onclick="deleteJournal(${j.id})">🗑</button>
+function renderStory() {
+  const container = document.getElementById('storyContainer');
+  if (!currentStory) { container.innerHTML = ''; return; }
+  container.innerHTML = `
+    <div class="story-card">
+      <h2>${currentStory.title}</h2>
+      <p style="color:var(--muted);font-size:0.8rem;margin-bottom:16px">Page ${storyPage + 1} of ${currentStory.pages.length}</p>
+      <p>${currentStory.pages[storyPage]}</p>
+      <div class="story-nav">
+        ${storyPage > 0 ? '<button class="btn secondary" onclick="storyPage--;renderStory()">← Previous</button>' : ''}
+        ${storyPage < currentStory.pages.length - 1 ? '<button class="btn" onclick="storyPage++;renderStory()">Next Page →</button>' : '<button class="btn" onclick="loadStory(\'\')">✨ The End</button>'}
       </div>
-      <p>${j.text}</p>
-    </div>
-  `).join('');
+    </div>`;
 }
 
-// ─── HISTORY & STATS ──────────────────────────────────────────────────────────
-function deleteSession(id){
-  sessions = sessions.filter(s=>s.id!==id);
-  localStorage.setItem('nta_sessions',JSON.stringify(sessions));
-  renderHistory();
+// Dream Journal (localStorage)
+function saveEntry() {
+  const title = document.getElementById('entryTitle').value.trim();
+  const text = document.getElementById('entryText').value.trim();
+  if (!text) return;
+  const entries = getEntries();
+  entries.unshift({ id: Date.now(), title: title || 'Untitled Dream', text, date: new Date().toLocaleDateString() });
+  localStorage.setItem('naptime-dreams', JSON.stringify(entries));
+  document.getElementById('entryTitle').value = '';
+  document.getElementById('entryText').value = '';
+  renderEntries();
 }
 
-function renderHistory(){
-  const statsGrid = document.getElementById('statsGrid');
-  const totalSec = sessions.reduce((a,s)=>a+s.duration,0);
-  const totalHr = (totalSec/3600).toFixed(1);
-  const avgMin = sessions.length ? Math.round(totalSec/sessions.length/60) : 0;
-  statsGrid.innerHTML = `
-    <div class="stat-card"><div class="stat-val">${sessions.length}</div><div class="stat-label">Total Sessions</div></div>
-    <div class="stat-card"><div class="stat-val">${totalHr}h</div><div class="stat-label">Total Rest Time</div></div>
-    <div class="stat-card"><div class="stat-val">${avgMin}m</div><div class="stat-label">Avg Session</div></div>
-    <div class="stat-card"><div class="stat-val">${journal.length}</div><div class="stat-label">Journal Entries</div></div>
-  `;
-  const list = document.getElementById('sessionList');
-  if(!sessions.length){list.innerHTML='<div class="empty"><div class="e-emoji">📋</div>No sessions yet. Start resting!</div>';return;}
-  list.innerHTML = sessions.map(s=>`
-    <div class="session-item">
-      <div class="si-info">
-        <div style="font-weight:600">${s.sound}</div>
-        <div style="color:var(--muted);font-size:.7rem">${s.date}</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <span class="si-dur">${Math.floor(s.duration/60)}m ${s.duration%60}s</span>
-        <button class="del-btn" onclick="deleteSession(${s.id})">🗑</button>
-      </div>
-    </div>
-  `).join('');
+function getEntries() {
+  try { return JSON.parse(localStorage.getItem('naptime-dreams') || '[]'); } catch { return []; }
 }
 
-// ─── SETTINGS ─────────────────────────────────────────────────────────────────
-function savePref(key,val){localStorage.setItem('nta_pref_'+key,val);}
-function clearSessions(){if(confirm('Delete all sessions?')){sessions=[];localStorage.removeItem('nta_sessions');showToast('Sessions cleared');renderHistory();}}
-function clearJournal(){if(confirm('Delete all journal entries?')){journal=[];localStorage.removeItem('nta_journal');showToast('Journal cleared');renderJournal();}}
-function applyMotion(reduce){
-  if(reduce) document.querySelector('.now-playing-emoji').style.animation='none';
-  else document.querySelector('.now-playing-emoji').style.animation='';
+function deleteEntry(id) {
+  const entries = getEntries().filter(e => e.id !== id);
+  localStorage.setItem('naptime-dreams', JSON.stringify(entries));
+  renderEntries();
 }
 
-// ─── TOAST ────────────────────────────────────────────────────────────────────
-function showToast(msg){
-  const t=document.createElement('div');
-  t.className='toast';t.textContent=msg;
-  document.body.appendChild(t);
-  setTimeout(()=>t.remove(),2800);
+function renderEntries() {
+  const list = document.getElementById('entriesList');
+  const entries = getEntries();
+  if (!entries.length) {
+    list.innerHTML = '<div class="empty-state"><div class="icon">🌙</div><p>No dreams recorded yet.<br>Start writing your first dream!</p></div>';
+    return;
+  }
+  list.innerHTML = '<div class="entries">' + entries.map(e => `
+    <div class="entry">
+      <button class="delete-btn" onclick="deleteEntry(${e.id})">✕</button>
+      <div class="entry-date">${e.date}</div>
+      <div class="entry-title">${e.title}</div>
+      <div class="entry-text">${e.text}</div>
+    </div>`).join('') + '</div>';
 }
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────
-renderSounds();
-renderHistory();
-renderJournal();
+// Init
+buildSongGrid();
+buildSoundsGrid();
+buildStorySelect();
+renderEntries();
 </script>
 </body>
 </html>
