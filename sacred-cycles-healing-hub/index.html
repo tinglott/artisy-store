@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sacred Cycles — Healing Hub</title>
+<style>
+  :root {
+    --bg: #0d0a1a;
+    --card: #16102e;
+    --card2: #1e1640;
+    --accent: #c89fff;
+    --gold: #f0c060;
+    --text: #e8dff8;
+    --muted: #9880c0;
+    --green: #6fddaa;
+    --border: rgba(200,159,255,0.18);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+  }
+
+  /* Header */
+  header {
+    background: linear-gradient(135deg, #1a0e3a 0%, #0d0a1a 60%, #1a0a2a 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 28px 24px 20px;
+    text-align: center;
+    position: relative;
+  }
+  header .moon { font-size: 2.2rem; display: block; margin-bottom: 6px; }
+  header h1 { font-size: 1.7rem; font-weight: 700; letter-spacing: 0.04em; color: var(--accent); }
+  header p { color: var(--muted); font-size: 0.9rem; margin-top: 4px; }
+  header .series { color: var(--gold); font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase; margin-top: 8px; }
+
+  /* Tab nav */
+  nav {
+    display: flex; gap: 0;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  nav button {
+    flex: 1; min-width: 110px;
+    padding: 14px 8px;
+    background: none; border: none;
+    color: var(--muted); font-size: 0.82rem; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    cursor: pointer; border-bottom: 3px solid transparent;
+    transition: all .2s;
+  }
+  nav button.active { color: var(--accent); border-bottom-color: var(--accent); }
+  nav button:hover:not(.active) { color: var(--text); }
+
+  /* Sections */
+  .section { display: none; padding: 24px 16px 80px; max-width: 700px; margin: 0 auto; }
+  .section.active { display: block; }
+
+  /* Frequency cards */
+  .freq-grid { display: flex; flex-direction: column; gap: 14px; }
+  .freq-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+  }
+  .freq-card:hover { border-color: var(--accent); background: var(--card2); }
+  .freq-card.playing { border-color: var(--green); background: #0f1e18; }
+  .freq-header { display: flex; align-items: center; gap: 14px; }
+  .freq-hz {
+    font-size: 1.5rem; font-weight: 800; color: var(--gold);
+    min-width: 70px;
+  }
+  .freq-info { flex: 1; }
+  .freq-name { font-weight: 700; font-size: 1rem; color: var(--accent); }
+  .freq-benefit { font-size: 0.82rem; color: var(--muted); margin-top: 2px; }
+  .freq-play-btn {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: var(--accent); border: none; cursor: pointer;
+    font-size: 1.1rem; color: #0d0a1a; font-weight: 900;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform .15s, background .2s;
+    flex-shrink: 0;
+  }
+  .freq-play-btn:hover { transform: scale(1.1); }
+  .freq-card.playing .freq-play-btn { background: var(--green); }
+  .freq-desc {
+    font-size: 0.83rem; color: var(--muted);
+    margin-top: 12px; line-height: 1.6;
+    display: none;
+  }
+  .freq-card.open .freq-desc { display: block; }
+
+  /* Now playing bar */
+  #now-playing {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: #1a0e3a;
+    border-top: 1px solid var(--border);
+    padding: 12px 20px;
+    display: none;
+    align-items: center; gap: 14px;
+    z-index: 100;
+  }
+  #now-playing.visible { display: flex; }
+  #np-pulse {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--green);
+    animation: pulse 1.5s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.5;transform:scale(1.3);} }
+  #np-info { flex: 1; }
+  #np-hz { font-weight: 800; color: var(--gold); }
+  #np-name { font-size: 0.8rem; color: var(--muted); }
+  #np-timer { font-size: 0.9rem; color: var(--accent); font-weight: 700; }
+  #np-stop {
+    background: #c04060; border: none; color: #fff;
+    padding: 7px 16px; border-radius: 20px; cursor: pointer;
+    font-size: 0.8rem; font-weight: 700;
+  }
+
+  /* Timer section */
+  .timer-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 24px; }
+  .timer-btn {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 8px;
+    color: var(--muted); font-size: 0.85rem; font-weight: 700;
+    cursor: pointer; text-align: center; transition: all .2s;
+  }
+  .timer-btn:hover, .timer-btn.selected { background: var(--card2); border-color: var(--accent); color: var(--accent); }
+  .timer-display {
+    text-align: center; font-size: 3.5rem; font-weight: 800;
+    color: var(--accent); letter-spacing: 0.05em;
+    margin: 20px 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .timer-controls { display: flex; gap: 12px; justify-content: center; }
+  .btn {
+    padding: 12px 28px; border-radius: 24px;
+    font-size: 0.9rem; font-weight: 700; cursor: pointer;
+    border: none; transition: transform .15s;
+  }
+  .btn:hover { transform: scale(1.04); }
+  .btn-primary { background: var(--accent); color: #0d0a1a; }
+  .btn-secondary { background: var(--card2); color: var(--text); border: 1px solid var(--border); }
+
+  /* Flow & Heal section */
+  .module-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 20px;
+    margin-bottom: 14px;
+  }
+  .module-label {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--gold); margin-bottom: 6px;
+  }
+  .module-title { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin-bottom: 10px; }
+  .module-body { font-size: 0.84rem; color: var(--muted); line-height: 1.7; }
+  .pill {
+    display: inline-block; background: #231848;
+    border: 1px solid var(--border);
+    border-radius: 20px; padding: 4px 12px;
+    font-size: 0.76rem; color: var(--accent);
+    margin: 3px 3px 0 0;
+  }
+  .step-list { list-style: none; padding: 0; margin-top: 8px; }
+  .step-list li {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 5px 0; font-size: 0.83rem; color: var(--muted);
+    border-bottom: 1px solid rgba(200,159,255,0.07);
+  }
+  .step-list li:last-child { border: none; }
+  .step-list li span:first-child {
+    min-width: 22px; color: var(--gold); font-weight: 700;
+  }
+
+  /* 21-Day Protocol */
+  .day-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 6px; margin-bottom: 20px; }
+  .day-cell {
+    aspect-ratio: 1; border-radius: 8px;
+    background: var(--card); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.78rem; font-weight: 700; color: var(--muted);
+    cursor: pointer; transition: all .2s;
+    position: relative;
+  }
+  .day-cell:hover { border-color: var(--accent); color: var(--accent); }
+  .day-cell.done { background: #0f2018; border-color: var(--green); color: var(--green); }
+  .day-cell.done::after { content: '✓'; position: absolute; top: 2px; right: 4px; font-size: 0.6rem; }
+  .day-cell.today { border-color: var(--gold); color: var(--gold); }
+  .protocol-legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* Section headings */
+  .section-heading {
+    font-size: 1.1rem; font-weight: 700; color: var(--text);
+    margin-bottom: 16px; padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-sub { font-size: 0.82rem; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
+
+  /* Misc */
+  .badge {
+    background: var(--gold); color: #0d0a1a;
+    font-size: 0.65rem; font-weight: 800; letter-spacing: 0.06em;
+    border-radius: 10px; padding: 2px 8px; text-transform: uppercase;
+  }
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="moon">🌙</span>
+  <h1>Sacred Cycles — Healing Hub</h1>
+  <p>Solfeggio Frequencies · Lymphatic Wellness · Energy Reset</p>
+  <div class="series">T. Lott Creative · Wellness Series</div>
+</header>
+
+<nav>
+  <button class="active" onclick="showTab('frequencies')" id="tab-frequencies">🎵 Frequencies</button>
+  <button onclick="showTab('timer')" id="tab-timer">⏱ Timer</button>
+  <button onclick="showTab('flow')" id="tab-flow">🌿 Flow &amp; Heal</button>
+  <button onclick="showTab('protocol')" id="tab-protocol">📅 21-Day</button>
+</nav>
+
+<!-- FREQUENCIES TAB -->
+<div class="section active" id="section-frequencies">
+  <p class="section-sub" style="margin-top:16px;">Tap a frequency to learn more. Press ▶ to play. Each tone is mathematically tuned to the Solfeggio scale.</p>
+  <div class="freq-grid" id="freq-grid"></div>
+</div>
+
+<!-- TIMER TAB -->
+<div class="section" id="section-timer">
+  <div class="section-heading" style="margin-top:16px;">🌙 Session Timer</div>
+  <p class="section-sub">Set your session length, then start a frequency from the Frequencies tab.</p>
+  <div class="timer-grid">
+    <div class="timer-btn selected" onclick="setTimer(5, this)">5 min</div>
+    <div class="timer-btn" onclick="setTimer(10, this)">10 min</div>
+    <div class="timer-btn" onclick="setTimer(15, this)">15 min</div>
+    <div class="timer-btn" onclick="setTimer(30, this)">30 min</div>
+  </div>
+  <div class="timer-display" id="timer-display">05:00</div>
+  <div class="timer-controls">
+    <button class="btn btn-primary" onclick="startSessionTimer()" id="timer-start-btn">Start Timer</button>
+    <button class="btn btn-secondary" onclick="resetSessionTimer()">Reset</button>
+  </div>
+  <div class="divider" style="margin-top:28px;"></div>
+  <div class="module-card" style="margin-top:0;">
+    <div class="module-label">Frequency Pairing Guide</div>
+    <div class="module-title">Best Frequencies by Time of Day</div>
+    <div class="module-body">
+      <p><strong style="color:var(--gold)">Morning:</strong> 528Hz (DNA Repair) or 432Hz (Natural Harmony) — energizing, heart-opening</p>
+      <p style="margin-top:8px;"><strong style="color:var(--gold)">Afternoon:</strong> 639Hz (Relationships) or 741Hz (Expression) — communication, creativity</p>
+      <p style="margin-top:8px;"><strong style="color:var(--gold)">Evening:</strong> 174Hz (Pain Relief) or 396Hz (Liberation) — grounding, releasing the day</p>
+      <p style="margin-top:8px;"><strong style="color:var(--gold)">Sleep/Rest:</strong> 285Hz (Tissue Healing) or 963Hz (Crown) — deep restoration, spiritual reset</p>
+    </div>
+  </div>
+</div>
+
+<!-- FLOW & HEAL TAB -->
+<div class="section" id="section-flow">
+  <div class="section-heading" style="margin-top:16px;">🌿 Flow &amp; Heal <span class="badge">Included</span></div>
+  <p class="section-sub">Complete guide to lymphatic self-massage and energy wellness — by T. Lott Creative. Pair with your healing frequencies for maximum benefit.</p>
+
+  <div class="module-card">
+    <div class="module-label">Module 1 · Lymphatic System</div>
+    <div class="module-title">What Is the Lymphatic System?</div>
+    <div class="module-body">
+      <p>Your body's internal drainage and immune defense network — 600+ lymph nodes filtering bacteria, viruses, and cellular debris. Unlike your heart-pumped blood system, lymph <em>depends on you</em> to move it.</p>
+      <div style="margin-top:10px;">
+        <span class="pill">600+ Lymph Nodes</span>
+        <span class="pill">Immune Defense</span>
+        <span class="pill">Fluid Balance</span>
+        <span class="pill">Detox Pathway</span>
+      </div>
+      <p style="margin-top:12px;"><strong style="color:var(--gold)">Why it gets sluggish:</strong> Sedentary lifestyle, poor posture, dehydration, stress — leading to puffiness, fatigue, and weakened immunity.</p>
+    </div>
+  </div>
+
+  <div class="module-card">
+    <div class="module-label">Module 2 · Self-Massage</div>
+    <div class="module-title">Core Principles of Manual Lymph Drainage</div>
+    <div class="module-body">
+      <ul class="step-list">
+        <li><span>01</span><span><strong>Light Touch Only</strong> — pressure of a nickel resting on skin. Heavy pressure collapses vessels.</span></li>
+        <li><span>02</span><span><strong>Open Nodes First</strong> — stimulate axillary, cervical, and inguinal nodes before moving fluid toward them.</span></li>
+        <li><span>03</span><span><strong>Stretch the Skin</strong> — slow, rhythmic circular or J-stroke movements. 1 stroke per second.</span></li>
+        <li><span>04</span><span><strong>Breathe Deeply</strong> — diaphragmatic breathing acts as a pump for the thoracic duct.</span></li>
+        <li><span>05</span><span><strong>Sequence Matters</strong> — work center outward: neck → shoulders → arms; abdomen → chest → neck.</span></li>
+        <li><span>06</span><span><strong>Hydrate After</strong> — drink 2–3 extra glasses of water to flush waste through nodes.</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="module-card">
+    <div class="module-label">Module 2 · Video Routines</div>
+    <div class="module-title">Guided Practice Sessions</div>
+    <div class="module-body">
+      <p style="margin-bottom:10px;">Guided by certified physical therapists and lymphedema specialists:</p>
+      <ul class="step-list">
+        <li><span>▶</span><span><a href="https://youtube.com/watch?v=BFiv-zj8oog" target="_blank">Full-Body Routine</a> — Physical Therapist · 22 min</span></li>
+        <li><span>▶</span><span><a href="https://youtube.com/watch?v=Dm1L8AxayJI" target="_blank">Beginners Guide (NuVue Method)</a> — Detox &amp; Drainage · 18 min</span></li>
+        <li><span>▶</span><span><a href="https://youtube.com/watch?v=KqB9NSrrTi4" target="_blank">Leg &amp; Lower Body Drainage</a> — Board-Certified OT · 16 min</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="module-card">
+    <div class="module-label">Module 3 · Energy Flow</div>
+    <div class="module-title">Meridians, Qi &amp; Life Force Energy</div>
+    <div class="module-body">
+      <p>Traditional Chinese Medicine maps 12 primary meridian channels carrying Qi (life force energy) through the body. Blockages manifest as pain, fatigue, and emotional imbalance.</p>
+      <div style="margin-top:10px;">
+        <span class="pill">Qi / Prana</span>
+        <span class="pill">12 Meridians</span>
+        <span class="pill">Acupressure</span>
+        <span class="pill">Qigong</span>
+        <span class="pill">Chakra Alignment</span>
+      </div>
+      <p style="margin-top:12px;"><strong style="color:var(--gold)">Frequency pairing:</strong> Play 528Hz or 639Hz while practicing Qigong for amplified energy circulation.</p>
+    </div>
+  </div>
+
+  <div class="module-card">
+    <div class="module-label">Module 4 · Energy Self-Massage</div>
+    <div class="module-title">Qigong &amp; Acupressure Videos</div>
+    <div class="module-body">
+      <ul class="step-list">
+        <li><span>▶</span><span>Qigong Self-Massage for Energy &amp; Vitality</span></li>
+        <li><span>▶</span><span>Acupressure — 60-Second Points</span></li>
+        <li><span>▶</span><span>Meridian Qigong — Hand &amp; Arm Massage</span></li>
+        <li><span>▶</span><span>3 Qigong Points — Immune System Boost</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="module-card" style="border-color:var(--gold);">
+    <div class="module-label">💾 Your Book</div>
+    <div class="module-title">Flow &amp; Heal — Full PDF</div>
+    <div class="module-body">
+      <p>The complete 20-page course book is included in your Sacred Cycles package download. It contains the full lymph node map, step-by-step protocols, scientific references, and the 21-Day Integrated Practice guide.</p>
+      <p style="margin-top:10px; color:var(--green);">✅ Included in your Sacred Cycles download.</p>
+    </div>
+  </div>
+</div>
+
+<!-- 21-DAY PROTOCOL TAB -->
+<div class="section" id="section-protocol">
+  <div class="section-heading" style="margin-top:16px;">📅 21-Day Lymph &amp; Energy Reset</div>
+  <p class="section-sub">Track your daily practice. Tap a day to mark it complete. Consistency is the medicine.</p>
+
+  <div class="protocol-legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--green);"></div> Completed</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--gold);"></div> Today</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--card2);border:1px solid var(--border);"></div> Upcoming</div>
+  </div>
+
+  <div class="day-grid" id="day-grid"></div>
+
+  <div class="module-card" style="margin-top:4px;">
+    <div class="module-label">6 Lifestyle Pillars</div>
+    <div class="module-title">Daily Foundations</div>
+    <div class="module-body">
+      <ul class="step-list">
+        <li><span>💧</span><span><strong>Hydration</strong> — 8–10 glasses of water daily; lymph needs fluid to flow</span></li>
+        <li><span>🏃</span><span><strong>Movement</strong> — 20+ min daily; rebounding, walking, or yoga are ideal</span></li>
+        <li><span>🤲</span><span><strong>Self-Massage</strong> — 10–15 min lymphatic drainage each morning</span></li>
+        <li><span>🎵</span><span><strong>Frequency Therapy</strong> — 10–30 min Solfeggio frequency session daily</span></li>
+        <li><span>🌬️</span><span><strong>Breathwork</strong> — 5 min diaphragmatic breathing before bed</span></li>
+        <li><span>🥗</span><span><strong>Anti-Inflammatory Diet</strong> — reduce processed foods, sugar, and alcohol</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="module-card">
+    <div class="module-label">Frequency Rotation — 21 Days</div>
+    <div class="module-title">Recommended Weekly Schedule</div>
+    <div class="module-body">
+      <ul class="step-list">
+        <li><span>W1</span><span><strong>Days 1–7:</strong> 396Hz Liberation + 528Hz DNA Repair — clearing and cellular reset</span></li>
+        <li><span>W2</span><span><strong>Days 8–14:</strong> 432Hz Harmony + 639Hz Relationships — heart opening and connection</span></li>
+        <li><span>W3</span><span><strong>Days 15–21:</strong> 741Hz Expression + 852Hz Intuition + 963Hz Crown — awakening and integration</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div style="text-align:center; margin-top:20px;">
+    <button class="btn btn-secondary" onclick="resetProtocol()">Reset Progress</button>
+  </div>
+</div>
+
+<!-- NOW PLAYING BAR -->
+<div id="now-playing">
+  <div id="np-pulse"></div>
+  <div id="np-info">
+    <div id="np-hz"></div>
+    <div id="np-name"></div>
+  </div>
+  <div id="np-timer">∞</div>
+  <button id="np-stop" onclick="stopFrequency()">■ Stop</button>
+</div>
+
+<script>
+// ── Frequency data ──────────────────────────────────────────────────────────
+const FREQS = [
+  { hz: 174, name: "Pain Relief & Security", benefit: "Reduces pain · Grounds the body · Builds safety",
+    desc: "The lowest Solfeggio frequency anchors the body in physical security. It has been studied for its analgesic (pain-reducing) properties and is used to ease physical and emotional trauma. Play during rest or after intense movement." },
+  { hz: 285, name: "Tissue Healing", benefit: "Cellular regeneration · Heals wounds · Restores energy fields",
+    desc: "Known as the frequency of healing tissues, 285Hz is believed to influence energy fields to encourage the body to restructure damaged organs and cells. Ideal for recovery days and evening sessions paired with lymphatic massage." },
+  { hz: 396, name: "Liberation from Fear & Guilt", benefit: "Releases fear · Clears guilt · Liberates subconscious blocks",
+    desc: "The 396Hz frequency targets the root chakra, helping to dissolve subconscious negative feelings of guilt and fear that manifest as physical tension and lymphatic stagnation. Use to begin your healing sessions." },
+  { hz: 417, name: "Transformation & Change", benefit: "Clears past trauma · Resets cellular memory · Facilitates change",
+    desc: "Tuned to facilitate change, 417Hz clears limiting experiences stored in the cellular memory and prepares the system for a new chapter. Pair with journaling or intention-setting rituals." },
+  { hz: 432, name: "Natural Harmony", benefit: "Heart coherence · Deep calm · Natural resonance",
+    desc: "Known as the 'Verdi frequency,' 432Hz resonates with the natural harmonic of the universe. It promotes heart coherence, reduces cortisol, and enhances the benefits of breathwork and lymphatic massage." },
+  { hz: 528, name: "DNA Repair & Miracle Healing", benefit: "DNA activation · Love frequency · Deep cellular healing",
+    desc: "Called the 'Love Frequency,' 528Hz sits at the center of the Solfeggio scale. Research has suggested it may reduce oxidative stress and support DNA integrity. This is the most widely used healing frequency." },
+  { hz: 639, name: "Relationships & Reconnection", benefit: "Heart chakra · Communication · Harmonious connections",
+    desc: "639Hz targets the heart and social energy centers, encouraging empathy, understanding, and healing in relationships. Best used during midday or during Qigong meridian practices." },
+  { hz: 741, name: "Awakening Intuition", benefit: "Third eye · Clarity · Detox from toxins",
+    desc: "741Hz encourages self-expression, problem-solving, and helps detoxify cells from electromagnetic and environmental pollution. Use when you need mental clarity or creative flow." },
+  { hz: 852, name: "Returning to Spiritual Order", benefit: "Third eye activation · Inner strength · Higher awareness",
+    desc: "852Hz reconnects you to the spiritual order of the universe, replacing negative thoughts with positive ones and raising your awareness above the chatter of the mind. Ideal for meditation." },
+  { hz: 963, name: "Crown Chakra & Divine Connection", benefit: "Pineal activation · Unity consciousness · Pure awareness",
+    desc: "The highest Solfeggio frequency activates the pineal gland (the 'seat of the soul') and is associated with the awakening of perfect state of being. Use for deep meditation or before sleep." },
+];
+
+// ── Audio engine ────────────────────────────────────────────────────────────
+let audioCtx = null;
+let currentNodes = [];
+let currentFreqIdx = null;
+let sessionTimerSecs = 5 * 60;
+let timerInterval = null;
+let sessionTimerInterval = null;
+let npElapsed = 0;
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playFrequency(idx) {
+  stopFrequency();
+  const ctx = getAudioCtx();
+  const freq = FREQS[idx].hz;
+
+  // Sine + 2nd + 3rd harmonic for richness
+  const gains = [0.55, 0.28, 0.17];
+  const mults = [1, 2, 3];
+
+  const masterGain = ctx.createGain();
+  masterGain.gain.setValueAtTime(0, ctx.currentTime);
+  masterGain.gain.linearRampToValueAtTime(0.35, ctx.currentTime + 2.5);
+  masterGain.connect(ctx.destination);
+
+  const oscs = mults.map((m, i) => {
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.frequency.value = freq * m;
+    osc.type = 'sine';
+    g.gain.value = gains[i];
+    osc.connect(g);
+    g.connect(masterGain);
+    osc.start();
+    return { osc, g };
+  });
+
+  currentNodes = [masterGain, ...oscs.map(x => x.osc)];
+  currentFreqIdx = idx;
+  npElapsed = 0;
+
+  // Update UI
+  document.querySelectorAll('.freq-card').forEach((c, i) => {
+    c.classList.toggle('playing', i === idx);
+    c.querySelector('.freq-play-btn').textContent = i === idx ? '■' : '▶';
+  });
+
+  const np = document.getElementById('now-playing');
+  np.classList.add('visible');
+  document.getElementById('np-hz').textContent = freq + 'Hz';
+  document.getElementById('np-name').textContent = FREQS[idx].name;
+
+  // Elapsed ticker
+  timerInterval = setInterval(() => {
+    npElapsed++;
+    const m = String(Math.floor(npElapsed / 60)).padStart(2, '0');
+    const s = String(npElapsed % 60).padStart(2, '0');
+    document.getElementById('np-timer').textContent = m + ':' + s;
+  }, 1000);
+}
+
+function stopFrequency() {
+  if (!audioCtx) return;
+  const ctx = audioCtx;
+  currentNodes.forEach(n => { try { if (n.gain) { n.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.8); } else { n.stop(ctx.currentTime + 0.9); } } catch(e){} });
+  currentNodes = [];
+  currentFreqIdx = null;
+  clearInterval(timerInterval);
+  document.querySelectorAll('.freq-card').forEach(c => {
+    c.classList.remove('playing');
+    c.querySelector('.freq-play-btn').textContent = '▶';
+  });
+  document.getElementById('now-playing').classList.remove('visible');
+}
+
+// ── Build frequency grid ─────────────────────────────────────────────────────
+const grid = document.getElementById('freq-grid');
+FREQS.forEach((f, i) => {
+  const card = document.createElement('div');
+  card.className = 'freq-card';
+  card.innerHTML = `
+    <div class="freq-header">
+      <div class="freq-hz">${f.hz}<span style="font-size:0.7rem;color:var(--muted)">Hz</span></div>
+      <div class="freq-info">
+        <div class="freq-name">${f.name}</div>
+        <div class="freq-benefit">${f.benefit}</div>
+      </div>
+      <button class="freq-play-btn" aria-label="Play ${f.hz}Hz">▶</button>
+    </div>
+    <div class="freq-desc">${f.desc}</div>
+  `;
+  card.querySelector('.freq-play-btn').addEventListener('click', e => {
+    e.stopPropagation();
+    currentFreqIdx === i ? stopFrequency() : playFrequency(i);
+  });
+  card.addEventListener('click', () => {
+    card.classList.toggle('open');
+  });
+  grid.appendChild(card);
+});
+
+// ── Tab navigation ───────────────────────────────────────────────────────────
+function showTab(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('section-' + name).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ── Session timer ────────────────────────────────────────────────────────────
+let sessionMins = 5;
+let sessionRunning = false;
+let sessionRemaining = 5 * 60;
+
+function setTimer(mins, btn) {
+  document.querySelectorAll('.timer-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  sessionMins = mins;
+  sessionRemaining = mins * 60;
+  updateTimerDisplay();
+  resetSessionTimer();
+}
+
+function updateTimerDisplay() {
+  const m = String(Math.floor(sessionRemaining / 60)).padStart(2, '0');
+  const s = String(sessionRemaining % 60).padStart(2, '0');
+  document.getElementById('timer-display').textContent = m + ':' + s;
+}
+
+function startSessionTimer() {
+  if (sessionRunning) return;
+  sessionRunning = true;
+  document.getElementById('timer-start-btn').textContent = 'Running…';
+  sessionTimerInterval = setInterval(() => {
+    sessionRemaining--;
+    updateTimerDisplay();
+    if (sessionRemaining <= 0) {
+      clearInterval(sessionTimerInterval);
+      sessionRunning = false;
+      stopFrequency();
+      document.getElementById('timer-start-btn').textContent = 'Session Complete ✓';
+      document.getElementById('timer-display').textContent = '✓ Done';
+    }
+  }, 1000);
+}
+
+function resetSessionTimer() {
+  clearInterval(sessionTimerInterval);
+  sessionRunning = false;
+  sessionRemaining = sessionMins * 60;
+  updateTimerDisplay();
+  document.getElementById('timer-start-btn').textContent = 'Start Timer';
+}
+
+// ── 21-Day Protocol ──────────────────────────────────────────────────────────
+const STORAGE_KEY = 'sacredcycles_21day';
+
+function loadProtocol() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; }
+}
+
+function saveProtocol(data) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function buildDayGrid() {
+  const grid = document.getElementById('day-grid');
+  const data = loadProtocol();
+  const startDate = data.startDate || new Date().toDateString();
+  if (!data.startDate) { data.startDate = startDate; saveProtocol(data); }
+  grid.innerHTML = '';
+  for (let d = 1; d <= 21; d++) {
+    const cell = document.createElement('div');
+    cell.className = 'day-cell';
+    cell.textContent = d;
+    if (data['day' + d]) cell.classList.add('done');
+    const dayOffset = Math.floor((new Date() - new Date(startDate)) / 86400000) + 1;
+    if (d === dayOffset && !data['day' + d]) cell.classList.add('today');
+    cell.addEventListener('click', () => {
+      data['day' + d] = !data['day' + d];
+      saveProtocol(data);
+      buildDayGrid();
+    });
+    grid.appendChild(cell);
+  }
+}
+
+function resetProtocol() {
+  if (confirm('Reset your 21-day progress?')) { localStorage.removeItem(STORAGE_KEY); buildDayGrid(); }
+}
+
+buildDayGrid();
+</script>
+</body>
+</html>

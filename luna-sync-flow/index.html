@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Luna Sync Flow — Enhanced Sleep Mosaic</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-deep:#0A0D1C;--bg-panel:#11152A;--bg-panel-2:#161B33;
+  --gold:#C9A668;--gold-bright:#E8C988;
+  --silver:#E7E5DD;--silver-dim:#9CA0B5;--lavender:#6F6693;
+  --glow:rgba(232,201,136,0.4);--line:rgba(232,201,136,0.14);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%,rgba(111,102,147,0.2),transparent 60%),
+    radial-gradient(ellipse 60% 40% at 90% 100%,rgba(201,166,104,0.09),transparent 60%),
+    var(--bg-deep);
+  color:var(--silver);font-family:'Jost',sans-serif;
+  min-height:100vh;overflow-x:hidden;
+}
+.stars{position:fixed;inset:0;pointer-events:none;z-index:0;}
+.star{position:absolute;border-radius:50%;background:var(--silver);animation:twinkle 5s ease-in-out infinite;}
+@keyframes twinkle{0%,100%{opacity:.08;}50%{opacity:.7;}}
+.wrap{position:relative;z-index:1;max-width:860px;margin:0 auto;padding:56px 22px 96px;}
+
+/* HEADER */
+header{text-align:center;margin-bottom:44px;}
+.eyebrow{font-size:11px;letter-spacing:0.32em;text-transform:uppercase;color:var(--gold);opacity:.85;margin-bottom:14px;}
+h1{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:clamp(32px,6vw,52px);line-height:1.08;margin-bottom:14px;color:var(--silver);}
+h1 em{font-style:italic;color:var(--gold-bright);font-weight:400;}
+.sub{max-width:440px;margin:0 auto;color:var(--silver-dim);font-size:15px;line-height:1.7;font-weight:300;}
+
+/* MOSAIC */
+.moon-stage{width:100%;max-width:340px;margin:48px auto 16px;aspect-ratio:1/1;}
+svg.mosaic{width:100%;height:100%;overflow:visible;}
+.tile{cursor:pointer;transition:fill .45s cubic-bezier(.23,1,.32,1),filter .5s ease,opacity .5s ease;stroke:#06070F;stroke-width:1.1;}
+.tile.off{opacity:.72;}
+.tile.on{filter:url(#gf);}
+.moon-caption{text-align:center;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:16px;color:var(--gold);min-height:22px;margin-top:8px;transition:opacity .3s;}
+
+/* LEGEND */
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:9px 14px;margin:28px auto 0;max-width:510px;}
+.legend-item{
+  display:flex;align-items:center;gap:10px;font-size:13px;
+  color:var(--silver-dim);padding:9px 12px;
+  border:1px solid var(--line);border-radius:8px;
+  background:rgba(255,255,255,0.018);cursor:pointer;
+  transition:all .22s;user-select:none;
+}
+.legend-item:hover{border-color:rgba(232,201,136,.3);}
+.legend-item.active{color:var(--gold-bright);border-color:var(--gold);background:rgba(232,201,136,.08);}
+.swatch{width:13px;height:13px;border-radius:3px;flex-shrink:0;}
+.legend-desc{font-size:11px;color:var(--silver-dim);opacity:.65;margin-top:1px;}
+
+/* PANEL */
+.panel{
+  margin-top:44px;
+  background:linear-gradient(160deg,rgba(22,27,51,.82),rgba(17,21,42,.82));
+  border:1px solid var(--line);border-radius:16px;
+  padding:30px clamp(18px,5vw,38px);
+  backdrop-filter:blur(10px);
+}
+
+/* TRANSPORT */
+.transport{display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+.play-btn{
+  width:62px;height:62px;border-radius:50%;
+  border:2px solid rgba(232,201,136,.6);
+  background:radial-gradient(circle at 35% 30%,#2a2240,#14172c);
+  color:var(--gold-bright);display:flex;align-items:center;justify-content:center;
+  font-size:21px;cursor:pointer;transition:all .2s;flex-shrink:0;
+}
+.play-btn:hover{box-shadow:0 0 28px var(--glow);transform:scale(1.05);}
+.play-btn:focus{outline:2px solid var(--gold);outline-offset:3px;}
+.transport-info{flex:1;min-width:110px;}
+.layer-count{font-size:14px;font-weight:500;color:var(--silver);display:block;margin-bottom:3px;}
+.status-txt{font-size:12.5px;color:var(--silver-dim);font-style:italic;}
+.master-vol{display:flex;flex-direction:column;gap:5px;min-width:130px;}
+.vol-label{font-size:11.5px;color:var(--silver-dim);display:flex;justify-content:space-between;}
+input[type=range]{width:100%;accent-color:var(--gold-bright);cursor:pointer;}
+
+.divider{height:1px;background:var(--line);margin:24px 0;}
+
+/* LAYER CONTROLS */
+#layerControls{display:grid;gap:13px;}
+.layer-row{display:grid;grid-template-columns:140px 1fr auto;gap:10px;align-items:center;transition:opacity .3s;}
+.layer-row.disabled{opacity:.35;pointer-events:none;}
+.layer-row-name{font-size:12.5px;color:var(--silver-dim);display:flex;align-items:center;gap:7px;}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.slider-wrap{display:flex;align-items:center;gap:7px;}
+.slider-wrap input{flex:1;}
+.vol-val{font-size:11px;color:var(--silver-dim);min-width:28px;text-align:right;}
+.mute-btn{
+  font-size:11px;padding:4px 10px;border-radius:9999px;
+  border:1px solid var(--line);background:transparent;
+  color:var(--silver-dim);cursor:pointer;white-space:nowrap;transition:all .2s;
+  font-family:'Jost',sans-serif;
+}
+.mute-btn:hover{border-color:rgba(232,201,136,.3);}
+.mute-btn.muted{background:rgba(255,60,60,.1);border-color:rgba(255,80,80,.4);color:rgba(255,110,110,.9);}
+
+/* TIMER */
+.timer-label{font-size:12px;color:var(--silver-dim);margin-bottom:9px;}
+.timer-row{display:flex;flex-wrap:wrap;gap:7px;align-items:center;}
+.timer-btn{
+  font-size:12.5px;padding:6px 15px;border-radius:9999px;
+  border:1px solid var(--line);background:transparent;
+  color:var(--silver-dim);cursor:pointer;transition:all .2s;
+  font-family:'Jost',sans-serif;
+}
+.timer-btn:hover{border-color:rgba(232,201,136,.35);}
+.timer-btn.selected{background:rgba(232,201,136,.14);border-color:var(--gold);color:var(--gold-bright);}
+.timer-display{font-family:'Cormorant Garamond',serif;font-size:19px;color:var(--gold);margin-left:10px;min-width:56px;}
+
+/* EXTRA BUTTONS */
+.extra-btns{margin-top:20px;display:flex;gap:9px;flex-wrap:wrap;justify-content:center;}
+.extra-btn{
+  font-size:12.5px;padding:8px 18px;border-radius:9999px;
+  background:rgba(232,201,136,.08);border:1px solid rgba(232,201,136,.38);
+  color:var(--gold-bright);cursor:pointer;transition:all .2s;
+  font-family:'Jost',sans-serif;
+}
+.extra-btn:hover{background:rgba(232,201,136,.16);box-shadow:0 0 14px rgba(232,201,136,.2);}
+
+footer{text-align:center;margin-top:48px;font-size:11px;letter-spacing:.12em;color:var(--silver-dim);text-transform:uppercase;opacity:.55;}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:28px;left:50%;
+  transform:translateX(-50%) translateY(16px);
+  background:rgba(17,21,42,.96);
+  border:1px solid var(--gold);color:var(--gold-bright);
+  padding:11px 22px;border-radius:9999px;
+  font-size:13.5px;opacity:0;transition:all .3s;
+  pointer-events:none;z-index:999;white-space:nowrap;
+  font-family:'Jost',sans-serif;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* EQ SECTION */
+.eq-section{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:4px;}
+.eq-row{display:flex;flex-direction:column;gap:5px;}
+.eq-label{font-size:11.5px;color:var(--silver-dim);display:flex;justify-content:space-between;}
+
+@media(max-width:600px){
+  .legend{grid-template-columns:1fr;}
+  .layer-row{grid-template-columns:1fr auto;}
+  .layer-row-name{grid-column:1/-1;}
+  .transport{flex-direction:column;align-items:flex-start;}
+  .master-vol{width:100%;}
+  .eq-section{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Holistic Luna Sync Flow • Enhanced</div>
+    <h1>The Sleep <em>Mosaic</em></h1>
+    <p class="sub">Immersive layered soundscapes. Touch tiles to activate each layer. Adjust & drift deeper.</p>
+  </header>
+
+  <div class="moon-stage">
+    <svg class="mosaic" viewBox="0 0 200 200" id="moonSvg" role="img" aria-label="Sleep soundscape mosaic tiles">
+      <defs>
+        <filter id="gf" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="4" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <clipPath id="mc"><circle cx="100" cy="100" r="91"/></clipPath>
+      </defs>
+      <g id="tiles" clip-path="url(#mc)"></g>
+    </svg>
+  </div>
+  <div class="moon-caption" id="moonCaption">&nbsp;</div>
+  <div class="legend" id="legend"></div>
+
+  <div class="panel">
+    <div class="transport">
+      <button class="play-btn" id="playBtn" aria-label="Play or pause all selected layers">▶</button>
+      <div class="transport-info">
+        <span class="layer-count" id="layerCount">No fragments selected</span>
+        <span class="status-txt" id="statusTxt">Select tiles above to begin</span>
+      </div>
+      <div class="master-vol">
+        <div class="vol-label"><span>Master Volume</span><span id="masterVolVal">70%</span></div>
+        <input type="range" id="masterVol" min="0" max="100" value="70" aria-label="Master volume">
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- EQ -->
+    <div class="eq-section">
+      <div class="eq-row">
+        <div class="eq-label"><span>Low-Pass Cutoff</span><span id="lpfVal">4000 Hz</span></div>
+        <input type="range" id="lpfSlider" min="200" max="18000" value="4000" aria-label="Low-pass filter cutoff">
+      </div>
+      <div class="eq-row">
+        <div class="eq-label"><span>High-Pass Cutoff</span><span id="hpfVal">40 Hz</span></div>
+        <input type="range" id="hpfSlider" min="20" max="800" value="40" aria-label="High-pass filter cutoff">
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div id="layerControls"></div>
+
+    <div class="divider"></div>
+
+    <div class="timer-label">Sleep Timer (auto-fade)</div>
+    <div class="timer-row">
+      <button class="timer-btn" data-min="15">15 min</button>
+      <button class="timer-btn" data-min="30">30 min</button>
+      <button class="timer-btn" data-min="60">60 min</button>
+      <button class="timer-btn selected" data-min="0">∞ Infinite</button>
+      <span class="timer-display" id="timerDisplay"></span>
+    </div>
+
+    <div class="extra-btns">
+      <button class="extra-btn" id="randomMix" aria-label="Pick a random sound mix">🌕 Random Phase</button>
+      <button class="extra-btn" id="savePreset" aria-label="Save current mix to URL">💾 Save Preset</button>
+      <button class="extra-btn" id="loadPreset" aria-label="Load a saved preset">📂 Load Preset</button>
+      <button class="extra-btn" id="clearAll" aria-label="Clear all active layers">✕ Clear All</button>
+    </div>
+  </div>
+
+  <footer>Luna Sync Flow ✦ Sacred Cycles ✦ Enhanced v2</footer>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// STARFIELD
+// ═══════════════════════════════════════════════════
+(function(){
+  const el = document.getElementById('stars');
+  for(let i=0;i<130;i++){
+    const s=document.createElement('div');
+    s.className='star';
+    const sz=Math.random()*2+0.7;
+    Object.assign(s.style,{
+      left:Math.random()*100+'%',top:Math.random()*100+'%',
+      width:sz+'px',height:sz+'px',
+      animationDelay:(Math.random()*9)+'s',
+      animationDuration:(3+Math.random()*5)+'s',
+      opacity:Math.random()*0.4+0.1
+    });
+    el.appendChild(s);
+  }
+})();
+
+// ═══════════════════════════════════════════════════
+// LAYERS
+// ═══════════════════════════════════════════════════
+const LAYERS = [
+  {id:'hum',    name:'Lunar Hum',       color:'#6F6693', desc:'Deep tidal drone',      baseGain:0.22},
+  {id:'tide',   name:'Tide Whisper',    color:'#3F7E9E', desc:'Ocean breath',           baseGain:0.28},
+  {id:'bowl',   name:'Temple Bowl',     color:'#C9A668', desc:'Resonant strikes',       baseGain:0.26},
+  {id:'rain',   name:'Night Rain',      color:'#4A6478', desc:'Gentle rainfall',        baseGain:0.20},
+  {id:'breath', name:'Breath of Luna',  color:'#8C6F9E', desc:'Slow harmonic pulse',   baseGain:0.18},
+  {id:'chime',  name:'Starlight Chime', color:'#E8C988', desc:'Crystalline tones',     baseGain:0.18}
+];
+
+// ═══════════════════════════════════════════════════
+// HEX MOSAIC GENERATION
+// ═══════════════════════════════════════════════════
+(function buildMosaic(){
+  const svg   = document.getElementById('moonSvg');
+  const group = document.getElementById('tiles');
+  const R=20, SQRT3=Math.sqrt(3), CX=100, CY=100, CLIP=88;
+
+  function hexPts(cx,cy,r){
+    return Array.from({length:6},(_,i)=>{
+      const a=Math.PI/180*(60*i-30);
+      return `${(cx+r*Math.cos(a)).toFixed(2)},${(cy+r*Math.sin(a)).toFixed(2)}`;
+    }).join(' ');
+  }
+
+  // seeded shuffle for consistent layout
+  let sd=314159;
+  function sr(){sd=(sd*1664525+1013904223)>>>0;return sd/0xFFFFFFFF;}
+
+  const cells=[];
+  for(let row=-5;row<=6;row++){
+    for(let col=-5;col<=6;col++){
+      const cx=CX+col*SQRT3*R+(row%2!==0?SQRT3*R/2:0);
+      const cy=CY+row*R*1.5;
+      if(Math.hypot(cx-CX,cy-CY)<CLIP-R*0.2) cells.push({cx,cy});
+    }
+  }
+
+  // assign layers evenly then shuffle
+  cells.forEach((c,i)=>c.li=i%LAYERS.length);
+  for(let i=cells.length-1;i>0;i--){
+    const j=Math.floor(sr()*(i+1));
+    [cells[i].li,cells[j].li]=[cells[j].li,cells[i].li];
+  }
+
+  cells.forEach(c=>{
+    const L=LAYERS[c.li];
+    const poly=document.createElementNS('http://www.w3.org/2000/svg','polygon');
+    poly.setAttribute('points',hexPts(c.cx,c.cy,R-1.8));
+    poly.setAttribute('fill','#161B33');
+    poly.setAttribute('class','tile off');
+    poly.setAttribute('tabindex','0');
+    poly.setAttribute('role','button');
+    poly.setAttribute('aria-label',`Toggle ${L.name}`);
+    poly.dataset.lid=L.id;
+    poly.addEventListener('click',()=>toggleLayer(L.id));
+    poly.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();toggleLayer(L.id);}});
+    poly.addEventListener('mouseenter',()=>{
+      document.getElementById('moonCaption').textContent=`${L.name} — ${L.desc}`;
+    });
+    poly.addEventListener('mouseleave',()=>{
+      document.getElementById('moonCaption').innerHTML='&nbsp;';
+    });
+    group.appendChild(poly);
+  });
+})();
+
+// ═══════════════════════════════════════════════════
+// LEGEND
+// ═══════════════════════════════════════════════════
+LAYERS.forEach(L=>{
+  const d=document.createElement('div');
+  d.className='legend-item';d.id='lg-'+L.id;
+  d.setAttribute('tabindex','0');d.setAttribute('role','button');
+  d.setAttribute('aria-label',`Toggle ${L.name} layer`);
+  d.innerHTML=`<div class="swatch" style="background:${L.color}"></div>
+    <div><div>${L.name}</div><div class="legend-desc">${L.desc}</div></div>`;
+  d.addEventListener('click',()=>toggleLayer(L.id));
+  d.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();toggleLayer(L.id);}});
+  document.getElementById('legend').appendChild(d);
+});
+
+// ═══════════════════════════════════════════════════
+// LAYER VOLUME / MUTE CONTROLS
+// ═══════════════════════════════════════════════════
+const layerVol={}, layerMuted={};
+LAYERS.forEach(L=>{layerVol[L.id]=75;layerMuted[L.id]=false;});
+
+const ctrlEl=document.getElementById('layerControls');
+LAYERS.forEach(L=>{
+  const row=document.createElement('div');
+  row.className='layer-row disabled';row.id='ctrl-'+L.id;
+  row.innerHTML=`
+    <div class="layer-row-name">
+      <span class="dot" style="background:${L.color}"></span>${L.name}
+    </div>
+    <div class="slider-wrap">
+      <input type="range" min="0" max="100" value="75" id="vol-${L.id}" aria-label="${L.name} volume">
+      <span class="vol-val" id="vv-${L.id}">75%</span>
+    </div>
+    <button class="mute-btn" id="mute-${L.id}" aria-label="Mute ${L.name}">Mute</button>`;
+  ctrlEl.appendChild(row);
+
+  document.getElementById('vol-'+L.id).addEventListener('input',e=>{
+    layerVol[L.id]=+e.target.value;
+    document.getElementById('vv-'+L.id).textContent=e.target.value+'%';
+    applyVol(L.id);
+  });
+  document.getElementById('mute-'+L.id).addEventListener('click',()=>{
+    layerMuted[L.id]=!layerMuted[L.id];
+    const btn=document.getElementById('mute-'+L.id);
+    btn.classList.toggle('muted',layerMuted[L.id]);
+    btn.textContent=layerMuted[L.id]?'Unmute':'Mute';
+    applyVol(L.id);
+  });
+});
+
+function enableCtrl(id,on){
+  const r=document.getElementById('ctrl-'+id);
+  if(r) r.classList.toggle('disabled',!on);
+}
+
+// ═══════════════════════════════════════════════════
+// AUDIO ENGINE
+// ═══════════════════════════════════════════════════
+let AC=null, masterGain=null, lpfNode=null, hpfNode=null, reverbNode=null, dryGain=null, wetGain=null;
+const activeNodes={};
+const selected=new Set();
+let isPlaying=false;
+let timerIv=null, timerEnd=null, selTimerMin=0;
+
+function ensureAC(){
+  if(!AC){
+    AC=new(window.AudioContext||window.webkitAudioContext)();
+    masterGain=AC.createGain();
+    masterGain.gain.value=0.7;
+
+    // Global EQ chain
+    hpfNode=AC.createBiquadFilter();hpfNode.type='highpass';hpfNode.frequency.value=40;
+    lpfNode=AC.createBiquadFilter();lpfNode.type='lowpass';lpfNode.frequency.value=4000;
+
+    // Reverb with synthetic impulse
+    reverbNode=AC.createConvolver();
+    const ilen=AC.sampleRate*2.8;
+    const ibuf=AC.createBuffer(2,ilen,AC.sampleRate);
+    for(let ch=0;ch<2;ch++){
+      const d=ibuf.getChannelData(ch);
+      for(let i=0;i<ilen;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/ilen,2.2);
+    }
+    reverbNode.buffer=ibuf;
+
+    dryGain=AC.createGain();dryGain.gain.value=0.68;
+    wetGain=AC.createGain();wetGain.gain.value=0.32;
+
+    // Signal path: masterGain -> hpf -> lpf -> dry -> destination
+    //                                         -> reverb -> wet -> destination
+    masterGain.connect(hpfNode);
+    hpfNode.connect(lpfNode);
+    lpfNode.connect(dryGain);
+    lpfNode.connect(reverbNode);
+    reverbNode.connect(wetGain);
+    dryGain.connect(AC.destination);
+    wetGain.connect(AC.destination);
+  }
+  if(AC.state==='suspended') AC.resume();
+  return AC;
+}
+
+function noiseBuf(secs,brown=false){
+  const c=ensureAC();
+  const buf=c.createBuffer(2,c.sampleRate*secs,c.sampleRate);
+  for(let ch=0;ch<2;ch++){
+    const d=buf.getChannelData(ch);
+    let last=0;
+    for(let i=0;i<d.length;i++){
+      const w=Math.random()*2-1;
+      if(brown){last=(last+0.02*w)/1.02;d[i]=last*3.8;}
+      else d[i]=w;
+    }
+  }
+  return buf;
+}
+
+// Each starter: returns {gainNode, stopFn}
+// gainNode connects to masterGain; pre-gain normalizes loudness
+const STARTERS={
+  hum(){
+    const c=ensureAC();
+    const gn=c.createGain();gn.gain.value=0;
+    const pre=c.createGain();pre.gain.value=0.22;
+    const o1=c.createOscillator();o1.type='sine';o1.frequency.value=68;
+    const o2=c.createOscillator();o2.type='sine';o2.frequency.value=102;
+    const o3=c.createOscillator();o3.type='sine';o3.frequency.value=34;
+    const lfo=c.createOscillator();lfo.type='sine';lfo.frequency.value=0.07;
+    const lfoG=c.createGain();lfoG.gain.value=0.04;
+    lfo.connect(lfoG);lfoG.connect(o1.frequency);
+    [o1,o2,o3].forEach(o=>o.connect(pre));
+    pre.connect(gn);gn.connect(masterGain);
+    [o1,o2,o3,lfo].forEach(o=>o.start());
+    return{gainNode:gn,stopFn:()=>[o1,o2,o3,lfo].forEach(o=>{try{o.stop();}catch(e){}})};
+  },
+
+  tide(){
+    const c=ensureAC();
+    const gn=c.createGain();gn.gain.value=0;
+    const pre=c.createGain();pre.gain.value=0.28;
+    const buf=noiseBuf(18,true);
+    const src=c.createBufferSource();src.buffer=buf;src.loop=true;
+    const lpf=c.createBiquadFilter();lpf.type='lowpass';lpf.frequency.value=260;lpf.Q.value=0.6;
+    const lfo=c.createOscillator();lfo.type='sine';lfo.frequency.value=0.045;
+    const lfoG=c.createGain();lfoG.gain.value=0.13;
+    lfo.connect(lfoG);lfoG.connect(gn.gain);
+    src.connect(lpf);lpf.connect(pre);pre.connect(gn);gn.connect(masterGain);
+    src.start();lfo.start();
+    return{gainNode:gn,stopFn:()=>{try{src.stop();}catch(e){}try{lfo.stop();}catch(e){}}};
+  },
+
+  bowl(){
+    const c=ensureAC();
+    const gn=c.createGain();gn.gain.value=0;
+    const pre=c.createGain();pre.gain.value=0.26;
+    pre.connect(gn);gn.connect(masterGain);
+    let dead=false;
+    const FREQS=[196,220,293,330,440,528,659,880];
+    function strike(){
+      if(dead)return;
+      const freq=FREQS[Math.floor(Math.random()*FREQS.length)];
+      const o=c.createOscillator();o.type='sine';o.frequency.value=freq;
+      const o2=c.createOscillator();o2.type='sine';o2.frequency.value=freq*2.756;
+      const env=c.createGain();env.gain.value=0.38;
+      env.gain.setTargetAtTime(0.0001,c.currentTime+0.05,1.4);
+      [o,o2].forEach(x=>x.connect(env));env.connect(pre);
+      [o,o2].forEach(x=>{x.start();x.stop(c.currentTime+6);});
+      setTimeout(()=>{if(!dead)strike();},4500+Math.random()*7000);
+    }
+    strike();
+    return{gainNode:gn,stopFn:()=>{dead=true;}};
+  },
+
+  rain(){
+    const c=ensureAC();
+    const gn=c.createGain();gn.gain.value=0;
+    const pre=c.createGain();pre.gain.value=0.20;
+    const buf=noiseBuf(12,false);
+    const src=c.createBufferSource();src.buffer=buf;src.loop=true;
+    const hpf=c.createBiquadFilter();hpf.type='highpass';hpf.frequency.value=1400;
+    const lpf=c.createBiquadFilter();lpf.type='lowpass';lpf.frequency.value=7500;
+    // subtle crackle via second noise source
+    const buf2=noiseBuf(8,false);
+    const src2=c.createBufferSource();src2.buffer=buf2;src2.loop=true;
+    const bpf=c.createBiquadFilter();bpf.type='bandpass';bpf.frequency.value=3800;bpf.Q.value=0.5;
+    const cg=c.createGain();cg.gain.value=0.35;
+    src.connect(hpf);hpf.connect(lpf);lpf.connect(pre);
+    src2.connect(bpf);bpf.connect(cg);cg.connect(pre);
+    pre.connect(gn);gn.connect(masterGain);
+    src.start();src2.start();
+    return{gainNode:gn,stopFn:()=>{try{src.stop();}catch(e){}try{src2.stop();}catch(e){}}};
+  },
+
+  breath(){
+    const c=ensureAC();
+    const gn=c.createGain();gn.gain.value=0;
+    const pre=c.createGain();pre.gain.value=0.18;
+    const o=c.createOscillator();o.type='sine';o.frequency.value=432;
+    const o2=c.createOscillator();o2.type='sine';o2.frequency.value=216;
+    const o3=c.createOscillator();o3.type='triangle';o3.frequency.value=864;
+    const og3=c.createGain();og3.gain.value=0.15;
+    // slow breathe LFO on main gain
+    const lfo=c.createOscillator();lfo.type='sine';lfo.frequency.value=1/9;
+    const lfoG=c.createGain();lfoG.gain.value=0.07;
+    lfo.connect(lfoG);lfoG.connect(gn.gain);
+    [o,o2].forEach(x=>x.connect(pre));
+    o3.connect(og3);og3.connect(pre);
+    pre.connect(gn);gn.connect(masterGain);
+    [o,o2,o3,lfo].forEach(x=>x.start());
+    return{gainNode:gn,stopFn:()=>[o,o2,o3,lfo].forEach(x=>{try{x.stop();}catch(e){}})};
+  },
+
+  chime(){
+    const c=ensureAC();
+    const gn=c.createGain();gn.gain.value=0;
+    const pre=c.createGain();pre.gain.value=0.18;
+    pre.connect(gn);gn.connect(masterGain);
+    let dead=false;
+    const FREQS=[2093,2637,3136,3520,3951,4186,4699,5274];
+    function ring(){
+      if(dead)return;
+      const n=1+Math.floor(Math.random()*3);
+      for(let i=0;i<n;i++){
+        setTimeout(()=>{
+          if(dead)return;
+          const f=FREQS[Math.floor(Math.random()*FREQS.length)];
+          const o=c.createOscillator();o.type='sine';o.frequency.value=f;
+          const o2=c.createOscillator();o2.type='sine';o2.frequency.value=f*1.004;// slight detune chorus
+          const env=c.createGain();env.gain.value=0.28;
+          env.gain.exponentialRampToValueAtTime(0.0001,c.currentTime+3.2);
+          [o,o2].forEach(x=>{x.connect(env);x.start();x.stop(c.currentTime+3.5);});
+          env.connect(pre);
+        },i*280+Math.random()*100);
+      }
+      setTimeout(()=>{if(!dead)ring();},6000+Math.random()*12000);
+    }
+    ring();
+    return{gainNode:gn,stopFn:()=>{dead=true;}};
+  }
+};
+
+function targetVol(id){
+  if(layerMuted[id])return 0;
+  return layerVol[id]/100;
+}
+
+function applyVol(id){
+  if(!activeNodes[id])return;
+  const c=ensureAC();
+  activeNodes[id].gainNode.gain.linearRampToValueAtTime(
+    targetVol(id),c.currentTime+0.35
+  );
+}
+
+function startLayer(id){
+  if(activeNodes[id])return;
+  const c=ensureAC();
+  const res=STARTERS[id]();
+  activeNodes[id]=res;
+  res.gainNode.gain.linearRampToValueAtTime(targetVol(id),c.currentTime+2.2);
+  enableCtrl(id,true);
+}
+
+function stopLayer(id){
+  if(!activeNodes[id])return;
+  const c=ensureAC();
+  const{gainNode,stopFn}=activeNodes[id];
+  delete activeNodes[id];
+  gainNode.gain.linearRampToValueAtTime(0.0001,c.currentTime+1.6);
+  setTimeout(()=>{try{gainNode.disconnect();}catch(e){}stopFn();},1700);
+  enableCtrl(id,false);
+}
+
+function stopAll(){
+  Object.keys(activeNodes).forEach(stopLayer);
+  isPlaying=false;
+  document.getElementById('playBtn').textContent='▶';
+  document.getElementById('playBtn').setAttribute('aria-label','Play all selected layers');
+  updateStatus();
+}
+
+function startAll(){
+  ensureAC();
+  selected.forEach(id=>{if(!activeNodes[id])startLayer(id);});
+  isPlaying=true;
+  document.getElementById('playBtn').textContent='⏸';
+  document.getElementById('playBtn').setAttribute('aria-label','Pause all layers');
+  updateStatus();
+  startTimerIfNeeded();
+}
+
+// ═══════════════════════════════════════════════════
+// SELECTION & VISUALS
+// ═══════════════════════════════════════════════════
+function toggleLayer(id){
+  if(selected.has(id)){
+    selected.delete(id);
+    if(isPlaying)stopLayer(id);
+  }else{
+    selected.add(id);
+    if(isPlaying)startLayer(id);
+  }
+  updateVisuals();updateStatus();
+}
+
+function updateVisuals(){
+  const L=id=>LAYERS.find(l=>l.id===id);
+  document.querySelectorAll('.tile').forEach(el=>{
+    const on=selected.has(el.dataset.lid);
+    el.classList.toggle('on',on);el.classList.toggle('off',!on);
+    el.setAttribute('fill',on?L(el.dataset.lid).color:'#161B33');
+    el.setAttribute('aria-pressed',on?'true':'false');
+  });
+  LAYERS.forEach(l=>{
+    const item=document.getElementById('lg-'+l.id);
+    if(item){item.classList.toggle('active',selected.has(l.id));
+      item.setAttribute('aria-pressed',selected.has(l.id)?'true':'false');}
+  });
+}
+
+function updateStatus(){
+  const n=selected.size;
+  const countEl=document.getElementById('layerCount');
+  const txtEl=document.getElementById('statusTxt');
+  if(n===0){countEl.textContent='No fragments selected';txtEl.textContent='Select tiles above to begin';}
+  else{
+    const names=Array.from(selected).map(id=>LAYERS.find(l=>l.id===id)?.name).filter(Boolean);
+    countEl.textContent=n+' layer'+(n>1?'s':'')+' active';
+    txtEl.textContent=names.join(' · ');
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// PLAY / PAUSE
+// ═══════════════════════════════════════════════════
+document.getElementById('playBtn').addEventListener('click',()=>{
+  if(selected.size===0){showToast('Select at least one tile first ✦');return;}
+  if(isPlaying){stopAll();clearTimerFn();}else{startAll();}
+});
+
+// ═══════════════════════════════════════════════════
+// MASTER VOLUME
+// ═══════════════════════════════════════════════════
+document.getElementById('masterVol').addEventListener('input',e=>{
+  document.getElementById('masterVolVal').textContent=e.target.value+'%';
+  if(masterGain){
+    const c=ensureAC();
+    masterGain.gain.linearRampToValueAtTime(+e.target.value/100,c.currentTime+0.1);
+  }
+});
+
+// ═══════════════════════════════════════════════════
+// GLOBAL EQ
+// ═══════════════════════════════════════════════════
+document.getElementById('lpfSlider').addEventListener('input',e=>{
+  document.getElementById('lpfVal').textContent=e.target.value+' Hz';
+  if(lpfNode)lpfNode.frequency.value=+e.target.value;
+});
+document.getElementById('hpfSlider').addEventListener('input',e=>{
+  document.getElementById('hpfVal').textContent=e.target.value+' Hz';
+  if(hpfNode)hpfNode.frequency.value=+e.target.value;
+});
+
+// ═══════════════════════════════════════════════════
+// TIMER
+// ═══════════════════════════════════════════════════
+function startTimerIfNeeded(){
+  if(selTimerMin===0)return;
+  clearTimerFn();
+  timerEnd=Date.now()+selTimerMin*60*1000;
+  timerIv=setInterval(()=>{
+    const rem=timerEnd-Date.now();
+    if(rem<=0){
+      clearTimerFn();
+      if(AC&&masterGain){
+        masterGain.gain.linearRampToValueAtTime(0.0001,AC.currentTime+8);
+        setTimeout(()=>stopAll(),8600);
+      }
+      document.getElementById('timerDisplay').textContent='— done —';
+      return;
+    }
+    const m=Math.floor(rem/60000);
+    const s=Math.floor((rem%60000)/1000);
+    document.getElementById('timerDisplay').textContent=m+':'+String(s).padStart(2,'0');
+  },1000);
+}
+
+function clearTimerFn(){
+  if(timerIv){clearInterval(timerIv);timerIv=null;}
+  document.getElementById('timerDisplay').textContent='';
+}
+
+document.querySelectorAll('.timer-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.timer-btn').forEach(b=>b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selTimerMin=+btn.dataset.min;
+    clearTimerFn();
+    if(isPlaying&&selTimerMin>0)startTimerIfNeeded();
+    if(selTimerMin===0)document.getElementById('timerDisplay').textContent='';
+  });
+});
+
+// ═══════════════════════════════════════════════════
+// RANDOM MOON PHASE
+// ═══════════════════════════════════════════════════
+document.getElementById('randomMix').addEventListener('click',()=>{
+  if(isPlaying)stopAll();
+  selected.clear();
+  const shuffled=[...LAYERS].sort(()=>Math.random()-0.5);
+  const n=2+Math.floor(Math.random()*3);
+  shuffled.slice(0,n).forEach(l=>selected.add(l.id));
+  updateVisuals();updateStatus();
+  const names=Array.from(selected).map(id=>LAYERS.find(l=>l.id===id)?.name).join(', ');
+  showToast(`🌕 ${names}`);
+  setTimeout(()=>startAll(),350);
+});
+
+// ═══════════════════════════════════════════════════
+// PRESETS (URL hash)
+// ═══════════════════════════════════════════════════
+function getPreset(){
+  return{
+    s:Array.from(selected),
+    v:Object.fromEntries(LAYERS.map(l=>[l.id,layerVol[l.id]])),
+    m:+document.getElementById('masterVol').value,
+    t:selTimerMin,
+    lpf:+document.getElementById('lpfSlider').value,
+    hpf:+document.getElementById('hpfSlider').value
+  };
+}
+
+function applyPreset(p){
+  if(isPlaying)stopAll();
+  selected.clear();
+  (p.s||[]).forEach(id=>{if(LAYERS.find(l=>l.id===id))selected.add(id);});
+  Object.entries(p.v||{}).forEach(([id,vol])=>{
+    layerVol[id]=vol;
+    const el=document.getElementById('vol-'+id);
+    if(el){el.value=vol;document.getElementById('vv-'+id).textContent=vol+'%';}
+  });
+  if(p.m!==undefined){
+    document.getElementById('masterVol').value=p.m;
+    document.getElementById('masterVolVal').textContent=p.m+'%';
+    if(masterGain)masterGain.gain.value=p.m/100;
+  }
+  if(p.lpf){
+    document.getElementById('lpfSlider').value=p.lpf;
+    document.getElementById('lpfVal').textContent=p.lpf+' Hz';
+    if(lpfNode)lpfNode.frequency.value=p.lpf;
+  }
+  if(p.hpf){
+    document.getElementById('hpfSlider').value=p.hpf;
+    document.getElementById('hpfVal').textContent=p.hpf+' Hz';
+    if(hpfNode)hpfNode.frequency.value=p.hpf;
+  }
+  updateVisuals();updateStatus();
+}
+
+document.getElementById('savePreset').addEventListener('click',()=>{
+  const hash=btoa(JSON.stringify(getPreset()));
+  window.location.hash=hash;
+  try{navigator.clipboard.writeText(window.location.href);}catch(e){}
+  showToast('💾 Preset saved — URL copied!');
+});
+
+document.getElementById('loadPreset').addEventListener('click',()=>{
+  const raw=prompt('Paste your preset URL or hash code:');
+  if(!raw)return;
+  try{
+    const h=raw.includes('#')?raw.split('#').pop():raw.replace(/^#/,'');
+    applyPreset(JSON.parse(atob(h)));
+    showToast('📂 Preset loaded!');
+  }catch(e){showToast('❌ Invalid preset code.');}
+});
+
+function loadFromHash(){
+  if(window.location.hash&&window.location.hash.length>2){
+    try{applyPreset(JSON.parse(atob(window.location.hash.slice(1))));}catch(e){}
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// CLEAR ALL
+// ═══════════════════════════════════════════════════
+document.getElementById('clearAll').addEventListener('click',()=>{
+  if(isPlaying)stopAll();
+  selected.clear();clearTimerFn();
+  updateVisuals();updateStatus();
+  showToast('✕ All layers cleared');
+});
+
+// ═══════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════
+let toastTm;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTm);
+  toastTm=setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+updateVisuals();updateStatus();loadFromHash();
+</script>
+</body>
+</html>
