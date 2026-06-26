@@ -1,95 +1,249 @@
-<!doctype html>
-<html data-theme="alfred-light">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5" type="text/css" />
-    <style>/* Instant-app theme. Values mirror the canonical brand tokens in
-   app/webclient/src/index.css (Tasklet Brand Book). This is a standalone bundle
-   that cannot import those tokens, so the hexes are duplicated here — keep them
-   in sync with the alfred-light / alfred-dark theme blocks in index.css. */
-[data-theme='alfred-light'] {
-  color-scheme: light;
-  --radius-selector: 0rem;
-  --radius-field: 0.25rem;
-  --radius-box: 0.25rem;
-  --size-selector: 0.25rem;
-  --size-field: 0.25rem;
-  --border: 1px;
-  --depth: 1;
-  --noise: 0;
-  --color-base-100: #f5f5f5;
-  --color-base-200: #eaeaea;
-  --color-base-300: #dfdfdf;
-  --color-base-content: #121215;
-  --color-primary: #4e814e;
-  --color-primary-content: #f5f5f5;
-  --color-secondary: #676caa;
-  --color-secondary-content: #121215;
-  --color-accent: #676caa;
-  --color-accent-content: #121215;
-  --color-neutral: #09342a;
-  --color-neutral-content: #f5f5f5;
-  --color-info: #676caa;
-  --color-info-content: #121215;
-  --color-success: #4e814e;
-  --color-success-content: #f5f5f5;
-  --color-warning: #b8860b;
-  --color-warning-content: #121215;
-  --color-coral: #ff7542;
-  --color-coral-80: #803b21;
-  --color-error: #9e3d32;
-  --color-error-content: #f5f5f5;
-}
-[data-theme='alfred-dark'] {
-  color-scheme: dark;
-  --radius-selector: 0rem;
-  --radius-field: 0.25rem;
-  --radius-box: 0.25rem;
-  --size-selector: 0.25rem;
-  --size-field: 0.25rem;
-  --border: 1px;
-  --depth: 1;
-  --noise: 0;
-  --color-base-100: #121215;
-  --color-base-200: #1a1a1e;
-  --color-base-300: #252529;
-  --color-base-content: #f5f5f5;
-  --color-primary: #4e814e;
-  --color-primary-content: #f5f5f5;
-  --color-secondary: #9aa2ff;
-  --color-secondary-content: #121215;
-  --color-accent: #9aa2ff;
-  --color-accent-content: #121215;
-  --color-neutral: #3a3a42;
-  --color-neutral-content: #b8b8c0;
-  --color-info: #9aa2ff;
-  --color-info-content: #121215;
-  --color-success: #4e814e;
-  --color-success-content: #f5f5f5;
-  --color-warning: #b8860b;
-  --color-warning-content: #121215;
-  --color-coral: #ff7542;
-  --color-coral-80: #803b21;
-  --color-error: #9e3d32;
-  --color-error-content: #f5f5f5;
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>StoryCraft — AI Story Generator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#0f0a1e;color:#f1f5f9;min-height:100vh}
+header{background:linear-gradient(135deg,#7c3aed,#db2777);padding:1.2rem 1.5rem;display:flex;align-items:center;gap:1rem}
+header h1{font-size:1.4rem;font-weight:700}header span{font-size:0.85rem;opacity:0.8}
+nav{display:flex;gap:0;background:#1a1035;overflow-x:auto;border-bottom:1px solid #2d1b69}
+nav button{padding:0.75rem 1.2rem;background:none;border:none;color:#94a3b8;cursor:pointer;font-size:0.85rem;white-space:nowrap;border-bottom:2px solid transparent;transition:all 0.2s}
+nav button.active{color:#c084fc;border-bottom-color:#c084fc;background:#0f0a1e}
+nav button:hover:not(.active){color:#e2e8f0;background:#0f0a1e}
+main{padding:1.5rem;max-width:800px;margin:0 auto}
+.section{background:#1a1035;border-radius:12px;padding:1.4rem;border:1px solid #2d1b69;margin-bottom:1rem}
+.section h2{font-size:1rem;font-weight:600;margin-bottom:1rem;color:#e2e8f0}
+.form-row{display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.75rem}
+input,select,textarea{background:#0f0a1e;border:1px solid #2d1b69;color:#f1f5f9;padding:0.6rem 0.8rem;border-radius:8px;font-size:0.9rem;width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid #c084fc;border-color:#c084fc}
+.flex{display:flex;gap:0.75rem;flex-wrap:wrap}
+.flex input,.flex select{flex:1;min-width:140px;width:auto}
+textarea{resize:vertical}
+button.btn{background:#7c3aed;color:#fff;border:none;padding:0.6rem 1.2rem;border-radius:8px;cursor:pointer;font-size:0.9rem;font-weight:600;transition:background 0.2s}
+button.btn:hover{background:#6d28d9}
+button.btn.pink{background:#db2777}button.btn.pink:hover{background:#be185d}
+button.btn.gray{background:#374151}button.btn.gray:hover{background:#1f2937}
+.story-card{background:#0f0a1e;border-radius:10px;padding:1rem;border:1px solid #2d1b69;margin-bottom:0.75rem;cursor:pointer;transition:border-color 0.2s}
+.story-card:hover{border-color:#7c3aed}
+.story-card h3{font-size:0.95rem;margin-bottom:0.3rem;color:#c084fc}
+.story-card p{font-size:0.8rem;color:#64748b}
+.story-body{white-space:pre-wrap;line-height:1.7;font-size:0.95rem;color:#e2e8f0;background:#0f0a1e;border-radius:8px;padding:1.2rem;border:1px solid #2d1b69;margin-top:0.75rem;max-height:400px;overflow-y:auto}
+.char-card{background:#0f0a1e;border-radius:10px;padding:1rem;border:1px solid #2d1b69;margin-bottom:0.75rem}
+.char-card h3{color:#f9a8d4;margin-bottom:0.3rem}
+.char-card p{font-size:0.8rem;color:#64748b}
+.badge{display:inline-block;padding:0.2rem 0.6rem;border-radius:20px;font-size:0.72rem;font-weight:600;background:#2d1b69;color:#c084fc;margin-right:0.3rem}
+.generating{text-align:center;padding:2rem;color:#c084fc;font-size:1rem}
+.spinner{display:inline-block;width:24px;height:24px;border:3px solid #2d1b69;border-top-color:#c084fc;border-radius:50%;animation:spin 0.8s linear infinite;vertical-align:middle;margin-right:0.5rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:2rem;color:#475569}
+.delete-btn{background:none;border:none;color:#ef4444;cursor:pointer;font-size:0.9rem;float:right}
+.tag-row{display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.5rem}
 </style>
-    <link rel="stylesheet" href="styles.css" />
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body>
+<header>
+  <div><h1>✨ StoryCraft</h1><span>AI Story Generator & Library</span></div>
+</header>
+<nav>
+  <button class="active" onclick="showTab('create')">✍️ Create Story</button>
+  <button onclick="showTab('library')">📚 Library</button>
+  <button onclick="showTab('characters')">👥 Characters</button>
+</nav>
+<main id="main"></main>
 
-    <script>
-      (function() {
-        var theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'alfred-dark' : 'alfred-light';
-        document.documentElement.setAttribute('data-theme', theme);
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
-          document.documentElement.setAttribute('data-theme', e.matches ? 'alfred-dark' : 'alfred-light');
-        });
-      })();
-    </script>
-  </head>
-  <body class="bg-base-100 text-base-content">
-    <div id="root"></div>
-    <script src="bundle.js"></script>
-  </body>
+<script>
+let stories = JSON.parse(localStorage.getItem('sc_stories')||'[]');
+let characters = JSON.parse(localStorage.getItem('sc_chars')||'[]');
+let currentTab = 'create';
+let generating = false;
+let readingStory = null;
+
+function save(){
+  localStorage.setItem('sc_stories',JSON.stringify(stories));
+  localStorage.setItem('sc_chars',JSON.stringify(characters));
+}
+
+function showTab(tab){
+  currentTab=tab; readingStory=null;
+  document.querySelectorAll('nav button').forEach((b,i)=>{
+    b.classList.toggle('active',['create','library','characters'][i]===tab);
+  });
+  render();
+}
+
+function render(){
+  const m=document.getElementById('main');
+  if(currentTab==='create') m.innerHTML=renderCreate();
+  else if(currentTab==='library') m.innerHTML=renderLibrary();
+  else if(currentTab==='characters') m.innerHTML=renderChars();
+}
+
+function renderCreate(){
+  if(generating) return `<div class="section"><div class="generating"><div class="spinner"></div>Crafting your story with AI magic... ✨</div></div>`;
+  if(readingStory) return `
+    <div class="section">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <h2>📖 ${readingStory.title}</h2>
+        <div style="display:flex;gap:0.5rem">
+          <button class="btn gray" onclick="readingStory=null;render()">← Back</button>
+          <button class="btn" onclick="copyStory()">📋 Copy</button>
+        </div>
+      </div>
+      <div class="tag-row">${readingStory.genre?`<span class="badge">${readingStory.genre}</span>`:''}${readingStory.mood?`<span class="badge">${readingStory.mood}</span>`:''}<span class="badge">${readingStory.length}</span></div>
+      <div class="story-body">${readingStory.content}</div>
+    </div>`;
+  const charOptions = characters.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
+  return `
+  <div class="section"><h2>✨ Create a New Story</h2>
+    <div style="margin-bottom:0.75rem">
+      <label style="font-size:0.85rem;color:#94a3b8;display:block;margin-bottom:0.4rem">Story Title (optional)</label>
+      <input id="s_title" placeholder="Leave blank to auto-generate..."/>
+    </div>
+    <div class="flex" style="margin-bottom:0.75rem">
+      <div style="flex:1;min-width:140px">
+        <label style="font-size:0.85rem;color:#94a3b8;display:block;margin-bottom:0.4rem">Genre</label>
+        <select id="s_genre">
+          <option>Fantasy</option><option>Romance</option><option>Mystery</option><option>Sci-Fi</option>
+          <option>Horror</option><option>Adventure</option><option>Inspirational</option><option>Children's</option>
+          <option>Historical Fiction</option><option>Spiritual</option>
+        </select>
+      </div>
+      <div style="flex:1;min-width:140px">
+        <label style="font-size:0.85rem;color:#94a3b8;display:block;margin-bottom:0.4rem">Mood / Tone</label>
+        <select id="s_mood">
+          <option>Uplifting</option><option>Mysterious</option><option>Romantic</option><option>Suspenseful</option>
+          <option>Healing</option><option>Funny</option><option>Emotional</option><option>Dark</option><option>Whimsical</option>
+        </select>
+      </div>
+      <div style="flex:1;min-width:140px">
+        <label style="font-size:0.85rem;color:#94a3b8;display:block;margin-bottom:0.4rem">Length</label>
+        <select id="s_length"><option>Short (500 words)</option><option>Medium (1000 words)</option><option>Long (2000 words)</option></select>
+      </div>
+    </div>
+    ${characters.length>0?`<div style="margin-bottom:0.75rem"><label style="font-size:0.85rem;color:#94a3b8;display:block;margin-bottom:0.4rem">Include Character (optional)</label><select id="s_char"><option value="">None</option>${charOptions}</select></div>`:''}
+    <div style="margin-bottom:0.75rem">
+      <label style="font-size:0.85rem;color:#94a3b8;display:block;margin-bottom:0.4rem">Story Prompt / Theme</label>
+      <textarea id="s_prompt" rows="3" placeholder="E.g. A nurse who discovers she has healing powers, set in a small coastal town..."></textarea>
+    </div>
+    <button class="btn pink" onclick="generateStory()" style="width:100%">✨ Generate Story</button>
+  </div>`;
+}
+
+async function generateStory(){
+  const title=document.getElementById('s_title').value.trim();
+  const genre=document.getElementById('s_genre').value;
+  const mood=document.getElementById('s_mood').value;
+  const length=document.getElementById('s_length').value;
+  const prompt=document.getElementById('s_prompt').value.trim();
+  const charEl=document.getElementById('s_char');
+  const charName=charEl?charEl.value:'';
+  const char=characters.find(c=>c.name===charName);
+  if(!prompt) return alert('Please enter a story prompt!');
+  if(!localStorage.getItem('sc_apikey')) return alert('Please add your xAI API key in Settings (⚙️ tab).');
+  const wordCount=length.includes('500')?500:length.includes('1000')?1000:2000;
+  const charDesc=char?`\n\nMain character: ${char.name}, ${char.age||''} years old. Traits: ${char.traits||''}. Background: ${char.bio||''}.`:'';
+  const sysPrompt=`You are a master storyteller who writes vivid, emotionally resonant ${genre} stories with a ${mood} tone. Write complete, well-structured stories that draw readers in immediately.`;
+  const userPrompt=`Write a ${genre} story with a ${mood} tone. Length: approximately ${wordCount} words.${charDesc}\n\nTheme/Prompt: ${prompt}\n\nTitle: ${title||'(generate a compelling title)'}\n\nWrite the full story now, starting with the title on the first line:`;
+  generating=true; render();
+  try{
+    const res=await fetch('https://api.x.ai/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('sc_apikey')||'')},
+      body:JSON.stringify({model:'grok-3-latest',messages:[{role:'system',content:sysPrompt},{role:'user',content:userPrompt}],max_tokens:3000})
+    });
+    const data=await res.json();
+    const content=data.choices?.[0]?.message?.content||'Story generation failed. Please try again.';
+    const lines=content.split('\n');
+    const storyTitle=title||lines[0].replace(/^#+\s*/,'').trim()||'Untitled Story';
+    const story={id:Date.now(),title:storyTitle,genre,mood,length,content,date:new Date().toLocaleDateString(),favorite:false};
+    stories.unshift(story);
+    save();
+    generating=false;
+    readingStory=story;
+    render();
+  }catch(e){
+    generating=false;
+    alert('Story generation failed. Check connection and try again.');
+    render();
+  }
+}
+
+function copyStory(){
+  if(readingStory){navigator.clipboard.writeText(readingStory.content).then(()=>alert('Story copied!'));}
+}
+
+function renderLibrary(){
+  if(readingStory) return `
+    <div class="section">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <h2>📖 ${readingStory.title}</h2>
+        <div style="display:flex;gap:0.5rem">
+          <button class="btn gray" onclick="readingStory=null;render()">← Back</button>
+          <button class="btn" onclick="copyStory()">📋 Copy</button>
+        </div>
+      </div>
+      <div class="tag-row"><span class="badge">${readingStory.genre}</span><span class="badge">${readingStory.mood}</span><span class="badge">${readingStory.date}</span></div>
+      <div class="story-body">${readingStory.content}</div>
+    </div>`;
+  return `
+  <div class="section"><h2>📚 Story Library (${stories.length} stories)</h2>
+  ${stories.length===0?'<div class="empty">No stories yet. Create your first one!</div>':stories.map((s,i)=>`
+    <div class="story-card" onclick="openStory(${i})">
+      <button class="delete-btn" onclick="event.stopPropagation();delStory(${i})">🗑</button>
+      <h3>${s.favorite?'⭐ ':''}${s.title}</h3>
+      <div class="tag-row"><span class="badge">${s.genre}</span><span class="badge">${s.mood}</span><span class="badge">${s.date}</span></div>
+      <p style="margin-top:0.4rem">${s.content.slice(0,120)}...</p>
+    </div>`).join('')}
+  </div>`;
+}
+function openStory(i){readingStory=stories[i];render();}
+function delStory(i){if(confirm('Delete this story?')){stories.splice(i,1);save();render();}}
+
+function renderChars(){
+  return `
+  <div class="section"><h2>Create Character</h2>
+    <div class="flex" style="margin-bottom:0.75rem">
+      <input id="c_name" placeholder="Character Name" style="flex:1"/>
+      <input id="c_age" type="number" placeholder="Age" style="flex:0.3;min-width:80px"/>
+    </div>
+    <input id="c_traits" placeholder="Personality traits (e.g. brave, curious, compassionate)" style="margin-bottom:0.75rem"/>
+    <textarea id="c_bio" rows="2" placeholder="Background / backstory..." style="margin-bottom:0.75rem"></textarea>
+    <button class="btn" onclick="addChar()">Add Character</button>
+  </div>
+  <div class="section"><h2>Your Characters (${characters.length})</h2>
+  ${characters.length===0?'<div class="empty">No characters yet. Build your cast!</div>':characters.map((c,i)=>`
+    <div class="char-card">
+      <button class="delete-btn" onclick="delChar(${i})">🗑</button>
+      <h3>${c.name}${c.age?' · Age '+c.age:''}</h3>
+      ${c.traits?`<div class="tag-row">${c.traits.split(',').map(t=>`<span class="badge">${t.trim()}</span>`).join('')}</div>`:''}
+      ${c.bio?`<p style="margin-top:0.5rem">${c.bio}</p>`:''}
+    </div>`).join('')}
+  </div>`;
+}
+function addChar(){
+  const name=document.getElementById('c_name').value.trim();
+  if(!name) return alert('Character needs a name!');
+  characters.push({id:Date.now(),name,age:document.getElementById('c_age').value,traits:document.getElementById('c_traits').value,bio:document.getElementById('c_bio').value});
+  save();render();
+}
+function delChar(i){if(confirm('Delete character?')){characters.splice(i,1);save();render();}}
+
+function renderSettings(){
+  const key=localStorage.getItem('sc_apikey')||'';
+  return `<div class="section"><h2>⚙️ Settings</h2>
+    <p style="color:#94a3b8;font-size:0.85rem;margin-bottom:1rem">Enter your xAI API key to enable AI story generation. Your key is stored locally in your browser only.</p>
+    <label style="font-size:0.85rem;color:#94a3b8;display:block;margin-bottom:0.4rem">xAI API Key</label>
+    <input id="apikey_input" type="password" placeholder="xai-..." value="${key}" style="margin-bottom:0.75rem"/>
+    <button class="btn" onclick="saveKey()">Save Key</button>
+    ${key?'<span style="color:#34d399;margin-left:0.75rem;font-size:0.85rem">✅ Key saved</span>':''}
+  </div>`;
+}
+function saveKey(){const k=document.getElementById('apikey_input').value.trim();if(k){localStorage.setItem('sc_apikey',k);alert('API key saved!');render();}else{localStorage.removeItem('sc_apikey');render();}}
+
+render();
+</script>
+</body>
 </html>

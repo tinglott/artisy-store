@@ -1,95 +1,308 @@
-<!doctype html>
-<html data-theme="alfred-light">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5" type="text/css" />
-    <style>/* Instant-app theme. Values mirror the canonical brand tokens in
-   app/webclient/src/index.css (Tasklet Brand Book). This is a standalone bundle
-   that cannot import those tokens, so the hexes are duplicated here — keep them
-   in sync with the alfred-light / alfred-dark theme blocks in index.css. */
-[data-theme='alfred-light'] {
-  color-scheme: light;
-  --radius-selector: 0rem;
-  --radius-field: 0.25rem;
-  --radius-box: 0.25rem;
-  --size-selector: 0.25rem;
-  --size-field: 0.25rem;
-  --border: 1px;
-  --depth: 1;
-  --noise: 0;
-  --color-base-100: #f5f5f5;
-  --color-base-200: #eaeaea;
-  --color-base-300: #dfdfdf;
-  --color-base-content: #121215;
-  --color-primary: #4e814e;
-  --color-primary-content: #f5f5f5;
-  --color-secondary: #676caa;
-  --color-secondary-content: #121215;
-  --color-accent: #676caa;
-  --color-accent-content: #121215;
-  --color-neutral: #09342a;
-  --color-neutral-content: #f5f5f5;
-  --color-info: #676caa;
-  --color-info-content: #121215;
-  --color-success: #4e814e;
-  --color-success-content: #f5f5f5;
-  --color-warning: #b8860b;
-  --color-warning-content: #121215;
-  --color-coral: #ff7542;
-  --color-coral-80: #803b21;
-  --color-error: #9e3d32;
-  --color-error-content: #f5f5f5;
-}
-[data-theme='alfred-dark'] {
-  color-scheme: dark;
-  --radius-selector: 0rem;
-  --radius-field: 0.25rem;
-  --radius-box: 0.25rem;
-  --size-selector: 0.25rem;
-  --size-field: 0.25rem;
-  --border: 1px;
-  --depth: 1;
-  --noise: 0;
-  --color-base-100: #121215;
-  --color-base-200: #1a1a1e;
-  --color-base-300: #252529;
-  --color-base-content: #f5f5f5;
-  --color-primary: #4e814e;
-  --color-primary-content: #f5f5f5;
-  --color-secondary: #9aa2ff;
-  --color-secondary-content: #121215;
-  --color-accent: #9aa2ff;
-  --color-accent-content: #121215;
-  --color-neutral: #3a3a42;
-  --color-neutral-content: #b8b8c0;
-  --color-info: #9aa2ff;
-  --color-info-content: #121215;
-  --color-success: #4e814e;
-  --color-success-content: #f5f5f5;
-  --color-warning: #b8860b;
-  --color-warning-content: #121215;
-  --color-coral: #ff7542;
-  --color-coral-80: #803b21;
-  --color-error: #9e3d32;
-  --color-error-content: #f5f5f5;
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>FinFlow Pro — Personal Finance Dashboard</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#0f172a;color:#f1f5f9;min-height:100vh}
+header{background:linear-gradient(135deg,#1e40af,#7c3aed);padding:1.2rem 1.5rem;display:flex;align-items:center;gap:1rem}
+header h1{font-size:1.4rem;font-weight:700}header span{font-size:0.85rem;opacity:0.8}
+nav{display:flex;gap:0;background:#1e293b;overflow-x:auto;border-bottom:1px solid #334155}
+nav button{padding:0.75rem 1.2rem;background:none;border:none;color:#94a3b8;cursor:pointer;font-size:0.85rem;white-space:nowrap;border-bottom:2px solid transparent;transition:all 0.2s}
+nav button.active{color:#60a5fa;border-bottom-color:#60a5fa;background:#0f172a}
+nav button:hover:not(.active){color:#e2e8f0;background:#0f172a}
+main{padding:1.5rem;max-width:900px;margin:0 auto}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:1.5rem}
+.card{background:#1e293b;border-radius:12px;padding:1.2rem;border:1px solid #334155}
+.card .label{font-size:0.75rem;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.4rem}
+.card .value{font-size:1.6rem;font-weight:700}
+.card .value.green{color:#34d399}.card .value.red{color:#f87171}.card .value.blue{color:#60a5fa}.card .value.gold{color:#fbbf24}
+.section{background:#1e293b;border-radius:12px;padding:1.2rem;border:1px solid #334155;margin-bottom:1rem}
+.section h2{font-size:1rem;font-weight:600;margin-bottom:1rem;color:#e2e8f0}
+.form-row{display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1rem}
+input,select{background:#0f172a;border:1px solid #334155;color:#f1f5f9;padding:0.6rem 0.8rem;border-radius:8px;font-size:0.9rem;flex:1;min-width:140px}
+input:focus,select:focus{outline:2px solid #60a5fa;border-color:#60a5fa}
+button.btn{background:#2563eb;color:#fff;border:none;padding:0.6rem 1.2rem;border-radius:8px;cursor:pointer;font-size:0.9rem;font-weight:600;transition:background 0.2s}
+button.btn:hover{background:#1d4ed8}
+button.btn.red{background:#dc2626}button.btn.red:hover{background:#b91c1c}
+button.btn.green{background:#059669}button.btn.green:hover{background:#047857}
+table{width:100%;border-collapse:collapse;font-size:0.875rem}
+th{text-align:left;padding:0.6rem;color:#64748b;border-bottom:1px solid #334155;font-weight:600}
+td{padding:0.6rem;border-bottom:1px solid #1e293b}
+tr:hover td{background:#0f172a}
+.badge{display:inline-block;padding:0.2rem 0.6rem;border-radius:20px;font-size:0.75rem;font-weight:600}
+.badge.income{background:#064e3b;color:#34d399}.badge.expense{background:#7f1d1d;color:#f87171}
+.progress-bar{background:#334155;border-radius:20px;height:8px;overflow:hidden;margin-top:0.4rem}
+.progress-fill{height:100%;border-radius:20px;transition:width 0.5s}
+.habit-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0.75rem}
+.habit-card{background:#0f172a;border-radius:10px;padding:1rem;border:1px solid #334155;cursor:pointer;transition:border-color 0.2s}
+.habit-card.done{border-color:#34d399;background:#064e3b22}
+.habit-card h3{font-size:0.9rem;margin-bottom:0.3rem}.habit-card p{font-size:0.75rem;color:#64748b}
+.calc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem}
+.calc-box{background:#0f172a;border-radius:10px;padding:1.2rem;border:1px solid #334155}
+.calc-box h3{font-size:0.9rem;margin-bottom:0.8rem;color:#fbbf24}
+.result-box{background:#1e293b;border-radius:8px;padding:0.75rem;margin-top:0.75rem;font-size:0.9rem;color:#34d399;font-weight:600}
+.empty{text-align:center;padding:2rem;color:#475569}
+.delete-btn{background:none;border:none;color:#ef4444;cursor:pointer;font-size:1rem;padding:0.2rem 0.4rem}
 </style>
-    <link rel="stylesheet" href="styles.css" />
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body>
+<header>
+  <div>
+    <h1>💰 FinFlow Pro</h1>
+    <span>Personal Finance Dashboard</span>
+  </div>
+</header>
+<nav>
+  <button class="active" onclick="showTab('dashboard')">📊 Dashboard</button>
+  <button onclick="showTab('budget')">💵 Budget</button>
+  <button onclick="showTab('portfolio')">📈 Portfolio</button>
+  <button onclick="showTab('calculators')">🧮 Calculators</button>
+  <button onclick="showTab('habits')">🔥 Habits</button>
+</nav>
+<main id="main"></main>
 
-    <script>
-      (function() {
-        var theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'alfred-dark' : 'alfred-light';
-        document.documentElement.setAttribute('data-theme', theme);
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
-          document.documentElement.setAttribute('data-theme', e.matches ? 'alfred-dark' : 'alfred-light');
-        });
-      })();
-    </script>
-  </head>
-  <body class="bg-base-100 text-base-content">
-    <div id="root"></div>
-    <script src="bundle.js"></script>
-  </body>
+<script>
+let txns = JSON.parse(localStorage.getItem('ff_txns')||'[]');
+let portfolio = JSON.parse(localStorage.getItem('ff_port')||'[]');
+let habits = JSON.parse(localStorage.getItem('ff_habits')||'[]');
+let checkedHabits = JSON.parse(localStorage.getItem('ff_checked')||'{}');
+let currentTab = 'dashboard';
+
+function save(){
+  localStorage.setItem('ff_txns',JSON.stringify(txns));
+  localStorage.setItem('ff_port',JSON.stringify(portfolio));
+  localStorage.setItem('ff_habits',JSON.stringify(habits));
+  localStorage.setItem('ff_checked',JSON.stringify(checkedHabits));
+}
+
+function fmt(n){return '$'+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+
+function showTab(tab){
+  currentTab=tab;
+  document.querySelectorAll('nav button').forEach((b,i)=>{
+    b.classList.toggle('active',['dashboard','budget','portfolio','calculators','habits'][i]===tab);
+  });
+  render();
+}
+
+function render(){
+  const m = document.getElementById('main');
+  if(currentTab==='dashboard') m.innerHTML = renderDashboard();
+  else if(currentTab==='budget') m.innerHTML = renderBudget();
+  else if(currentTab==='portfolio') m.innerHTML = renderPortfolio();
+  else if(currentTab==='calculators') m.innerHTML = renderCalc();
+  else if(currentTab==='habits') m.innerHTML = renderHabits();
+}
+
+function renderDashboard(){
+  const income = txns.filter(t=>t.type==='income').reduce((a,t)=>a+t.amount,0);
+  const expenses = txns.filter(t=>t.type==='expense').reduce((a,t)=>a+t.amount,0);
+  const balance = income - expenses;
+  const portVal = portfolio.reduce((a,p)=>a+(p.shares*p.price),0);
+  const todayKey = new Date().toDateString();
+  const doneToday = habits.filter(h=>checkedHabits[todayKey+'_'+h.id]).length;
+  const recent = [...txns].reverse().slice(0,5);
+  return `
+  <div class="cards">
+    <div class="card"><div class="label">Net Balance</div><div class="value ${balance>=0?'green':'red'}">${fmt(balance)}</div></div>
+    <div class="card"><div class="label">Total Income</div><div class="value green">${fmt(income)}</div></div>
+    <div class="card"><div class="label">Total Expenses</div><div class="value red">${fmt(expenses)}</div></div>
+    <div class="card"><div class="label">Portfolio Value</div><div class="value blue">${fmt(portVal)}</div></div>
+    <div class="card"><div class="label">Habits Today</div><div class="value gold">${doneToday}/${habits.length}</div></div>
+  </div>
+  <div class="section"><h2>Recent Transactions</h2>
+  ${recent.length===0?'<div class="empty">No transactions yet. Add some in the Budget tab!</div>':'<table><tr><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th>Amount</th></tr>'+recent.map(t=>`<tr><td>${t.date}</td><td>${t.desc}</td><td>${t.cat}</td><td><span class="badge ${t.type}">${t.type}</span></td><td class="${t.type==='income'?'green':'red'}" style="color:${t.type==='income'?'#34d399':'#f87171'}">${t.type==='income'?'+':'-'}${fmt(t.amount)}</td></tr>`).join('')+'</table>'}
+  </div>`;
+}
+
+function renderBudget(){
+  const income = txns.filter(t=>t.type==='income').reduce((a,t)=>a+t.amount,0);
+  const expenses = txns.filter(t=>t.type==='expense').reduce((a,t)=>a+t.amount,0);
+  // category breakdown
+  const cats = {};
+  txns.filter(t=>t.type==='expense').forEach(t=>{cats[t.cat]=(cats[t.cat]||0)+t.amount});
+  return `
+  <div class="section"><h2>Add Transaction</h2>
+  <div class="form-row">
+    <input id="tdesc" placeholder="Description" />
+    <input id="tamt" type="number" placeholder="Amount" min="0" step="0.01"/>
+    <input id="tdate" type="date" value="${new Date().toISOString().split('T')[0]}"/>
+    <select id="tcat"><option>Food</option><option>Housing</option><option>Transport</option><option>Health</option><option>Entertainment</option><option>Savings</option><option>Business</option><option>Other</option></select>
+    <select id="ttype"><option value="expense">Expense</option><option value="income">Income</option></select>
+    <button class="btn" onclick="addTxn()">Add</button>
+  </div></div>
+  <div class="cards">
+    <div class="card"><div class="label">Income</div><div class="value green">${fmt(income)}</div></div>
+    <div class="card"><div class="label">Expenses</div><div class="value red">${fmt(expenses)}</div></div>
+    <div class="card"><div class="label">Saved</div><div class="value ${income-expenses>=0?'gold':'red'}">${fmt(income-expenses)}</div></div>
+  </div>
+  ${Object.keys(cats).length>0?`<div class="section"><h2>Spending by Category</h2>`+Object.entries(cats).map(([cat,amt])=>{
+    const pct = income>0?Math.min(100,(amt/income*100)):0;
+    return `<div style="margin-bottom:0.75rem"><div style="display:flex;justify-content:space-between;font-size:0.85rem"><span>${cat}</span><span style="color:#f87171">${fmt(amt)}</span></div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:#3b82f6"></div></div></div>`;
+  }).join('')+'</div>':''}
+  <div class="section"><h2>All Transactions</h2>
+  ${txns.length===0?'<div class="empty">No transactions yet.</div>':'<table><tr><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th>Amount</th><th></th></tr>'+[...txns].reverse().map((t,i)=>`<tr><td>${t.date}</td><td>${t.desc}</td><td>${t.cat}</td><td><span class="badge ${t.type}">${t.type}</span></td><td style="color:${t.type==='income'?'#34d399':'#f87171'}">${t.type==='income'?'+':'-'}${fmt(t.amount)}</td><td><button class="delete-btn" onclick="delTxn(${txns.length-1-i})">🗑</button></td></tr>`).join('')+'</table>'}
+  </div>`;
+}
+
+function addTxn(){
+  const desc=document.getElementById('tdesc').value.trim();
+  const amt=parseFloat(document.getElementById('tamt').value);
+  const date=document.getElementById('tdate').value;
+  const cat=document.getElementById('tcat').value;
+  const type=document.getElementById('ttype').value;
+  if(!desc||!amt||!date) return alert('Please fill all fields');
+  txns.push({id:Date.now(),desc,amount:amt,date,cat,type});
+  save(); render();
+}
+function delTxn(i){txns.splice(i,1);save();render();}
+
+function renderPortfolio(){
+  const total = portfolio.reduce((a,p)=>a+(p.shares*p.price),0);
+  const gain = portfolio.reduce((a,p)=>a+(p.shares*(p.price-p.cost)),0);
+  return `
+  <div class="section"><h2>Add Position</h2>
+  <div class="form-row">
+    <input id="psym" placeholder="Symbol (e.g. AAPL)" style="text-transform:uppercase"/>
+    <input id="pname" placeholder="Company Name"/>
+    <input id="pshares" type="number" placeholder="Shares" min="0" step="0.001"/>
+    <input id="pprice" type="number" placeholder="Current Price" min="0" step="0.01"/>
+    <input id="pcost" type="number" placeholder="Avg Cost Basis" min="0" step="0.01"/>
+    <button class="btn" onclick="addPos()">Add</button>
+  </div></div>
+  <div class="cards">
+    <div class="card"><div class="label">Portfolio Value</div><div class="value blue">${fmt(total)}</div></div>
+    <div class="card"><div class="label">Total Gain/Loss</div><div class="value ${gain>=0?'green':'red'}">${gain>=0?'+':''}${fmt(gain)}</div></div>
+    <div class="card"><div class="label">Positions</div><div class="value gold">${portfolio.length}</div></div>
+  </div>
+  <div class="section"><h2>Holdings</h2>
+  ${portfolio.length===0?'<div class="empty">No positions yet. Add your holdings above!</div>':'<table><tr><th>Symbol</th><th>Name</th><th>Shares</th><th>Price</th><th>Cost</th><th>Value</th><th>Gain/Loss</th><th></th></tr>'+portfolio.map((p,i)=>{
+    const val=p.shares*p.price;const g=p.shares*(p.price-p.cost);
+    return `<tr><td><strong>${p.symbol}</strong></td><td>${p.name}</td><td>${p.shares}</td><td>${fmt(p.price)}</td><td>${fmt(p.cost)}</td><td style="color:#60a5fa">${fmt(val)}</td><td style="color:${g>=0?'#34d399':'#f87171'}">${g>=0?'+':''}${fmt(g)}</td><td><button class="delete-btn" onclick="delPos(${i})">🗑</button></td></tr>`;
+  }).join('')+'</table>'}
+  </div>`;
+}
+function addPos(){
+  const sym=document.getElementById('psym').value.trim().toUpperCase();
+  const name=document.getElementById('pname').value.trim();
+  const shares=parseFloat(document.getElementById('pshares').value);
+  const price=parseFloat(document.getElementById('pprice').value);
+  const cost=parseFloat(document.getElementById('pcost').value);
+  if(!sym||!shares||!price||!cost) return alert('Fill all fields');
+  portfolio.push({id:Date.now(),symbol:sym,name:name||sym,shares,price,cost});
+  save();render();
+}
+function delPos(i){portfolio.splice(i,1);save();render();}
+
+function renderCalc(){
+  return `<div class="calc-grid">
+  <div class="calc-box"><h3>💰 Savings Goal</h3>
+    <input id="sg_goal" type="number" placeholder="Goal Amount ($)"/><br><br>
+    <input id="sg_saved" type="number" placeholder="Already Saved ($)"/><br><br>
+    <input id="sg_monthly" type="number" placeholder="Monthly Contribution ($)"/>
+    <button class="btn" style="margin-top:0.75rem;width:100%" onclick="calcSavings()">Calculate</button>
+    <div class="result-box" id="sg_result">Enter values above</div>
+  </div>
+  <div class="calc-box"><h3>📊 Compound Interest</h3>
+    <input id="ci_principal" type="number" placeholder="Principal ($)"/><br><br>
+    <input id="ci_rate" type="number" placeholder="Annual Rate (%)" step="0.1"/><br><br>
+    <input id="ci_years" type="number" placeholder="Years"/>
+    <button class="btn" style="margin-top:0.75rem;width:100%" onclick="calcCompound()">Calculate</button>
+    <div class="result-box" id="ci_result">Enter values above</div>
+  </div>
+  <div class="calc-box"><h3>🏠 Mortgage</h3>
+    <input id="m_home" type="number" placeholder="Home Price ($)"/><br><br>
+    <input id="m_down" type="number" placeholder="Down Payment ($)"/><br><br>
+    <input id="m_rate" type="number" placeholder="Interest Rate (%)" step="0.1"/><br><br>
+    <input id="m_years" type="number" placeholder="Loan Term (years)"/>
+    <button class="btn" style="margin-top:0.75rem;width:100%" onclick="calcMortgage()">Calculate</button>
+    <div class="result-box" id="m_result">Enter values above</div>
+  </div>
+  <div class="calc-box"><h3>💳 Debt Payoff</h3>
+    <input id="d_balance" type="number" placeholder="Balance ($)"/><br><br>
+    <input id="d_rate" type="number" placeholder="Interest Rate (%)" step="0.1"/><br><br>
+    <input id="d_payment" type="number" placeholder="Monthly Payment ($)"/>
+    <button class="btn" style="margin-top:0.75rem;width:100%" onclick="calcDebt()">Calculate</button>
+    <div class="result-box" id="d_result">Enter values above</div>
+  </div>
+  </div>`;
+}
+function calcSavings(){
+  const goal=+document.getElementById('sg_goal').value;
+  const saved=+document.getElementById('sg_saved').value;
+  const monthly=+document.getElementById('sg_monthly').value;
+  if(!goal||!monthly){document.getElementById('sg_result').textContent='Fill all fields';return;}
+  const needed=goal-saved;
+  const months=Math.ceil(needed/monthly);
+  document.getElementById('sg_result').textContent=`${Math.ceil(months/12)} year(s) ${months%12} month(s) to reach goal. Total contributions: $${(months*monthly).toLocaleString()}`;
+}
+function calcCompound(){
+  const p=+document.getElementById('ci_principal').value;
+  const r=+document.getElementById('ci_rate').value/100;
+  const y=+document.getElementById('ci_years').value;
+  if(!p||!r||!y){document.getElementById('ci_result').textContent='Fill all fields';return;}
+  const total=p*Math.pow(1+r,y);
+  document.getElementById('ci_result').textContent=`After ${y} years: $${total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})} (earned $${(total-p).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})})`;
+}
+function calcMortgage(){
+  const home=+document.getElementById('m_home').value;
+  const down=+document.getElementById('m_down').value;
+  const rate=+document.getElementById('m_rate').value/100/12;
+  const n=+document.getElementById('m_years').value*12;
+  const loan=home-down;
+  if(!loan||!rate||!n){document.getElementById('m_result').textContent='Fill all fields';return;}
+  const payment=loan*rate*Math.pow(1+rate,n)/(Math.pow(1+rate,n)-1);
+  document.getElementById('m_result').textContent=`Monthly payment: $${payment.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})} | Total paid: $${(payment*n).toLocaleString('en-US',{maximumFractionDigits:0})}`;
+}
+function calcDebt(){
+  const bal=+document.getElementById('d_balance').value;
+  const rate=+document.getElementById('d_rate').value/100/12;
+  const pay=+document.getElementById('d_payment').value;
+  if(!bal||!rate||!pay){document.getElementById('d_result').textContent='Fill all fields';return;}
+  if(pay<=bal*rate){document.getElementById('d_result').textContent='Payment too low — increase it!';return;}
+  let b=bal,months=0,interest=0;
+  while(b>0&&months<600){const i=b*rate;interest+=i;b=b+i-pay;months++;}
+  document.getElementById('d_result').textContent=`Paid off in ${months} months (${Math.floor(months/12)}y ${months%12}m). Total interest: $${interest.toLocaleString('en-US',{maximumFractionDigits:2})}`;
+}
+
+function renderHabits(){
+  const todayKey = new Date().toDateString();
+  const done = habits.filter(h=>checkedHabits[todayKey+'_'+h.id]).length;
+  return `
+  <div class="section"><h2>Add Habit</h2>
+  <div class="form-row">
+    <input id="hname" placeholder="Habit name (e.g. Save $5 today)"/>
+    <input id="hdesc" placeholder="Description (optional)"/>
+    <button class="btn green" onclick="addHabit()">Add Habit</button>
+  </div></div>
+  <div class="cards">
+    <div class="card"><div class="label">Today's Progress</div><div class="value gold">${done}/${habits.length}</div></div>
+    <div class="card"><div class="label">Total Habits</div><div class="value blue">${habits.length}</div></div>
+  </div>
+  <div class="habit-grid">
+  ${habits.length===0?'<div class="empty" style="grid-column:1/-1">No habits yet. Build your financial discipline!</div>':habits.map(h=>{
+    const key=todayKey+'_'+h.id;const done=checkedHabits[key];
+    return `<div class="habit-card ${done?'done':''}" onclick="toggleHabit('${key}')">
+      <h3>${done?'✅':''} ${h.name}</h3>
+      <p>${h.desc||'Click to mark complete'}</p>
+    </div>`;
+  }).join('')}
+  </div>
+  ${habits.length>0?`<div style="margin-top:1rem;text-align:right"><button class="btn red" style="font-size:0.8rem;padding:0.4rem 0.8rem" onclick="clearHabits()">Clear All Habits</button></div>`:''}`;
+}
+function addHabit(){
+  const name=document.getElementById('hname').value.trim();
+  if(!name) return;
+  habits.push({id:Date.now(),name,desc:document.getElementById('hdesc').value.trim()});
+  save();render();
+}
+function toggleHabit(key){checkedHabits[key]=!checkedHabits[key];save();render();}
+function clearHabits(){if(confirm('Clear all habits?')){habits=[];save();render();}}
+
+render();
+</script>
+</body>
 </html>
