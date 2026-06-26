@@ -1,759 +1,1060 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Safari Clue Seekers • Complete Edition</title>
-    <link href="https://fonts.googleapis.com/css2?family=Righteous&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --sky1: #1a6fa8; --sky2: #f4a94e; --ground: #c8832a; --dirt: #a0601a;
-            --grass: #7ab648; --dark-grass: #5a8a30; --tree: #3d6e1a; --sand: #e8c87a;
-            --sun: #ffd740; --text-dark: #2c1a00; --accent: #e8530a; --correct: #38c172;
-            --wrong: #e3342f; --gold: #ffd740;
-        }
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body {
-            font-family: 'Nunito', sans-serif;
-            background: #1a6fa8;
-            min-height: 100vh;
-            overflow: hidden;
-            user-select: none;
-            color: #2c1a00;
-        }
-        .screen { position:fixed; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; transition:opacity .4s; }
-        .screen.active { display:flex; }
-        .safari-bg {
-            position:fixed; inset:0; z-index:-1;
-            background: linear-gradient(180deg, #1a6fa8 0%, #3d9bd1 30%, #f4c87a 70%, #c8832a 100%);
-            overflow: hidden;
-        }
-        .safari-bg::before {
-            content:''; position:absolute; top:8%; right:12%; width:90px; height:90px;
-            background: radial-gradient(circle, #fff7a0 0%, #ffd740 55%, rgba(255,215,64,0) 100%);
-            border-radius:50%; box-shadow: 0 0 40px 20px rgba(255,215,64,0.45);
-            animation: sunPulse 4s ease-in-out infinite;
-        }
-        @keyframes sunPulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.06); } }
-        .safari-bg::after {
-            content:''; position:absolute; bottom:0; left:0; right:0; height:38%;
-            background: linear-gradient(0deg, #a0601a 0%, #c8832a 40%, #d4a040 100%);
-        }
-        .grass-layer {
-            position:absolute; bottom:35%; left:0; right:0; height:60px;
-            background: radial-gradient(ellipse 18px 22px at 5% 100%, #7ab648 99%, transparent 100%),
-                        radial-gradient(ellipse 14px 18px at 8% 100%, #5a8a30 99%, transparent 100%),
-                        radial-gradient(ellipse 20px 26px at 14% 100%, #7ab648 99%, transparent 100%),
-                        radial-gradient(ellipse 16px 20px at 22% 100%, #6a9a38 99%, transparent 100%),
-                        radial-gradient(ellipse 18px 24px at 30% 100%, #7ab648 99%, transparent 100%),
-                        radial-gradient(ellipse 22px 28px at 38% 100%, #5a8a30 99%, transparent 100%),
-                        radial-gradient(ellipse 16px 20px at 46% 100%, #7ab648 99%, transparent 100%),
-                        radial-gradient(ellipse 20px 26px at 55% 100%, #6a9a38 99%, transparent 100%),
-                        radial-gradient(ellipse 18px 22px at 63% 100%, #7ab648 99%, transparent 100%),
-                        radial-gradient(ellipse 24px 30px at 72% 100%, #5a8a30 99%, transparent 100%),
-                        radial-gradient(ellipse 16px 22px at 81% 100%, #7ab648 99%, transparent 100%),
-                        radial-gradient(ellipse 20px 26px at 90% 100%, #6a9a38 99%, transparent 100%),
-                        radial-gradient(ellipse 18px 22px at 97% 100%, #7ab648 99%, transparent 100%);
-            pointer-events: none;
-        }
-        .cloud {
-            position:absolute; background:rgba(255,255,255,0.85); border-radius:50px;
-            filter:blur(1px); animation:drift linear infinite;
-        }
-        @keyframes drift { from { transform:translateX(-200px); } to { transform:translateX(110vw); } }
-        .title-card {
-            background:rgba(255,248,220,0.97); border-radius:28px; padding:40px 48px;
-            text-align:center; max-width:520px; width:90%;
-            box-shadow:0 20px 60px rgba(0,0,0,0.35), 0 0 0 4px #e8830a, 0 0 0 8px rgba(232,131,10,0.3);
-            animation:titlePop .7s cubic-bezier(.34,1.56,.64,1) both;
-        }
-        @keyframes titlePop { from { opacity:0; transform:scale(.7) translateY(40px); } to { opacity:1; transform:scale(1) translateY(0); } }
-        .title-badge { font-size:52px; animation:wiggle 2.5s ease-in-out infinite; }
-        @keyframes wiggle { 0%,100% { transform:rotate(-5deg); } 50% { transform:rotate(5deg); } }
-        .title-card h1 { font-family:'Righteous',cursive; font-size:2.6rem; color:#c8420a; text-shadow:2px 2px 0 #ffcc80; }
-        .btn-primary {
-            background:linear-gradient(135deg,#e8630a,#c8420a); color:#fff; border:none;
-            border-radius:14px; padding:14px 36px; font-family:'Righteous',cursive; font-size:1.2rem;
-            cursor:pointer; box-shadow:0 6px 0 #8a2800,0 8px 20px rgba(200,66,10,0.4);
-            transition:transform .1s,box-shadow .1s;
-        }
-        .btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 0 #8a2800,0 12px 24px rgba(200,66,10,0.4); }
-        .map-hud { width:100%; background:rgba(255,248,220,0.97); border-bottom:4px solid #e8a030; padding:10px 20px; display:flex; align-items:center; justify-content:space-between; }
-        .hud-title { font-family:'Righteous',cursive; font-size:1.3rem; color:#c8420a; }
-        .clue-slot { width:36px; height:36px; border-radius:50%; border:3px solid #e8a030; background:#fffbf0; display:flex; align-items:center; justify-content:center; font-size:18px; }
-        .clue-slot.found { background:linear-gradient(135deg,#ffd740,#ffa930); border-color:#c8420a; box-shadow:0 0 10px rgba(232,167,10,0.6); }
-        .map-world { flex:1; width:100%; position:relative; overflow:hidden; }
-        .zone-pin { position:absolute; text-align:center; cursor:pointer; transform:translate(-50%,-50%); transition:transform .2s; }
-        .pin-bubble { background:rgba(255,248,220,0.97); border:3px solid #e8a030; border-radius:16px; padding:10px 14px; font-size:.85rem; font-weight:800; color:#5a3a0a; box-shadow:0 6px 20px rgba(0,0,0,0.25); }
-        .pin-bubble.completed { border-color:#38c172; background:rgba(200,255,220,0.97); }
-        .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:100; display:none; align-items:center; justify-content:center; padding:16px; }
-        .modal-overlay.active { display:flex; }
-        .modal-box { background:rgba(255,248,220,0.97); border-radius:24px; padding:28px 32px; max-width:560px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 24px 60px rgba(0,0,0,0.4), 0 0 0 4px #e8a030; position:relative; }
-        .option-btn { background:#fffbf0; border:3px solid #e8c870; border-radius:14px; padding:14px 10px; font-weight:800; cursor:pointer; transition:all .15s; }
-        .option-btn.correct { background:#c8f7d8; border-color:#38c172; }
-        .option-btn.wrong { background:#fdd; border-color:#e3342f; }
-        .feedback-banner { border-radius:12px; padding:12px 16px; font-weight:700; text-align:center; display:none; margin-top:12px; }
-        .feedback-banner.correct { background:#d4edda; color:#1a6b3a; border:2px solid #38c172; }
-        .feedback-banner.wrong { background:#fde8e8; color:#8a0000; border:2px solid #e3342f; }
-        .memory-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
-        .mem-card { aspect-ratio:1; background:linear-gradient(135deg,#e8a030,#c8630a); border-radius:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:2.2rem; border:3px solid #c8630a; }
-        .mem-card .card-face { display:none; }
-        .mem-card .card-back { display:block; }
-        .mem-card.flipped .card-face { display:block; }
-        .mem-card.flipped .card-back { display:none; }
-        .mem-card.flipped, .mem-card.matched { background:#fffbf0; border-color:#e8c870; }
-        .mem-card.matched { background:#d4f5e0; border-color:#38c172; }
-        .result-box { text-align:center; }
-        .victory-card { background:rgba(255,248,220,0.98); border-radius:28px; padding:40px 36px; max-width:500px; width:90%; text-align:center; box-shadow:0 24px 60px rgba(0,0,0,0.4),0 0 0 5px #ffd740; }
-        .confetti-piece { position:fixed; width:10px; height:12px; top:-20px; border-radius:2px; animation:fall linear infinite; pointer-events:none; z-index:1000; }
-        @keyframes fall { 0% { top:-20px; transform:rotate(0deg) translateX(0); } 100% { top:110vh; transform:rotate(720deg) translateX(60px); } }
-        .leaderboard { position:absolute; top:20px; right:20px; background:rgba(255,248,220,0.95); border:4px solid #e8a030; border-radius:16px; padding:12px; max-width:220px; box-shadow:0 10px 30px rgba(0,0,0,0.3); z-index:200; }
-        .card-game-modal { background:#f4e8c0; border:6px solid #c8420a; }
-        .felt-table { background:#0a3d2b; background-image: radial-gradient(#1a5a3f 1px, transparent 0); background-size: 40px 40px; }
-        .playing-card {
-            width: 60px; height: 84px; background: #fff; border-radius: 6px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center;
-            font-size: 28px; position: relative; cursor: pointer; transition: transform .2s;
-        }
-        .playing-card.back { background: linear-gradient(45deg, #c8420a, #e8630a); color: #fff; }
-        .letter-tile.used { opacity:0.3; pointer-events:none; }
-        .hud-clues { display:flex; gap:6px; }
-    </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Safari Clue Seekers 🦁</title>
+<style>
+:root{
+  --jungle:#1a5c2a;--savanna:#c8860a;--sky:#1a7abf;--sand:#f5e6c8;
+  --leaf:#2e8b57;--sun:#f7c948;--accent:#e84c3d;--purple:#7b3fa0;
+  --card-bg:#fff8ee;--shadow:0 4px 20px rgba(0,0,0,0.15);
+  --radius:18px;--btn-radius:50px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#0e3d1a;min-height:100vh;overflow-x:hidden}
+/* ─── HUD ─── */
+#hud{position:fixed;top:0;left:0;right:0;z-index:100;background:linear-gradient(135deg,#0e3d1a,#1a5c2a);
+  padding:10px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 10px rgba(0,0,0,0.4)}
+#hud .logo{font-size:1.1rem;font-weight:800;color:#f7c948;letter-spacing:1px;display:flex;align-items:center;gap:6px}
+#hud .stars-hud{display:flex;align-items:center;gap:6px;color:#f7c948;font-weight:700;font-size:1rem}
+#back-btn{background:rgba(255,255,255,0.15);border:none;color:#fff;padding:6px 14px;border-radius:50px;
+  cursor:pointer;font-size:.85rem;font-weight:600;display:none;transition:.2s}
+#back-btn:hover{background:rgba(255,255,255,0.3)}
+/* ─── SCREENS ─── */
+.screen{display:none;padding-top:72px;min-height:100vh}
+.screen.active{display:block}
+/* ─── MAP / HOME ─── */
+#screen-home{background:radial-gradient(ellipse at top,#1a7abf 0%,#1a5c2a 40%,#0e3d1a 100%)}
+.map-header{text-align:center;padding:20px 16px 10px;color:#fff}
+.map-header h1{font-size:2rem;font-weight:900;color:#f7c948;text-shadow:0 2px 8px rgba(0,0,0,0.5)}
+.map-header p{color:#c8e6c9;margin-top:6px;font-size:.95rem}
+.zone-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:16px;max-width:520px;margin:0 auto}
+.zone-card{background:linear-gradient(135deg,var(--c1),var(--c2));border-radius:var(--radius);
+  padding:20px 14px;text-align:center;cursor:pointer;transition:.2s;position:relative;overflow:hidden;
+  box-shadow:var(--shadow);border:2px solid rgba(255,255,255,0.2)}
+.zone-card:hover,.zone-card:active{transform:scale(1.04)}
+.zone-card .z-icon{font-size:2.4rem;display:block;margin-bottom:6px}
+.zone-card .z-name{color:#fff;font-weight:800;font-size:.95rem}
+.zone-card .z-stars{color:#f7c948;font-size:.8rem;margin-top:4px}
+.zone-card.games-hub{grid-column:1/-1;--c1:#7b3fa0;--c2:#4a1f6b}
+.zone-badge{position:absolute;top:8px;right:10px;background:#f7c948;color:#0e3d1a;
+  border-radius:50px;font-size:.65rem;font-weight:800;padding:2px 7px}
+/* zone colors */
+.z-math{--c1:#e84c3d;--c2:#c0392b}
+.z-scramble{--c1:#c8860a;--c2:#9a6208}
+.z-pattern{--c1:#1a7abf;--c2:#155a8a}
+.z-memory{--c1:#2e8b57;--c2:#1a5c2a}
+.z-quiz{--c1:#7b3fa0;--c2:#4a1f6b}
+/* ─── GENERIC ZONE WRAPPER ─── */
+.zone-wrapper{background:var(--sand);min-height:calc(100vh - 72px);padding:16px}
+.zone-title{text-align:center;font-size:1.5rem;font-weight:900;color:var(--jungle);margin-bottom:4px}
+.zone-sub{text-align:center;color:#666;font-size:.9rem;margin-bottom:16px}
+.score-badge{display:inline-block;background:var(--sun);color:#333;border-radius:50px;
+  padding:4px 14px;font-weight:700;font-size:.85rem;margin:0 auto 14px;display:block;text-align:center;width:fit-content;margin:0 auto 16px}
+/* ─── BUTTONS ─── */
+.btn{border:none;border-radius:var(--btn-radius);padding:12px 28px;font-size:1rem;
+  font-weight:700;cursor:pointer;transition:.2s;display:inline-block}
+.btn-primary{background:var(--jungle);color:#fff}
+.btn-primary:hover{background:#155a22}
+.btn-success{background:#2e8b57;color:#fff}
+.btn-danger{background:var(--accent);color:#fff}
+.btn-gold{background:var(--sun);color:#333}
+.btn-sm{padding:8px 18px;font-size:.85rem}
+.btn-center{display:block;margin:16px auto;width:fit-content}
+/* ─── MATH ─── */
+.math-problem{background:#fff;border-radius:var(--radius);padding:28px;text-align:center;
+  box-shadow:var(--shadow);margin-bottom:16px}
+.math-problem .animal{font-size:3rem;margin-bottom:8px}
+.math-problem .equation{font-size:2rem;font-weight:900;color:var(--jungle)}
+.math-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:320px;margin:0 auto}
+.math-opt{background:#fff;border:3px solid #ddd;border-radius:var(--radius);padding:14px;
+  font-size:1.3rem;font-weight:800;cursor:pointer;transition:.2s;text-align:center}
+.math-opt:hover{border-color:var(--leaf);background:#f0fff4}
+.math-opt.correct{background:#d4edda;border-color:#28a745;color:#155724}
+.math-opt.wrong{background:#f8d7da;border-color:#dc3545;color:#721c24}
+/* ─── SCRAMBLE ─── */
+.scramble-box{background:#fff;border-radius:var(--radius);padding:24px;text-align:center;box-shadow:var(--shadow);margin-bottom:16px}
+.scramble-letters{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:16px 0}
+.letter-tile{background:var(--savanna);color:#fff;border:none;border-radius:10px;
+  width:44px;height:44px;font-size:1.3rem;font-weight:800;cursor:pointer;transition:.2s;
+  display:flex;align-items:center;justify-content:center}
+.letter-tile:hover{transform:translateY(-3px);background:#a06a08}
+.letter-tile.used{background:#ccc;cursor:default;transform:none}
+.answer-slots{display:flex;gap:8px;justify-content:center;min-height:52px;flex-wrap:wrap;margin-bottom:16px}
+.answer-slot{width:44px;height:44px;border-bottom:3px solid var(--jungle);display:flex;
+  align-items:center;justify-content:center;font-size:1.3rem;font-weight:800;color:var(--jungle);
+  background:rgba(46,139,87,0.08);border-radius:6px;cursor:pointer}
+.hint-emoji{font-size:3.5rem;margin:8px 0;display:block;text-align:center}
+/* ─── PATTERN ─── */
+.pattern-sequence{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:16px 0;min-height:70px;align-items:center}
+.pattern-item{font-size:2.2rem;background:#fff;border-radius:14px;width:60px;height:60px;
+  display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow)}
+.pattern-item.blank{background:#e0e0e0;border:3px dashed #aaa}
+.pattern-choices{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.pattern-choice{font-size:2rem;background:#fff;border:3px solid #ddd;border-radius:14px;
+  width:60px;height:60px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s}
+.pattern-choice:hover{border-color:var(--leaf);transform:scale(1.1)}
+/* ─── MEMORY ─── */
+.memory-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:380px;margin:0 auto}
+.mem-card{aspect-ratio:1;border-radius:14px;cursor:pointer;perspective:600px;position:relative}
+.mem-inner{width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d;position:relative}
+.mem-card.flipped .mem-inner{transform:rotateY(180deg)}
+.mem-card.matched .mem-inner{transform:rotateY(180deg)}
+.mem-front,.mem-back{position:absolute;width:100%;height:100%;backface-visibility:hidden;
+  border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.8rem}
+.mem-front{background:linear-gradient(135deg,var(--jungle),var(--leaf));color:#f7c948;font-size:1.4rem;font-weight:800}
+.mem-back{background:#fff;transform:rotateY(180deg);box-shadow:var(--shadow)}
+.mem-card.matched .mem-back{background:#d4edda;border:2px solid #28a745}
+/* ─── QUIZ ─── */
+.quiz-card{background:#fff;border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);margin-bottom:14px}
+.quiz-q{font-size:1.1rem;font-weight:700;color:var(--jungle);margin-bottom:16px;line-height:1.4}
+.quiz-options{display:flex;flex-direction:column;gap:10px}
+.quiz-opt{background:#f5f5f5;border:2px solid #ddd;border-radius:14px;padding:12px 16px;
+  cursor:pointer;font-size:.95rem;font-weight:600;transition:.2s;text-align:left}
+.quiz-opt:hover{border-color:var(--leaf);background:#f0fff4}
+.quiz-opt.correct{background:#d4edda;border-color:#28a745;color:#155724}
+.quiz-opt.wrong{background:#f8d7da;border-color:#dc3545;color:#721c24}
+.quiz-progress{background:#e0e0e0;border-radius:50px;height:8px;margin-bottom:16px;overflow:hidden}
+.quiz-progress-bar{height:100%;background:linear-gradient(90deg,var(--leaf),var(--sun));border-radius:50px;transition:.4s}
+/* ─── GAMES HUB ─── */
+#screen-games{background:#1a0a2e}
+.games-header{text-align:center;padding:20px 16px 10px;color:#fff}
+.games-header h2{font-size:1.6rem;font-weight:900;color:#f7c948}
+.games-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;padding:14px;max-width:500px;margin:0 auto}
+.game-btn{background:linear-gradient(135deg,var(--gc1),var(--gc2));border:none;border-radius:var(--radius);
+  padding:20px 10px;text-align:center;cursor:pointer;transition:.2s;color:#fff;box-shadow:var(--shadow)}
+.game-btn:hover{transform:scale(1.06)}
+.game-btn .g-icon{font-size:2.2rem;display:block;margin-bottom:6px}
+.game-btn .g-name{font-weight:800;font-size:.85rem}
+.g-eights{--gc1:#e84c3d;--gc2:#c0392b}
+.g-yahtzee{--gc1:#1a7abf;--gc2:#155a8a}
+.g-blackjack{--gc1:#2e8b57;--gc2:#1a5c2a}
+/* ─── CARD GAME AREA ─── */
+.card-table{background:linear-gradient(135deg,#1a4a1a,#0e2e0e);min-height:calc(100vh - 72px);padding:14px}
+.card-table-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.card-table-title{color:#f7c948;font-size:1.1rem;font-weight:800}
+.game-status{background:rgba(255,255,255,0.1);color:#fff;padding:8px 14px;border-radius:50px;font-size:.85rem;font-weight:600}
+.dealer-area,.player-area{margin-bottom:12px}
+.area-label{color:#aaa;font-size:.8rem;font-weight:700;text-transform:uppercase;margin-bottom:6px;letter-spacing:1px}
+.hand{display:flex;gap:6px;flex-wrap:wrap;min-height:90px;align-items:center}
+.playing-card{width:58px;height:82px;background:#fff;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;font-size:.9rem;font-weight:800;box-shadow:0 3px 8px rgba(0,0,0,0.4);
+  flex-direction:column;border:2px solid #ddd;flex-shrink:0}
+.playing-card.red{color:#e84c3d}
+.playing-card.black{color:#111}
+.playing-card.face-down{background:linear-gradient(135deg,#1a5c2a,#0e3d1a);color:transparent;font-size:.8rem}
+.playing-card.face-down::after{content:"🦁";font-size:1.4rem;color:rgba(255,255,255,0.6)}
+.card-actions{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+.bj-score{color:#f7c948;font-weight:800;font-size:1.1rem;margin-bottom:8px}
+/* ─── YAHTZEE ─── */
+.dice-area{display:flex;gap:10px;justify-content:center;margin:16px 0;flex-wrap:wrap}
+.die{width:58px;height:58px;background:#fff;border-radius:12px;display:flex;align-items:center;
+  justify-content:center;font-size:1.8rem;cursor:pointer;border:3px solid #ddd;
+  box-shadow:0 3px 8px rgba(0,0,0,0.3);transition:.2s;user-select:none}
+.die.held{border-color:#f7c948;background:#fff8e0}
+.die.rolling{animation:dieRoll .3s ease}
+@keyframes dieRoll{0%{transform:rotate(0)}25%{transform:rotate(15deg)}75%{transform:rotate(-15deg)}100%{transform:rotate(0)}}
+.score-sheet{background:rgba(255,255,255,0.08);border-radius:14px;padding:12px;margin:10px 0}
+.score-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;
+  border-bottom:1px solid rgba(255,255,255,0.08);color:#ddd;font-size:.85rem}
+.score-row:last-child{border:none}
+.score-row .s-name{font-weight:600}
+.score-row .s-val{font-weight:800;color:#f7c948}
+.score-row.claimable{cursor:pointer;border-radius:8px;padding:6px 8px}
+.score-row.claimable:hover{background:rgba(247,201,72,0.15)}
+/* ─── CRAZY EIGHTS ─── */
+.ce-pile{display:flex;gap:10px;align-items:center;margin:12px 0}
+.ce-hand{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0;min-height:90px;align-items:center}
+.ce-card{width:54px;height:76px;background:#fff;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;font-size:.85rem;font-weight:800;box-shadow:0 3px 8px rgba(0,0,0,0.4);
+  flex-direction:column;cursor:pointer;transition:.2s;border:2px solid #ddd}
+.ce-card:hover{transform:translateY(-8px);border-color:#f7c948}
+.ce-card.red{color:#e84c3d}
+.ce-card.black{color:#111}
+.ce-card.playable{border-color:#f7c948;box-shadow:0 0 12px rgba(247,201,72,0.5)}
+.ce-card.cpu-card{cursor:default;background:linear-gradient(135deg,#1a5c2a,#0e3d1a)}
+.ce-card.cpu-card::after{content:"🦒";font-size:1.6rem;color:rgba(255,255,255,0.7)}
+.suit-picker{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:10px 0}
+.suit-btn{background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.3);color:#fff;
+  border-radius:50px;padding:8px 18px;font-size:1.1rem;cursor:pointer;font-weight:700;transition:.2s}
+.suit-btn:hover{background:rgba(255,255,255,0.3)}
+/* ─── FEEDBACK ─── */
+.feedback{text-align:center;padding:12px;border-radius:14px;font-weight:700;font-size:1rem;margin:10px 0}
+.feedback.correct{background:#d4edda;color:#155724}
+.feedback.wrong{background:#f8d7da;color:#721c24}
+.feedback.info{background:#d1ecf1;color:#0c5460}
+/* ─── CELEBRATION ─── */
+#celebration{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);
+  z-index:999;display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center}
+#celebration.show{display:flex}
+.cel-emoji{font-size:5rem;animation:bounce 1s infinite}
+.cel-title{color:#f7c948;font-size:2rem;font-weight:900;margin:12px 0}
+.cel-msg{color:#fff;font-size:1.1rem}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+/* ─── RESULT OVERLAY ─── */
+.result-screen{background:var(--card-bg);border-radius:var(--radius);padding:28px;text-align:center;
+  box-shadow:var(--shadow);max-width:380px;margin:20px auto}
+.result-screen .big-emoji{font-size:4rem;margin-bottom:10px}
+.result-screen h2{font-size:1.5rem;font-weight:900;color:var(--jungle);margin-bottom:8px}
+.result-screen p{color:#555;margin-bottom:16px}
+/* ─── RESPONSIVE ─── */
+@media(max-width:360px){.memory-grid{grid-template-columns:repeat(4,1fr);gap:6px}
+.mem-front,.mem-back{font-size:1rem}.games-grid{grid-template-columns:1fr 1fr 1fr;gap:8px}}
+</style>
 </head>
 <body>
 
-<!-- SHARED SAFARI BACKGROUND -->
-<div class="safari-bg">
-    <div class="grass-layer"></div>
-    <div class="cloud" style="width:120px;height:40px;top:15%;left:-120px;animation-duration:25s;"></div>
-    <div class="cloud" style="width:90px;height:32px;top:8%;left:-180px;animation-duration:32s;animation-delay:8s;"></div>
-    <div class="cloud" style="width:150px;height:45px;top:22%;left:-100px;animation-duration:40s;animation-delay:-12s;"></div>
+<!-- HUD -->
+<div id="hud">
+  <div class="logo">🦁 Safari Clue Seekers</div>
+  <button id="back-btn" onclick="goHome()">🗺️ Map</button>
+  <div class="stars-hud">⭐ <span id="star-count">0</span></div>
 </div>
 
-<!-- TITLE SCREEN -->
-<div class="screen active" id="titleScreen">
-    <div class="title-card">
-        <div class="title-badge">🔍 Safari Clue Seekers</div>
-        <h1>🌍 The Great Migration Mystery</h1>
-        <p style="color:#7a4f1a;font-weight:700;margin:12px 0;">Educational Safari Adventure</p>
-        <div style="background:linear-gradient(135deg,#fff3cd,#ffe0a0);border:2px dashed #e8a030;border-radius:14px;padding:16px;margin:20px 0;font-size:1rem;">
-            🚨 The wildebeest migration has stopped! Explore 5 zones, solve mini-games, collect clues &amp; save the safari!
-        </div>
-        <input id="explorerName" type="text" placeholder="Enter your explorer name…" maxlength="20" style="width:100%;padding:14px;border-radius:12px;border:3px solid #e8a030;background:#fffbf0;font-size:1.1rem;font-weight:700;text-align:center;margin-bottom:16px;">
-        <button class="btn-primary" onclick="startGame()">🦁 Begin Safari Adventure!</button>
-        <div style="margin-top:20px;font-size:32px;">🦒🐘🦓🦏🐆🦍</div>
-        <button onclick="showCardGames()" style="margin-top:16px;background:#1a8ac8;color:#fff;border:none;border-radius:12px;padding:10px 24px;font-size:1rem;cursor:pointer;">🃏 Play Safari Card &amp; Dice Games</button>
+<!-- ══════════════════ HOME MAP ══════════════════ -->
+<div id="screen-home" class="screen active">
+  <div class="map-header">
+    <h1>🌍 Safari Map</h1>
+    <p>Explore every zone — earn stars on your adventure!</p>
+  </div>
+  <div class="zone-grid">
+    <div class="zone-card z-math" onclick="goZone('math')">
+      <span class="z-icon">🔢</span>
+      <div class="z-name">Math Safari</div>
+      <div class="z-stars" id="stars-math">⭐ 0 / 5</div>
     </div>
+    <div class="zone-card z-scramble" onclick="goZone('scramble')">
+      <span class="z-icon">🔤</span>
+      <div class="z-name">Word Scramble</div>
+      <div class="z-stars" id="stars-scramble">⭐ 0 / 5</div>
+    </div>
+    <div class="zone-card z-pattern" onclick="goZone('pattern')">
+      <span class="z-icon">🎨</span>
+      <div class="z-name">Pattern Trail</div>
+      <div class="z-stars" id="stars-pattern">⭐ 0 / 5</div>
+    </div>
+    <div class="zone-card z-memory" onclick="goZone('memory')">
+      <span class="z-icon">🃏</span>
+      <div class="z-name">Memory Cards</div>
+      <div class="z-stars" id="stars-memory">⭐ 0 / 1</div>
+    </div>
+    <div class="zone-card z-quiz" onclick="goZone('quiz')">
+      <span class="z-icon">❓</span>
+      <div class="z-name">Safari Quiz</div>
+      <div class="z-stars" id="stars-quiz">⭐ 0 / 10</div>
+    </div>
+    <div class="zone-card games-hub" onclick="goScreen('games')">
+      <div class="zone-badge">FUN</div>
+      <span class="z-icon">🎮</span>
+      <div class="z-name">Games Hub — Crazy Eights · Yahtzee · Blackjack</div>
+    </div>
+  </div>
 </div>
 
-<!-- MAP SCREEN -->
-<div class="screen" id="mapScreen">
-    <div class="map-hud">
-        <div class="hud-title">🗺️ Safari Map • <span id="playerNameDisplay"></span></div>
-        <div class="hud-clues" id="hudClues"></div>
-        <div style="font-family:'Righteous',cursive;font-size:1.1rem;color:#5a3a0a;">⭐ <span id="scoreDisplay">0</span> pts</div>
+<!-- ══════════════════ MATH ZONE ══════════════════ -->
+<div id="screen-math" class="screen">
+  <div class="zone-wrapper">
+    <div class="zone-title">🔢 Math Safari</div>
+    <div class="zone-sub">Solve the problem to feed the animals!</div>
+    <div class="score-badge" id="math-score-badge">Question 1 of 5</div>
+    <div class="math-problem">
+      <div class="animal" id="math-animal">🦒</div>
+      <div class="equation" id="math-eq">2 + 3 = ?</div>
     </div>
-    <div class="map-world" id="mapWorld"></div>
-    <div class="leaderboard" id="leaderboardPanel">
-        <strong>🏆 Leaderboard</strong>
-        <div id="leaderList" style="font-size:0.9rem;margin-top:8px;"></div>
-    </div>
+    <div class="math-options" id="math-opts"></div>
+    <div class="feedback" id="math-feedback" style="display:none"></div>
+  </div>
 </div>
 
-<!-- CHALLENGE MODAL -->
-<div class="modal-overlay" id="modalOverlay">
-    <div class="modal-box" id="modalBox">
-        <button onclick="closeModal()" style="position:absolute;top:12px;right:16px;background:#ffe0a0;border:none;border-radius:50%;width:34px;height:34px;font-size:18px;cursor:pointer;z-index:10;">✕</button>
-        <div id="modalContent"></div>
+<!-- ══════════════════ SCRAMBLE ZONE ══════════════════ -->
+<div id="screen-scramble" class="screen">
+  <div class="zone-wrapper">
+    <div class="zone-title">🔤 Word Scramble</div>
+    <div class="zone-sub">Unscramble the safari animal name!</div>
+    <div class="score-badge" id="scramble-score-badge">Word 1 of 5</div>
+    <div class="scramble-box">
+      <span class="hint-emoji" id="scramble-hint">🦓</span>
+      <div class="answer-slots" id="answer-slots"></div>
+      <div class="scramble-letters" id="scramble-letters"></div>
+      <div class="feedback" id="scramble-feedback" style="display:none"></div>
+      <button class="btn btn-danger btn-sm btn-center" onclick="clearAnswer()">↩️ Clear</button>
     </div>
+  </div>
 </div>
 
-<!-- VICTORY SCREEN -->
-<div class="screen" id="victoryScreen">
-    <div class="victory-card" id="victoryCard"></div>
+<!-- ══════════════════ PATTERN ZONE ══════════════════ -->
+<div id="screen-pattern" class="screen">
+  <div class="zone-wrapper">
+    <div class="zone-title">🎨 Pattern Trail</div>
+    <div class="zone-sub">Pick the missing piece in the pattern!</div>
+    <div class="score-badge" id="pattern-score-badge">Pattern 1 of 5</div>
+    <div style="background:#fff;border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)">
+      <div class="pattern-sequence" id="pattern-seq"></div>
+      <hr style="border-color:#eee;margin:12px 0"/>
+      <p style="text-align:center;color:#888;font-size:.85rem;margin-bottom:10px">Choose the missing emoji:</p>
+      <div class="pattern-choices" id="pattern-choices"></div>
+      <div class="feedback" id="pattern-feedback" style="display:none;margin-top:12px"></div>
+    </div>
+  </div>
 </div>
 
-<!-- CARD & DICE GAMES HUB MODAL -->
-<div class="modal-overlay" id="cardModal" style="display:none;">
-    <div class="modal-box card-game-modal" style="max-width:720px;padding:20px;position:relative;">
-        <button onclick="hideCardGames()" style="position:absolute;top:12px;right:16px;background:#ffe0a0;border:none;border-radius:50%;width:34px;height:34px;font-size:18px;cursor:pointer;z-index:10;">✕</button>
-        <h2 style="text-align:center;font-family:'Righteous',cursive;color:#c8420a;margin-bottom:20px;">🃏 Safari Card &amp; Dice Games Hub</h2>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;">
-            <div onclick="launchCrazyEights()" style="background:#fff;border:3px solid #e8a030;border-radius:16px;padding:16px;text-align:center;cursor:pointer;">
-                <div style="font-size:48px;margin-bottom:8px;">🃏</div>
-                <strong>Crazy Eights</strong><br><small>Match suit or rank • Wild 8s</small>
-            </div>
-            <div onclick="launchGoFish()" style="background:#fff;border:3px solid #e8a030;border-radius:16px;padding:16px;text-align:center;cursor:pointer;">
-                <div style="font-size:48px;margin-bottom:8px;">🐟</div>
-                <strong>Go Fish</strong><br><small>Ask for sets • Safari animals</small>
-            </div>
-            <div onclick="launchBlackjack()" style="background:#fff;border:3px solid #e8a030;border-radius:16px;padding:16px;text-align:center;cursor:pointer;">
-                <div style="font-size:48px;margin-bottom:8px;">🎰</div>
-                <strong>Safari 21</strong><br><small>Beat the dealer • Animal bets</small>
-            </div>
-            <div onclick="launchYahtzee()" style="background:#fff;border:3px solid #e8a030;border-radius:16px;padding:16px;text-align:center;cursor:pointer;">
-                <div style="font-size:48px;margin-bottom:8px;">🎲</div>
-                <strong>Safari Yahtzee</strong><br><small>Animal dice • 13 categories</small>
-            </div>
-            <div onclick="launchSurvivor()" style="background:#fff;border:3px solid #e8a030;border-radius:16px;padding:16px;text-align:center;cursor:pointer;">
-                <div style="font-size:48px;margin-bottom:8px;">🏝️</div>
-                <strong>Game of Survivor</strong><br><small>Jungle path • 3 players • Immunity idols</small>
-            </div>
-        </div>
-        <p style="text-align:center;margin-top:20px;font-size:0.9rem;color:#7a4f1a;">All games use Safari animal suits &amp; themes • Progress saved locally • Full AI opponents</p>
+<!-- ══════════════════ MEMORY ZONE ══════════════════ -->
+<div id="screen-memory" class="screen">
+  <div class="zone-wrapper">
+    <div class="zone-title">🃏 Memory Cards</div>
+    <div class="zone-sub">Find all the matching pairs!</div>
+    <div class="score-badge" id="memory-badge">Pairs: 0 / 8</div>
+    <div class="memory-grid" id="memory-grid"></div>
+    <div class="feedback" id="memory-feedback" style="display:none;margin-top:14px"></div>
+  </div>
+</div>
+
+<!-- ══════════════════ QUIZ ZONE ══════════════════ -->
+<div id="screen-quiz" class="screen">
+  <div class="zone-wrapper">
+    <div class="zone-title">❓ Safari Quiz</div>
+    <div class="zone-sub">How much do you know about the wild?</div>
+    <div class="quiz-progress"><div class="quiz-progress-bar" id="quiz-bar" style="width:0%"></div></div>
+    <div class="score-badge" id="quiz-score-badge">Question 1 of 10</div>
+    <div class="quiz-card">
+      <div class="quiz-q" id="quiz-q">Loading...</div>
+      <div class="quiz-options" id="quiz-opts"></div>
     </div>
+    <div class="feedback" id="quiz-feedback" style="display:none"></div>
+  </div>
+</div>
+
+<!-- ══════════════════ GAMES HUB ══════════════════ -->
+<div id="screen-games" class="screen">
+  <div id="screen-games-inner" style="background:#1a0a2e;min-height:calc(100vh - 72px);padding:16px">
+    <div class="games-header">
+      <h2>🎮 Games Hub</h2>
+      <p style="color:#a78bfa;font-size:.9rem;margin-top:4px">Choose your game!</p>
+    </div>
+    <div class="games-grid">
+      <button class="game-btn g-eights" onclick="startCrazyEights()">
+        <span class="g-icon">🃏</span>
+        <span class="g-name">Crazy Eights</span>
+      </button>
+      <button class="game-btn g-yahtzee" onclick="startYahtzee()">
+        <span class="g-icon">🎲</span>
+        <span class="g-name">Yahtzee</span>
+      </button>
+      <button class="game-btn g-blackjack" onclick="startBlackjack()">
+        <span class="g-icon">♠️</span>
+        <span class="g-name">Blackjack</span>
+      </button>
+    </div>
+    <div id="game-area"></div>
+  </div>
+</div>
+
+<!-- CELEBRATION OVERLAY -->
+<div id="celebration">
+  <div class="cel-emoji" id="cel-emoji">🌟</div>
+  <div class="cel-title" id="cel-title">Amazing!</div>
+  <div class="cel-msg" id="cel-msg">You earned a star!</div>
+  <button class="btn btn-gold" style="margin-top:20px" onclick="closeCelebration()">Keep Going! 🦁</button>
 </div>
 
 <script>
-// ============== GAME DATA & STATE ==============
-const ZONES = [
-  {id:'waterhole', name:'Watering Hole', icon:'💧', pos:{left:'22%',top:'55%'}, type:'math', clueEmoji:'💧', clue:'The watering hole has been poisoned by a strange blue powder!', desc:'Solve math puzzles about safari animals!'},
-  {id:'acacia', name:'Acacia Forest', icon:'🌳', pos:{left:'68%',top:'45%'}, type:'scramble', clueEmoji:'🌿', clue:'A sign was spotted pointing animals away from the valley!', desc:'Unscramble animal names!'},
-  {id:'savanna', name:'Open Savanna', icon:'🌾', pos:{left:'45%',top:'68%'}, type:'pattern', clueEmoji:'👣', clue:'The tracks show animals turning back before reaching the river!', desc:'Find the pattern in animal sequences!'},
-  {id:'elephants', name:'Elephant Grounds', icon:'🐘', pos:{left:'20%',top:'32%'}, type:'memory', clueEmoji:'🐘', clue:'Elephants heard a loud, unusual noise from the northern ridge!', desc:'Match pairs of safari animals!'},
-  {id:'lions', name:"Lion's Den", icon:'🦁', pos:{left:'72%',top:'70%'}, type:'quiz', clueEmoji:'🦁', clue:'A human camp was found blocking the ancient migration path!', desc:'Test your African wildlife knowledge!'}
-];
+// ════════════════════════════════════════
+//  GLOBAL STATE
+// ════════════════════════════════════════
+let totalStars = 0;
+let zoneStars = {math:0,scramble:0,pattern:0,memory:0,quiz:0};
 
-const MATH_QUESTIONS = [
-  {q:'A herd of 🦓🦓🦓 zebras is at the watering hole. Then 🦓🦓 more arrive. How many zebras?', a:5, opts:[3,4,5,6]},
-  {q:'There are 🐘🐘🐘🐘🐘🐘 six elephants drinking. 🐘🐘 two walk away. How many stay?', a:4, opts:[2,3,4,5]},
-  {q:'A group of 🦒🦒🦒 giraffes and 🦒🦒🦒🦒 more arrive for water. Count them all!', a:7, opts:[5,6,7,8]},
-  {q:'8 flamingos stand by the lake. 3 fly away. How many remain?', a:5, opts:[4,5,6,7]},
-  {q:'Two warthog families each have 3 piglets. How many piglets in total?', a:6, opts:[4,5,6,7]}
-];
-
-const SCRAMBLE_WORDS = [
-  {word:'GIRAFFE', hint:'Tallest animal in Africa 🦒', emoji:'🦒'},
-  {word:'SAVANNA', hint:'The flat grassy plains of Africa 🌾', emoji:'🌾'},
-  {word:'LEOPARD', hint:'A spotted big cat that climbs trees 🐆', emoji:'🐆'},
-  {word:'HIPPO', hint:'A large animal that loves the water 🦛', emoji:'🦛'},
-  {word:'OSTRICH', hint:'The world\'s biggest bird 🦃', emoji:'🦚'}
-];
-
-const PATTERN_QUESTIONS = [
-  {q:'What animal comes next?', pattern:['🦓','🦁','🦓','🦁','🦓','?'], a:'🦁', opts:['🦁','🐘','🦒','🐆'], explain:'Zebra–Lion repeating!'},
-  {q:'Which animal completes the sequence?', pattern:['🐘','🐘','🦒','🐘','🐘','?'], a:'🦒', opts:['🐘','🦒','🦓','🦁'], explain:'Two elephants then one giraffe repeating!'},
-  {q:'What comes next in this migration?', pattern:['🦓','🦓','🐘','🦓','🦓','?'], a:'🐘', opts:['🦓','🐘','🦒','🦁'], explain:'Two zebras then one elephant repeating!'}
-];
-
-const MEMORY_PAIRS = [
-  {id:1, emoji:'🦁', name:'Lion'},{id:2, emoji:'🐘', name:'Elephant'},
-  {id:3, emoji:'🦒', name:'Giraffe'},{id:4, emoji:'🦓', name:'Zebra'},
-  {id:5, emoji:'🐆', name:'Leopard'},{id:6, emoji:'🦏', name:'Rhino'}
-];
-
-const QUIZ_QUESTIONS = [
-  {q:'Which African country has the largest population of wild elephants?', a:'Botswana', opts:['Kenya','South Africa','Botswana','Tanzania'], explain:'Botswana is home to ~130,000 elephants!'},
-  {q:'How tall can a giraffe grow?', a:'Up to 6 meters', opts:['Up to 3 meters','Up to 4 meters','Up to 6 meters','Up to 9 meters'], explain:'As tall as a 2-story building!'},
-  {q:'Which African animal is the fastest land animal?', a:'Cheetah', opts:['Lion','Cheetah','Leopard','Wildebeest'], explain:'112 km/h (70 mph) sprint!'}
-];
-
-let state = {
-  name: 'Explorer',
-  score: 0,
-  cluesFound: [],
-  completedZones: [],
-  currentZone: null,
-  questionIndex: 0,
-  correctCount: 0,
-  totalQuestions: 3,
-  scrambleWord: '', scrambleAnswer: [], scrambleUsed: [],
-  memoryCards: [], memoryFlipped: [], memoryMatched: 0, memoryLock: false,
-  highScores: JSON.parse(localStorage.getItem('safariHighScores') || '[]'),
-  _quizPool: [],
-  scramblePool: []
-};
-
-// ============== UTILS ==============
-function shuffleArr(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
+function addStar(zone,n=1){
+  totalStars+=n; zoneStars[zone]=(zoneStars[zone]||0)+n;
+  document.getElementById('star-count').textContent=totalStars;
+  if(zone!=='games') document.getElementById('stars-'+zone).textContent='⭐ '+zoneStars[zone];
 }
-
-function saveProgress() {
-  localStorage.setItem('safariState', JSON.stringify({
-    name: state.name,
-    score: state.score,
-    cluesFound: state.cluesFound,
-    completedZones: state.completedZones
-  }));
-  if (state.score > 0) {
-    const dominated = state.highScores.find(s => s.name === state.name);
-    if (dominated) { dominated.score = Math.max(dominated.score, state.score); }
-    else { state.highScores.push({name: state.name, score: state.score, date: new Date().toISOString().slice(0,10)}); }
-    state.highScores.sort((a,b) => b.score - a.score);
-    state.highScores = state.highScores.slice(0,8);
-    localStorage.setItem('safariHighScores', JSON.stringify(state.highScores));
-  }
-}
-
-function loadProgress() {
-  const saved = localStorage.getItem('safariState');
-  if (saved) {
-    const data = JSON.parse(saved);
-    if (data.name === state.name) {
-      state.score = data.score || 0;
-      state.cluesFound = data.cluesFound || [];
-      state.completedZones = data.completedZones || [];
-    }
-  }
-}
-
-function updateHUD() {
-  document.getElementById('scoreDisplay').textContent = state.score;
-  document.getElementById('playerNameDisplay').textContent = state.name;
-  const wrap = document.getElementById('hudClues');
-  wrap.innerHTML = '';
-  ZONES.forEach(z => {
-    const slot = document.createElement('div');
-    slot.className = 'clue-slot' + (state.cluesFound.includes(z.id) ? ' found' : '');
-    slot.textContent = state.cluesFound.includes(z.id) ? z.clueEmoji : '?';
-    wrap.appendChild(slot);
-  });
-  const list = document.getElementById('leaderList');
-  list.innerHTML = state.highScores.map((s,i) => `<div>${i+1}. ${s.name} — ${s.score} pts</div>`).join('');
-}
-
-// ============== SCREENS ==============
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  const back=document.getElementById('back-btn');
+  back.style.display=(id==='screen-home')?'none':'block';
+  window.scrollTo(0,0);
 }
-
-function startGame() {
-  const nameInput = document.getElementById('explorerName').value.trim();
-  state.name = nameInput || 'Explorer';
-  loadProgress();
-  showScreen('mapScreen');
-  buildMap();
-  updateHUD();
+function goHome(){
+  updateMapStars(); showScreen('screen-home');
+  // reset game area
+  document.getElementById('game-area').innerHTML='';
 }
+function goZone(z){showScreen('screen-'+z);initZone(z);}
+function goScreen(id){showScreen('screen-'+id);}
+function updateMapStars(){
+  document.getElementById('stars-math').textContent='⭐ '+zoneStars.math+' / 5';
+  document.getElementById('stars-scramble').textContent='⭐ '+zoneStars.scramble+' / 5';
+  document.getElementById('stars-pattern').textContent='⭐ '+zoneStars.pattern+' / 5';
+  document.getElementById('stars-memory').textContent='⭐ '+(zoneStars.memory||0)+' / 1';
+  document.getElementById('stars-quiz').textContent='⭐ '+zoneStars.quiz+' / 10';
+}
+function initZone(z){
+  if(z==='math')initMath();
+  else if(z==='scramble')initScramble();
+  else if(z==='pattern')initPattern();
+  else if(z==='memory')initMemory();
+  else if(z==='quiz')initQuiz();
+}
+function celebrate(emoji,title,msg){
+  document.getElementById('cel-emoji').textContent=emoji;
+  document.getElementById('cel-title').textContent=title;
+  document.getElementById('cel-msg').textContent=msg;
+  document.getElementById('celebration').classList.add('show');
+}
+function closeCelebration(){document.getElementById('celebration').classList.remove('show');}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 
-function buildMap() {
-  const world = document.getElementById('mapWorld');
-  world.innerHTML = '';
-  ZONES.forEach(zone => {
-    const done = state.completedZones.includes(zone.id);
-    const pin = document.createElement('div');
-    pin.className = 'zone-pin';
-    pin.style.left = zone.pos.left;
-    pin.style.top = zone.pos.top;
-    pin.innerHTML = `
-      <div class="pin-bubble ${done ? 'completed' : ''}">
-        <span>${done ? '✅' : zone.icon}</span>
-        ${zone.name}
-        ${done ? '<small style="color:#1a6b3a;display:block;">Clue Found!</small>' : ''}
+// ════════════════════════════════════════
+//  MATH SAFARI
+// ════════════════════════════════════════
+const MATH_ANIMALS=['🦒','🐘','🦓','🦁','🐆','🦏','🦛','🐊','🦜','🐒'];
+let mathQ=0,mathCorrect=0;
+function genMath(){
+  const ops=['+','-','×'];
+  const op=ops[Math.floor(Math.random()*3)];
+  let a,b,ans;
+  if(op==='+'){a=Math.floor(Math.random()*20)+1;b=Math.floor(Math.random()*20)+1;ans=a+b;}
+  else if(op==='-'){a=Math.floor(Math.random()*20)+10;b=Math.floor(Math.random()*a)+1;ans=a-b;}
+  else{a=Math.floor(Math.random()*9)+2;b=Math.floor(Math.random()*9)+2;ans=a*b;}
+  return{eq:`${a} ${op} ${b} = ?`,ans,a,b,op};
+}
+function initMath(){
+  mathQ=0;mathCorrect=0;nextMathQ();
+}
+function nextMathQ(){
+  if(mathQ>=5){
+    const s=document.getElementById('screen-math');
+    s.querySelector('.zone-wrapper').innerHTML=`
+      <div class="result-screen">
+        <div class="big-emoji">🦁</div>
+        <h2>Math Safari Complete!</h2>
+        <p>You got <b>${mathCorrect}/5</b> correct and earned <b>${mathCorrect} ⭐</b></p>
+        <button class="btn btn-primary btn-center" onclick="goHome()">🗺️ Back to Map</button>
+        <button class="btn btn-success btn-center" onclick="initMath()">Play Again 🔄</button>
       </div>`;
-    if (!done) pin.addEventListener('click', () => openZone(zone));
-    world.appendChild(pin);
+    return;
+  }
+  const {eq,ans}=genMath();
+  document.getElementById('math-animal').textContent=MATH_ANIMALS[Math.floor(Math.random()*MATH_ANIMALS.length)];
+  document.getElementById('math-eq').textContent=eq;
+  document.getElementById('math-score-badge').textContent=`Question ${mathQ+1} of 5`;
+  document.getElementById('math-feedback').style.display='none';
+  // options
+  const opts=[ans];
+  while(opts.length<4){const w=ans+Math.floor(Math.random()*10)-5;if(w!==ans&&w>=0&&!opts.includes(w))opts.push(w);}
+  shuffle(opts);
+  const cont=document.getElementById('math-opts');
+  cont.innerHTML='';
+  opts.forEach(o=>{
+    const b=document.createElement('button');
+    b.className='math-opt';b.textContent=o;
+    b.onclick=()=>checkMath(o,ans,b);
+    cont.appendChild(b);
   });
 }
-
-function openZone(zone) {
-  if (state.completedZones.includes(zone.id)) return;
-  state.currentZone = zone;
-  state.questionIndex = 0;
-  state.correctCount = 0;
-  openModal();
-  if (zone.type === 'math') startMath();
-  else if (zone.type === 'scramble') startScramble();
-  else if (zone.type === 'pattern') startPattern();
-  else if (zone.type === 'memory') startMemory();
-  else if (zone.type === 'quiz') startQuiz();
-}
-
-function openModal() { document.getElementById('modalOverlay').classList.add('active'); }
-function closeModal() { document.getElementById('modalOverlay').classList.remove('active'); }
-
-function zoneHeaderHTML(zone) {
-  return `<div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
-    <div style="font-size:44px;">${zone.icon}</div>
-    <div><h2 style="font-family:'Righteous',cursive;font-size:1.5rem;color:#c8420a;">${zone.name}</h2>
-    <p style="font-size:0.85rem;color:#7a4f1a;">${zone.desc || 'Solve the challenge!'}</p></div></div>`;
-}
-
-function progressHTML() {
-  const pct = Math.min(100, (state.questionIndex / state.totalQuestions) * 100);
-  return `<div style="background:#f0e0c0;border-radius:8px;height:10px;margin-bottom:20px;overflow:hidden;">
-    <div style="height:100%;background:linear-gradient(90deg,#e8630a,#ffd740);width:${pct}%;transition:width .3s;"></div></div>
-    <div style="font-size:0.82rem;color:#7a4f1a;font-weight:700;margin-bottom:10px;">Challenge ${state.questionIndex+1} of ${state.totalQuestions} • ✅ ${state.correctCount} correct</div>`;
-}
-
-// ============== MATH ==============
-function startMath() { state.totalQuestions = 3; showMathQuestion(); }
-function showMathQuestion() {
-  if (state.questionIndex >= state.totalQuestions) return endChallenge();
-  const q = shuffleArr(MATH_QUESTIONS)[0];
-  const mc = document.getElementById('modalContent');
-  mc.innerHTML = zoneHeaderHTML(state.currentZone) + progressHTML() +
-    `<div style="background:linear-gradient(135deg,#fff8e8,#fff3d0);border:2px solid #e8c870;border-radius:16px;padding:20px;margin-bottom:16px;">
-      <div style="font-size:1.1rem;font-weight:700;">${q.q}</div>
-      <div id="optGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;"></div>
-    </div>
-    <div class="feedback-banner" id="feedback"></div>
-    <button class="btn-primary" id="nextBtn" onclick="nextMath()" style="display:none;width:100%;margin-top:12px;">Next Challenge →</button>`;
-  const grid = document.getElementById('optGrid');
-  shuffleArr(q.opts).forEach(opt => {
-    const btn = document.createElement('button');
-    btn.className = 'option-btn';
-    btn.textContent = opt;
-    btn.onclick = () => checkAnswer(btn, opt, q.a, null);
-    grid.appendChild(btn);
-  });
-}
-
-function checkAnswer(btn, chosen, correct, explain) {
-  document.querySelectorAll('.option-btn').forEach(b => { b.disabled = true; b.style.pointerEvents = 'none'; });
-  const fb = document.getElementById('feedback');
-  fb.style.display = 'block';
-  if (chosen === correct) {
+function checkMath(chosen,ans,btn){
+  document.querySelectorAll('.math-opt').forEach(b=>b.onclick=null);
+  const fb=document.getElementById('math-feedback');
+  if(chosen===ans){
     btn.classList.add('correct');
-    fb.className = 'feedback-banner correct';
-    fb.innerHTML = explain ? `🎉 Correct! ${explain}` : '🎉 Correct! Great counting!';
-    state.correctCount++;
-    state.score += 100;
-  } else {
+    mathCorrect++;addStar('math');
+    fb.className='feedback correct';fb.textContent='🎉 Correct! Great job!';
+  }else{
     btn.classList.add('wrong');
-    fb.className = 'feedback-banner wrong';
-    fb.innerHTML = explain ? `Not quite! ${explain}` : `Not quite! Answer was <strong>${correct}</strong>`;
+    fb.className='feedback wrong';fb.textContent=`❌ Not quite! The answer was ${ans}`;
+    document.querySelectorAll('.math-opt').forEach(b=>{if(parseInt(b.textContent)===ans)b.classList.add('correct');});
   }
-  document.getElementById('nextBtn').style.display = 'block';
-  updateHUD();
+  fb.style.display='block';mathQ++;
+  setTimeout(nextMathQ,1400);
 }
 
-function nextMath() { state.questionIndex++; showMathQuestion(); }
-
-// ============== SCRAMBLE ==============
-function startScramble() {
-  state.totalQuestions = 3;
-  state.scramblePool = shuffleArr(SCRAMBLE_WORDS);
-  showScrambleQuestion();
+// ════════════════════════════════════════
+//  WORD SCRAMBLE
+// ════════════════════════════════════════
+const SCRAMBLE_WORDS=[
+  {word:'ZEBRA',emoji:'🦓'},{word:'GIRAFFE',emoji:'🦒'},{word:'ELEPHANT',emoji:'🐘'},
+  {word:'CHEETAH',emoji:'🐆'},{word:'GORILLA',emoji:'🦍'},{word:'HIPPO',emoji:'🦛'},
+  {word:'RHINO',emoji:'🦏'},{word:'MONKEY',emoji:'🐒'},{word:'PARROT',emoji:'🦜'},
+  {word:'CROCODILE',emoji:'🐊'},{word:'LEOPARD',emoji:'🐈‍⬛'},{word:'FLAMINGO',emoji:'🦩'},
+  {word:'LION',emoji:'🦁'},{word:'MEERKAT',emoji:'🦡'},{word:'WARTHOG',emoji:'🐗'}
+];
+let scWords=[],scIdx=0,scAnswer=[],scLetters=[];
+function initScramble(){
+  scWords=shuffle([...SCRAMBLE_WORDS]).slice(0,5);
+  scIdx=0;nextScramble();
 }
-
-function showScrambleQuestion() {
-  if (state.questionIndex >= state.totalQuestions) return endChallenge();
-  const item = state.scramblePool[state.questionIndex % state.scramblePool.length];
-  const letters = shuffleArr(item.word.split(''));
-  state.scrambleWord = item.word;
-  state.scrambleAnswer = Array(item.word.length).fill(null);
-  state.scrambleUsed = Array(letters.length).fill(false);
-  state._scrambleLetters = letters;
-  const mc = document.getElementById('modalContent');
-  mc.innerHTML = zoneHeaderHTML(state.currentZone) + progressHTML() +
-    `<div style="text-align:center;">
-      <div style="font-size:1rem;font-weight:700;margin-bottom:8px;">${item.emoji} Hint: ${item.hint}</div>
-      <div id="answerSlots" style="display:flex;gap:8px;justify-content:center;margin:12px 0;flex-wrap:wrap;"></div>
-      <div id="letterBank" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:12px 0;"></div>
-      <button onclick="clearScramble()" style="background:#ffe0a0;border:2px solid #e8a030;border-radius:8px;padding:6px 16px;cursor:pointer;">🔄 Clear</button>
-    </div>
-    <div class="feedback-banner" id="feedback"></div>
-    <button class="btn-primary" id="nextBtn" onclick="nextScramble()" style="display:none;width:100%;margin-top:12px;">Next →</button>`;
-  
-  const slots = document.getElementById('answerSlots');
-  item.word.split('').forEach((_, i) => {
-    const slot = document.createElement('div');
-    slot.id = `slot-${i}`;
-    slot.style.cssText = 'width:42px;height:42px;border-bottom:3px solid #e8a030;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;cursor:pointer;';
-    slot.onclick = () => removeFromSlot(i);
-    slots.appendChild(slot);
-  });
-
-  const bank = document.getElementById('letterBank');
-  letters.forEach((l, i) => {
-    const tile = document.createElement('button');
-    tile.className = 'letter-tile';
-    tile.style.cssText = 'background:linear-gradient(135deg,#e8a030,#c8630a);color:#fff;font-size:1.4rem;font-weight:700;width:42px;height:42px;border:none;border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 0 #8a3800;cursor:pointer;';
-    tile.textContent = l;
-    tile.onclick = () => addLetter(l, i);
-    bank.appendChild(tile);
-  });
-}
-
-function addLetter(letter, tileIdx) {
-  if (state.scrambleUsed[tileIdx]) return;
-  const slotIdx = state.scrambleAnswer.indexOf(null);
-  if (slotIdx === -1) return;
-  state.scrambleAnswer[slotIdx] = {letter, tileIdx};
-  state.scrambleUsed[tileIdx] = true;
-  document.querySelectorAll('#letterBank button')[tileIdx].classList.add('used');
-  const slot = document.getElementById(`slot-${slotIdx}`);
-  slot.textContent = letter;
-  slot.style.background = '#fff3d0';
-  slot.style.borderRadius = '6px';
-  checkScrambleComplete();
-}
-
-function removeFromSlot(slotIdx) {
-  if (!state.scrambleAnswer[slotIdx]) return;
-  const {tileIdx} = state.scrambleAnswer[slotIdx];
-  state.scrambleAnswer[slotIdx] = null;
-  state.scrambleUsed[tileIdx] = false;
-  document.querySelectorAll('#letterBank button')[tileIdx].classList.remove('used');
-  const slot = document.getElementById(`slot-${slotIdx}`);
-  slot.textContent = '';
-  slot.style.background = '';
-}
-
-function clearScramble() {
-  state.scrambleAnswer.forEach((s, i) => {
-    if (s) {
-      state.scrambleUsed[s.tileIdx] = false;
-      document.querySelectorAll('#letterBank button')[s.tileIdx].classList.remove('used');
-    }
-    state.scrambleAnswer[i] = null;
-    const slot = document.getElementById(`slot-${i}`);
-    if (slot) { slot.textContent = ''; slot.style.background = ''; }
-  });
-}
-
-function checkScrambleComplete() {
-  if (state.scrambleAnswer.includes(null)) return;
-  const attempt = state.scrambleAnswer.map(s => s.letter).join('');
-  const fb = document.getElementById('feedback');
-  fb.style.display = 'block';
-  document.querySelectorAll('#letterBank button').forEach(b => { b.disabled = true; b.style.pointerEvents = 'none'; });
-  if (attempt === state.scrambleWord) {
-    fb.className = 'feedback-banner correct';
-    fb.innerHTML = `🎉 Perfect! "${state.scrambleWord}"`;
-    state.correctCount++;
-    state.score += 120;
-  } else {
-    fb.className = 'feedback-banner wrong';
-    fb.innerHTML = `Not quite! The word was <strong>${state.scrambleWord}</strong>`;
+function nextScramble(){
+  if(scIdx>=5){
+    const won=zoneStars.scramble>=3;
+    document.querySelector('#screen-scramble .zone-wrapper').innerHTML=`
+      <div class="result-screen">
+        <div class="big-emoji">${won?'🦁':'🦒'}</div>
+        <h2>Word Scramble Done!</h2>
+        <p>Stars earned: <b>${zoneStars.scramble} ⭐</b></p>
+        <button class="btn btn-primary btn-center" onclick="goHome()">🗺️ Back to Map</button>
+        <button class="btn btn-success btn-center" onclick="initScramble()">Play Again 🔄</button>
+      </div>`;
+    return;
   }
-  document.getElementById('nextBtn').style.display = 'block';
-  updateHUD();
+  const {word,emoji}=scWords[scIdx];
+  document.getElementById('scramble-score-badge').textContent=`Word ${scIdx+1} of 5`;
+  document.getElementById('scramble-hint').textContent=emoji;
+  document.getElementById('scramble-feedback').style.display='none';
+  scAnswer=[];
+  scLetters=shuffle(word.split(''));
+  renderScramble(word);
 }
-
-function nextScramble() { state.questionIndex++; showScrambleQuestion(); }
-
-// ============== PATTERN ==============
-function startPattern() { state.totalQuestions = 2; showPatternQuestion(); }
-function showPatternQuestion() {
-  if (state.questionIndex >= state.totalQuestions) return endChallenge();
-  const q = shuffleArr(PATTERN_QUESTIONS)[0];
-  const mc = document.getElementById('modalContent');
-  mc.innerHTML = zoneHeaderHTML(state.currentZone) + progressHTML() +
-    `<div style="background:linear-gradient(135deg,#fff8e8,#fff3d0);border:2px solid #e8c870;border-radius:16px;padding:20px;">
-      <div style="margin-bottom:10px;font-weight:700;">${q.q}</div>
-      <div style="font-size:2.4rem;letter-spacing:10px;text-align:center;margin:12px 0;">${q.pattern.join(' ')}</div>
-      <div id="optGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"></div>
-    </div>
-    <div class="feedback-banner" id="feedback"></div>
-    <button class="btn-primary" id="nextBtn" onclick="nextPattern()" style="display:none;width:100%;margin-top:12px;">Next →</button>`;
-  const grid = document.getElementById('optGrid');
-  q.opts.forEach(o => {
-    const btn = document.createElement('button');
-    btn.className = 'option-btn';
-    btn.style.fontSize = '1.8rem';
-    btn.textContent = o;
-    btn.onclick = () => checkAnswer(btn, o, q.a, q.explain);
-    grid.appendChild(btn);
+function renderScramble(word){
+  const slots=document.getElementById('answer-slots');
+  const letters=document.getElementById('scramble-letters');
+  slots.innerHTML=''; letters.innerHTML='';
+  scLetters.forEach((l,i)=>{
+    const b=document.createElement('button');
+    b.className='letter-tile';b.textContent=l;b.dataset.idx=i;
+    b.onclick=()=>pickLetter(i,b,word);
+    letters.appendChild(b);
+  });
+  for(let i=0;i<word.length;i++){
+    const s=document.createElement('div');
+    s.className='answer-slot';s.dataset.pos=i;
+    s.textContent=scAnswer[i]||'';
+    s.onclick=()=>removeLetter(i,word);
+    slots.appendChild(s);
+  }
+}
+function pickLetter(idx,btn,word){
+  if(btn.classList.contains('used'))return;
+  const pos=scAnswer.findIndex(x=>x===null||x===undefined);
+  const nextPos=scAnswer.length;
+  if(nextPos>=word.length)return;
+  scAnswer[nextPos]={letter:scLetters[idx],tileIdx:idx};
+  btn.classList.add('used');
+  updateSlots(word);
+  if(scAnswer.length===word.length)checkScramble(word);
+}
+function updateSlots(word){
+  const slots=document.getElementById('answer-slots');
+  Array.from(slots.children).forEach((s,i)=>{
+    s.textContent=scAnswer[i]?scAnswer[i].letter:'';
   });
 }
-function nextPattern() { state.questionIndex++; showPatternQuestion(); }
-
-// ============== MEMORY ==============
-function startMemory() {
-  state.memoryMatched = 0;
-  state.memoryFlipped = [];
-  state.memoryLock = false;
-  const pairs = shuffleArr(MEMORY_PAIRS).slice(0,4);
-  state.memoryCards = shuffleArr([...pairs, ...pairs.map(p => ({...p}))].map((p,i) => ({...p, uid:i, flipped:false, matched:false})));
-  const mc = document.getElementById('modalContent');
-  mc.innerHTML = zoneHeaderHTML(state.currentZone) +
-    `<div style="font-size:0.85rem;color:#7a4f1a;margin-bottom:12px;">🔍 Matched: <span id="memCount">0</span>/4 • ⭐ ${state.score} pts</div>
-     <div class="memory-grid" id="memGrid"></div>
-     <div class="feedback-banner" id="feedback"></div>
-     <button class="btn-primary" id="nextBtn" onclick="endChallenge()" style="display:none;width:100%;margin-top:12px;">Collect Clue →</button>`;
-  renderMemoryCards();
+function removeLetter(pos,word){
+  if(!scAnswer[pos])return;
+  const tileIdx=scAnswer[pos].tileIdx;
+  scAnswer.splice(pos,1);
+  document.querySelectorAll('.letter-tile').forEach(b=>{
+    if(parseInt(b.dataset.idx)===tileIdx)b.classList.remove('used');
+  });
+  updateSlots(word);
+}
+function clearAnswer(){
+  scAnswer=[];
+  document.querySelectorAll('.letter-tile').forEach(b=>b.classList.remove('used'));
+  updateSlots(scWords[scIdx].word);
+}
+function checkScramble(word){
+  const ans=scAnswer.map(x=>x.letter).join('');
+  const fb=document.getElementById('scramble-feedback');
+  if(ans===word){
+    fb.className='feedback correct';fb.textContent='🎉 Correct! Amazing!';
+    addStar('scramble');fb.style.display='block';scIdx++;
+    setTimeout(nextScramble,1400);
+  }else{
+    fb.className='feedback wrong';fb.textContent=`❌ Not quite! Keep trying!`;
+    fb.style.display='block';scAnswer=[];
+    document.querySelectorAll('.letter-tile').forEach(b=>b.classList.remove('used'));
+    updateSlots(word);setTimeout(()=>{fb.style.display='none';},1200);
+  }
 }
 
-function renderMemoryCards() {
-  const grid = document.getElementById('memGrid');
-  grid.innerHTML = state.memoryCards.map((c,i) => `
-    <div class="mem-card ${c.flipped?'flipped':''} ${c.matched?'matched':''}" id="mcard-${i}" onclick="flipCard(${i})">
-      <div class="card-back" style="font-size:1.8rem;">🌍</div>
-      <div class="card-face" style="font-size:1.8rem;">${c.emoji}</div>
-    </div>`).join('');
+// ════════════════════════════════════════
+//  PATTERN TRAIL
+// ════════════════════════════════════════
+const PATTERN_SETS=[
+  {seq:['🦁','🦒','🦁','🦒','?'],ans:'🦁',choices:['🦁','🐘','🦓','🦜']},
+  {seq:['🌿','🌸','🌿','🌸','?'],ans:'🌿',choices:['🌿','⭐','🌊','🍎']},
+  {seq:['🐘','🐘','🦓','🐘','🐘','?'],ans:'🦓',choices:['🦓','🦁','🌿','🐊']},
+  {seq:['⭐','🌙','⭐','🌙','⭐','?'],ans:'🌙',choices:['🌙','☀️','⭐','🌈']},
+  {seq:['🦜','🌴','🦜','🌴','?'],ans:'🦜',choices:['🦜','🦁','🐒','🐊']},
+  {seq:['🍎','🍊','🍋','🍎','🍊','?'],ans:'🍋',choices:['🍋','🍎','🍇','🍓']},
+  {seq:['🐒','🐒','🦍','🐒','🐒','?'],ans:'🦍',choices:['🦍','🐒','🦁','🦜']},
+  {seq:['☀️','🌧️','☀️','🌧️','?'],ans:'☀️',choices:['☀️','🌙','⭐','🌈']},
+];
+let patternQ=0;
+function initPattern(){patternQ=0;nextPattern();}
+function nextPattern(){
+  if(patternQ>=5){
+    document.querySelector('#screen-pattern .zone-wrapper').innerHTML=`
+      <div class="result-screen">
+        <div class="big-emoji">🎨</div>
+        <h2>Pattern Trail Complete!</h2>
+        <p>Stars earned: <b>${zoneStars.pattern} ⭐</b></p>
+        <button class="btn btn-primary btn-center" onclick="goHome()">🗺️ Back to Map</button>
+        <button class="btn btn-success btn-center" onclick="initPattern()">Play Again 🔄</button>
+      </div>`;
+    return;
+  }
+  const p=PATTERN_SETS[patternQ%PATTERN_SETS.length];
+  document.getElementById('pattern-score-badge').textContent=`Pattern ${patternQ+1} of 5`;
+  document.getElementById('pattern-feedback').style.display='none';
+  const seq=document.getElementById('pattern-seq');
+  seq.innerHTML='';
+  p.seq.forEach(item=>{
+    const d=document.createElement('div');
+    d.className='pattern-item'+(item==='?'?' blank':'');
+    d.textContent=item==='?'?'?':item;
+    seq.appendChild(d);
+  });
+  const ch=document.getElementById('pattern-choices');
+  ch.innerHTML='';
+  shuffle([...p.choices]).forEach(c=>{
+    const b=document.createElement('div');
+    b.className='pattern-choice';b.textContent=c;
+    b.onclick=()=>checkPattern(c,p.ans,b);
+    ch.appendChild(b);
+  });
+}
+function checkPattern(chosen,ans,btn){
+  document.querySelectorAll('.pattern-choice').forEach(b=>b.onclick=null);
+  const fb=document.getElementById('pattern-feedback');
+  if(chosen===ans){
+    btn.style.borderColor='#28a745';btn.style.background='#d4edda';
+    // fill blank
+    document.querySelector('.pattern-item.blank').textContent=ans;
+    document.querySelector('.pattern-item.blank').classList.remove('blank');
+    fb.className='feedback correct';fb.textContent='🎉 Correct!';addStar('pattern');
+  }else{
+    btn.style.borderColor='#dc3545';btn.style.background='#f8d7da';
+    fb.className='feedback wrong';fb.textContent=`❌ Not quite! Answer: ${ans}`;
+  }
+  fb.style.display='block';patternQ++;
+  setTimeout(nextPattern,1400);
 }
 
-function flipCard(idx) {
-  if (state.memoryLock) return;
-  const card = state.memoryCards[idx];
-  if (card.flipped || card.matched) return;
-  card.flipped = true;
-  const el = document.getElementById(`mcard-${idx}`);
-  el.classList.add('flipped');
-  state.memoryFlipped.push(idx);
-  if (state.memoryFlipped.length === 2) {
-    state.memoryLock = true;
-    const [a,b] = state.memoryFlipped;
-    if (state.memoryCards[a].id === state.memoryCards[b].id) {
-      state.memoryCards[a].matched = true;
-      state.memoryCards[b].matched = true;
-      document.getElementById(`mcard-${a}`).classList.add('matched');
-      document.getElementById(`mcard-${b}`).classList.add('matched');
-      state.memoryMatched++;
-      state.score += 80;
-      state.correctCount++;
-      updateHUD();
-      document.getElementById('memCount').textContent = state.memoryMatched;
-      state.memoryFlipped = [];
-      state.memoryLock = false;
-      const fb = document.getElementById('feedback');
-      fb.style.display = 'block';
-      fb.className = 'feedback-banner correct';
-      fb.textContent = `🎉 Match! ${state.memoryCards[a].name}`;
-      if (state.memoryMatched === 4) {
-        setTimeout(() => {
-          fb.textContent = '🌟 All matched! You have an amazing memory!';
-          document.getElementById('nextBtn').style.display = 'block';
-        }, 800);
+// ════════════════════════════════════════
+//  MEMORY CARDS
+// ════════════════════════════════════════
+const MEM_EMOJIS=['🦁','🐘','🦒','🦓','🐆','🦏','🦜','🐒'];
+let memFlipped=[],memMatched=0,memLock=false;
+function initMemory(){
+  memFlipped=[];memMatched=0;memLock=false;
+  document.getElementById('memory-badge').textContent='Pairs: 0 / 8';
+  document.getElementById('memory-feedback').style.display='none';
+  const cards=shuffle([...MEM_EMOJIS,...MEM_EMOJIS]);
+  const grid=document.getElementById('memory-grid');
+  grid.innerHTML='';
+  cards.forEach((emoji,i)=>{
+    const card=document.createElement('div');
+    card.className='mem-card';card.dataset.emoji=emoji;card.dataset.idx=i;
+    card.innerHTML=`<div class="mem-inner"><div class="mem-front">🌿</div><div class="mem-back">${emoji}</div></div>`;
+    card.onclick=()=>flipMemCard(card);
+    grid.appendChild(card);
+  });
+}
+function flipMemCard(card){
+  if(memLock)return;
+  if(card.classList.contains('flipped')||card.classList.contains('matched'))return;
+  card.classList.add('flipped');
+  memFlipped.push(card);
+  if(memFlipped.length===2){
+    memLock=true;
+    const[a,b]=memFlipped;
+    if(a.dataset.emoji===b.dataset.emoji){
+      a.classList.add('matched');b.classList.add('matched');
+      memMatched++;memFlipped=[];memLock=false;
+      document.getElementById('memory-badge').textContent=`Pairs: ${memMatched} / 8`;
+      if(memMatched===8){
+        addStar('memory');celebrate('🃏','Memory Master!','You matched all 8 pairs! +1 ⭐');
+        document.getElementById('memory-feedback').className='feedback correct';
+        document.getElementById('memory-feedback').textContent='🎉 All pairs matched! You earned a ⭐!';
+        document.getElementById('memory-feedback').style.display='block';
       }
-    } else {
-      setTimeout(() => {
-        state.memoryCards[a].flipped = false;
-        state.memoryCards[b].flipped = false;
-        document.getElementById(`mcard-${a}`).classList.remove('flipped');
-        document.getElementById(`mcard-${b}`).classList.remove('flipped');
-        state.memoryFlipped = [];
-        state.memoryLock = false;
-      }, 1000);
+    }else{
+      setTimeout(()=>{
+        a.classList.remove('flipped');b.classList.remove('flipped');
+        memFlipped=[];memLock=false;
+      },900);
     }
   }
 }
 
-// ============== QUIZ ==============
-function startQuiz() { state.totalQuestions = 3; state._quizPool = shuffleArr(QUIZ_QUESTIONS); showQuizQuestion(); }
-function showQuizQuestion() {
-  if (state.questionIndex >= state.totalQuestions) return endChallenge();
-  const q = state._quizPool[state.questionIndex % state._quizPool.length];
-  const mc = document.getElementById('modalContent');
-  mc.innerHTML = zoneHeaderHTML(state.currentZone) + progressHTML() +
-    `<div style="background:linear-gradient(135deg,#fff8e8,#fff3d0);border:2px solid #e8c870;border-radius:16px;padding:20px;">
-      <div style="font-size:1.1rem;font-weight:700;">${q.q}</div>
-      <div id="optGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;"></div>
-    </div>
-    <div class="feedback-banner" id="feedback"></div>
-    <button class="btn-primary" id="nextBtn" onclick="nextQuiz()" style="display:none;width:100%;margin-top:12px;">Next →</button>`;
-  const grid = document.getElementById('optGrid');
-  shuffleArr(q.opts).forEach(o => {
-    const btn = document.createElement('button');
-    btn.className = 'option-btn';
-    btn.textContent = o;
-    btn.onclick = () => checkAnswer(btn, o, q.a, q.explain);
-    grid.appendChild(btn);
+// ════════════════════════════════════════
+//  SAFARI QUIZ
+// ════════════════════════════════════════
+const QUIZ_BANK=[
+  {q:"What is the tallest animal on Earth?",opts:["Elephant","Giraffe","Ostrich","Polar Bear"],ans:1},
+  {q:"Which big cat is the fastest land animal?",opts:["Lion","Leopard","Cheetah","Tiger"],ans:2},
+  {q:"How many legs does an elephant have?",opts:["2","4","6","8"],ans:1},
+  {q:"What do you call a group of lions?",opts:["Pack","Herd","Pride","Flock"],ans:2},
+  {q:"Which animal is known as the 'King of the Jungle'?",opts:["Tiger","Elephant","Gorilla","Lion"],ans:3},
+  {q:"What color is a zebra's skin under its stripes?",opts:["White","Black","Gray","Pink"],ans:1},
+  {q:"How long is a giraffe's tongue?",opts:["5 inches","12 inches","18 inches","24 inches"],ans:2},
+  {q:"What is the largest land animal?",opts:["Hippo","Rhino","Elephant","Giraffe"],ans:2},
+  {q:"Which African animal cannot jump at all?",opts:["Elephant","Hippo","Rhino","All of them"],ans:0},
+  {q:"What does a herbivore eat?",opts:["Only meat","Only plants","Meat and plants","Fish"],ans:1},
+  {q:"How many spots does a typical cheetah have?",opts:["About 200","About 2,000","About 500","About 100"],ans:1},
+  {q:"Which bird cannot fly but is the fastest on land?",opts:["Penguin","Ostrich","Flamingo","Parrot"],ans:1},
+  {q:"A baby elephant is called a?",opts:["Cub","Calf","Pup","Foal"],ans:1},
+  {q:"Gorillas are most closely related to which animal?",opts:["Bears","Dogs","Humans","Cats"],ans:2},
+  {q:"What do crocodiles eat?",opts:["Only plants","Fish and meat","Only insects","Fruits"],ans:1},
+  {q:"How many horns does an African rhino have?",opts:["1","2","3","0"],ans:1},
+  {q:"Which animal has a very long neck to reach tree leaves?",opts:["Elephant","Hippo","Giraffe","Lion"],ans:2},
+  {q:"Where do most lions sleep during the day?",opts:["In water","Under trees in shade","In caves","In tall grass"],ans:1},
+  {q:"What is a young kangaroo called?",opts:["Kitten","Joey","Cub","Pup"],ans:1},
+  {q:"Which animal is the largest primate?",opts:["Chimpanzee","Orangutan","Gorilla","Baboon"],ans:2},
+  {q:"What is the fastest bird in a dive?",opts:["Eagle","Peregrine Falcon","Hawk","Owl"],ans:1},
+  {q:"Elephants communicate using sounds humans can't hear. What are they?",opts:["Ultrasound","Infrasound","Radio waves","Laser pulses"],ans:1},
+  {q:"Which continent is mostly covered by the Sahara Desert?",opts:["Asia","South America","Africa","Australia"],ans:2},
+  {q:"What is the main diet of a flamingo?",opts:["Fish only","Algae and shrimp","Insects","Grass"],ans:1},
+  {q:"Baby lions are born with?",opts:["A full mane","No spots","Spots","Stripes"],ans:2},
+];
+let quizQs=[],quizIdx=0,quizScore=0;
+function initQuiz(){
+  quizQs=shuffle([...QUIZ_BANK]).slice(0,10);
+  quizIdx=0;quizScore=0;nextQuiz();
+}
+function nextQuiz(){
+  if(quizIdx>=10){
+    document.querySelector('#screen-quiz .zone-wrapper').innerHTML=`
+      <div class="result-screen">
+        <div class="big-emoji">❓</div>
+        <h2>Quiz Complete!</h2>
+        <p>You scored <b>${quizScore}/10</b> and earned <b>${quizScore} ⭐</b></p>
+        <button class="btn btn-primary btn-center" onclick="goHome()">🗺️ Back to Map</button>
+        <button class="btn btn-success btn-center" onclick="initQuiz()">Try Again 🔄</button>
+      </div>`;
+    return;
+  }
+  const q=quizQs[quizIdx];
+  document.getElementById('quiz-bar').style.width=`${(quizIdx/10)*100}%`;
+  document.getElementById('quiz-score-badge').textContent=`Question ${quizIdx+1} of 10`;
+  document.getElementById('quiz-q').textContent=q.q;
+  document.getElementById('quiz-feedback').style.display='none';
+  const opts=document.getElementById('quiz-opts');
+  opts.innerHTML='';
+  q.opts.forEach((o,i)=>{
+    const b=document.createElement('button');
+    b.className='quiz-opt';b.textContent=o;
+    b.onclick=()=>checkQuiz(i,q.ans,b,q.opts);
+    opts.appendChild(b);
   });
 }
-function nextQuiz() { state.questionIndex++; showQuizQuestion(); }
-
-// ============== END CHALLENGE ==============
-function endChallenge() {
-  const zone = state.currentZone;
-  const pass = zone.type === 'memory' ? state.memoryMatched >= 2 : state.correctCount >= 2;
-  const mc = document.getElementById('modalContent');
-  if (pass) {
-    if (!state.cluesFound.includes(zone.id)) {
-      state.cluesFound.push(zone.id);
-      state.completedZones.push(zone.id);
-      state.score += 200;
-    }
-    mc.innerHTML = `
-      <div class="result-box">
-        <div style="font-size:64px;margin-bottom:12px;">🎉</div>
-        <h2 style="font-family:'Righteous',cursive;color:#c8420a;">Clue Unlocked!</h2>
-        <p style="margin:16px 0;">Fantastic work, ${state.name}!</p>
-        <div style="background:linear-gradient(135deg,#fff3cd,#ffe0a0);border:2px dashed #e8a030;border-radius:14px;padding:14px;margin:16px 0;">
-          ${zone.clueEmoji} <strong>${zone.clue}</strong>
-        </div>
-        <div style="font-size:0.9rem;color:#7a4f1a;margin-bottom:16px;">Clues: ${state.cluesFound.length}/5</div>
-        <button onclick="closeModal();buildMap();checkVictory();updateHUD();" class="btn-primary" style="width:100%;">Back to Map 🗺️</button>
-      </div>`;
-    saveProgress();
-  } else {
-    mc.innerHTML = `
-      <div class="result-box">
-        <div style="font-size:64px;margin-bottom:12px;">😅</div>
-        <h2 style="font-family:'Righteous',cursive;color:#c8420a;">Almost there!</h2>
-        <p style="margin:16px 0;">You got ${state.correctCount} correct — try this zone again!</p>
-        <button onclick="openZone(state.currentZone)" class="btn-primary" style="margin:8px;">🔄 Try Again</button>
-        <button onclick="closeModal();buildMap();" class="btn-primary" style="background:#1a8ac8;margin:8px;">Back to Map</button>
-      </div>`;
+function checkQuiz(chosen,ans,btn,opts){
+  document.querySelectorAll('.quiz-opt').forEach(b=>b.onclick=null);
+  const fb=document.getElementById('quiz-feedback');
+  if(chosen===ans){
+    btn.classList.add('correct');quizScore++;addStar('quiz');
+    fb.className='feedback correct';fb.textContent='🎉 Correct!';
+  }else{
+    btn.classList.add('wrong');
+    document.querySelectorAll('.quiz-opt')[ans].classList.add('correct');
+    fb.className='feedback wrong';fb.textContent=`❌ Answer: ${opts[ans]}`;
   }
-  updateHUD();
+  fb.style.display='block';quizIdx++;
+  setTimeout(nextQuiz,1400);
 }
 
-function checkVictory() {
-  if (state.cluesFound.length === ZONES.length) {
-    setTimeout(showVictory, 600);
-  }
+// ════════════════════════════════════════
+//  CARD DECK ENGINE
+// ════════════════════════════════════════
+const SUITS=['♠','♥','♦','♣'];
+const RANKS=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+function newDeck(){
+  const d=[];
+  SUITS.forEach(s=>RANKS.forEach(r=>d.push({r,s,v:cardVal(r)})));
+  return shuffle(d);
+}
+function cardVal(r){
+  if(['J','Q','K'].includes(r))return 10;
+  if(r==='A')return 11;
+  return parseInt(r);
+}
+function cardClass(c){return(c.s==='♥'||c.s==='♦')?'red':'black';}
+function cardHTML(c,faceDown=false){
+  if(faceDown)return`<div class="playing-card face-down"></div>`;
+  return`<div class="playing-card ${cardClass(c)}"><span>${c.r}</span><span>${c.s}</span></div>`;
 }
 
-function showVictory() {
-  spawnConfetti();
-  const stars = state.score > 1800 ? '⭐⭐⭐⭐' : state.score > 1200 ? '⭐⭐⭐' : '⭐⭐';
-  document.getElementById('victoryCard').innerHTML = `
-    <div style="font-size:64px;">🏆</div>
-    <h2 style="font-family:'Righteous',cursive;color:#c8420a;margin:12px 0;">Mystery Solved!</h2>
-    <p style="color:#5a3a0a;">Amazing detective work, ${state.name}!</p>
-    <div style="font-size:42px;margin:16px 0;">${stars}</div>
-    <div style="background:linear-gradient(135deg,#fff3cd,#ffe0a0);border:3px solid #e8a030;border-radius:16px;padding:18px;margin:20px 0;text-align:left;">
-      🔍 <strong>Case Closed:</strong> The human camp with loud generators and blue chemicals was blocking the migration path and poisoning the water.<br><br>
-      You helped move the camp — the Great Migration resumes! 🦓🦓🦓
-    </div>
-    <div style="margin-bottom:20px;">Final Score: <strong style="color:#c8420a;font-size:1.4rem;">${state.score} pts</strong></div>
-    <button onclick="localStorage.removeItem('safariState');location.reload();" class="btn-primary">🌍 Play Again</button>`;
-  showScreen('victoryScreen');
-  saveProgress();
-}
-
-function spawnConfetti() {
-  const colors = ['#ffd740','#ff6b6b','#51cf66','#339af0','#e8630a','#cc5de8'];
-  for (let i = 0; i < 80; i++) {
-    const el = document.createElement('div');
-    el.className = 'confetti-piece';
-    el.style.cssText = `left:${Math.random()*100}vw;background:${colors[Math.floor(Math.random()*colors.length)]};width:${6+Math.random()*12}px;height:${8+Math.random()*14}px;animation-duration:${2+Math.random()*3}s;animation-delay:${Math.random()*2}s;`;
-    document.body.appendChild(el);
-    setTimeout(() => el.remove(), 7000);
-  }
-}
-
-// ============== CARD & DICE GAMES ==============
-function showCardGames() { document.getElementById('cardModal').style.display = 'flex'; }
-function hideCardGames() { document.getElementById('cardModal').style.display = 'none'; }
-
-function launchCrazyEights() {
-  hideCardGames();
-  const ov = document.createElement('div');
-  ov.className = 'modal-overlay active';
-  ov.style.zIndex = '9999';
-  ov.innerHTML = `
-    <div style="background:#0a3d2b;width:92%;max-width:640px;border-radius:20px;padding:20px;color:#fff;position:relative;">
-      <button onclick="this.closest('.modal-overlay').remove()" style="position:absolute;top:12px;right:16px;background:#ffe0a0;border:none;border-radius:50%;width:34px;height:34px;font-size:18px;cursor:pointer;">✕</button>
-      <h2 style="text-align:center;margin-bottom:16px;">🃏 Crazy Eights • Safari Edition</h2>
-      <div style="background:#f4e8c0;border-radius:12px;padding:16px;color:#2c1a00;text-align:center;">
-        <p style="margin-bottom:12px;">Your hand: 🦁2 🐘5 🦒8 🦓9</p>
-        <p style="margin-bottom:16px;">Table card: <strong style="font-size:1.4rem;">🦓7</strong></p>
-        <p style="font-size:0.85rem;margin-bottom:12px;">Play a card matching suit (🦓) or rank (7). 8s are wild!</p>
-        <button onclick="this.parentElement.innerHTML='<div style=\\'font-size:48px;margin:20px;\\'>🎉</div><p><strong>You played 🦒8 — Wild!</strong> Changed suit to Lions 🦁</p><p>Bot can\\'t match — you win!</p>'" style="background:#c8420a;color:#fff;padding:10px 20px;border:none;border-radius:8px;margin:8px;cursor:pointer;font-weight:700;">Play 🦒8 (Wild)</button>
-        <button onclick="this.parentElement.innerHTML='<div style=\\'font-size:48px;margin:20px;\\'>✅</div><p><strong>You played 🦓9</strong> — matching suit!</p><p>Bot draws 2 cards. Your turn again!</p>'" style="background:#1a8ac8;color:#fff;padding:10px 20px;border:none;border-radius:8px;margin:8px;cursor:pointer;font-weight:700;">Play 🦓9 (Match Suit)</button>
+// ════════════════════════════════════════
+//  BLACKJACK
+// ════════════════════════════════════════
+let bjDeck,bjPlayer,bjDealer,bjCoins,bjBet,bjPhase;
+function startBlackjack(){
+  bjCoins=100;bjBet=10;bjPhase='bet';
+  document.getElementById('game-area').innerHTML=`
+    <div class="card-table" id="bj-table">
+      <div class="card-table-header">
+        <span class="card-table-title">♠️ Blackjack</span>
+        <span class="game-status" id="bj-status">Place your bet!</span>
       </div>
+      <div class="dealer-area">
+        <div class="area-label">🦒 Dealer</div>
+        <div class="bj-score" id="dealer-score"></div>
+        <div class="hand" id="dealer-hand"></div>
+      </div>
+      <div class="player-area">
+        <div class="area-label">You</div>
+        <div class="bj-score" id="player-score"></div>
+        <div class="hand" id="player-hand"></div>
+      </div>
+      <div id="bj-actions"></div>
+      <div class="feedback" id="bj-feedback" style="display:none"></div>
     </div>`;
-  document.body.appendChild(ov);
+  bjDealFresh();
+}
+function bjDealFresh(){
+  bjDeck=newDeck();bjPlayer=[];bjDealer=[];bjPhase='play';
+  bjPlayer.push(bjDeck.pop(),bjDeck.pop());
+  bjDealer.push(bjDeck.pop(),bjDeck.pop());
+  bjRender(true);
+  const ps=bjHandVal(bjPlayer);
+  if(ps===21){bjEndGame('blackjack');}
+  else{bjShowActions();}
+}
+function bjHandVal(hand){
+  let v=hand.reduce((a,c)=>a+c.v,0);
+  let aces=hand.filter(c=>c.r==='A').length;
+  while(v>21&&aces>0){v-=10;aces--;}
+  return v;
+}
+function bjRender(hideDealer=false){
+  document.getElementById('player-hand').innerHTML=bjPlayer.map(c=>cardHTML(c)).join('');
+  document.getElementById('dealer-hand').innerHTML=bjDealer.map((c,i)=>cardHTML(c,hideDealer&&i===1)).join('');
+  document.getElementById('player-score').textContent=`Score: ${bjHandVal(bjPlayer)}`;
+  document.getElementById('dealer-score').textContent=hideDealer?'Dealer: ?':`Dealer: ${bjHandVal(bjDealer)}`;
+}
+function bjShowActions(){
+  document.getElementById('bj-actions').innerHTML=`
+    <div class="card-actions">
+      <button class="btn btn-success btn-sm" onclick="bjHit()">Hit 🃏</button>
+      <button class="btn btn-danger btn-sm" onclick="bjStand()">Stand ✋</button>
+    </div>`;
+  document.getElementById('bj-status').textContent=`Coins: 🪙${bjCoins}`;
+}
+function bjHit(){
+  bjPlayer.push(bjDeck.pop());bjRender(true);
+  if(bjHandVal(bjPlayer)>21)bjEndGame('bust');
+}
+function bjStand(){
+  bjRender(false);
+  // dealer plays
+  while(bjHandVal(bjDealer)<17)bjDealer.push(bjDeck.pop());
+  bjRender(false);
+  const ps=bjHandVal(bjPlayer),ds=bjHandVal(bjDealer);
+  if(ds>21||ps>ds)bjEndGame('win');
+  else if(ps===ds)bjEndGame('push');
+  else bjEndGame('lose');
+}
+function bjEndGame(result){
+  bjRender(false);
+  const fb=document.getElementById('bj-feedback');
+  const msgs={win:'🎉 You Win!',lose:'😢 Dealer Wins',push:'🤝 Push — Tie!',bust:'💥 Bust!',blackjack:'🎰 Blackjack!'};
+  const classes={win:'correct',lose:'wrong',push:'info',bust:'wrong',blackjack:'correct'};
+  fb.className=`feedback ${classes[result]}`;fb.textContent=msgs[result];fb.style.display='block';
+  document.getElementById('bj-actions').innerHTML=`
+    <div class="card-actions">
+      <button class="btn btn-gold btn-sm" onclick="bjDealFresh()">Deal Again 🃏</button>
+      <button class="btn btn-primary btn-sm" onclick="startBlackjack()">New Game</button>
+    </div>`;
 }
 
-function launchGoFish() { hideCardGames(); alert('🐟 Go Fish Safari — Coming soon!\n\nAsk the bot for animal card sets.\nCollect all 4 matching animals to score!'); }
-function launchBlackjack() { hideCardGames(); alert('🎰 Safari 21 — Coming soon!\n\nDealer shows 🦓10. You have 🦁A + 🐘8 = 19.\nHit or Stand?'); }
-function launchYahtzee() { hideCardGames(); alert('🎲 Safari Yahtzee — Coming soon!\n\n5 animal dice, 3 rolls per turn.\nFill all 13 categories to win!'); }
-function launchSurvivor() { hideCardGames(); alert('🏝️ Game of Survivor — Coming soon!\n\n25-tile jungle path with 3 players.\nFind immunity idols, survive tribal council!'); }
+// ════════════════════════════════════════
+//  YAHTZEE
+// ════════════════════════════════════════
+const DICE_FACES=['⚀','⚁','⚂','⚃','⚄','⚅'];
+let yzDice,yzHeld,yzRolls,yzScores,yzTurn;
+const YZ_CATS=[
+  {id:'ones',name:'Ones',fn:d=>d.filter(x=>x===1).reduce((a,b)=>a+b,0)},
+  {id:'twos',name:'Twos',fn:d=>d.filter(x=>x===2).reduce((a,b)=>a+b,0)},
+  {id:'threes',name:'Threes',fn:d=>d.filter(x=>x===3).reduce((a,b)=>a+b,0)},
+  {id:'fours',name:'Fours',fn:d=>d.filter(x=>x===4).reduce((a,b)=>a+b,0)},
+  {id:'fives',name:'Fives',fn:d=>d.filter(x=>x===5).reduce((a,b)=>a+b,0)},
+  {id:'sixes',name:'Sixes',fn:d=>d.filter(x=>x===6).reduce((a,b)=>a+b,0)},
+  {id:'3oak',name:'3 of a Kind',fn:d=>{const c=yzCount(d);return Object.values(c).some(v=>v>=3)?d.reduce((a,b)=>a+b,0):0;}},
+  {id:'4oak',name:'4 of a Kind',fn:d=>{const c=yzCount(d);return Object.values(c).some(v=>v>=4)?d.reduce((a,b)=>a+b,0):0;}},
+  {id:'fh',name:'Full House',fn:d=>{const v=Object.values(yzCount(d)).sort();return(v[0]===2&&v[1]===3)?25:0;}},
+  {id:'ss',name:'Sm. Straight',fn:d=>{const u=[...new Set(d)].sort();for(let i=0;i<=u.length-4;i++){if(u[i+3]-u[i]===3)return 30;}return 0;}},
+  {id:'ls',name:'Lg. Straight',fn:d=>{const u=[...new Set(d)].sort();return(u.length===5&&u[4]-u[0]===4)?40:0;}},
+  {id:'yahtzee',name:'YAHTZEE!',fn:d=>Object.values(yzCount(d)).some(v=>v===5)?50:0},
+  {id:'chance',name:'Chance',fn:d=>d.reduce((a,b)=>a+b,0)},
+];
+function yzCount(d){const c={};d.forEach(x=>c[x]=(c[x]||0)+1);return c;}
+function startYahtzee(){
+  yzDice=[1,1,1,1,1];yzHeld=[false,false,false,false,false];
+  yzRolls=3;yzScores={};yzTurn=0;
+  document.getElementById('game-area').innerHTML=`
+    <div class="card-table" id="yz-table">
+      <div class="card-table-header">
+        <span class="card-table-title">🎲 Yahtzee</span>
+        <span class="game-status" id="yz-status">Rolls left: 3</span>
+      </div>
+      <div class="dice-area" id="yz-dice"></div>
+      <div class="card-actions" style="justify-content:center">
+        <button class="btn btn-gold btn-sm" id="yz-roll-btn" onclick="yzRoll()">🎲 Roll Dice</button>
+      </div>
+      <div class="score-sheet" id="yz-sheet"></div>
+      <div class="feedback" id="yz-feedback" style="display:none"></div>
+    </div>`;
+  yzRenderDice();yzRenderSheet();
+}
+function yzRoll(){
+  if(yzRolls<=0)return;
+  yzDice=yzDice.map((d,i)=>yzHeld[i]?d:Math.floor(Math.random()*6)+1);
+  yzRolls--;
+  document.getElementById('yz-status').textContent=`Rolls left: ${yzRolls}`;
+  if(yzRolls===0)document.getElementById('yz-roll-btn').disabled=true;
+  yzRenderDice();yzRenderSheet();
+}
+function yzRenderDice(){
+  const area=document.getElementById('yz-dice');
+  area.innerHTML='';
+  yzDice.forEach((d,i)=>{
+    const el=document.createElement('div');
+    el.className='die'+(yzHeld[i]?' held':'');
+    el.textContent=DICE_FACES[d-1];
+    el.onclick=()=>{if(yzRolls<3){yzHeld[i]=!yzHeld[i];yzRenderDice();}};
+    area.appendChild(el);
+  });
+}
+function yzRenderSheet(){
+  const sheet=document.getElementById('yz-sheet');
+  sheet.innerHTML='<div style="color:#aaa;font-size:.8rem;font-weight:700;margin-bottom:6px">📋 SCORE CARD — Click to claim</div>';
+  let total=0;
+  YZ_CATS.forEach(cat=>{
+    const row=document.createElement('div');
+    const scored=cat.id in yzScores;
+    const potential=cat.fn(yzDice);
+    row.className='score-row'+(scored?'':' claimable');
+    row.innerHTML=`<span class="s-name">${cat.name}</span><span class="s-val">${scored?yzScores[cat.id]:(yzRolls<3?`+${potential}`:'—')}</span>`;
+    if(!scored&&yzRolls<3)row.onclick=()=>yzClaim(cat.id,potential);
+    if(scored)total+=yzScores[cat.id];
+    sheet.appendChild(row);
+  });
+  const tr=document.createElement('div');
+  tr.className='score-row';
+  tr.innerHTML=`<span class="s-name" style="color:#f7c948;font-size:1rem">TOTAL</span><span class="s-val" style="color:#f7c948;font-size:1rem">${total}</span>`;
+  sheet.appendChild(tr);
+}
+function yzClaim(id,val){
+  yzScores[id]=val;yzRolls=3;yzHeld=[false,false,false,false,false];
+  yzTurn++;
+  document.getElementById('yz-roll-btn').disabled=false;
+  document.getElementById('yz-status').textContent=`Rolls left: 3`;
+  if(Object.keys(yzScores).length===YZ_CATS.length){
+    const total=Object.values(yzScores).reduce((a,b)=>a+b,0);
+    const fb=document.getElementById('yz-feedback');
+    fb.className='feedback correct';fb.textContent=`🎉 Game Over! Final Score: ${total}`;fb.style.display='block';
+    document.getElementById('yz-roll-btn').disabled=true;
+  }
+  yzRenderDice();yzRenderSheet();
+}
 
-// ============== BOOT ==============
-document.getElementById('explorerName').addEventListener('keydown', e => { if (e.key === 'Enter') startGame(); });
+// ════════════════════════════════════════
+//  CRAZY EIGHTS
+// ════════════════════════════════════════
+let ceDeck,cePlayerHand,ceCpuHand,cePile,ceSuit,cePlayerTurn,ceMsg;
+function startCrazyEights(){
+  ceDeck=newDeck();cePlayerHand=[];ceCpuHand=[];
+  for(let i=0;i<7;i++){cePlayerHand.push(ceDeck.pop());ceCpuHand.push(ceDeck.pop());}
+  // ensure top card isn't an 8
+  let top;do{top=ceDeck.pop();}while(top.r==='8');
+  cePile=[top];ceSuit=top.s;cePlayerTurn=true;
+  ceMsg='Your turn!';
+  ceDraw();
+}
+function ceTopCard(){return cePile[cePile.length-1];}
+function cePlayable(c){return c.r==='8'||c.r===ceTopCard().r||c.s===ceSuit;}
+function ceDraw(){
+  document.getElementById('game-area').innerHTML=`
+    <div class="card-table">
+      <div class="card-table-header">
+        <span class="card-table-title">🃏 Crazy Eights</span>
+        <span class="game-status">${ceMsg}</span>
+      </div>
+      <div class="dealer-area">
+        <div class="area-label">🦒 Computer (${ceCpuHand.length} cards)</div>
+        <div class="ce-hand">${ceCpuHand.map(()=>`<div class="ce-card cpu-card"></div>`).join('')}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;margin:10px 0;flex-wrap:wrap">
+        <div>
+          <div class="area-label">Discard Pile</div>
+          <div class="ce-pile">${cardHTML(ceTopCard())}<span style="color:#f7c948;font-weight:700;margin-left:8px">Current suit: ${ceSuit}</span></div>
+        </div>
+        <div>
+          <div class="area-label">Draw Pile</div>
+          <div class="playing-card face-down" onclick="ceDrawCard()" style="cursor:pointer;border:2px solid #f7c948"></div>
+        </div>
+      </div>
+      <div class="dealer-area">
+        <div class="area-label">Your Hand (${cePlayerHand.length} cards)</div>
+        <div class="ce-hand" id="ce-player-hand">
+          ${cePlayerHand.map((c,i)=>`<div class="ce-card ${cardClass(c)}${cePlayerTurn&&cePlayable(c)?' playable':''}" onclick="${cePlayerTurn?`cePlay(${i})`:''}" style="${!cePlayerTurn?'opacity:.6':''}">
+            <span>${c.r}</span><span>${c.s}</span>
+          </div>`).join('')}
+        </div>
+      </div>
+      <div id="ce-suit-picker" style="display:none">
+        <div style="color:#f7c948;font-weight:700;margin:8px 0">Choose a suit:</div>
+        <div class="suit-picker">
+          ${SUITS.map(s=>`<button class="suit-btn" onclick="ceChooseSuit('${s}')">${s}</button>`).join('')}
+        </div>
+      </div>
+      <div class="feedback" id="ce-feedback" style="display:none"></div>
+    </div>`;
+}
+function cePlay(i){
+  if(!cePlayerTurn)return;
+  const card=cePlayerHand[i];
+  if(!cePlayable(card))return;
+  cePlayerHand.splice(i,1);cePile.push(card);
+  if(card.r==='8'){ceSuit=card.s;document.getElementById('ce-suit-picker').style.display='block';ceMsg='Pick a suit!';}
+  else{ceSuit=card.s;ceCheckWin();}
+}
+function ceChooseSuit(s){ceSuit=s;document.getElementById('ce-suit-picker').style.display='none';ceCheckWin();}
+function ceDrawCard(){
+  if(!cePlayerTurn)return;
+  if(ceDeck.length===0){ceDeck=shuffle(cePile.splice(0,cePile.length-1));}
+  cePlayerHand.push(ceDeck.pop());ceMsg='You drew a card.';
+  cePlayerTurn=false;ceCpuTurn();
+}
+function ceCheckWin(){
+  if(cePlayerHand.length===0){ceEndGame('You Win! 🎉');}
+  else{cePlayerTurn=false;setTimeout(ceCpuTurn,800);}
+}
+function ceCpuTurn(){
+  ceMsg="Computer's turn…";ceDraw();
+  setTimeout(()=>{
+    const playable=ceCpuHand.findIndex(c=>cePlayable(c));
+    if(playable>=0){
+      const card=ceCpuHand.splice(playable,1)[0];cePile.push(card);
+      if(card.r==='8')ceSuit=SUITS[Math.floor(Math.random()*4)];
+      else ceSuit=card.s;
+      ceMsg=`Computer played ${card.r}${card.s}`;
+    }else{
+      if(ceDeck.length===0)ceDeck=shuffle(cePile.splice(0,cePile.length-1));
+      ceCpuHand.push(ceDeck.pop());ceMsg='Computer drew a card.';
+    }
+    if(ceCpuHand.length===0){ceEndGame('Computer Wins! 😅');}
+    else{cePlayerTurn=true;ceDraw();}
+  },900);
+}
+function ceEndGame(msg){
+  ceMsg=msg;ceDraw();
+  const fb=document.createElement('div');
+  fb.className=`feedback ${msg.includes('You')&&!msg.includes('Computer')?'correct':'wrong'}`;
+  fb.textContent=msg;fb.style.display='block';
+  document.getElementById('game-area').querySelector('.card-table').appendChild(fb);
+  const btn=document.createElement('button');
+  btn.className='btn btn-gold btn-center btn-sm';btn.textContent='Play Again 🃏';
+  btn.onclick=startCrazyEights;
+  document.getElementById('game-area').querySelector('.card-table').appendChild(btn);
+}
+
+// INIT
+updateMapStars();
 </script>
 </body>
 </html>
