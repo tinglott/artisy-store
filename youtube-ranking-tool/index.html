@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YouTube Ranking Tool — ARTISY</title>
+<style>
+  :root{--gold:#f59e0b;--dark:#0f172a;--card:#1e293b;--border:#334155;--text:#e2e8f0;--sub:#94a3b8;--green:#10b981;--red:#ef4444}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',sans-serif;background:var(--dark);color:var(--text);min-height:100vh}
+  header{background:linear-gradient(135deg,#1e293b,#0f172a);border-bottom:1px solid var(--border);padding:1.2rem 1.5rem;display:flex;align-items:center;gap:1rem}
+  header h1{font-size:1.3rem;color:var(--gold)}
+  header p{font-size:0.8rem;color:var(--sub)}
+  .badge{background:var(--gold);color:#000;font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:0.5rem}
+  .container{max-width:900px;margin:0 auto;padding:1.5rem}
+  .tabs{display:flex;gap:0.5rem;margin-bottom:1.5rem;flex-wrap:wrap}
+  .tab{padding:0.5rem 1rem;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--sub);cursor:pointer;font-size:0.85rem;transition:all 0.2s}
+  .tab.active{background:var(--gold);color:#000;border-color:var(--gold);font-weight:600}
+  .panel{display:none} .panel.active{display:block}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1rem}
+  .card h3{color:var(--gold);font-size:0.95rem;margin-bottom:0.75rem}
+  label{display:block;font-size:0.8rem;color:var(--sub);margin-bottom:0.3rem}
+  input,textarea,select{width:100%;background:#0f172a;border:1px solid var(--border);border-radius:8px;color:var(--text);padding:0.6rem 0.9rem;font-size:0.9rem;outline:none;transition:border 0.2s}
+  input:focus,textarea:focus,select:focus{border-color:var(--gold)}
+  textarea{resize:vertical;min-height:80px}
+  .btn{background:var(--gold);color:#000;border:none;border-radius:8px;padding:0.65rem 1.4rem;font-weight:700;font-size:0.9rem;cursor:pointer;transition:opacity 0.2s}
+  .btn:hover{opacity:0.85} .btn:disabled{opacity:0.4;cursor:not-allowed}
+  .btn-outline{background:transparent;border:1px solid var(--gold);color:var(--gold)}
+  .btn-outline:hover{background:var(--gold);color:#000}
+  .result-box{background:#0f172a;border:1px solid var(--border);border-radius:8px;padding:1rem;margin-top:1rem;font-size:0.85rem;line-height:1.7;white-space:pre-wrap;word-break:break-word}
+  .copy-btn{font-size:0.75rem;padding:0.3rem 0.7rem;margin-left:0.5rem}
+  .score{display:inline-flex;align-items:center;gap:0.4rem;font-size:0.85rem}
+  .score.good{color:var(--green)} .score.ok{color:var(--gold)} .score.bad{color:var(--red)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+  @media(max-width:600px){.grid2{grid-template-columns:1fr}}
+  .tag{display:inline-block;background:var(--border);color:var(--text);border-radius:20px;padding:3px 10px;font-size:0.75rem;margin:3px;cursor:pointer}
+  .tag:hover{background:var(--gold);color:#000}
+  .spinner{display:none;width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin 0.7s linear infinite;margin-left:0.5rem}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .row{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap}
+  .tip{font-size:0.75rem;color:var(--sub);margin-top:0.4rem}
+  .section-title{font-size:1rem;font-weight:700;color:var(--gold);margin-bottom:0.75rem;padding-bottom:0.4rem;border-bottom:1px solid var(--border)}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>📊 YouTube Ranking Tool <span class="badge">ARTISY</span></h1>
+    <p>Optimize titles · tags · descriptions · keywords for maximum reach</p>
+  </div>
+</header>
+<div class="container">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('analyzer')">🔍 Title Analyzer</button>
+    <button class="tab" onclick="switchTab('generator')">✨ Title Generator</button>
+    <button class="tab" onclick="switchTab('tags')">🏷️ Tag Builder</button>
+    <button class="tab" onclick="switchTab('description')">📝 Description Writer</button>
+    <button class="tab" onclick="switchTab('keywords')">🔑 Keyword Research</button>
+    <button class="tab" onclick="switchTab('checklist')">✅ SEO Checklist</button>
+  </div>
+
+  <!-- ANALYZER -->
+  <div id="panel-analyzer" class="panel active">
+    <div class="card">
+      <h3>🔍 Analyze Your YouTube Title</h3>
+      <label>Paste your title</label>
+      <input type="text" id="analyze-title" placeholder="e.g. 5 Ways to Beat Stress and Anxiety Naturally" maxlength="100">
+      <div class="tip" id="char-count">0/100 characters</div>
+      <br>
+      <button class="btn" onclick="analyzeTitle()">Analyze Title</button>
+    </div>
+    <div id="analyze-result" style="display:none">
+      <div class="card">
+        <div class="section-title">📊 Title Score</div>
+        <div id="score-display" style="font-size:1.5rem;font-weight:700;margin-bottom:1rem"></div>
+        <div id="score-details"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GENERATOR -->
+  <div id="panel-generator" class="panel">
+    <div class="card">
+      <h3>✨ AI Title Generator</h3>
+      <div class="grid2">
+        <div>
+          <label>Topic / Niche</label>
+          <input type="text" id="gen-topic" placeholder="e.g. stress relief for nurses">
+        </div>
+        <div>
+          <label>Target Audience</label>
+          <input type="text" id="gen-audience" placeholder="e.g. working moms, nurses, women 30+">
+        </div>
+      </div>
+      <br>
+      <label>Content Type</label>
+      <select id="gen-type">
+        <option>How-To / Tutorial</option>
+        <option>Listicle (Top 5, 10 Ways...)</option>
+        <option>Story / Personal Journey</option>
+        <option>Sleep / Meditation</option>
+        <option>Review / Comparison</option>
+        <option>Tips & Tricks</option>
+        <option>Challenge</option>
+        <option>Motivational</option>
+      </select>
+      <br><br>
+      <div class="row">
+        <button class="btn" onclick="generateTitles()">Generate 10 Titles</button>
+        <div class="spinner" id="gen-spin"></div>
+      </div>
+    </div>
+    <div id="gen-result" class="result-box" style="display:none"></div>
+  </div>
+
+  <!-- TAGS -->
+  <div id="panel-tags" class="panel">
+    <div class="card">
+      <h3>🏷️ YouTube Tag Builder</h3>
+      <label>Your video topic</label>
+      <input type="text" id="tag-topic" placeholder="e.g. anxiety relief meditation">
+      <br><br>
+      <button class="btn" onclick="buildTags()">Generate Tags</button>
+    </div>
+    <div id="tag-result" style="display:none">
+      <div class="card">
+        <div class="section-title">Suggested Tags <span id="tag-count"></span></div>
+        <div id="tag-cloud"></div>
+        <br>
+        <div class="row">
+          <button class="btn btn-outline" onclick="copyTags()">Copy All Tags</button>
+          <button class="btn btn-outline" onclick="buildTags()">Regenerate</button>
+        </div>
+        <textarea id="tag-copy-text" style="display:none"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- DESCRIPTION -->
+  <div id="panel-description" class="panel">
+    <div class="card">
+      <h3>📝 Description Writer</h3>
+      <div class="grid2">
+        <div>
+          <label>Video Title</label>
+          <input type="text" id="desc-title" placeholder="Your video title">
+        </div>
+        <div>
+          <label>Main Keyword</label>
+          <input type="text" id="desc-keyword" placeholder="e.g. stress relief">
+        </div>
+      </div>
+      <br>
+      <label>What's the video about? (brief)</label>
+      <textarea id="desc-about" placeholder="Describe what viewers will learn or experience..."></textarea>
+      <br>
+      <label>Your store / website link (optional)</label>
+      <input type="text" id="desc-link" placeholder="https://shop.artistrystore.com">
+      <br><br>
+      <div class="row">
+        <button class="btn" onclick="generateDescription()">Write Description</button>
+        <div class="spinner" id="desc-spin"></div>
+      </div>
+    </div>
+    <div id="desc-result" style="display:none">
+      <div class="card">
+        <div class="row" style="justify-content:space-between">
+          <div class="section-title" style="margin:0">Generated Description</div>
+          <button class="btn btn-outline copy-btn" onclick="copyDesc()">Copy</button>
+        </div>
+        <div class="result-box" id="desc-text" style="margin-top:0.75rem"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KEYWORDS -->
+  <div id="panel-keywords" class="panel">
+    <div class="card">
+      <h3>🔑 Keyword Research Helper</h3>
+      <label>Seed keyword or niche</label>
+      <input type="text" id="kw-seed" placeholder="e.g. nurse burnout, sleep stories, coloring therapy">
+      <br><br>
+      <button class="btn" onclick="researchKeywords()">Research Keywords</button>
+    </div>
+    <div id="kw-result" style="display:none">
+      <div class="card">
+        <div class="section-title">🎯 Keyword Ideas</div>
+        <div id="kw-table"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHECKLIST -->
+  <div id="panel-checklist" class="panel">
+    <div class="card">
+      <h3>✅ YouTube SEO Checklist</h3>
+      <label>Paste your title</label>
+      <input type="text" id="check-title" placeholder="Your video title">
+      <label style="margin-top:0.75rem">Paste your description (first 200 chars matter most)</label>
+      <textarea id="check-desc" placeholder="Your description..."></textarea>
+      <label style="margin-top:0.75rem">Paste your tags (comma separated)</label>
+      <input type="text" id="check-tags" placeholder="tag1, tag2, tag3...">
+      <br><br>
+      <button class="btn" onclick="runChecklist()">Run SEO Check</button>
+    </div>
+    <div id="checklist-result" style="display:none">
+      <div class="card">
+        <div class="section-title">SEO Report</div>
+        <div id="checklist-items"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchTab(id){
+  document.querySelectorAll('.tab').forEach((t,i)=>{t.classList.remove('active')});
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('panel-'+id).classList.add('active');
+}
+
+// Title char counter
+document.getElementById('analyze-title').addEventListener('input',function(){
+  const l=this.value.length;
+  const el=document.getElementById('char-count');
+  el.textContent=l+'/100 characters';
+  el.style.color=l<40?'#ef4444':l<=70?'#10b981':'#f59e0b';
+});
+
+function analyzeTitle(){
+  const title=document.getElementById('analyze-title').value.trim();
+  if(!title){alert('Please enter a title');return;}
+  const scores=[];
+  const tips=[];
+  // Length
+  const len=title.length;
+  if(len>=40&&len<=70){scores.push(20);tips.push({icon:'✅',text:`Length: ${len} chars — Perfect! (40–70)`})}
+  else if(len<40){scores.push(10);tips.push({icon:'⚠️',text:`Length: ${len} chars — Too short. Aim for 40–70`})}
+  else{scores.push(10);tips.push({icon:'⚠️',text:`Length: ${len} chars — A bit long. Keep under 70`})}
+  // Number
+  if(/\d/.test(title)){scores.push(15);tips.push({icon:'✅',text:'Contains a number — boosts CTR!'})}
+  else{scores.push(0);tips.push({icon:'💡',text:'Add a number (5 Ways, 10 Tips) for higher CTR'})}
+  // Power words
+  const pw=['secret','proven','best','ultimate','free','easy','fast','quick','simple','powerful','amazing','incredible','shocking','mistake','warning','now','today'];
+  const found=pw.filter(w=>title.toLowerCase().includes(w));
+  if(found.length){scores.push(15);tips.push({icon:'✅',text:`Power words found: ${found.join(', ')}`})}
+  else{scores.push(5);tips.push({icon:'💡',text:'Add power words: best, proven, secret, simple, easy'})}
+  // Question
+  if(/[?]/.test(title)){scores.push(15);tips.push({icon:'✅',text:'Question format — great for search intent'})}
+  else{scores.push(5);tips.push({icon:'💡',text:'Consider a question format for search intent'})}
+  // Emotion/keyword
+  const emo=['stress','anxiety','depression','sleep','calm','peace','heal','love','faith','god','nurse','mom','woman','baby','money','career'];
+  const emoFound=emo.filter(w=>title.toLowerCase().includes(w));
+  if(emoFound.length){scores.push(20);tips.push({icon:'✅',text:`Emotional/niche keywords: ${emoFound.join(', ')}`})}
+  else{scores.push(5);tips.push({icon:'💡',text:'Add emotional or niche keywords people search for'})}
+  // Capital
+  const words=title.split(' ');
+  const capCount=words.filter(w=>w[0]===w[0]?.toUpperCase()).length;
+  if(capCount>=words.length*0.6){scores.push(15);tips.push({icon:'✅',text:'Good use of title case capitalization'})}
+  else{scores.push(5);tips.push({icon:'💡',text:'Use Title Case for more professional look'})}
+  const total=scores.reduce((a,b)=>a+b,0);
+  const grade=total>=80?'A':total>=65?'B':total>=50?'C':'D';
+  const color=total>=80?'#10b981':total>=65?'#f59e0b':'#ef4444';
+  document.getElementById('score-display').innerHTML=`<span style="color:${color}">${total}/100 — Grade ${grade}</span>`;
+  document.getElementById('score-details').innerHTML=tips.map(t=>`<div style="margin-bottom:0.5rem">${t.icon} ${t.text}</div>`).join('');
+  document.getElementById('analyze-result').style.display='block';
+}
+
+const GEN_TEMPLATES={
+  'How-To / Tutorial':['How to {topic} in {time}','The Right Way to {topic} (Most People Get This Wrong)','How to {topic} When You\'re Completely Burnt Out','I Tried {topic} for 30 Days — Here\'s What Happened','How to {topic} As a Busy {audience}'],
+  'Listicle (Top 5, 10 Ways...)':['{n} Ways to {topic} That Actually Work','{n} Signs You Need to {topic} Right Now','Top {n} {topic} Secrets No One Talks About','{n} {topic} Tips for {audience}','{n} Reasons Why {audience} Should {topic}'],
+  'Story / Personal Journey':['How {topic} Changed My Life as a {audience}','I Finally Found a Way to {topic} (My Story)','What No One Told Me About {topic}','My {topic} Journey — What Really Happened','The Day I Started {topic} — A True Story'],
+  'Sleep / Meditation':['Deep Sleep Story: {topic} (Fall Asleep Fast)','3 Hours of {topic} Sleep Music for {audience}','Bedtime Story for {audience} — {topic}','Healing Sleep Meditation for {topic}','{topic} Sleep Story — All Night Relaxation'],
+  'Review / Comparison':['I Tried {n} {topic} Methods — Honest Review','Best {topic} for {audience} in 2025 (Tested)','Is {topic} Worth It? My Honest Take','{topic} vs Everything Else — What Actually Works','The Best {topic} — No Sponsored Content'],
+  'Tips & Tricks':['Tiny {topic} Habits That Changed Everything','{topic} Hacks Every {audience} Needs to Know','The {topic} Trick That Saved My Sanity','{n} Quick {topic} Wins for {audience}','Do This Every Morning for Better {topic}'],
+  'Challenge':['I Did {topic} Every Day for {n} Days','The {topic} Challenge — Join Me!','{n}-Day {topic} Challenge for {audience}','What Happened When I {topic} for a Month','The {topic} Reset Challenge'],
+  'Motivational':['You\'re Not Lazy — You\'re Burned Out (Truth About {topic})','This {topic} Message Will Change Your Life','{audience} — You Deserve {topic}','The Truth About {topic} Nobody Says','When {topic} Feels Impossible — Watch This']
+};
+
+function generateTitles(){
+  const topic=document.getElementById('gen-topic').value.trim()||'stress relief';
+  const audience=document.getElementById('gen-audience').value.trim()||'women';
+  const type=document.getElementById('gen-type').value;
+  const templates=GEN_TEMPLATES[type]||GEN_TEMPLATES['Listicle (Top 5, 10 Ways...)'];
+  const results=[];
+  const nums=[3,5,7,10,12];
+  const times=['5 Minutes','1 Week','30 Days','Just 10 Minutes a Day'];
+  for(let i=0;i<Math.min(10,templates.length*2);i++){
+    const t=templates[i%templates.length];
+    const title=t.replace('{topic}',topic).replace('{audience}',audience).replace('{n}',nums[i%nums.length]).replace('{time}',times[i%times.length]);
+    results.push(`${i+1}. ${title}`);
+  }
+  document.getElementById('gen-result').textContent=results.join('\n\n');
+  document.getElementById('gen-result').style.display='block';
+}
+
+const TAG_SEEDS={
+  stress:['stress relief','how to reduce stress','anxiety relief','stress management','calm anxiety','mental health tips','relaxation techniques','breathing exercises','stress free life','overcome anxiety','natural stress relief','stress relief for women','nurse stress'],
+  sleep:['sleep stories','deep sleep','sleep meditation','bedtime stories for adults','sleep music','insomnia help','sleep faster','relaxing sleep music','guided sleep meditation','sleep soundly','fall asleep fast'],
+  coloring:['adult coloring book','coloring therapy','stress relief coloring','mindfulness coloring','coloring for adults','therapeutic coloring','coloring pages printable','coloring book pdf'],
+  wellness:['wellness tips','self care routine','holistic health','mental wellness','daily wellness','healthy habits','self love','wellness for women','nurse wellness','caregiver self care'],
+  faith:['faith healing','bible meditation','christian wellness','prayer for peace','god and healing','scripture meditation','faith based wellness','christian self care']
+};
+
+function buildTags(){
+  const topic=document.getElementById('tag-topic').value.toLowerCase().trim()||'wellness';
+  let tags=[];
+  for(const [key,vals] of Object.entries(TAG_SEEDS)){
+    if(topic.includes(key)||key.includes(topic.split(' ')[0])){tags=[...tags,...vals]}
+  }
+  if(!tags.length){
+    tags=[topic,topic+' tips',topic+' for beginners','how to '+topic,'best '+topic,topic+' 2025',topic+' ideas',topic+' for women',topic+' guide',topic+' tutorial',topic+' benefits',topic+' routine','easy '+topic,'quick '+topic,topic+' challenge'];
+  }
+  // always add generic top tags
+  tags=[...new Set([...tags,'shop.artistrystore.com','artisy store','ting lott','digital wellness','faceless creator'])].slice(0,30);
+  document.getElementById('tag-count').textContent=`(${tags.length} tags)`;
+  document.getElementById('tag-cloud').innerHTML=tags.map(t=>`<span class="tag" onclick="toggleTag(this)">${t}</span>`).join('');
+  document.getElementById('tag-copy-text').value=tags.join(', ');
+  document.getElementById('tag-result').style.display='block';
+}
+
+function toggleTag(el){el.style.background=el.style.background?'':'#f59e0b';el.style.color=el.style.color?'':'#000';}
+function copyTags(){navigator.clipboard.writeText(document.getElementById('tag-copy-text').value);alert('✅ Tags copied!');}
+
+function generateDescription(){
+  const title=document.getElementById('desc-title').value.trim()||'Video Title';
+  const keyword=document.getElementById('desc-keyword').value.trim()||'wellness';
+  const about=document.getElementById('desc-about').value.trim()||'This video covers helpful tips';
+  const link=document.getElementById('desc-link').value.trim()||'https://shop.artistrystore.com';
+  const desc=`${title}
+
+${about}
+
+In this video, you'll discover powerful ${keyword} strategies that actually work — designed for real people with real lives. Whether you're a nurse, a mom, a busy professional, or simply someone looking for ${keyword} that lasts, this is for you.
+
+✨ What you'll learn:
+• Practical ${keyword} tips you can use today
+• How to build a ${keyword} routine that sticks
+• Tools and resources to support your journey
+
+🛍️ Explore all our digital wellness tools & coloring books:
+${link}/store.html
+
+🧠 Free AI Therapist (available 24/7):
+${link}/monica_therapist_bot.html
+
+🎵 Free Music Hub:
+${link}/music_hub.html
+
+💬 Questions or feedback? Drop a comment below — I read every one!
+
+#${keyword.replace(/\s+/g,'')} #wellness #selfcare #mentalhealth #healing #artisy #tinglott
+
+---
+© ARTISY by Ting Lott, RN | Nurse-designed · Faith-rooted · Healing-centered`;
+  document.getElementById('desc-text').textContent=desc;
+  document.getElementById('desc-result').style.display='block';
+}
+
+function copyDesc(){navigator.clipboard.writeText(document.getElementById('desc-text').textContent);alert('✅ Description copied!');}
+
+function researchKeywords(){
+  const seed=document.getElementById('kw-seed').value.trim()||'stress relief';
+  const ideas=[
+    {kw:seed,intent:'Informational',difficulty:'Low',tip:'Great seed keyword — use in title'},
+    {kw:'how to '+seed,intent:'Informational',difficulty:'Low',tip:'High search intent — perfect for tutorials'},
+    {kw:seed+' for beginners',intent:'Informational',difficulty:'Low',tip:'Beginner audience — very searchable'},
+    {kw:seed+' tips',intent:'Informational',difficulty:'Medium',tip:'Listicle format works great'},
+    {kw:'best '+seed,intent:'Commercial',difficulty:'Medium',tip:'High buyer intent'},
+    {kw:seed+' at home',intent:'Informational',difficulty:'Low',tip:'Location modifier — boosts relevance'},
+    {kw:seed+' 2025',intent:'Informational',difficulty:'Low',tip:'Year tags boost freshness ranking'},
+    {kw:seed+' for women',intent:'Informational',difficulty:'Low',tip:'Demographic targeting — great niche'},
+    {kw:seed+' for nurses',intent:'Informational',difficulty:'Very Low',tip:'Hyper-niche — low competition!'},
+    {kw:seed+' natural',intent:'Informational',difficulty:'Medium',tip:'Health searchers love "natural"'},
+    {kw:seed+' routine',intent:'Informational',difficulty:'Low',tip:'Routine content gets repeat views'},
+    {kw:seed+' meditation',intent:'Navigational',difficulty:'High',tip:'Competitive but high value'},
+  ];
+  const rows=ideas.map(k=>`
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 2fr;gap:0.5rem;padding:0.6rem 0;border-bottom:1px solid var(--border);font-size:0.82rem;align-items:center">
+      <div style="color:var(--text);font-weight:500">${k.kw}</div>
+      <div style="color:var(--sub)">${k.intent}</div>
+      <div style="color:${k.difficulty==='Low'||k.difficulty==='Very Low'?'#10b981':k.difficulty==='Medium'?'#f59e0b':'#ef4444'}">${k.difficulty}</div>
+      <div style="color:var(--sub)">${k.tip}</div>
+    </div>`).join('');
+  document.getElementById('kw-table').innerHTML=`
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 2fr;gap:0.5rem;padding:0.4rem 0;border-bottom:1px solid var(--gold);font-size:0.75rem;color:var(--gold);font-weight:700">
+      <div>KEYWORD</div><div>INTENT</div><div>DIFFICULTY</div><div>TIP</div>
+    </div>${rows}`;
+  document.getElementById('kw-result').style.display='block';
+}
+
+function runChecklist(){
+  const title=document.getElementById('check-title').value;
+  const desc=document.getElementById('check-desc').value;
+  const tags=document.getElementById('check-tags').value;
+  const checks=[
+    {label:'Title 40–70 characters',pass:title.length>=40&&title.length<=70,detail:`Your title: ${title.length} chars`},
+    {label:'Title contains a number',pass:/\d/.test(title),detail:'Numbers like 5, 10, 30 boost CTR'},
+    {label:'Description starts with keyword',pass:desc.length>10,detail:'First 2 lines show in search results'},
+    {label:'Description is 200+ characters',pass:desc.length>=200,detail:`Your description: ${desc.length} chars`},
+    {label:'Description has a call-to-action',pass:/shop|store|link|gumroad|click|visit|buy|free|grab/i.test(desc),detail:'Link to your store!'},
+    {label:'Hashtags in description',pass:/#\w/.test(desc),detail:'Add #mentalhealth #wellness etc.'},
+    {label:'At least 5 tags',pass:tags.split(',').filter(t=>t.trim()).length>=5,detail:`You have: ${tags.split(',').filter(t=>t.trim()).length} tags`},
+    {label:'At least 10 tags',pass:tags.split(',').filter(t=>t.trim()).length>=10,detail:'YouTube allows up to 500 chars in tags'},
+    {label:'Tags include your keyword',pass:title&&tags.toLowerCase().includes(title.split(' ')[0]?.toLowerCase()),detail:'Match tags to your title topic'},
+    {label:'Store link in description',pass:/shop\.artistrystore|gumroad|tlott12/i.test(desc),detail:'Always include your store link!'},
+  ];
+  const passed=checks.filter(c=>c.pass).length;
+  const score=Math.round(passed/checks.length*100);
+  const color=score>=80?'#10b981':score>=60?'#f59e0b':'#ef4444';
+  document.getElementById('checklist-items').innerHTML=`
+    <div style="font-size:1.3rem;font-weight:700;color:${color};margin-bottom:1rem">Score: ${score}/100 (${passed}/${checks.length} checks passed)</div>
+    ${checks.map(c=>`<div style="display:flex;gap:0.6rem;margin-bottom:0.5rem;font-size:0.83rem"><span>${c.pass?'✅':'❌'}</span><div><strong style="color:${c.pass?'#10b981':'#ef4444'}">${c.label}</strong><br><span style="color:var(--sub)">${c.detail}</span></div></div>`).join('')}`;
+  document.getElementById('checklist-result').style.display='block';
+}
+</script>
+</body>
+</html>
