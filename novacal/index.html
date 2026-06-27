@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NovaCal AI — Smart Appointment Scheduling</title>
+  <meta name="description" content="Book appointments effortlessly with NovaCal AI — the smart scheduling platform for service-based businesses.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #06030f;
+      --surface: #110a24;
+      --surface2: #1c1035;
+      --border: rgba(139,92,246,0.2);
+      --primary: #7c3aed;
+      --primary-light: #a78bfa;
+      --accent: #f59e0b;
+      --accent-light: #fcd34d;
+      --success: #10b981;
+      --danger: #ef4444;
+      --text: #f1f0f5;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      --radius: 14px;
+      --shadow: 0 8px 32px rgba(0,0,0,0.4);
+      --glow: 0 0 20px rgba(124,58,237,0.25);
+      --touch: 44px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Skip nav */
+    .skip-nav {
+      position: fixed; top: -100px; left: 1rem; z-index: 9999;
+      background: var(--primary); color: #fff;
+      padding: 0.5rem 1rem; border-radius: 6px;
+      transition: top 0.2s; text-decoration: none;
+    }
+    .skip-nav:focus { top: 1rem; }
+
+    /* Focus */
+    :focus { outline: none; }
+    :focus-visible { outline: 2px solid var(--primary-light); outline-offset: 3px; border-radius: 6px; }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #0d0520 0%, #1a0a3a 50%, #0d0520 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+    .logo-icon {
+      width: 36px; height: 36px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--primary), #9333ea);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; box-shadow: var(--glow);
+    }
+    .logo-text { font-size: 1.2rem; font-weight: 700; color: var(--text); }
+    .logo-text span { color: var(--primary-light); }
+    .header-badge {
+      background: rgba(124,58,237,0.15); border: 1px solid var(--border);
+      color: var(--primary-light); font-size: 0.7rem; font-weight: 600;
+      padding: 0.25rem 0.6rem; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 2.5rem 1.5rem 1.5rem;
+      background: linear-gradient(180deg, rgba(124,58,237,0.05) 0%, transparent 100%);
+    }
+    .hero h1 {
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 800;
+      background: linear-gradient(135deg, #fff, var(--primary-light));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+    .hero p { color: var(--text-muted); font-size: 0.95rem; max-width: 400px; margin: 0 auto; }
+
+    /* Progress steps */
+    .progress-bar {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0; padding: 1.5rem 1.5rem 0.5rem;
+      max-width: 480px; margin: 0 auto;
+    }
+    .step-item { display: flex; align-items: center; flex: 1; }
+    .step-circle {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700;
+      border: 2px solid var(--border);
+      background: var(--surface); color: var(--text-dim);
+      transition: all 0.3s; flex-shrink: 0;
+    }
+    .step-circle.active { border-color: var(--primary); background: var(--primary); color: #fff; box-shadow: var(--glow); }
+    .step-circle.done { border-color: var(--success); background: var(--success); color: #fff; }
+    .step-line { flex: 1; height: 2px; background: var(--border); transition: background 0.3s; }
+    .step-line.done { background: var(--success); }
+    .step-label {
+      font-size: 0.6rem; font-weight: 600; color: var(--text-dim);
+      text-align: center; margin-top: 0.3rem; white-space: nowrap;
+    }
+    .step-wrap { display: flex; flex-direction: column; align-items: center; }
+
+    /* Main container */
+    .container {
+      max-width: 700px; margin: 0 auto;
+      padding: 1rem 1rem 6rem;
+    }
+
+    /* Steps */
+    .step { display: none; animation: fadeIn 0.3s ease; }
+    .step.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    .step-title {
+      font-size: 1.2rem; font-weight: 700;
+      margin-bottom: 0.25rem; color: var(--text);
+    }
+    .step-subtitle { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.25rem; }
+
+    /* Service cards */
+    .services-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+    }
+    @media (min-width: 560px) { .services-grid { grid-template-columns: repeat(4, 1fr); } }
+
+    .service-card {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 0.75rem;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+      min-height: var(--touch);
+      position: relative;
+    }
+    .service-card:hover { border-color: var(--primary-light); background: var(--surface2); transform: translateY(-2px); }
+    .service-card.selected { border-color: var(--primary); background: rgba(124,58,237,0.15); box-shadow: var(--glow); }
+    .service-card .icon { font-size: 1.8rem; margin-bottom: 0.4rem; display: block; }
+    .service-card .name { font-size: 0.78rem; font-weight: 600; color: var(--text); line-height: 1.3; }
+    .service-card .duration { font-size: 0.68rem; color: var(--text-muted); margin-top: 0.2rem; }
+    .service-check {
+      position: absolute; top: 6px; right: 6px;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--primary); color: #fff;
+      font-size: 0.65rem; display: none;
+      align-items: center; justify-content: center;
+    }
+    .service-card.selected .service-check { display: flex; }
+
+    /* Calendar */
+    .calendar-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .cal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+    }
+    .cal-title { font-size: 1rem; font-weight: 700; color: var(--text); }
+    .cal-nav {
+      background: transparent; border: 1px solid var(--border);
+      color: var(--text-muted); border-radius: 8px;
+      width: 34px; height: 34px; cursor: pointer;
+      font-size: 1rem; display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s; min-width: var(--touch); min-height: var(--touch);
+    }
+    .cal-nav:hover:not(:disabled) { border-color: var(--primary); color: var(--primary-light); }
+    .cal-nav:disabled { opacity: 0.3; cursor: not-allowed; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); padding: 0.75rem; gap: 4px; }
+    .cal-day-header { text-align: center; font-size: 0.7rem; font-weight: 600; color: var(--text-dim); padding: 0.3rem 0; }
+    .cal-day {
+      aspect-ratio: 1; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.82rem; font-weight: 500;
+      cursor: pointer; transition: all 0.15s;
+      border: 1px solid transparent;
+      color: var(--text); min-height: 38px;
+    }
+    .cal-day:hover:not(.disabled):not(.empty) { background: var(--surface2); border-color: var(--primary); color: var(--primary-light); }
+    .cal-day.today { font-weight: 700; color: var(--accent); }
+    .cal-day.selected { background: var(--primary); border-color: var(--primary); color: #fff; box-shadow: var(--glow); }
+    .cal-day.disabled { color: var(--text-dim); cursor: not-allowed; opacity: 0.35; }
+    .cal-day.empty { cursor: default; }
+    .cal-day.weekend { color: var(--text-dim); opacity: 0.4; cursor: not-allowed; }
+
+    /* Time slots */
+    .slots-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.6rem; }
+    @media (max-width: 420px) { .slots-grid { grid-template-columns: repeat(3, 1fr); } }
+    .slot-btn {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 0.65rem 0.5rem;
+      font-size: 0.8rem; font-weight: 600;
+      color: var(--text); cursor: pointer;
+      transition: all 0.2s; text-align: center;
+      min-height: var(--touch);
+    }
+    .slot-btn:hover:not(.booked):not(.selected) { border-color: var(--primary); color: var(--primary-light); background: rgba(124,58,237,0.1); }
+    .slot-btn.selected { background: var(--primary); border-color: var(--primary); color: #fff; box-shadow: var(--glow); }
+    .slot-btn.booked { background: var(--surface); border-color: var(--border); color: var(--text-dim); cursor: not-allowed; text-decoration: line-through; opacity: 0.45; }
+    .slot-loading { text-align: center; color: var(--text-muted); padding: 2rem; font-size: 0.85rem; }
+
+    /* Form */
+    .form-group { margin-bottom: 1rem; }
+    .form-label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text); margin-bottom: 0.4rem; }
+    .form-label span { color: var(--danger); }
+    .form-input {
+      width: 100%; padding: 0.75rem 1rem;
+      background: var(--surface); border: 1.5px solid var(--border);
+      border-radius: 10px; color: var(--text); font-size: 0.9rem;
+      font-family: inherit; transition: border-color 0.2s;
+      min-height: var(--touch);
+    }
+    .form-input:focus { border-color: var(--primary); outline: none; }
+    .form-input::placeholder { color: var(--text-dim); }
+    textarea.form-input { resize: vertical; min-height: 90px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    @media (max-width: 420px) { .form-row { grid-template-columns: 1fr; } }
+
+    /* Booking summary card */
+    .summary-card {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1rem 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+    .summary-title { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.6rem; }
+    .summary-row { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text); margin-bottom: 0.35rem; }
+    .summary-row:last-child { margin-bottom: 0; }
+    .summary-icon { font-size: 0.9rem; }
+
+    /* Navigation buttons */
+    .nav-btns {
+      display: flex; gap: 0.75rem; margin-top: 1.5rem;
+    }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+      padding: 0.8rem 1.5rem; border-radius: 10px;
+      font-size: 0.9rem; font-weight: 600; cursor: pointer;
+      transition: all 0.2s; border: none; min-height: var(--touch);
+      font-family: inherit; text-decoration: none;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), #9333ea);
+      color: #fff; box-shadow: 0 4px 15px rgba(124,58,237,0.35);
+      flex: 1;
+    }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(124,58,237,0.5); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-ghost {
+      background: var(--surface); border: 1.5px solid var(--border);
+      color: var(--text-muted);
+    }
+    .btn-ghost:hover { border-color: var(--primary); color: var(--primary-light); background: rgba(124,58,237,0.08); }
+    .btn-sm { padding: 0.45rem 0.9rem; font-size: 0.78rem; min-height: 36px; border-radius: 8px; }
+    .btn-danger { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; }
+    .btn-danger:hover { background: rgba(239,68,68,0.25); }
+    .btn-success-outline { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7; }
+    .btn-success-outline:hover { background: rgba(16,185,129,0.2); }
+
+    /* Confirmation screen */
+    .confirm-wrap { text-align: center; padding: 1rem 0; }
+    .confirm-icon {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: rgba(16,185,129,0.15); border: 2px solid var(--success);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem; margin: 0 auto 1.25rem;
+      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .confirm-code {
+      display: inline-block;
+      background: var(--surface2); border: 1.5px solid var(--primary);
+      border-radius: 8px; padding: 0.5rem 1.25rem;
+      font-family: monospace; font-size: 1.4rem; font-weight: 700;
+      color: var(--primary-light); letter-spacing: 0.12em;
+      margin: 0.75rem 0; box-shadow: var(--glow);
+    }
+    .confirm-detail { color: var(--text-muted); font-size: 0.85rem; line-height: 1.6; margin-bottom: 1.5rem; }
+    .what-next { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; text-align: left; }
+    .what-next h3 { font-size: 0.85rem; font-weight: 700; color: var(--primary-light); margin-bottom: 0.5rem; }
+    .what-next li { color: var(--text-muted); font-size: 0.82rem; line-height: 1.7; margin-left: 1.25rem; }
+
+    /* Toasts */
+    #toasts {
+      position: fixed; top: 1rem; right: 1rem; z-index: 9999;
+      display: flex; flex-direction: column; gap: 0.5rem;
+      max-width: 300px;
+    }
+    .toast {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 0.75rem 1rem;
+      font-size: 0.82rem; color: var(--text);
+      box-shadow: var(--shadow); animation: slideIn 0.2s ease;
+      display: flex; align-items: flex-start; gap: 0.5rem;
+    }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    .toast.success { border-left: 3px solid var(--success); }
+    .toast.warning { border-left: 3px solid var(--accent); }
+    .toast.error { border-left: 3px solid var(--danger); }
+
+    /* Admin */
+    .admin-fab {
+      position: fixed; bottom: 1.25rem; right: 1.25rem;
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text-muted); border-radius: 10px;
+      padding: 0.6rem 1rem; font-size: 0.75rem; font-weight: 600;
+      cursor: pointer; display: flex; align-items: center; gap: 0.4rem;
+      transition: all 0.2s; z-index: 100;
+      min-height: var(--touch);
+    }
+    .admin-fab:hover { border-color: var(--primary); color: var(--primary-light); }
+
+    /* Modal */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7); z-index: 200;
+      align-items: center; justify-content: center;
+      padding: 1rem;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius) + 4px);
+      padding: 1.5rem; width: 100%; max-width: 480px;
+      max-height: 90vh; overflow-y: auto;
+      box-shadow: var(--shadow);
+      animation: fadeIn 0.2s ease;
+    }
+    .modal-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+    .modal-close {
+      position: absolute; background: none; border: none;
+      font-size: 1.2rem; color: var(--text-muted); cursor: pointer;
+    }
+
+    /* Admin table */
+    .admin-table-wrap { overflow-x: auto; margin-top: 1rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+    th { text-align: left; padding: 0.5rem 0.75rem; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border); }
+    td { padding: 0.6rem 0.75rem; border-bottom: 1px solid rgba(139,92,246,0.08); color: var(--text); }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    .status-badge {
+      display: inline-block; padding: 0.2rem 0.55rem;
+      border-radius: 20px; font-size: 0.68rem; font-weight: 600;
+    }
+    .status-pending { background: rgba(245,158,11,0.15); color: var(--accent-light); }
+    .status-confirmed { background: rgba(16,185,129,0.15); color: #6ee7b7; }
+    .status-cancelled { background: rgba(239,68,68,0.12); color: #fca5a5; }
+
+    /* Loading spinner */
+    .spinner {
+      width: 20px; height: 20px; border: 2px solid var(--border);
+      border-top-color: var(--primary-light); border-radius: 50%;
+      animation: spin 0.7s linear infinite; display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+
+    /* Info banner */
+    .demo-banner {
+      background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.25);
+      border-radius: 8px; padding: 0.6rem 1rem;
+      font-size: 0.78rem; color: var(--accent-light);
+      text-align: center; margin-bottom: 1rem;
+    }
+
+    /* Powered by */
+    .powered {
+      text-align: center; color: var(--text-dim); font-size: 0.7rem;
+      padding: 0.75rem; border-top: 1px solid var(--border); margin-top: 2rem;
+    }
+    .powered a { color: var(--primary-light); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<a href="#main-content" class="skip-nav">Skip to main content</a>
+
+<header class="header" role="banner">
+  <a href="https://shop.artistrystore.com" class="logo" aria-label="NovaCal AI home">
+    <div class="logo-icon" aria-hidden="true">📅</div>
+    <span class="logo-text">Nova<span>Cal</span> AI</span>
+  </a>
+  <div class="header-badge" aria-label="Live demo">Live Demo</div>
+</header>
+
+<div class="hero" role="region" aria-label="Introduction">
+  <h1>Book Your Appointment</h1>
+  <p>Smart scheduling powered by AI — fast, simple, zero back-and-forth.</p>
+</div>
+
+<!-- Progress -->
+<nav class="progress-bar" aria-label="Booking progress" role="navigation">
+  <div class="step-wrap">
+    <div class="step-circle active" id="s1" aria-label="Step 1: Service">1</div>
+    <div class="step-label">Service</div>
+  </div>
+  <div class="step-line" id="l1"></div>
+  <div class="step-wrap">
+    <div class="step-circle" id="s2" aria-label="Step 2: Date">2</div>
+    <div class="step-label">Date</div>
+  </div>
+  <div class="step-line" id="l2"></div>
+  <div class="step-wrap">
+    <div class="step-circle" id="s3" aria-label="Step 3: Time">3</div>
+    <div class="step-label">Time</div>
+  </div>
+  <div class="step-line" id="l3"></div>
+  <div class="step-wrap">
+    <div class="step-circle" id="s4" aria-label="Step 4: Your Info">4</div>
+    <div class="step-label">Info</div>
+  </div>
+  <div class="step-line" id="l4"></div>
+  <div class="step-wrap">
+    <div class="step-circle" id="s5" aria-label="Step 5: Confirmed">5</div>
+    <div class="step-label">Done</div>
+  </div>
+</nav>
+
+<main id="main-content" class="container">
+
+  <!-- STEP 1: Service Selection -->
+  <section class="step active" id="step1" role="region" aria-label="Select a service">
+    <h2 class="step-title">What can we help you with?</h2>
+    <p class="step-subtitle">Select the type of appointment you'd like to book.</p>
+    <div class="services-grid" id="servicesGrid" role="listbox" aria-label="Available services"></div>
+    <div class="nav-btns">
+      <button class="btn btn-primary" id="btn1next" disabled onclick="goToStep(2)" aria-label="Continue to date selection">
+        Continue →
+      </button>
+    </div>
+  </section>
+
+  <!-- STEP 2: Calendar -->
+  <section class="step" id="step2" role="region" aria-label="Select a date">
+    <h2 class="step-title">Pick a date</h2>
+    <p class="step-subtitle">Choose an available weekday for your appointment.</p>
+    <div class="calendar-wrap" role="application" aria-label="Calendar">
+      <div class="cal-header">
+        <button class="cal-nav" id="calPrev" onclick="calNav(-1)" aria-label="Previous month">‹</button>
+        <div class="cal-title" id="calTitle" aria-live="polite"></div>
+        <button class="cal-nav" id="calNext" onclick="calNav(1)" aria-label="Next month">›</button>
+      </div>
+      <div class="cal-grid" id="calGrid" role="grid" aria-label="Calendar dates"></div>
+    </div>
+    <div class="nav-btns">
+      <button class="btn btn-ghost" onclick="goToStep(1)" aria-label="Back to service selection">← Back</button>
+      <button class="btn btn-primary" id="btn2next" disabled onclick="goToStep(3)" aria-label="Continue to time selection">
+        Continue →
+      </button>
+    </div>
+  </section>
+
+  <!-- STEP 3: Time Slots -->
+  <section class="step" id="step3" role="region" aria-label="Select a time slot">
+    <h2 class="step-title">Choose a time</h2>
+    <p class="step-subtitle" id="step3subtitle"></p>
+    <div id="slotsContainer" aria-live="polite"></div>
+    <div class="nav-btns">
+      <button class="btn btn-ghost" onclick="goToStep(2)" aria-label="Back to date selection">← Back</button>
+      <button class="btn btn-primary" id="btn3next" disabled onclick="goToStep(4)" aria-label="Continue to your information">
+        Continue →
+      </button>
+    </div>
+  </section>
+
+  <!-- STEP 4: Contact Form -->
+  <section class="step" id="step4" role="region" aria-label="Your information">
+    <h2 class="step-title">Your details</h2>
+    <p class="step-subtitle">We'll use this to confirm your appointment.</p>
+
+    <div class="summary-card" role="region" aria-label="Booking summary">
+      <div class="summary-title">📋 Booking Summary</div>
+      <div class="summary-row"><span class="summary-icon">🎯</span><span id="sumService">—</span></div>
+      <div class="summary-row"><span class="summary-icon">📅</span><span id="sumDate">—</span></div>
+      <div class="summary-row"><span class="summary-icon">🕐</span><span id="sumTime">—</span></div>
+    </div>
+
+    <form id="bookingForm" novalidate>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="inp-name">Full Name <span aria-hidden="true">*</span></label>
+          <input class="form-input" type="text" id="inp-name" name="name" placeholder="Jane Smith" required autocomplete="name" aria-required="true">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="inp-email">Email <span aria-hidden="true">*</span></label>
+          <input class="form-input" type="email" id="inp-email" name="email" placeholder="jane@example.com" required autocomplete="email" aria-required="true">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="inp-phone">Phone (optional)</label>
+        <input class="form-input" type="tel" id="inp-phone" name="phone" placeholder="(555) 000-0000" autocomplete="tel">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="inp-notes">Notes (optional)</label>
+        <textarea class="form-input" id="inp-notes" name="notes" placeholder="Anything we should know before your appointment?"></textarea>
+      </div>
+    </form>
+    <div class="nav-btns">
+      <button class="btn btn-ghost" onclick="goToStep(3)" aria-label="Back to time selection">← Back</button>
+      <button class="btn btn-primary" id="btn4next" onclick="submitBooking()" aria-label="Confirm booking">
+        <span id="submitLabel">Confirm Booking ✓</span>
+        <span class="spinner" id="submitSpinner" style="display:none" aria-label="Loading"></span>
+      </button>
+    </div>
+  </section>
+
+  <!-- STEP 5: Confirmation -->
+  <section class="step" id="step5" role="region" aria-label="Booking confirmed">
+    <div class="confirm-wrap">
+      <div class="confirm-icon" aria-hidden="true">✅</div>
+      <h2 class="step-title">You're booked!</h2>
+      <p class="confirm-detail">
+        Your appointment has been successfully scheduled.<br>
+        Save your confirmation code below.
+      </p>
+      <div class="confirm-code" id="confirmCode" aria-live="polite">—</div>
+      <div class="summary-card" style="text-align:left; margin-top:1rem" id="finalSummary"></div>
+
+      <div class="what-next" style="margin-top:1rem">
+        <h3>📌 What happens next?</h3>
+        <ul>
+          <li>Screenshot or write down your confirmation code</li>
+          <li>The business will contact you to confirm details</li>
+          <li>You'll receive any prep instructions ahead of time</li>
+          <li>Arrive 5 minutes early for your appointment</li>
+        </ul>
+      </div>
+
+      <div class="nav-btns" style="margin-top:1.5rem; justify-content:center">
+        <button class="btn btn-ghost" onclick="startOver()" aria-label="Book another appointment">
+          📅 Book Another
+        </button>
+        <a href="https://shop.artistrystore.com" class="btn btn-primary" aria-label="Return to Artistry Store">
+          🏪 Visit Our Store
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <div class="powered">
+    Powered by <a href="https://shop.artistrystore.com" target="_blank" rel="noopener">NovaCal AI</a> — Smart Scheduling for Service Businesses
+  </div>
+</main>
+
+<!-- Admin FAB -->
+<button class="admin-fab" onclick="openAdmin()" aria-label="Open admin panel">
+  🔐 Admin
+</button>
+
+<!-- Admin Modal -->
+<div class="modal-overlay" id="adminOverlay" role="dialog" aria-modal="true" aria-label="Admin panel" onclick="closeAdminOnBackdrop(event)">
+  <div class="modal" id="adminModal">
+    <!-- Login view -->
+    <div id="adminLogin">
+      <div class="modal-title">🔐 Admin Access</div>
+      <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:1rem;">Enter admin password to view bookings.</p>
+      <div class="form-group">
+        <label class="form-label" for="adminPwd">Password</label>
+        <input class="form-input" type="password" id="adminPwd" placeholder="Enter password" onkeydown="if(event.key==='Enter')adminLogin()" aria-label="Admin password">
+      </div>
+      <div class="nav-btns">
+        <button class="btn btn-ghost" onclick="closeAdmin()" aria-label="Cancel">Cancel</button>
+        <button class="btn btn-primary" onclick="adminLogin()" aria-label="Login to admin">Login</button>
+      </div>
+    </div>
+
+    <!-- Dashboard view -->
+    <div id="adminDash" style="display:none">
+      <div class="modal-title" style="justify-content:space-between">
+        <span>📊 Bookings Dashboard</span>
+        <button class="btn btn-ghost btn-sm" onclick="closeAdmin()" aria-label="Close admin">✕</button>
+      </div>
+      <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1rem">
+        <button class="btn btn-ghost btn-sm" onclick="loadAdminData()" aria-label="Refresh bookings">🔄 Refresh</button>
+        <span id="adminStats" style="font-size:0.75rem; color:var(--text-muted); align-self:center"></span>
+      </div>
+      <div id="adminTableWrap">
+        <div class="slot-loading" aria-live="polite">Loading bookings...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div id="toasts" role="status" aria-live="polite" aria-atomic="false"></div>
+
+<script>
+// ===================== CONFIG =====================
+const SUPABASE_URL = 'https://lltlbjmurwhnotjegjrz.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxsdGxiam11cndobm90amVnanJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4NTA0MTEsImV4cCI6MjA5MDQyNjQxMX0.0GTC6Wf6hdyrWt68NuAJ4EclKZsfji1Fm0getKPo7As';
+const ADMIN_FN = `${SUPABASE_URL}/functions/v1/novacal_admin`;
+const AVAIL_FN = `${SUPABASE_URL}/functions/v1/novacal_availability`;
+
+// ===================== SERVICES =====================
+const SERVICES = [
+  { id: 'wellness', name: 'Wellness Consult', duration: 60, icon: '🧘', desc: 'Holistic wellness & lifestyle planning' },
+  { id: 'coaching', name: 'Life Coaching', duration: 60, icon: '🎯', desc: 'Goal setting & accountability' },
+  { id: 'beauty', name: 'Beauty / Salon', duration: 60, icon: '💅', desc: 'Hair, skin & beauty services' },
+  { id: 'tutoring', name: 'Tutoring', duration: 45, icon: '📚', desc: 'Academic support & skill building' },
+  { id: 'business', name: 'Business Strategy', duration: 45, icon: '💼', desc: 'Growth & business planning' },
+  { id: 'health', name: 'Health Consult', duration: 30, icon: '🏥', desc: 'Healthcare guidance & planning' },
+  { id: 'therapy', name: 'Therapy Session', duration: 50, icon: '🌱', desc: 'Mental health & wellbeing support' },
+  { id: 'other', name: 'Custom Service', duration: 60, icon: '✨', desc: 'Any other appointment type' },
+];
+
+const TIME_SLOTS = ['9:00 AM','10:00 AM','11:00 AM','12:00 PM','1:00 PM','2:00 PM','3:00 PM','4:00 PM'];
+const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+// ===================== STATE =====================
+let state = {
+  step: 1,
+  service: null,
+  date: null,        // Date object
+  dateStr: null,     // 'YYYY-MM-DD'
+  time: null,
+  bookedSlots: [],
+  slotsLoading: false,
+  submitting: false,
+  adminAuthed: false,
+  calYear: new Date().getFullYear(),
+  calMonth: new Date().getMonth(),
+};
+
+// ===================== INIT =====================
+document.addEventListener('DOMContentLoaded', () => {
+  renderServices();
+  renderCalendar();
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeAdmin();
+  });
+});
+
+// ===================== SERVICES =====================
+function renderServices() {
+  const grid = document.getElementById('servicesGrid');
+  grid.innerHTML = SERVICES.map(s => `
+    <button
+      class="service-card"
+      role="option"
+      aria-selected="false"
+      aria-label="${s.name}, ${s.duration} minutes"
+      onclick="selectService('${s.id}')"
+    >
+      <div class="service-check" aria-hidden="true">✓</div>
+      <span class="icon" aria-hidden="true">${s.icon}</span>
+      <div class="name">${s.name}</div>
+      <div class="duration">${s.duration} min</div>
+    </button>
+  `).join('');
+}
+
+function selectService(id) {
+  state.service = SERVICES.find(s => s.id === id);
+  document.querySelectorAll('.service-card').forEach((el, i) => {
+    const isSelected = SERVICES[i].id === id;
+    el.classList.toggle('selected', isSelected);
+    el.setAttribute('aria-selected', String(isSelected));
+  });
+  document.getElementById('btn1next').disabled = false;
+  toast(`${state.service.icon} ${state.service.name} selected`, 'success');
+}
+
+// ===================== CALENDAR =====================
+function renderCalendar() {
+  const { calYear, calMonth } = state;
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const maxDate = new Date(today);
+  maxDate.setDate(today.getDate() + 60);
+
+  document.getElementById('calTitle').textContent = `${MONTH_NAMES[calMonth]} ${calYear}`;
+
+  // Prev button — disable if current month is same as today's month
+  const prevBtn = document.getElementById('calPrev');
+  const curMonthFirst = new Date(calYear, calMonth, 1);
+  const todayFirst = new Date(today.getFullYear(), today.getMonth(), 1);
+  prevBtn.disabled = curMonthFirst <= todayFirst;
+
+  // Next button — disable if > 2 months ahead
+  const nextBtn = document.getElementById('calNext');
+  const twoMonthsAhead = new Date(today.getFullYear(), today.getMonth() + 2, 1);
+  nextBtn.disabled = curMonthFirst >= twoMonthsAhead;
+
+  const grid = document.getElementById('calGrid');
+
+  // Day headers
+  let html = DAY_NAMES.map(d => `<div class="cal-day-header" aria-hidden="true">${d}</div>`).join('');
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+
+  // Empty cells
+  for (let i = 0; i < firstDay; i++) {
+    html += `<div class="cal-day empty" aria-hidden="true"></div>`;
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(calYear, calMonth, d);
+    const isToday = date.getTime() === today.getTime();
+    const isPast = date < today;
+    const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+    const isFuture = date > maxDate;
+    const dateStr = toDateStr(date);
+    const isSelected = state.dateStr === dateStr;
+    const disabled = isPast || isWeekend || isFuture;
+
+    let cls = 'cal-day';
+    if (isToday) cls += ' today';
+    if (disabled) cls += isWeekend ? ' weekend' : ' disabled';
+    if (isSelected) cls += ' selected';
+
+    const label = `${d} ${MONTH_NAMES[calMonth]} ${calYear}${isToday ? ', today' : ''}${disabled ? ', unavailable' : ''}`;
+    html += `<button
+      class="${cls}"
+      ${disabled ? 'disabled aria-disabled="true"' : `onclick="selectDate(${calYear},${calMonth},${d})"`}
+      aria-label="${label}"
+      ${isSelected ? 'aria-pressed="true"' : ''}
+    >${d}</button>`;
+  }
+
+  grid.innerHTML = html;
+}
+
+function calNav(dir) {
+  state.calMonth += dir;
+  if (state.calMonth > 11) { state.calMonth = 0; state.calYear++; }
+  if (state.calMonth < 0) { state.calMonth = 11; state.calYear--; }
+  renderCalendar();
+}
+
+function selectDate(y, m, d) {
+  state.date = new Date(y, m, d);
+  state.dateStr = toDateStr(state.date);
+  state.time = null;
+  renderCalendar();
+  document.getElementById('btn2next').disabled = false;
+  toast(`📅 ${formatDate(state.date)} selected`, 'success');
+}
+
+// ===================== TIME SLOTS =====================
+async function renderSlots() {
+  const container = document.getElementById('slotsContainer');
+  const subtitle = document.getElementById('step3subtitle');
+  subtitle.textContent = `Available times for ${formatDate(state.date)}`;
+
+  container.innerHTML = `<div class="slot-loading"><span class="spinner"></span> Checking availability...</div>`;
+
+  try {
+    const resp = await fetch(AVAIL_FN, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date: state.dateStr })
+    });
+    const data = await resp.json();
+    state.bookedSlots = data.bookedTimes || [];
+  } catch {
+    state.bookedSlots = [];
+  }
+
+  const slots = TIME_SLOTS.map(t => {
+    const isBooked = state.bookedSlots.includes(t);
+    const isSelected = state.time === t;
+    let cls = 'slot-btn';
+    if (isBooked) cls += ' booked';
+    if (isSelected) cls += ' selected';
+    return `<button
+      class="${cls}"
+      ${isBooked ? 'disabled aria-disabled="true" aria-label="' + t + ', unavailable"' : `onclick="selectTime('${t}')" aria-label="${t}"`}
+      ${isSelected ? 'aria-pressed="true"' : ''}
+    >${t}${isBooked ? '<br><span style="font-size:0.6rem;opacity:0.6">Taken</span>' : ''}</button>`;
+  }).join('');
+
+  const available = TIME_SLOTS.filter(t => !state.bookedSlots.includes(t));
+  container.innerHTML = available.length === 0
+    ? `<div class="slot-loading">😕 No slots available on this date.<br><a href="javascript:goToStep(2)" style="color:var(--primary-light)">Pick a different date</a></div>`
+    : `<div class="slots-grid" role="listbox" aria-label="Available time slots">${slots}</div>`;
+}
+
+function selectTime(t) {
+  state.time = t;
+  document.querySelectorAll('.slot-btn').forEach(btn => {
+    btn.classList.toggle('selected', btn.textContent.includes(t));
+  });
+  document.getElementById('btn3next').disabled = false;
+  toast(`🕐 ${t} selected`, 'success');
+}
+
+// ===================== FORM =====================
+function updateSummary() {
+  document.getElementById('sumService').textContent = state.service ? `${state.service.icon} ${state.service.name} (${state.service.duration} min)` : '—';
+  document.getElementById('sumDate').textContent = state.date ? formatDate(state.date) : '—';
+  document.getElementById('sumTime').textContent = state.time || '—';
+}
+
+// ===================== SUBMIT =====================
+async function submitBooking() {
+  const name = document.getElementById('inp-name').value.trim();
+  const email = document.getElementById('inp-email').value.trim();
+  const phone = document.getElementById('inp-phone').value.trim();
+  const notes = document.getElementById('inp-notes').value.trim();
+
+  if (!name) { toast('Please enter your name', 'warning'); document.getElementById('inp-name').focus(); return; }
+  if (!email || !email.includes('@')) { toast('Please enter a valid email', 'warning'); document.getElementById('inp-email').focus(); return; }
+
+  const code = genCode();
+  const btn = document.getElementById('btn4next');
+  const label = document.getElementById('submitLabel');
+  const spinner = document.getElementById('submitSpinner');
+
+  btn.disabled = true;
+  label.style.display = 'none';
+  spinner.style.display = 'inline-block';
+
+  try {
+    const resp = await fetch(`${SUPABASE_URL}/rest/v1/novacal_bookings`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        service: state.service.name,
+        service_duration: state.service.duration,
+        booking_date: state.dateStr,
+        booking_time: state.time,
+        client_name: name,
+        client_email: email,
+        client_phone: phone || null,
+        notes: notes || null,
+        confirmation_code: code,
+        status: 'pending'
+      })
+    });
+
+    if (!resp.ok) {
+      const err = await resp.text();
+      throw new Error(err);
+    }
+
+    // Success — show confirmation
+    document.getElementById('confirmCode').textContent = code;
+    document.getElementById('finalSummary').innerHTML = `
+      <div class="summary-title">📋 Your Booking</div>
+      <div class="summary-row"><span class="summary-icon">🎯</span><span>${state.service.icon} ${state.service.name}</span></div>
+      <div class="summary-row"><span class="summary-icon">📅</span><span>${formatDate(state.date)}</span></div>
+      <div class="summary-row"><span class="summary-icon">🕐</span><span>${state.time}</span></div>
+      <div class="summary-row"><span class="summary-icon">👤</span><span>${name}</span></div>
+      <div class="summary-row"><span class="summary-icon">📧</span><span>${email}</span></div>
+      ${phone ? `<div class="summary-row"><span class="summary-icon">📞</span><span>${phone}</span></div>` : ''}
+    `;
+
+    goToStep(5, true);
+    toast('🎉 Booking confirmed!', 'success');
+
+  } catch (err) {
+    console.error('Booking error:', err);
+    toast('Something went wrong. Please try again.', 'error');
+    btn.disabled = false;
+    label.style.display = 'inline';
+    spinner.style.display = 'none';
+  }
+}
+
+// ===================== NAVIGATION =====================
+function goToStep(n, skipValidation) {
+  if (!skipValidation) {
+    if (n === 2 && !state.service) { toast('Please select a service first', 'warning'); return; }
+    if (n === 3 && !state.dateStr) { toast('Please pick a date first', 'warning'); return; }
+    if (n === 4 && !state.time) { toast('Please select a time slot', 'warning'); return; }
+  }
+
+  document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
+  document.getElementById(`step${n}`).classList.add('active');
+  state.step = n;
+  updateProgress();
+
+  if (n === 3) renderSlots();
+  if (n === 4) updateSummary();
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function updateProgress() {
+  const n = state.step;
+  for (let i = 1; i <= 5; i++) {
+    const circle = document.getElementById(`s${i}`);
+    circle.classList.remove('active','done');
+    if (i < n) circle.classList.add('done');
+    else if (i === n) circle.classList.add('active');
+  }
+  for (let i = 1; i <= 4; i++) {
+    const line = document.getElementById(`l${i}`);
+    line.classList.toggle('done', i < n);
+  }
+}
+
+function startOver() {
+  state = {
+    step: 1,
+    service: null,
+    date: null,
+    dateStr: null,
+    time: null,
+    bookedSlots: [],
+    slotsLoading: false,
+    submitting: false,
+    adminAuthed: state.adminAuthed,
+    calYear: new Date().getFullYear(),
+    calMonth: new Date().getMonth(),
+  };
+  document.getElementById('bookingForm').reset();
+  document.querySelectorAll('.service-card').forEach(el => {
+    el.classList.remove('selected');
+    el.setAttribute('aria-selected','false');
+  });
+  document.getElementById('btn1next').disabled = true;
+  document.getElementById('btn2next').disabled = true;
+  document.getElementById('btn3next').disabled = true;
+  document.getElementById('btn4next').disabled = false;
+  document.getElementById('submitLabel').style.display = 'inline';
+  document.getElementById('submitSpinner').style.display = 'none';
+  renderCalendar();
+  goToStep(1, true);
+}
+
+// ===================== ADMIN =====================
+function openAdmin() {
+  document.getElementById('adminOverlay').classList.add('open');
+  if (state.adminAuthed) {
+    showAdminDash();
+    loadAdminData();
+  }
+  setTimeout(() => document.getElementById(state.adminAuthed ? 'adminDash' : 'adminPwd').focus(), 100);
+}
+
+function closeAdmin() {
+  document.getElementById('adminOverlay').classList.remove('open');
+}
+
+function closeAdminOnBackdrop(e) {
+  if (e.target === document.getElementById('adminOverlay')) closeAdmin();
+}
+
+async function adminLogin() {
+  const pwd = document.getElementById('adminPwd').value;
+  const resp = await fetch(ADMIN_FN, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password: pwd, action: 'list' })
+  });
+  if (resp.ok) {
+    state.adminAuthed = true;
+    const data = await resp.json();
+    showAdminDash();
+    renderAdminTable(data.data || []);
+  } else {
+    toast('Incorrect password', 'error');
+    document.getElementById('adminPwd').value = '';
+  }
+}
+
+function showAdminDash() {
+  document.getElementById('adminLogin').style.display = 'none';
+  document.getElementById('adminDash').style.display = 'block';
+}
+
+async function loadAdminData() {
+  document.getElementById('adminTableWrap').innerHTML = '<div class="slot-loading"><span class="spinner"></span> Loading...</div>';
+  try {
+    const resp = await fetch(ADMIN_FN, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: 'NovaCal2026!', action: 'list' })
+    });
+    const data = await resp.json();
+    renderAdminTable(data.data || []);
+  } catch {
+    document.getElementById('adminTableWrap').innerHTML = '<div class="slot-loading" style="color:var(--danger)">Failed to load bookings</div>';
+  }
+}
+
+function renderAdminTable(bookings) {
+  const pending = bookings.filter(b => b.status === 'pending').length;
+  const confirmed = bookings.filter(b => b.status === 'confirmed').length;
+  document.getElementById('adminStats').textContent = `${bookings.length} total · ${pending} pending · ${confirmed} confirmed`;
+
+  if (bookings.length === 0) {
+    document.getElementById('adminTableWrap').innerHTML = '<div class="slot-loading">📅 No bookings yet. Share your booking link to get started!</div>';
+    return;
+  }
+
+  const rows = bookings.map(b => `
+    <tr>
+      <td><strong>${b.client_name}</strong><br><span style="color:var(--text-muted);font-size:0.72rem">${b.client_email}</span></td>
+      <td>${b.service}</td>
+      <td>${formatDateStr(b.booking_date)}<br><span style="color:var(--text-muted)">${b.booking_time}</span></td>
+      <td><span class="status-badge status-${b.status}">${b.status}</span></td>
+      <td>
+        ${b.status !== 'confirmed' ? `<button class="btn btn-success-outline btn-sm" onclick="updateStatus('${b.id}','confirmed')">✓ Confirm</button>` : ''}
+        ${b.status !== 'cancelled' ? `<button class="btn btn-danger btn-sm" style="margin-top:2px" onclick="updateStatus('${b.id}','cancelled')">✕ Cancel</button>` : ''}
+      </td>
+    </tr>
+  `).join('');
+
+  document.getElementById('adminTableWrap').innerHTML = `
+    <div class="admin-table-wrap">
+      <table aria-label="Bookings list">
+        <thead><tr>
+          <th>Client</th><th>Service</th><th>When</th><th>Status</th><th>Actions</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+async function updateStatus(id, status) {
+  await fetch(ADMIN_FN, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password: 'NovaCal2026!', action: 'update_status', id, status })
+  });
+  toast(`Booking ${status}`, status === 'confirmed' ? 'success' : 'warning');
+  loadAdminData();
+}
+
+// ===================== TOASTS =====================
+function toast(msg, type = 'success') {
+  const icons = { success: '✅', warning: '⚠️', error: '❌', info: 'ℹ️' };
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.setAttribute('role', 'status');
+  el.innerHTML = `<span aria-hidden="true">${icons[type]||''}</span><span>${msg}</span>`;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+// ===================== UTILS =====================
+function toDateStr(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+
+function formatDate(d) {
+  return d.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+}
+
+function formatDateStr(str) {
+  const [y,m,d] = str.split('-').map(Number);
+  return formatDate(new Date(y, m-1, d));
+}
+
+function genCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({length: 8}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
+}
+</script>
+</body>
+</html>
