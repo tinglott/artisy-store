@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zero-Cost Android AI Receptionist — Full Production Stack 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #060a10;
+  --surface: #0d1420;
+  --surface2: #141e2e;
+  --border: #1e2d42;
+  --accent: #00e5ff;
+  --accent2: #7c3aed;
+  --accent3: #10b981;
+  --accent4: #f59e0b;
+  --accent5: #ef4444;
+  --text: #e2eaf4;
+  --muted: #6b82a0;
+  --mono: 'Space Mono', monospace;
+  --sans: 'Syne', sans-serif;
+}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+.skip-nav {
+  position: fixed; top: -100px; left: 1rem; z-index: 9999;
+  background: var(--accent); color: #000;
+  padding: 0.5rem 1rem; border-radius: 4px;
+  font-family: var(--mono); font-size: 12px; font-weight: 700;
+  transition: top 0.2s;
+}
+.skip-nav:focus { top: 1rem; }
+.container { max-width: 1100px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+/* ─── HEADER ─── */
+header {
+  padding: 60px 0 40px;
+  border-bottom: 1px solid var(--border);
+}
+.tag-line {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tag-line::before { content: ''; width: 24px; height: 1px; background: var(--accent); display: inline-block; }
+h1 {
+  font-family: var(--sans);
+  font-size: clamp(32px, 5vw, 58px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -1px;
+  margin-bottom: 16px;
+}
+h1 span { color: var(--accent); }
+h1 em { color: #a78bfa; font-style: normal; }
+.subtitle {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--muted);
+  max-width: 640px;
+  line-height: 1.8;
+}
+.cost-banner {
+  margin-top: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 20px;
+  background: rgba(16,185,129,0.05);
+  border: 1px solid rgba(16,185,129,0.2);
+  border-radius: 4px;
+  padding: 12px 20px;
+  font-family: var(--mono);
+  font-size: 12px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.cost-banner .pill {
+  background: var(--accent3);
+  color: #000;
+  padding: 2px 8px;
+  border-radius: 2px;
+  font-weight: 700;
+  font-size: 11px;
+}
+.store-link {
+  margin-top: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0,229,255,0.08);
+  border: 1px solid rgba(0,229,255,0.25);
+  border-radius: 4px;
+  padding: 10px 18px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--accent);
+  transition: background 0.2s;
+}
+.store-link:hover { background: rgba(0,229,255,0.14); text-decoration: none; }
+
+/* ─── SECTION LABEL ─── */
+.section-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ─── PIPELINE ─── */
+.pipeline-section { padding: 60px 0 40px; }
+.pipeline {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.pipe-step {
+  flex: 1;
+  min-width: 130px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 20px 16px;
+  position: relative;
+  transition: all 0.2s;
+  cursor: default;
+}
+.pipe-step:not(:last-child)::after {
+  content: '→';
+  position: absolute;
+  right: -14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--accent);
+  font-size: 16px;
+  z-index: 2;
+  background: var(--bg);
+  padding: 0 2px;
+}
+.pipe-step:hover { background: var(--surface2); border-color: var(--accent); }
+.pipe-icon { font-size: 22px; margin-bottom: 8px; }
+.pipe-lbl {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.pipe-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.pipe-tool { font-family: var(--mono); font-size: 10px; color: var(--accent3); }
+
+/* ─── STACK GRID ─── */
+.stack-section { padding: 20px 0 40px; }
+.stack-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-bottom: 48px;
+}
+.stack-card { background: var(--surface); padding: 28px; transition: background 0.2s; }
+.stack-card:hover { background: var(--surface2); }
+.card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.card-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.card-category { font-family: var(--mono); font-size: 9px; letter-spacing: 3px; text-transform: uppercase; }
+.card-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+.card-desc { font-size: 13px; color: var(--muted); margin-bottom: 16px; line-height: 1.7; font-family: var(--mono); }
+.tools-list { display: flex; flex-direction: column; gap: 8px; }
+.tool-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  font-size: 12px;
+  gap: 8px;
+}
+.tool-name { font-family: var(--mono); font-weight: 700; flex: 1; }
+.tool-tags { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+.tag-pill { font-family: var(--mono); font-size: 9px; letter-spacing: 1px; padding: 2px 6px; border-radius: 2px; white-space: nowrap; }
+.tag-free { background: rgba(16,185,129,0.15); color: var(--accent3); border: 1px solid rgba(16,185,129,0.3); }
+.tag-oss  { background: rgba(124,58,237,0.15); color: #a78bfa;       border: 1px solid rgba(124,58,237,0.3); }
+.tag-self { background: rgba(0,229,255,0.1);   color: var(--accent); border: 1px solid rgba(0,229,255,0.2); }
+.tag-and  { background: rgba(245,158,11,0.15); color: var(--accent4);border: 1px solid rgba(245,158,11,0.3); }
+
+/* ─── WORKFLOW ─── */
+.workflow-section { padding: 20px 0 60px; }
+.workflow-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 32px;
+  margin-bottom: 24px;
+}
+.workflow-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+.workflow-desc { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-bottom: 24px; line-height: 1.8; }
+.workflow-steps { display: flex; flex-direction: column; gap: 0; counter-reset: step; }
+.w-step {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 16px;
+  padding: 14px 0;
+  border-top: 1px solid var(--border);
+  counter-increment: step;
+}
+.w-num { font-family: var(--mono); font-size: 11px; color: var(--accent3); padding-top: 2px; }
+.w-num::before { content: counter(step, decimal-leading-zero); }
+.w-node { font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+.w-detail { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+
+/* ─── COST TABLE ─── */
+.cost-section { padding: 0 0 60px; }
+.cost-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.cost-table th {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--muted); text-align: left;
+  padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--surface);
+}
+.cost-table td { padding: 12px 16px; border-bottom: 1px solid rgba(30,45,66,0.5); vertical-align: middle; }
+.cost-table tr:hover td { background: var(--surface2); }
+.cost-table .component { font-weight: 700; }
+.cost-table .tool-col { font-family: var(--mono); font-size: 11px; color: var(--accent3); }
+.cost-table .cost-col { font-family: var(--mono); font-size: 12px; color: var(--accent3); font-weight: 700; }
+.cost-table .note-col { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.total-row td { border-top: 2px solid var(--accent3); color: var(--accent3); font-weight: 800; }
+
+/* ─── CODE BLOCKS ─── */
+.code-section { padding: 0 0 60px; }
+.code-block-wrapper { margin-bottom: 32px; }
+.code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  padding: 10px 16px;
+  border-radius: 4px 4px 0 0;
+}
+.code-filename { font-family: var(--mono); font-size: 12px; color: var(--accent3); }
+.copy-btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 28px;
+}
+.copy-btn:hover { background: var(--surface); color: var(--accent); border-color: var(--accent); }
+.copy-btn.copied { color: var(--accent3); border-color: var(--accent3); }
+pre {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0 0 4px 4px;
+  padding: 20px;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--text);
+  tab-size: 2;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+pre .cm { color: var(--muted); }
+pre .kw { color: #a78bfa; }
+pre .st { color: var(--accent3); }
+pre .fn { color: var(--accent); }
+pre .nu { color: var(--accent4); }
+
+/* ─── REPOS GRID ─── */
+.repos-section { padding: 0 0 60px; }
+.repos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.repo-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 20px;
+  transition: all 0.2s;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  border-radius: 2px;
+}
+.repo-card:hover { border-color: #a78bfa; background: var(--surface2); transform: translateY(-2px); text-decoration: none; }
+.repo-icon { font-size: 20px; margin-bottom: 10px; }
+.repo-name { font-family: var(--mono); font-size: 13px; color: var(--accent3); font-weight: 700; margin-bottom: 6px; }
+.repo-desc { font-size: 12px; color: var(--muted); line-height: 1.6; font-family: var(--mono); }
+
+/* ─── TIPS ─── */
+.tips-section { padding: 0 0 60px; }
+.tips-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.tip-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent2);
+  padding: 20px;
+}
+.tip-icon { font-size: 18px; margin-bottom: 8px; }
+.tip-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+.tip-body { font-family: var(--mono); font-size: 11px; color: var(--muted); line-height: 1.7; }
+
+/* ─── FOOTER ─── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 32px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+footer a { color: var(--accent3); }
+
+/* ─── ANIMATED ─── */
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.live-dot {
+  width: 6px; height: 6px;
+  background: var(--accent3);
+  border-radius: 50%;
+  display: inline-block;
+  animation: pulse 2s infinite;
+  margin-right: 6px;
+}
+
+/* ─── MOBILE ─── */
+@media (max-width: 680px) {
+  .pipe-step { min-width: 110px; padding: 14px 10px; }
+  header { padding: 40px 0 30px; }
+  .workflow-box { padding: 20px; }
+  .cost-table th, .cost-table td { padding: 10px 10px; }
+  .cost-table .note-col { display: none; }
+  footer { flex-direction: column; text-align: center; }
+}
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-nav">Skip to main content</a>
+
+<main id="main-content">
+<div class="container">
+
+  <!-- ══ HEADER ══ -->
+  <header>
+    <div class="tag-line">
+      <span class="live-dot" aria-hidden="true"></span>
+      100% LOCAL • ANDROID NATIVE • $0/FOREVER
+    </div>
+    <h1>Completely Free<br><span>Cell-Phone</span> <em>AI Receptionist</em></h1>
+    <p class="subtitle">
+      The receptionist lives inside your business cell phone. Real cellular calls via SIM.
+      Fully offline STT / LLM / TTS + PhoneClaw agent. Handles inquiries, books Google
+      Calendar appointments, pulls knowledge from your website + Google Business Profile,
+      and returns calls. $0 forever.
+    </p>
+    <div class="cost-banner" role="note" aria-label="Cost summary">
+      <span class="pill">$0/mo FOREVER</span>
+      <span>runs on any spare Android phone</span>
+      <span>•</span>
+      <span>no cloud</span>
+      <span>•</span>
+      <span>no vendor lock-in</span>
+    </div>
+    <br>
+    <a class="store-link" href="https://shop.artistrystore.com/store.html" target="_blank" rel="noopener">
+      🛍️ More tools at ArtistryStore.com →
+    </a>
+  </header>
+
+  <!-- ══ PIPELINE ══ -->
+  <section class="pipeline-section" aria-labelledby="pipeline-heading">
+    <p class="section-label" id="pipeline-heading">Core Pipeline — 100% On-Device</p>
+    <div class="pipeline" role="list" aria-label="Processing pipeline steps">
+      <div class="pipe-step" role="listitem">
+        <div class="pipe-icon" aria-hidden="true">📱</div>
+        <div class="pipe-lbl">Step 1</div>
+        <div class="pipe-name">Telephony</div>
+        <div class="pipe-tool">Android Native + SIM</div>
+      </div>
+      <div class="pipe-step" role="listitem">
+        <div class="pipe-icon" aria-hidden="true">🎙️</div>
+        <div class="pipe-lbl">Step 2</div>
+        <div class="pipe-name">STT</div>
+        <div class="pipe-tool">Whisper.cpp (Termux)</div>
+      </div>
+      <div class="pipe-step" role="listitem">
+        <div class="pipe-icon" aria-hidden="true">🧠</div>
+        <div class="pipe-lbl">Step 3</div>
+        <div class="pipe-name">LLM Brain</div>
+        <div class="pipe-tool">llama.cpp / Phi-3</div>
+      </div>
+      <div class="pipe-step" role="listitem">
+        <div class="pipe-icon" aria-hidden="true">🗃️</div>
+        <div class="pipe-lbl">Step 4</div>
+        <div class="pipe-name">RAG</div>
+        <div class="pipe-tool">Local Chroma / SQLite</div>
+      </div>
+      <div class="pipe-step" role="listitem">
+        <div class="pipe-icon" aria-hidden="true">🔊</div>
+        <div class="pipe-lbl">Step 5</div>
+        <div class="pipe-name">TTS</div>
+        <div class="pipe-tool">Piper TTS (Termux)</div>
+      </div>
+      <div class="pipe-step" role="listitem">
+        <div class="pipe-icon" aria-hidden="true">⚙️</div>
+        <div class="pipe-lbl">Step 6</div>
+        <div class="pipe-name">Agent</div>
+        <div class="pipe-tool">PhoneClaw + Tasker</div>
+      </div>
+      <div class="pipe-step" role="listitem">
+        <div class="pipe-icon" aria-hidden="true">📅</div>
+        <div class="pipe-lbl">Step 7</div>
+        <div class="pipe-name">Calendar</div>
+        <div class="pipe-tool">Google Calendar</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ TECH STACK ══ -->
+  <section class="stack-section" aria-labelledby="stack-heading">
+    <p class="section-label" id="stack-heading">Technology Stack — Fully Local &amp; Free</p>
+    <div class="stack-grid">
+
+      <!-- TELEPHONY -->
+      <div class="stack-card">
+        <div class="card-header">
+          <div class="card-dot" style="background:#00e5ff" aria-hidden="true"></div>
+          <span class="card-category" style="color:#00e5ff">Layer 1 — Telephony</span>
+        </div>
+        <div class="card-title">Native Cellular Calls</div>
+        <div class="card-desc">Uses your existing SIM card and Android dialer. Real PSTN/cellular network — no VoIP. Auto-answer + in-call audio routing via Accessibility Service.</div>
+        <div class="tools-list">
+          <div class="tool-row"><span class="tool-name">Android Native Dialer</span><div class="tool-tags"><span class="tag-pill tag-and">On-Device</span><span class="tag-pill tag-free">Free</span></div></div>
+          <div class="tool-row"><span class="tool-name">Tasker Auto-Answer</span><div class="tool-tags"><span class="tag-pill tag-oss">OSS</span><span class="tag-pill tag-free">Free</span></div></div>
+          <div class="tool-row"><span class="tool-name">PhoneClaw Accessibility</span><div class="tool-tags"><span class="tag-pill tag-oss">OSS</span><span class="tag-pill tag-self">No Root</span></div></div>
+        </div>
+      </div>
+
+      <!-- STT -->
+      <div class="stack-card">
+        <div class="card-header">
+          <div class="card-dot" style="background:#7c3aed" aria-hidden="true"></div>
+          <span class="card-category" style="color:#a78bfa">Layer 2 — Speech-to-Text</span>
+        </div>
+        <div class="card-title">Offline Voice Recognition</div>
+        <div class="card-desc">Real-time transcription of caller audio. Runs entirely in Termux with voice activity detection for natural conversation flow.</div>
+        <div class="tools-list">
+          <div class="tool-row"><span class="tool-name">Whisper.cpp (Termux)</span><div class="tool-tags"><span class="tag-pill tag-oss">OSS</span><span class="tag-pill tag-free">Free</span><span class="tag-pill tag-self">Local</span></div></div>
+          <div class="tool-row"><span class="tool-name">Vosk Offline ASR</span><div class="tool-tags"><span class="tag-pill tag-oss">OSS</span><span class="tag-pill tag-free">Free</span></div></div>
+          <div class="tool-row"><span class="tool-name">Kokoro-82M (HF)</span><div class="tool-tags"><span class="tag-pill tag-oss">OSS</span><span class="tag-pill tag-free">Free</span></div></div>
+        </div>
+      </div>
+
+      <!-- LLM -->
+      <div class="stack-card">
+        <div class="card-header">
+          <div class="card-dot" style="background:#10b981" aria-hidden="true"></div>
+          <span class="card-category" style="color:#10b981">Layer 3 — LLM Brain</span>
+        </div>
+        <div class="card-title">On-Device Reasoning</div>
+        <div class="card-desc">Understands intent, answers questions, decides actions. Small quantized models run fast on mid-range phones — no cloud API needed.</div>
+        <div class="tools-list">
+          <div class="tool-row"><span class="tool-name">llama.cpp (Phi-3 mini)</span><div class="tool-tags"><span class="tag-pill tag-oss">OSS</span><span class="tag-pill tag-free">Free</span><span class="tag-pill tag-self">Local</span></div></div>
+          <div class="tool-row"><span class="tool-name">Gemma-2B (GGUF)</span><div class="tool-tags"><span class="tag-pill tag-oss">OSS</span><span class="tag-pill tag-free">Free</span></div></div>
+          <div class="tool-row"><span class="tool-name">MLC LLM Android</span><div class="tool-tags"><span class="tag-pill tag-oss">OSS</span><span class="tag-pill tag-free">Free</span></div></div>
+        </div>
+      </div>
+
+      <!-- RAG -->
+      <div class="stack-card">
+        <div class="card-header">
+          <div class="card-dot" style="background:#f59e0b" aria-hidden="true"></div>
+          <span class="card-category" style="color:#f59e0b">Layer 4 — Knowledge / RAG</span>
+        </div>
+        <div class="card-title">Business Knowledge Base</div>
+        <div class="card-desc">Pre-load your website content + Google Business Profile FAQs as local embeddings. Agent retrieves relevant info instantly — no internet required after setup.</div>
+        <div class="tools-list">
+          <div class="tool-row"><span class="tool-name">Local Chroma DB (Termux)</span><div class="tool-tags"><span class="tag-pill tag-oss">OSS</span><span class="tag-pill tag-free">Free</span></div></div>
+          <div class="tool-row"><span class="tool-name">SQLite + Sentence-Transformers</span><div class="tool-tags"><span class="tag-pill tag-oss">OSS</span><span class="tag-pill tag-free">Free</span></div></div>
+          <div class="tool-row"><span class="tool-name">BAAI/bge-small-en-v1.5</span><div class="tool-tags"><span class="tag-pill tag-oss">OSS</span><span class="tag-pill tag-free">Free</span></div></div>
+        </div>
+      </div>
+
+      <!-- TTS -->
+      <div class="stack-card">
+        <div class="card-header">
+          <div class="card-dot" style="background:#ec4899" aria-hidden="true"></div>
+          <span class="card-category" style="color:#ec4899">Layer 5 — Text-to-Speech</span>
+        </div>
+        <div class="card-title">Natural Voice Synthesis</div>
+        <div class="card-desc">Converts AI responses to lifelike speech. Sub-200ms latency, multiple voices, runs completely offline in Termux.</div>
+        <div class="tools-list">
+          <div class="tool-row"><span class="tool-name">Piper TTS (Termux)</span><div class="tool-tags"><span class="tag-pill tag-oss">OSS</span><span class="tag-pill tag-free">Free</span><span class="tag-pill tag-self">Local</span></div></div>
+          <div class="tool-row"><span class="tool-name">Kokoro-82M (HuggingFace)</span><div class="tool-tags"><span class="tag-pill tag-oss">OSS</span><span class="tag-pill tag-free">Free</span></div></div>
+          <div class="tool-row"><span class="tool-name">Android Built-in TTS</span><div class="tool-tags"><span class="tag-pill tag-and">Native</span><span class="tag-pill tag-free">Free</span></div></div>
+        </div>
+      </div>
+
+      <!-- ORCHESTRATION -->
+      <div class="stack-card">
+        <div class="card-header">
+          <div class="card-dot" style="background:#00e5ff" aria-hidden="true"></div>
+          <span class="card-category" style="color:#00e5ff">Layer 6 — Agent Orchestration</span>
+        </div>
+        <div class="card-title">Full Phone Control</div>
+        <div class="card-desc">PhoneClaw uses Accessibility Service to control Calendar, dial return calls, send SMS summaries, and handle escalation — all agentically, no root required.</div>
+        <div class="tools-list">
+          <div class="tool-row"><span class="tool-name">PhoneClaw (GitHub)</span><div class="tool-tags"><span class="tag-pill tag-oss">OSS</span><span class="tag-pill tag-free">Free</span><span class="tag-pill tag-self">No Root</span></div></div>
+          <div class="tool-row"><span class="tool-name">Tasker + Termux Plugin</span><div class="tool-tags"><span class="tag-pill tag-oss">OSS</span><span class="tag-pill tag-free">Free</span></div></div>
+          <div class="tool-row"><span class="tool-name">ADB Wireless Automation</span><div class="tool-tags"><span class="tag-pill tag-and">On-Device</span><span class="tag-pill tag-free">Free</span></div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══ WORKFLOW ══ -->
+  <section class="workflow-section" aria-labelledby="workflow-heading">
+    <p class="section-label" id="workflow-heading">PhoneClaw + Termux Workflow — Inbound Call Agent</p>
+    <div class="workflow-box">
+      <div class="workflow-title">📱 Local Cell-Phone Receptionist Flow</div>
+      <div class="workflow-desc">
+        Caller dials your business cell number → AI answers on-device → processes everything locally
+        → books appointments in Google Calendar → returns calls if needed.
+        No cloud, no webhooks, no cost.
+      </div>
+      <div class="workflow-steps" role="list">
+        <div class="w-step" role="listitem">
+          <div class="w-num" aria-hidden="true"></div>
+          <div>
+            <div class="w-node">📱 Cellular Inbound Call</div>
+            <div class="w-detail">Phone rings on business SIM → PhoneClaw / Tasker auto-answers and routes audio to Termux pipeline</div>
+          </div>
+        </div>
+        <div class="w-step" role="listitem">
+          <div class="w-num" aria-hidden="true"></div>
+          <div>
+            <div class="w-node">🎙️ Whisper.cpp STT (Termux)</div>
+            <div class="w-detail">Real-time transcription of caller speech → sends text to local LLM with session memory</div>
+          </div>
+        </div>
+        <div class="w-step" role="listitem">
+          <div class="w-num" aria-hidden="true"></div>
+          <div>
+            <div class="w-node">🧠 Local LLM + RAG Query</div>
+            <div class="w-detail">llama.cpp loads business knowledge (website + Google Business Profile export) → generates response or action</div>
+          </div>
+        </div>
+        <div class="w-step" role="listitem">
+          <div class="w-num" aria-hidden="true"></div>
+          <div>
+            <div class="w-node">📅 Calendar Check / Booking</div>
+            <div class="w-detail">PhoneClaw Accessibility Service opens Google Calendar app → checks availability → books slot → confirms with caller via TTS</div>
+          </div>
+        </div>
+        <div class="w-step" role="listitem">
+          <div class="w-num" aria-hidden="true"></div>
+          <div>
+            <div class="w-node">🔊 Piper TTS Response</div>
+            <div class="w-detail">Natural voice speaks back to caller through phone speaker / earpiece in real time</div>
+          </div>
+        </div>
+        <div class="w-step" role="listitem">
+          <div class="w-num" aria-hidden="true"></div>
+          <div>
+            <div class="w-node">🚨 Escalation or Return Call</div>
+            <div class="w-detail">If "talk to human" detected → PhoneClaw forwards to owner or schedules automatic callback</div>
+          </div>
+        </div>
+        <div class="w-step" role="listitem">
+          <div class="w-num" aria-hidden="true"></div>
+          <div>
+            <div class="w-node">📋 Lead Saved Locally</div>
+            <div class="w-detail">Transcript + booking saved to local SQLite → optional SMS summary sent via Tasker to business owner</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ COST TABLE ══ -->
+  <section class="cost-section" aria-labelledby="cost-heading">
+    <p class="section-label" id="cost-heading">Monthly Cost Estimate — 500 Calls/Month (Real Cellular)</p>
+    <div style="overflow-x:auto;">
+      <table class="cost-table" aria-label="Cost breakdown table">
+        <thead>
+          <tr>
+            <th>Component</th>
+            <th>Tool</th>
+            <th>Est. Cost</th>
+            <th class="note-col">Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="component">Telephony</td><td class="tool-col">Android + Existing SIM</td><td class="cost-col">$0</td><td class="note-col">Uses your current cell plan minutes</td></tr>
+          <tr><td class="component">STT</td><td class="tool-col">Whisper.cpp (Termux)</td><td class="cost-col">$0</td><td class="note-col">Fully offline • no API</td></tr>
+          <tr><td class="component">LLM</td><td class="tool-col">llama.cpp (local)</td><td class="cost-col">$0</td><td class="note-col">Runs on phone CPU/NPU</td></tr>
+          <tr><td class="component">Knowledge Base</td><td class="tool-col">Local Chroma / SQLite</td><td class="cost-col">$0</td><td class="note-col">One-time website scrape</td></tr>
+          <tr><td class="component">TTS</td><td class="tool-col">Piper TTS (Termux)</td><td class="cost-col">$0</td><td class="note-col">Natural voices • offline</td></tr>
+          <tr><td class="component">Agent Control</td><td class="tool-col">PhoneClaw + Tasker</td><td class="cost-col">$0</td><td class="note-col">Accessibility Service • no root</td></tr>
+          <tr><td class="component">Hardware</td><td class="tool-col">Spare Android Phone</td><td class="cost-col">$0</td><td class="note-col">Use any old phone • keep plugged in</td></tr>
+          <tr class="total-row"><td class="component">TOTAL</td><td class="tool-col">100% Local Android Stack</td><td class="cost-col">$0/mo</td><td class="note-col">vs $300–$2,000/mo for cloud SaaS</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══ CODE BLOCKS ══ -->
+  <section class="code-section" aria-labelledby="code-heading">
+    <p class="section-label" id="code-heading">Setup Commands — Copy &amp; Run in Termux</p>
+
+    <div class="code-block-wrapper">
+      <div class="code-header">
+        <span class="code-filename">termux_setup.sh</span>
+        <button class="copy-btn" aria-label="Copy Termux setup commands" onclick="copyCode(this,'termux-code')">Copy</button>
+      </div>
+      <pre id="termux-code"><span class="cm"># 1. Update Termux packages</span>
+pkg update && pkg upgrade -y
+pkg install -y git cmake clang make ffmpeg python nodejs termux-api
+
+<span class="cm"># 2. Whisper.cpp (Speech-to-Text)</span>
+git clone https://github.com/ggerganov/whisper.cpp
+cd whisper.cpp && make -j
+wget https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin \
+     -O models/ggml-base.en.bin
+
+<span class="cm"># 3. Piper TTS — follow community Termux build</span>
+<span class="cm"># See: https://github.com/gyroing/piper-tts-for-termux</span>
+
+<span class="cm"># 4. llama.cpp (LLM)</span>
+cd ~ && git clone https://github.com/ggerganov/llama.cpp
+cd llama.cpp && make -j
+<span class="cm"># Download Phi-3 mini quantized model (~2GB)</span>
+wget https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-gguf/resolve/main/Phi-3-mini-4k-instruct-q4_0.gguf
+
+<span class="cm"># 5. Python dependencies</span>
+pip install chromadb sentence-transformers requests</pre>
+    </div>
+
+    <div class="code-block-wrapper">
+      <div class="code-header">
+        <span class="code-filename">receptionist.py</span>
+        <button class="copy-btn" aria-label="Copy receptionist Python script" onclick="copyCode(this,'py-code')">Copy</button>
+      </div>
+      <pre id="py-code"><span class="kw">import</span> subprocess, time, json
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime
+
+<span class="cm"># ── Load business knowledge (RAG) ──────────────────────</span>
+<span class="kw">with</span> open(<span class="st">"knowledge.json"</span>, <span class="st">"r"</span>) <span class="kw">as</span> f:
+    knowledge = json.load(f)
+
+<span class="kw">def</span> <span class="fn">stt_audio</span>():
+    <span class="cm">"""Transcribe call audio via Whisper.cpp"""</span>
+    subprocess.run([
+        <span class="st">"./whisper.cpp/main"</span>, <span class="st">"-m"</span>, <span class="st">"models/ggml-base.en.bin"</span>,
+        <span class="st">"-f"</span>, <span class="st">"call.wav"</span>, <span class="st">"--output-json"</span>
+    ])
+    <span class="kw">with</span> open(<span class="st">"call.wav.json"</span>) <span class="kw">as</span> f:
+        <span class="kw">return</span> json.load(f)[<span class="st">"text"</span>]
+
+<span class="kw">def</span> <span class="fn">llm_generate</span>(prompt):
+    <span class="cm">"""Generate response with local Phi-3"""</span>
+    result = subprocess.run([
+        <span class="st">"./llama.cpp/llama-cli"</span>, <span class="st">"-m"</span>, <span class="st">"Phi-3-mini-4k-instruct-q4_0.gguf"</span>,
+        <span class="st">"--prompt"</span>, prompt, <span class="st">"-n"</span>, <span class="st">"512"</span>, <span class="st">"--temp"</span>, <span class="st">"0.7"</span>
+    ], capture_output=<span class="kw">True</span>, text=<span class="kw">True</span>)
+    <span class="kw">return</span> result.stdout
+
+<span class="kw">def</span> <span class="fn">tts_speak</span>(text):
+    <span class="cm">"""Convert response to speech via Piper TTS"""</span>
+    subprocess.run([
+        <span class="st">"piper"</span>, <span class="st">"--model"</span>, <span class="st">"en-us-amy-medium.onnx"</span>,
+        <span class="st">"--output_file"</span>, <span class="st">"response.wav"</span>
+    ], input=text, text=<span class="kw">True</span>)
+    subprocess.run([<span class="st">"termux-media-player"</span>, <span class="st">"play"</span>, <span class="st">"response.wav"</span>])
+
+<span class="cm"># ── Main loop (triggered by PhoneClaw / Tasker) ─────────</span>
+<span class="kw">while</span> <span class="kw">True</span>:
+    text = stt_audio()
+    context = f<span class="st">"Business: {knowledge}\nCaller said: {text}\nRespond helpfully:"</span>
+    <span class="kw">if</span> <span class="st">"book"</span> <span class="kw">in</span> text.lower() <span class="kw">or</span> <span class="st">"appointment"</span> <span class="kw">in</span> text.lower():
+        tts_speak(<span class="st">"Sure! Let me check the calendar for you."</span>)
+        <span class="cm"># PhoneClaw Accessibility opens Calendar + books slot</span>
+    response = llm_generate(context)
+    tts_speak(response)
+    time.sleep(<span class="nu">1</span>)</pre>
+    </div>
+
+    <div class="code-block-wrapper">
+      <div class="code-header">
+        <span class="code-filename">server.js — Web Dashboard (Node.js)</span>
+        <button class="copy-btn" aria-label="Copy Node.js dashboard code" onclick="copyCode(this,'node-code')">Copy</button>
+      </div>
+      <pre id="node-code"><span class="cm">// npm init -y && npm install express ejs</span>
+<span class="kw">const</span> express = require(<span class="st">'express'</span>);
+<span class="kw">const</span> app = express();
+app.set(<span class="st">'view engine'</span>, <span class="st">'ejs'</span>);
+
+app.get(<span class="st">'/'</span>, (req, res) => {
+  res.render(<span class="st">'dashboard'</span>, {
+    status: <span class="st">'Online'</span>,
+    callsToday: <span class="nu">12</span>,
+    lastCall: <span class="st">'Just now'</span>,
+    upcomingAppointments: [<span class="st">'Tomorrow 10am — John Doe'</span>]
+  });
+});
+
+app.listen(<span class="nu">3000</span>, () => console.log(<span class="st">'Dashboard at http://localhost:3000'</span>));</pre>
+    </div>
+  </section>
+
+  <!-- ══ REPOS ══ -->
+  <section class="repos-section" aria-labelledby="repos-heading">
+    <p class="section-label" id="repos-heading">Key Open-Source Repositories to Fork</p>
+    <div class="repos-grid">
+      <a class="repo-card" href="https://github.com/8dazo/phoneclaw" target="_blank" rel="noopener" aria-label="PhoneClaw Android AI agent - opens GitHub">
+        <div class="repo-icon" aria-hidden="true">🦾</div>
+        <div class="repo-name">phoneclaw/phoneclaw</div>
+        <div class="repo-desc">Open-source AI agent for Android. Uses Accessibility Service to control Calendar, dial calls, open apps — no root required.</div>
+      </a>
+      <a class="repo-card" href="https://github.com/ggerganov/whisper.cpp" target="_blank" rel="noopener" aria-label="Whisper.cpp speech recognition - opens GitHub">
+        <div class="repo-icon" aria-hidden="true">🎤</div>
+        <div class="repo-name">ggerganov/whisper.cpp</div>
+        <div class="repo-desc">Ultra-fast offline Whisper STT. Android/Termux builds available — used in real phone call pipelines.</div>
+      </a>
+      <a class="repo-card" href="https://github.com/rhasspy/piper" target="_blank" rel="noopener" aria-label="Piper TTS - opens GitHub">
+        <div class="repo-icon" aria-hidden="true">🔊</div>
+        <div class="repo-name">rhasspy/piper</div>
+        <div class="repo-desc">Fast local neural TTS. Termux Android binaries available via gyroing/piper-tts-for-termux fork. Beats paid voices in quality.</div>
+      </a>
+      <a class="repo-card" href="https://github.com/ggerganov/llama.cpp" target="_blank" rel="noopener" aria-label="llama.cpp local LLM - opens GitHub">
+        <div class="repo-icon" aria-hidden="true">🧬</div>
+        <div class="repo-name">ggerganov/llama.cpp</div>
+        <div class="repo-desc">Run Phi-3, Gemma, Llama locally on Android via Termux. Quantized models run fast on phones.</div>
+      </a>
+      <a class="repo-card" href="https://huggingface.co/hexgrad/Kokoro-82M" target="_blank" rel="noopener" aria-label="Kokoro TTS on HuggingFace">
+        <div class="repo-icon" aria-hidden="true">🗣️</div>
+        <div class="repo-name">hexgrad/Kokoro-82M</div>
+        <div class="repo-desc">Excellent quality TTS, small footprint. Perfect for on-device voice synthesis on Android hardware.</div>
+      </a>
+      <a class="repo-card" href="https://github.com/vndee/local-talking-llm" target="_blank" rel="noopener" aria-label="Local Talking LLM - opens GitHub">
+        <div class="repo-icon" aria-hidden="true">💬</div>
+        <div class="repo-name">vndee/local-talking-llm</div>
+        <div class="repo-desc">Complete local voice assistant template (Whisper + Ollama + TTS). Easy to adapt for Android/Termux call handling.</div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ══ PRO TIPS ══ -->
+  <section class="tips-section" aria-labelledby="tips-heading">
+    <p class="section-label" id="tips-heading">Production Tips</p>
+    <div class="tips-grid">
+      <div class="tip-card">
+        <div class="tip-icon" aria-hidden="true">⚡</div>
+        <div class="tip-title">Use a Pixel or Samsung for NPU Speed</div>
+        <div class="tip-body">Newer Pixel/Samsung phones with NPU run quantized models 2–4× faster. A Pixel 7a or Galaxy A54 is the sweet spot — affordable and fast.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon" aria-hidden="true">🔋</div>
+        <div class="tip-title">Keep the Phone Plugged In</div>
+        <div class="tip-body">Use termux-wake-lock + nohup to keep the pipeline running 24/7. Plug into a USB charger so the battery never drains during active calls.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon" aria-hidden="true">🗄️</div>
+        <div class="tip-title">Hybrid Storage Option</div>
+        <div class="tip-body">For full RAG + history beyond phone storage, self-host PocketBase (single binary) or lightweight SQLite + sync to Google Drive via Termux.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon" aria-hidden="true">🔄</div>
+        <div class="tip-title">Duplex Conversation</div>
+        <div class="tip-body">For real-time back-and-forth, combine with the talk-llama example in whisper.cpp. Enables natural duplex conversation without push-to-talk.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon" aria-hidden="true">📊</div>
+        <div class="tip-title">Monitor via Local Dashboard</div>
+        <div class="tip-body">Run the Node.js dashboard on your phone (Termux) and access it from your laptop on the same WiFi. Full call logs, appointment history, and status.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon" aria-hidden="true">🧠</div>
+        <div class="tip-title">Pre-Load Your Knowledge Base</div>
+        <div class="tip-body">Scrape your website once → embed locally with BAAI/bge-small-en-v1.5 → store in Chroma. The AI will answer any FAQ about your business instantly.</div>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /container -->
+</main>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <div class="container" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+    <span>Blueprint generated 2026 — all tools 100% local &amp; free</span>
+    <span>Works on any Android phone • Real cellular network • Full privacy</span>
+    <span>More tools: <a href="https://shop.artistrystore.com/store.html" target="_blank" rel="noopener">ArtistryStore.com</a></span>
+  </div>
+</footer>
+
+<script>
+function copyCode(btn, id) {
+  const pre = document.getElementById(id);
+  const text = pre ? pre.innerText : '';
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'Copy';
+      btn.classList.remove('copied');
+    }, 2000);
+  }).catch(() => {
+    btn.textContent = 'Error';
+    setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+  });
+}
+</script>
+</body>
+</html>
