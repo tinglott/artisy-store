@@ -514,20 +514,29 @@
                 e.target.querySelector('button').disabled = true;
                 e.target.querySelector('button').textContent = 'Saving...';
                 
-                // Submit to Google Apps Script (replace with your deployed URL)
-                const gasUrl = 'https://script.google.com/macros/d/YOUR_DEPLOYMENT_ID/usercontent'; // Will be replaced
+                // Submit to Supabase Edge Function
+                const edgeFunctionUrl = 'https://lltlbjmurwhnotjegjrz.supabase.co/functions/v1/puzzle_lead_magnet_capture';
                 
-                const response = await fetch(gasUrl, {
+                const response = await fetch(edgeFunctionUrl, {
                     method: 'POST',
-                    mode: 'no-cors',
-                    body: new URLSearchParams({
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
                         email: email,
                         source: 'puzzle-lead-magnet'
                     })
                 });
                 
-                messageDiv.textContent = '✅ Email saved! Check your inbox for the 20% discount code.';
-                messageDiv.style.color = 'var(--green)';
+                const result = await response.json();
+                
+                if (result.success) {
+                    messageDiv.textContent = '✅ ' + (result.message || 'Email saved! Check your inbox for the 20% discount code.');
+                    messageDiv.style.color = 'var(--green)';
+                } else {
+                    messageDiv.textContent = '⚠️ ' + (result.error || 'Error saving email.');
+                    messageDiv.style.color = 'var(--gold)';
+                }
                 messageDiv.style.display = 'block';
                 
                 e.target.reset();
