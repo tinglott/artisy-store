@@ -224,15 +224,140 @@
             text-align: center;
         }
 
-        .step-video a {
-            display: inline-block;
-            background: var(--accent);
-            color: var(--dark);
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            text-decoration: none;
+        .watch-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: #ff0000;
+            color: #fff;
+            padding: 0.6rem 1.2rem;
+            border-radius: 2rem;
+            border: none;
             font-weight: bold;
+            font-size: 0.95rem;
+            cursor: pointer;
             margin-top: 0.5rem;
+            box-shadow: 0 2px 8px rgba(255,0,0,0.3);
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        .watch-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 16px rgba(255,0,0,0.4);
+        }
+
+        /* YouTube Modal */
+        #yt-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 1rem;
+        }
+
+        #yt-modal.open {
+            display: flex;
+        }
+
+        #yt-modal-inner {
+            background: #000;
+            border-radius: 1rem;
+            overflow: hidden;
+            width: 100%;
+            max-width: 700px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.8);
+        }
+
+        #yt-modal iframe {
+            width: 100%;
+            aspect-ratio: 16/9;
+            border: none;
+            display: block;
+        }
+
+        #yt-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: #111;
+            color: #fff;
+        }
+
+        #yt-modal-title {
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        #yt-modal-close {
+            background: #ff0000;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        /* Videos Hub Section */
+        .videos-hub {
+            padding: 1rem;
+        }
+
+        .videos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .video-card {
+            background: rgba(255,255,255,0.08);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .video-card:hover {
+            transform: scale(1.03);
+        }
+
+        .video-thumb {
+            position: relative;
+            aspect-ratio: 16/9;
+            background: #111;
+        }
+
+        .video-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .video-play-btn {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+
+        .video-card-label {
+            padding: 0.6rem 0.8rem;
+            font-weight: bold;
+            font-size: 0.9rem;
         }
 
         /* Buttons */
@@ -444,7 +569,44 @@
             opacity: 0.5;
             cursor: not-allowed;
         }
-    </style>
+    
+        /* ===== VIDEO CARDS ===== */
+        .video-card {
+            background: var(--surface);
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+        }
+        .video-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,0,0,0.25); }
+        .video-thumb {
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+        }
+        .video-info { padding: 0.8rem 1rem 0.3rem; flex: 1; }
+        .video-title { font-weight: 700; font-size: 1rem; margin-bottom: 0.2rem; }
+        .video-sub { font-size: 0.82rem; color: #888; }
+        .play-btn {
+            margin: 0.5rem 1rem 1rem;
+            padding: 0.5rem 1rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .play-btn:hover { background: var(--secondary); }
+        #videoModal.open { display: flex !important; }
+        </style>
 </head>
 <body>
     <a href="#main-content" class="skip-nav">Skip to main content</a>
@@ -592,10 +754,144 @@
             </div>
         </main>
 
+
+        <!-- Videos View -->
+        <section id="videos-view" class="view" aria-label="Cooking Videos" style="display:none;">
+            <div style="padding: 1.5rem;">
+                <h2 style="text-align:center; margin-bottom: 0.5rem;">🎬 Yummy Cooking Videos</h2>
+                <p style="text-align:center; color:#888; margin-bottom: 1.5rem;">Watch, learn & make something delicious! 🍴</p>
+
+                <!-- Video Player Modal -->
+                <div id="videoModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center; flex-direction:column;">
+                    <div style="position:relative; width:90%; max-width:800px;">
+                        <button onclick="closeVideoPlayer()" style="position:absolute; top:-40px; right:0; background:none; border:none; color:white; font-size:2rem; cursor:pointer;" aria-label="Close video">✕</button>
+                        <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:12px;">
+                            <iframe id="videoIframe" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute; top:0; left:0; width:100%; height:100%;"></iframe>
+                        </div>
+                        <p id="videoCaption" style="color:white; text-align:center; margin-top:1rem; font-size:1.1rem;"></p>
+                    </div>
+                </div>
+
+                <!-- Video Grid -->
+                <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1.2rem;">
+
+                    <div class="video-card" onclick="playVideo('tY8Y8cBH9wk','🍕 Easy Homemade Pizza Kids Can Make!')">
+                        <div class="video-thumb" style="background:linear-gradient(135deg,#ff6b6b,#feca57);">🍕</div>
+                        <div class="video-info">
+                            <div class="video-title">Easy Homemade Pizza</div>
+                            <div class="video-sub">Kids can make this!</div>
+                        </div>
+                        <button class="play-btn" aria-label="Play pizza video">▶ Watch</button>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo('WT_9bPu-4m8','🥞 Fluffy Pancakes Recipe for Kids!')">
+                        <div class="video-thumb" style="background:linear-gradient(135deg,#ffeaa7,#fdcb6e);">🥞</div>
+                        <div class="video-info">
+                            <div class="video-title">Fluffy Pancakes</div>
+                            <div class="video-sub">Breakfast fun!</div>
+                        </div>
+                        <button class="play-btn" aria-label="Play pancakes video">▶ Watch</button>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo('Q27rWHCqRKM','🧃 Yummy Smoothies Kids Will Love!')">
+                        <div class="video-thumb" style="background:linear-gradient(135deg,#a29bfe,#6c5ce7);">🧃</div>
+                        <div class="video-info">
+                            <div class="video-title">Yummy Smoothies</div>
+                            <div class="video-sub">Blend it up!</div>
+                        </div>
+                        <button class="play-btn" aria-label="Play smoothie video">▶ Watch</button>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo('Hbg9zMSBGdI','🍪 No-Bake Cookies — Super Easy!')">
+                        <div class="video-thumb" style="background:linear-gradient(135deg,#fd79a8,#e84393);">🍪</div>
+                        <div class="video-info">
+                            <div class="video-title">No-Bake Cookies</div>
+                            <div class="video-sub">So easy & yummy!</div>
+                        </div>
+                        <button class="play-btn" aria-label="Play cookies video">▶ Watch</button>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo('PsFKEcKI0Ao','🌮 Fun Taco Night for Families!')">
+                        <div class="video-thumb" style="background:linear-gradient(135deg,#55efc4,#00b894);">🌮</div>
+                        <div class="video-info">
+                            <div class="video-title">Fun Taco Night</div>
+                            <div class="video-sub">Family favorite!</div>
+                        </div>
+                        <button class="play-btn" aria-label="Play tacos video">▶ Watch</button>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo('aCNjKO-u2oA','🥪 Creative Sandwiches Kids Can Build!')">
+                        <div class="video-thumb" style="background:linear-gradient(135deg,#74b9ff,#0984e3);">🥪</div>
+                        <div class="video-info">
+                            <div class="video-title">Creative Sandwiches</div>
+                            <div class="video-sub">Stack & munch!</div>
+                        </div>
+                        <button class="play-btn" aria-label="Play sandwich video">▶ Watch</button>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo('YQmpxH1BFVg','🍓 Rainbow Fruit Salad Fun!')">
+                        <div class="video-thumb" style="background:linear-gradient(135deg,#fd79a8,#fdcb6e);">🍓</div>
+                        <div class="video-info">
+                            <div class="video-title">Rainbow Fruit Salad</div>
+                            <div class="video-sub">Colorful & healthy!</div>
+                        </div>
+                        <button class="play-btn" aria-label="Play fruit salad video">▶ Watch</button>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo('G_NeFMmxkw4','🥚 Scrambled Eggs — First Cooking Lesson!')">
+                        <div class="video-thumb" style="background:linear-gradient(135deg,#ffeaa7,#fdcb6e);">🥚</div>
+                        <div class="video-info">
+                            <div class="video-title">Scrambled Eggs</div>
+                            <div class="video-sub">First cooking lesson!</div>
+                        </div>
+                        <button class="play-btn" aria-label="Play eggs video">▶ Watch</button>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo('HiKhBFwWgdY','🍦 Homemade Ice Cream — Just 3 Ingredients!')">
+                        <div class="video-thumb" style="background:linear-gradient(135deg,#a29bfe,#74b9ff);">🍦</div>
+                        <div class="video-info">
+                            <div class="video-title">Homemade Ice Cream</div>
+                            <div class="video-sub">3 ingredients only!</div>
+                        </div>
+                        <button class="play-btn" aria-label="Play ice cream video">▶ Watch</button>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo('nMyBC9staMU','🥗 Easy Kids Salad — Fun & Healthy!')">
+                        <div class="video-thumb" style="background:linear-gradient(135deg,#55efc4,#a29bfe);">🥗</div>
+                        <div class="video-info">
+                            <div class="video-title">Easy Kids Salad</div>
+                            <div class="video-sub">Healthy & delicious!</div>
+                        </div>
+                        <button class="play-btn" aria-label="Play salad video">▶ Watch</button>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo('1_OQKFJ6EXc','🍝 Simple Spaghetti Recipe for Kids!')">
+                        <div class="video-thumb" style="background:linear-gradient(135deg,#ff7675,#d63031);">🍝</div>
+                        <div class="video-info">
+                            <div class="video-title">Simple Spaghetti</div>
+                            <div class="video-sub">Pasta night!</div>
+                        </div>
+                        <button class="play-btn" aria-label="Play spaghetti video">▶ Watch</button>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo('vRQ0iMNMCGM','🫐 Blueberry Muffins — Bake With Kids!')">
+                        <div class="video-thumb" style="background:linear-gradient(135deg,#6c5ce7,#a29bfe);">🫐</div>
+                        <div class="video-info">
+                            <div class="video-title">Blueberry Muffins</div>
+                            <div class="video-sub">Bake together!</div>
+                        </div>
+                        <button class="play-btn" aria-label="Play muffins video">▶ Watch</button>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
         <!-- Navigation Footer -->
         <footer role="contentinfo">
             <div style="display: flex; justify-content: center; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
                 <button class="btn-primary" style="padding: 0.5rem 1rem;" id="menuBtn" aria-label="Home menu">🏠 Home</button>
+                <button class="btn-secondary" style="padding: 0.5rem 1rem;" id="videosBtn" aria-label="Watch cooking videos">🎬 Videos</button>
                 <button class="btn-secondary" style="padding: 0.5rem 1rem;" id="badgesBtn" aria-label="View badges">🏆 Badges</button>
                 <button class="btn-secondary" style="padding: 0.5rem 1rem;" id="settingsBtn" aria-label="Settings">⚙️ Settings</button>
                 <button class="btn-secondary" style="padding: 0.5rem 1rem;" id="helpBtn" aria-label="Keyboard shortcuts">❓ Help</button>
@@ -613,7 +909,7 @@
             pizza: {
                 emoji: '🍕',
                 name: 'Pizza',
-                videoUrl: 'https://www.youtube.com/watch?v=sv3TXMSv6Lw',
+                videoId: 'sv3TXMSv6Lw',
                 videoLabel: '🎬 Watch: Kids Pizza Recipe',
                 steps: [
                     { instruction: 'Mix flour and water to make dough! 🥄', animation: '🥄', tip: null },
@@ -627,7 +923,7 @@
             pancakes: {
                 emoji: '🥞',
                 name: 'Pancakes',
-                videoUrl: 'https://www.youtube.com/watch?v=WT_9bPu-4m8',
+                videoId: 'WT_9bPu-4m8',
                 videoLabel: '🎬 Watch: Kids Pancake Recipe',
                 steps: [
                     { instruction: 'Mix flour, eggs, and milk! 🥄', animation: '🥄', tip: null },
@@ -641,7 +937,7 @@
             smoothie: {
                 emoji: '🧃',
                 name: 'Smoothie',
-                videoUrl: 'https://www.youtube.com/watch?v=q0YVNWEX87g',
+                videoId: 'q0YVNWEX87g',
                 videoLabel: '🎬 Watch: Kids Smoothie Recipe',
                 steps: [
                     { instruction: 'Gather fruits! 🍓🍌', animation: '🍓', tip: null },
@@ -655,7 +951,7 @@
             cookies: {
                 emoji: '🍪',
                 name: 'Cookies',
-                videoUrl: 'https://www.youtube.com/watch?v=MK6jcFBr2XU',
+                videoId: 'MK6jcFBr2XU',
                 videoLabel: '🎬 Watch: Kids Cookie Recipe',
                 steps: [
                     { instruction: 'Mix butter and sugar! 🧈', animation: '🧈', tip: null },
@@ -669,7 +965,7 @@
             tacos: {
                 emoji: '🌮',
                 name: 'Tacos',
-                videoUrl: 'https://www.youtube.com/watch?v=_GgL7_VbqO8',
+                videoId: '_GgL7_VbqO8',
                 videoLabel: '🎬 Watch: Kids Taco Recipe',
                 steps: [
                     { instruction: 'Brown the meat! 🍖', animation: '🍖', tip: null },
@@ -683,7 +979,7 @@
             sandwich: {
                 emoji: '🥪',
                 name: 'Sandwich',
-                videoUrl: 'https://www.youtube.com/watch?v=WxlSGbMsgxQ',
+                videoId: 'WxlSGbMsgxQ',
                 videoLabel: '🎬 Watch: Kids Sandwich Recipe',
                 steps: [
                     { instruction: 'Get two slices of bread! 🍞', animation: '🍞', tip: null },
@@ -1011,6 +1307,31 @@
         });
 
         speak('Welcome to Wacky Kitchen! Choose a recipe to get started!');
-    </script>
+    
+        // ===== VIDEO PLAYER =====
+        function playVideo(videoId, caption) {
+            const modal = document.getElementById('videoModal');
+            const iframe = document.getElementById('videoIframe');
+            const cap = document.getElementById('videoCaption');
+            iframe.src = 'https://www.youtube.com/embed/' + videoId + '?autoplay=1&rel=0';
+            cap.textContent = caption;
+            modal.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeVideoPlayer() {
+            const modal = document.getElementById('videoModal');
+            document.getElementById('videoIframe').src = '';
+            modal.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+        document.getElementById('videoModal').addEventListener('click', function(e) {
+            if (e.target === this) closeVideoPlayer();
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeVideoPlayer();
+        });
+        document.getElementById('videosBtn').addEventListener('click', function() { showView('videos'); });
+
+</script>
 </body>
 </html>
