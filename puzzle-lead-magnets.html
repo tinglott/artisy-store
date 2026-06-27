@@ -455,6 +455,34 @@
         </div>
     </section>
 
+    <!-- EMAIL CAPTURE SECTION -->
+    <section class="section" style="background: rgba(107, 33, 168, 0.15); border: 1px solid rgba(201, 168, 76, 0.4); border-radius: 8px; max-width: 600px; margin: 3rem auto 2rem; padding: 2rem;">
+        <h2 style="text-align: center; margin-bottom: 0.5rem;">💌 Get 20% Off Your First Bundle</h2>
+        <p style="text-align: center; color: var(--muted); margin-bottom: 1.5rem;">Join 1,000+ puzzle lovers. Weekly tips + exclusive offers.</p>
+        
+        <form id="emailForm" style="display: flex; flex-direction: column; gap: 1rem;">
+            <input 
+                type="email" 
+                placeholder="your@email.com" 
+                required
+                style="padding: 0.75rem; border: 1px solid rgba(201, 168, 76, 0.4); border-radius: 4px; background: rgba(15, 10, 30, 0.8); color: var(--text); font-family: inherit; font-size: 1rem;"
+            />
+            
+            <!-- Honeypot field (hidden from real users) -->
+            <input type="text" name="website" style="display: none;" tabindex="-1" autocomplete="off" />
+            
+            <button type="submit" class="btn btn-gold" style="width: 100%; cursor: pointer;">
+                Get 20% Off + Free Tips
+            </button>
+            
+            <p style="font-size: 0.8rem; color: var(--muted); text-align: center;">
+                ✓ No spam. Unsubscribe anytime.
+            </p>
+        </form>
+        
+        <div id="formMessage" style="margin-top: 1rem; text-align: center; font-size: 0.95rem; display: none;"></div>
+    </section>
+
     <!-- FOOTER -->
     <footer>
         <p>
@@ -467,6 +495,60 @@
     </footer>
 
     <script>
+        // EMAIL FORM HANDLER
+        document.getElementById('emailForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = e.target.querySelector('input[type="email"]').value;
+            const honeypot = e.target.querySelector('input[name="website"]').value;
+            const messageDiv = document.getElementById('formMessage');
+            
+            // Spam check
+            if (honeypot) {
+                console.log('Honeypot triggered');
+                return;
+            }
+            
+            try {
+                messageDiv.style.display = 'none';
+                e.target.querySelector('button').disabled = true;
+                e.target.querySelector('button').textContent = 'Saving...';
+                
+                // Submit to Google Apps Script (replace with your deployed URL)
+                const gasUrl = 'https://script.google.com/macros/d/YOUR_DEPLOYMENT_ID/usercontent'; // Will be replaced
+                
+                const response = await fetch(gasUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: new URLSearchParams({
+                        email: email,
+                        source: 'puzzle-lead-magnet'
+                    })
+                });
+                
+                messageDiv.textContent = '✅ Email saved! Check your inbox for the 20% discount code.';
+                messageDiv.style.color = 'var(--green)';
+                messageDiv.style.display = 'block';
+                
+                e.target.reset();
+                e.target.querySelector('button').disabled = false;
+                e.target.querySelector('button').textContent = 'Get 20% Off + Free Tips';
+                
+                // Clear message after 5 seconds
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 5000);
+                
+            } catch (error) {
+                console.error('Form submission error:', error);
+                messageDiv.textContent = '⚠️ Error saving email. Please try again.';
+                messageDiv.style.color = 'var(--gold)';
+                messageDiv.style.display = 'block';
+                e.target.querySelector('button').disabled = false;
+                e.target.querySelector('button').textContent = 'Get 20% Off + Free Tips';
+            }
+        });
+
         // Puzzle data
         const puzzles = [
             {
