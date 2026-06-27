@@ -1,0 +1,3243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Wholesale Playbook — Interactive Workbook</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #0A0A0A;
+    --gold: #C9A84C;
+    --gold-light: #E8C97A;
+    --gold-pale: #F5E6C0;
+    --white: #FDFAF3;
+    --gray: #1C1C1C;
+    --gray-mid: #2E2E2E;
+    --gray-light: #3D3D3D;
+    --text-muted: #888;
+    --step-colors: #C9A84C, #B8860B, #DAA520, #C9A84C;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 60px 24px;
+    position: relative;
+    background: radial-gradient(ellipse at 50% 0%, #1a1200 0%, var(--black) 70%);
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 80px,
+      rgba(201,168,76,0.03) 80px,
+      rgba(201,168,76,0.03) 81px
+    );
+    pointer-events: none;
+  }
+
+  .hero-badge {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    border: 1px solid rgba(201,168,76,0.4);
+    padding: 6px 18px;
+    border-radius: 2px;
+    margin-bottom: 32px;
+    display: inline-block;
+  }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(42px, 8vw, 96px);
+    font-weight: 900;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    color: var(--white);
+    margin-bottom: 16px;
+  }
+
+  .hero h1 span {
+    color: var(--gold);
+    display: block;
+  }
+
+  .hero-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(18px, 3vw, 26px);
+    font-style: italic;
+    color: var(--gold-light);
+    margin-bottom: 40px;
+    max-width: 600px;
+  }
+
+  .hero-desc {
+    font-size: 15px;
+    color: rgba(253,250,243,0.6);
+    max-width: 540px;
+    margin-bottom: 48px;
+    line-height: 1.8;
+  }
+
+  .coins {
+    font-size: clamp(80px, 15vw, 160px);
+    line-height: 1;
+    margin-bottom: 24px;
+    filter: drop-shadow(0 0 40px rgba(201,168,76,0.4));
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    animation: bounce 2s ease-in-out infinite;
+  }
+
+  .scroll-hint::after {
+    content: '↓';
+    font-size: 18px;
+    color: var(--gold);
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(6px); }
+  }
+
+  /* ─── NAV ─── */
+  .toc {
+    background: var(--gray);
+    border-top: 1px solid rgba(201,168,76,0.2);
+    border-bottom: 1px solid rgba(201,168,76,0.2);
+    padding: 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .toc-inner {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .toc a {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(253,250,243,0.6);
+    text-decoration: none;
+    padding: 6px 14px;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .toc a:hover {
+    color: var(--gold);
+    border-color: rgba(201,168,76,0.3);
+  }
+
+  /* ─── SECTIONS ─── */
+  .section {
+    padding: 80px 24px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+
+  .section h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--white);
+    margin-bottom: 24px;
+  }
+
+  .section h2 em {
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  .divider {
+    width: 60px;
+    height: 2px;
+    background: var(--gold);
+    margin-bottom: 32px;
+  }
+
+  /* ─── ANALOGY BOX ─── */
+  .analogy {
+    background: linear-gradient(135deg, rgba(201,168,76,0.12) 0%, rgba(201,168,76,0.04) 100%);
+    border: 1px solid rgba(201,168,76,0.35);
+    border-left: 4px solid var(--gold);
+    border-radius: 4px;
+    padding: 28px 32px;
+    margin: 32px 0;
+  }
+
+  .analogy-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+
+  .analogy p {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-style: italic;
+    color: var(--gold-pale);
+    line-height: 1.6;
+  }
+
+  /* ─── STEP CARDS ─── */
+  .steps-grid {
+    display: grid;
+    gap: 2px;
+    margin: 40px 0;
+  }
+
+  .step-card {
+    background: var(--gray);
+    border: 1px solid rgba(201,168,76,0.15);
+    border-radius: 4px;
+    padding: 0;
+    overflow: hidden;
+    transition: border-color 0.2s;
+    cursor: pointer;
+  }
+
+  .step-card:hover { border-color: rgba(201,168,76,0.5); }
+
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 24px 28px;
+    position: relative;
+  }
+
+  .step-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 48px;
+    font-weight: 900;
+    color: rgba(201,168,76,0.2);
+    line-height: 1;
+    min-width: 56px;
+    transition: color 0.2s;
+  }
+
+  .step-card.active .step-num,
+  .step-card:hover .step-num {
+    color: var(--gold);
+  }
+
+  .step-title-wrap h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 4px;
+  }
+
+  .step-title-wrap .step-emoji {
+    font-size: 22px;
+    margin-right: 8px;
+  }
+
+  .step-title-wrap p {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .step-toggle {
+    margin-left: auto;
+    font-size: 20px;
+    color: var(--gold);
+    transition: transform 0.3s;
+    min-width: 24px;
+    text-align: center;
+  }
+
+  .step-card.active .step-toggle { transform: rotate(45deg); }
+
+  .step-body {
+    display: none;
+    padding: 0 28px 28px 28px;
+    border-top: 1px solid rgba(201,168,76,0.1);
+  }
+
+  .step-card.active .step-body { display: block; }
+
+  .step-body p {
+    font-size: 15px;
+    color: rgba(253,250,243,0.8);
+    line-height: 1.8;
+    margin-bottom: 16px;
+  }
+
+  /* ─── SIMPLE STEPS (kid-friendly) ─── */
+  .kid-steps {
+    counter-reset: kid;
+    list-style: none;
+    margin: 24px 0;
+  }
+
+  .kid-steps li {
+    counter-increment: kid;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .kid-steps li:last-child { border-bottom: none; }
+
+  .kid-steps li::before {
+    content: counter(kid);
+    background: var(--gold);
+    color: var(--black);
+    font-weight: 700;
+    font-size: 13px;
+    min-width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  .kid-steps li strong {
+    color: var(--gold-light);
+    display: block;
+    margin-bottom: 4px;
+    font-size: 15px;
+  }
+
+  .kid-steps li span {
+    font-size: 14px;
+    color: rgba(253,250,243,0.7);
+  }
+
+  /* ─── MATH BOX ─── */
+  .math-box {
+    background: var(--gray-mid);
+    border: 1px solid rgba(201,168,76,0.25);
+    border-radius: 6px;
+    padding: 32px;
+    margin: 32px 0;
+  }
+
+  .math-box h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    color: var(--gold);
+    margin-bottom: 20px;
+  }
+
+  .math-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    font-size: 15px;
+  }
+
+  .math-row:last-child { border-bottom: none; }
+
+  .math-row.total {
+    border-top: 2px solid var(--gold);
+    margin-top: 8px;
+    padding-top: 16px;
+    font-weight: 700;
+    font-size: 18px;
+  }
+
+  .math-row .label { color: rgba(253,250,243,0.7); }
+  .math-row .value { color: var(--gold-light); font-weight: 600; font-family: 'Inter', monospace; }
+  .math-row.total .value { color: var(--gold); font-size: 24px; }
+
+  /* ─── TOOL CARDS ─── */
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    margin: 32px 0;
+  }
+
+  .tool-card {
+    background: var(--gray);
+    border: 1px solid rgba(201,168,76,0.15);
+    border-radius: 6px;
+    padding: 24px;
+    transition: all 0.2s;
+  }
+
+  .tool-card:hover {
+    border-color: var(--gold);
+    transform: translateY(-2px);
+    background: var(--gray-mid);
+  }
+
+  .tool-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+  }
+
+  .tool-card h4 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 4px;
+  }
+
+  .tool-card .tool-type {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+
+  .tool-card p {
+    font-size: 13px;
+    color: rgba(253,250,243,0.6);
+    line-height: 1.6;
+  }
+
+  .tool-card .cost {
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--gold-light);
+    font-weight: 600;
+  }
+
+  /* ─── GLOSSARY ─── */
+  .glossary {
+    display: grid;
+    gap: 2px;
+    margin: 32px 0;
+  }
+
+  .term {
+    background: var(--gray);
+    border: 1px solid rgba(201,168,76,0.1);
+    border-radius: 3px;
+    padding: 18px 24px;
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  @media (max-width: 600px) {
+    .term { grid-template-columns: 1fr; gap: 8px; }
+  }
+
+  .term-word {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--gold);
+  }
+
+  .term-def {
+    font-size: 14px;
+    color: rgba(253,250,243,0.75);
+    line-height: 1.6;
+  }
+
+  /* ─── CHECKLIST ─── */
+  .checklist {
+    list-style: none;
+    margin: 24px 0;
+  }
+
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+    font-size: 14px;
+    color: rgba(253,250,243,0.8);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.2s;
+  }
+
+  .checklist li.checked {
+    color: rgba(253,250,243,0.35);
+    text-decoration: line-through;
+  }
+
+  .checklist li .checkbox {
+    min-width: 20px;
+    height: 20px;
+    border: 2px solid rgba(201,168,76,0.4);
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    margin-top: 1px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .checklist li.checked .checkbox {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--black);
+  }
+
+  .checklist li.checked .checkbox::after { content: '✓'; }
+
+  /* ─── PROCESS FLOW ─── */
+  .flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 40px 0;
+    position: relative;
+  }
+
+  .flow::before {
+    content: '';
+    position: absolute;
+    left: 27px;
+    top: 28px;
+    bottom: 28px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--gold), transparent);
+  }
+
+  .flow-step {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    padding: 20px 0;
+  }
+
+  .flow-dot {
+    min-width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--gray);
+    border: 2px solid var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+    z-index: 1;
+    position: relative;
+  }
+
+  .flow-content h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: var(--white);
+    margin-bottom: 6px;
+    margin-top: 14px;
+  }
+
+  .flow-content p {
+    font-size: 14px;
+    color: rgba(253,250,243,0.65);
+    line-height: 1.7;
+  }
+
+  .flow-content .time-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    background: rgba(201,168,76,0.12);
+    padding: 3px 10px;
+    border-radius: 2px;
+    margin-bottom: 6px;
+  }
+
+  /* ─── CALLOUT ─── */
+  .callout {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 20px 24px;
+    border-radius: 4px;
+    margin: 24px 0;
+  }
+
+  .callout.warning {
+    background: rgba(255,180,0,0.08);
+    border: 1px solid rgba(255,180,0,0.3);
+  }
+
+  .callout.tip {
+    background: rgba(201,168,76,0.08);
+    border: 1px solid rgba(201,168,76,0.3);
+  }
+
+  .callout.danger {
+    background: rgba(200,60,60,0.08);
+    border: 1px solid rgba(200,60,60,0.3);
+  }
+
+  .callout-icon { font-size: 24px; flex-shrink: 0; margin-top: 2px; }
+
+  .callout-body strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 4px;
+  }
+
+  .callout-body p {
+    font-size: 13px;
+    color: rgba(253,250,243,0.7);
+    line-height: 1.6;
+  }
+
+  /* ─── PROFIT CALCULATOR ─── */
+  .calculator {
+    background: linear-gradient(135deg, var(--gray-mid), var(--gray));
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 8px;
+    padding: 40px 36px;
+    margin: 40px 0;
+  }
+
+  .calculator h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+
+  .calculator p.sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 28px;
+  }
+
+  .calc-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 600px) { .calc-row { grid-template-columns: 1fr; } }
+
+  .calc-field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+
+  .calc-field input {
+    width: 100%;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 4px;
+    padding: 12px 16px;
+    color: var(--white);
+    font-size: 16px;
+    font-family: 'Inter', monospace;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .calc-field input:focus { border-color: var(--gold); }
+
+  .calc-result {
+    background: rgba(0,0,0,0.5);
+    border: 1px solid var(--gold);
+    border-radius: 6px;
+    padding: 24px;
+    margin-top: 24px;
+    text-align: center;
+  }
+
+  .calc-result .result-label {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .calc-result .result-amount {
+    font-family: 'Playfair Display', serif;
+    font-size: 48px;
+    font-weight: 900;
+    color: var(--gold);
+    line-height: 1;
+  }
+
+  .calc-result .result-status {
+    font-size: 13px;
+    color: rgba(253,250,243,0.5);
+    margin-top: 8px;
+  }
+
+  .calc-result.good .result-amount { color: #6fcf97; }
+  .calc-result.bad .result-amount { color: #eb5757; }
+
+  /* ─── DIVIDER ORNAMENT ─── */
+  .ornament {
+    text-align: center;
+    padding: 40px 0;
+    color: rgba(201,168,76,0.3);
+    font-size: 20px;
+    letter-spacing: 8px;
+  }
+
+  /* ─── FAQ ─── */
+  .faq-item {
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+
+  .faq-q {
+    padding: 20px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--white);
+    gap: 16px;
+    transition: color 0.2s;
+  }
+
+  .faq-q:hover { color: var(--gold); }
+
+  .faq-q .faq-icon {
+    color: var(--gold);
+    font-size: 20px;
+    min-width: 24px;
+    text-align: center;
+    transition: transform 0.3s;
+    flex-shrink: 0;
+  }
+
+  .faq-item.open .faq-icon { transform: rotate(45deg); }
+
+  .faq-a {
+    display: none;
+    padding: 0 0 20px 0;
+    font-size: 14px;
+    color: rgba(253,250,243,0.7);
+    line-height: 1.8;
+  }
+
+  .faq-item.open .faq-a { display: block; }
+
+  /* ─── STATE TABLE ─── */
+  .state-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 24px 0;
+    font-size: 13px;
+  }
+
+  .state-table th {
+    background: rgba(201,168,76,0.15);
+    color: var(--gold);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid rgba(201,168,76,0.3);
+  }
+
+  .state-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    color: rgba(253,250,243,0.75);
+    vertical-align: top;
+  }
+
+  .state-table tr:hover td { background: rgba(201,168,76,0.04); }
+
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .badge.red { background: rgba(200,60,60,0.2); color: #eb5757; }
+  .badge.yellow { background: rgba(255,180,0,0.15); color: #f2c94c; }
+  .badge.green { background: rgba(39,174,96,0.15); color: #6fcf97; }
+
+  /* ─── FOOTER ─── */
+  footer {
+    background: var(--gray);
+    border-top: 1px solid rgba(201,168,76,0.2);
+    padding: 60px 24px;
+    text-align: center;
+  }
+
+  footer .brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+
+  footer p {
+    font-size: 13px;
+    color: var(--text-muted);
+    max-width: 500px;
+    margin: 0 auto 24px;
+    line-height: 1.8;
+  }
+
+  footer .disclaimer {
+    font-size: 11px;
+    color: rgba(255,255,255,0.2);
+    max-width: 600px;
+    margin: 24px auto 0;
+    line-height: 1.7;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    padding-top: 24px;
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 600px) {
+    .step-header { padding: 18px 20px; }
+    .step-body { padding: 0 20px 20px; }
+    .section { padding: 60px 20px; }
+    .calculator { padding: 28px 20px; }
+    .term { grid-template-columns: 1fr; }
+  }
+
+  /* ─── PROGRESS BAR ─── */
+  .progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    z-index: 999;
+    transition: width 0.1s;
+    width: 0%;
+  }
+
+  /* ─── HIGHLIGHT TEXT ─── */
+  .highlight { color: var(--gold); font-weight: 600; }
+  .big-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(18px, 3vw, 24px);
+    font-style: italic;
+    color: rgba(253,250,243,0.85);
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+
+
+/* ─── TAB NAVIGATION ─── */
+.app-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  background: var(--gray);
+  border-bottom: 1px solid rgba(201,168,76,0.25);
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.app-tabs::-webkit-scrollbar { display: none; }
+
+.tab-btn {
+  flex: 0 0 auto;
+  padding: 14px 20px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(253,250,243,0.5);
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
+  min-height: 48px;
+}
+
+.tab-btn:hover { color: var(--gold-light); }
+.tab-btn.active {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+
+/* ─── TAB PANELS ─── */
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ─── OVERALL PROGRESS BAR ─── */
+.overall-progress-wrap {
+  background: var(--gray);
+  border-bottom: 1px solid rgba(201,168,76,0.1);
+  padding: 8px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+}
+.overall-bar {
+  flex: 1;
+  height: 4px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.overall-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), var(--gold-light));
+  border-radius: 2px;
+  transition: width 0.5s ease;
+  width: 0%;
+}
+.overall-pct { min-width: 36px; text-align: right; color: var(--gold); font-weight: 700; }
+
+/* ─── CALCULATOR ENHANCEMENTS ─── */
+.calc-history {
+  margin-top: 24px;
+}
+.calc-history h4 {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+.calc-history-list {
+  list-style: none;
+  max-height: 280px;
+  overflow-y: auto;
+}
+.calc-history-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: rgba(253,250,243,0.75);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  gap: 12px;
+}
+.calc-history-list li .hist-fee { color: var(--gold); font-weight: 700; }
+.calc-history-list li .hist-status.good { color: #6fcf97; }
+.calc-history-list li .hist-status.bad { color: #eb5757; }
+.calc-history-list li .hist-date { font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
+.calc-btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+.calc-action-btn {
+  padding: 10px 20px;
+  border-radius: 4px;
+  border: 1px solid var(--gold);
+  background: transparent;
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
+  min-height: 44px;
+}
+.calc-action-btn:hover { background: rgba(201,168,76,0.1); }
+.calc-action-btn.primary {
+  background: var(--gold);
+  color: var(--black);
+}
+.calc-action-btn.primary:hover { background: var(--gold-light); }
+
+/* ─── DEAL TRACKER ─── */
+.deal-tracker-wrap {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+.deal-tracker-wrap h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 32px;
+  color: var(--white);
+  margin-bottom: 8px;
+}
+.deal-tracker-wrap .sub {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 28px;
+}
+.deal-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 28px;
+}
+.deal-stat {
+  background: var(--gray);
+  border: 1px solid rgba(201,168,76,0.2);
+  border-radius: 6px;
+  padding: 18px;
+  text-align: center;
+}
+.deal-stat .ds-val {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px;
+  color: var(--gold);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.deal-stat .ds-label {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.deal-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: var(--gold);
+  color: var(--black);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
+  min-height: 44px;
+  margin-bottom: 24px;
+}
+.deal-add-btn:hover { background: var(--gold-light); }
+
+.deal-card {
+  background: var(--gray);
+  border: 1px solid rgba(201,168,76,0.15);
+  border-radius: 6px;
+  padding: 24px;
+  margin-bottom: 12px;
+  transition: border-color 0.2s;
+}
+.deal-card:hover { border-color: rgba(201,168,76,0.4); }
+
+.deal-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.deal-card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  color: var(--white);
+}
+.deal-status-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  flex-shrink: 0;
+}
+.deal-status-badge.Prospecting { background: rgba(255,180,0,0.15); color: #f2c94c; }
+.deal-status-badge.Under\ Contract { background: rgba(201,168,76,0.2); color: var(--gold); }
+.deal-status-badge.Buyer\ Found { background: rgba(100,100,255,0.15); color: #a0a0ff; }
+.deal-status-badge.Closed { background: rgba(39,174,96,0.2); color: #6fcf97; }
+.deal-status-badge.Dead { background: rgba(200,60,60,0.15); color: #eb5757; }
+
+.deal-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+.deal-field label {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+.deal-field input,
+.deal-field select,
+.deal-field textarea {
+  width: 100%;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(201,168,76,0.2);
+  border-radius: 3px;
+  padding: 8px 12px;
+  color: var(--white);
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  transition: border-color 0.2s;
+  min-height: 40px;
+}
+.deal-field input:focus,
+.deal-field select:focus,
+.deal-field textarea:focus { border-color: var(--gold); }
+.deal-field select option { background: var(--gray-mid); color: var(--white); }
+
+.deal-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.deal-action-btn {
+  padding: 8px 16px;
+  border-radius: 3px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: transparent;
+  color: rgba(253,250,243,0.6);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
+  min-height: 36px;
+}
+.deal-action-btn:hover { color: var(--white); border-color: var(--gold); }
+.deal-action-btn.danger:hover { color: #eb5757; border-color: #eb5757; }
+
+.deal-profit {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  color: #6fcf97;
+  font-weight: 900;
+}
+.deal-profit.negative { color: #eb5757; }
+
+.empty-state {
+  text-align: center;
+  padding: 60px 24px;
+  color: var(--text-muted);
+}
+.empty-state .es-icon { font-size: 48px; margin-bottom: 16px; }
+.empty-state h4 { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--white); margin-bottom: 8px; }
+.empty-state p { font-size: 14px; }
+
+/* ─── NOTES TAB ─── */
+.notes-wrap {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+.notes-wrap h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 32px;
+  color: var(--white);
+  margin-bottom: 8px;
+}
+.notes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.notes-sub { font-size: 14px; color: var(--text-muted); }
+.notes-save-status { font-size: 12px; color: #6fcf97; }
+
+.note-section {
+  background: var(--gray);
+  border: 1px solid rgba(201,168,76,0.15);
+  border-radius: 6px;
+  padding: 24px;
+  margin-bottom: 16px;
+}
+.note-section h4 {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+.note-textarea {
+  width: 100%;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(201,168,76,0.2);
+  border-radius: 4px;
+  padding: 14px;
+  color: var(--white);
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  line-height: 1.7;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s;
+  min-height: 120px;
+}
+.note-textarea:focus { border-color: var(--gold); }
+.note-clear-btn {
+  margin-top: 8px;
+  padding: 6px 14px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: transparent;
+  color: rgba(253,250,243,0.4);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  min-height: 36px;
+  transition: all 0.2s;
+}
+.note-clear-btn:hover { color: #eb5757; border-color: #eb5757; }
+
+/* ─── CHECKLISTS TAB ─── */
+.checklists-wrap {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+.checklists-wrap h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 32px;
+  color: var(--white);
+  margin-bottom: 24px;
+}
+.checklist-group {
+  background: var(--gray);
+  border: 1px solid rgba(201,168,76,0.15);
+  border-radius: 6px;
+  padding: 24px;
+  margin-bottom: 16px;
+}
+.checklist-group h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+.checklist-group-progress {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+.checklist-group-bar {
+  height: 3px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.checklist-group-fill {
+  height: 100%;
+  background: var(--gold);
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+.checklist-reset-btn {
+  margin-top: 12px;
+  padding: 6px 14px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: transparent;
+  color: rgba(253,250,243,0.4);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  min-height: 36px;
+  transition: all 0.2s;
+}
+.checklist-reset-btn:hover { color: var(--gold); border-color: var(--gold); }
+
+/* ─── TOAST ─── */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+.toast {
+  background: var(--gray-mid);
+  border: 1px solid var(--gold);
+  border-radius: 6px;
+  padding: 12px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--white);
+  min-width: 200px;
+  max-width: 300px;
+  animation: slideIn 0.25s ease;
+  pointer-events: auto;
+}
+.toast.success { border-color: #6fcf97; color: #6fcf97; }
+.toast.warning { border-color: #f2c94c; color: #f2c94c; }
+
+@keyframes slideIn { from { transform: translateX(320px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes fadeOut { to { opacity: 0; transform: translateX(10px); } }
+.toast.dying { animation: fadeOut 0.3s ease forwards; }
+
+/* ─── ENHANCED CALCULATOR TAB ─── */
+.calc-tab-wrap {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+.calc-tab-wrap h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 32px;
+  color: var(--white);
+  margin-bottom: 8px;
+}
+.calc-tab-wrap .sub {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 28px;
+}
+
+/* ─── RESPONSIVE ADJUSTMENTS ─── */
+@media (max-width: 600px) {
+  .tab-btn { padding: 12px 14px; font-size: 11px; }
+  .deal-tracker-wrap, .notes-wrap, .checklists-wrap, .calc-tab-wrap {
+    padding: 24px 16px;
+  }
+  .deal-fields { grid-template-columns: 1fr 1fr; }
+  .deal-stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ─── SKIP NAV ─── */
+.skip-nav {
+  position: fixed;
+  top: -100px;
+  left: 1rem;
+  z-index: 9999;
+  background: var(--gold);
+  color: var(--black);
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  font-weight: 700;
+  transition: top 0.2s;
+  text-decoration: none;
+}
+.skip-nav:focus { top: 1rem; }
+
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<a href="#main-content" class="skip-nav">Skip to main content</a>
+<div id="toast-container" class="toast-container" role="status" aria-live="polite"></div>
+
+<!-- ─── SCROLL PROGRESS BAR ─── -->
+<div class="progress-bar" id="progress" role="progressbar" aria-label="Reading progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+
+<!-- ─── OVERALL CHECKLIST PROGRESS ─── -->
+<div class="overall-progress-wrap">
+  <span style="letter-spacing:0.15em; text-transform:uppercase; font-size:10px;">Deal Readiness</span>
+  <div class="overall-bar" role="progressbar" aria-label="Overall checklist completion" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+    <div class="overall-bar-fill" id="overallBarFill"></div>
+  </div>
+  <span class="overall-pct" id="overallPct">0%</span>
+</div>
+
+<!-- ─── TAB NAVIGATION ─── -->
+<div class="app-tabs" role="tablist" aria-label="Workbook sections">
+  <button class="tab-btn active" role="tab" aria-selected="true"  aria-controls="tab-playbook"    id="tabBtn-0" onclick="switchTab(0)">📖 Playbook</button>
+  <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="tab-checklists"  id="tabBtn-1" onclick="switchTab(1)">✅ Checklists</button>
+  <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="tab-calculator"  id="tabBtn-2" onclick="switchTab(2)">🧮 Calculator</button>
+  <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="tab-deals"       id="tabBtn-3" onclick="switchTab(3)">📊 My Deals</button>
+  <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="tab-notes"       id="tabBtn-4" onclick="switchTab(4)">📝 Notes</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     TAB 0: PLAYBOOK (original content)
+═══════════════════════════════════════════════════════ -->
+<div id="tab-playbook" class="tab-panel active" role="tabpanel" aria-labelledby="tabBtn-0">
+  <main id="main-content">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-badge">T. Lott Creative × LUMINA</div>
+    <div class="coins" aria-hidden="true">🏠💰</div>
+    <h1>The Wholesale<span>Playbook</span></h1>
+    <p class="hero-sub">From Zero to Closing — Your Complete Money-Making Guide</p>
+    <p class="hero-desc">Learn how to make $20,000–$30,000 per real estate deal without ever buying a house. Step-by-step, plain English, beginner-friendly.</p>
+    <div class="scroll-hint" aria-hidden="true">Start Learning</div>
+  </section>
+
+  <!-- TOC -->
+  <nav class="toc" aria-label="Table of contents">
+    <div class="toc-inner">
+      <a href="#what-is-this">What Is This?</a>
+      <a href="#how-money-works">How You Get Paid</a>
+      <a href="#glossary">Key Words</a>
+      <a href="#steps">Step-by-Step</a>
+      <a href="#timeline">Timeline</a>
+      <a href="#tools">Tools &amp; Apps</a>
+      <a href="#legal">Legal Guide</a>
+      <a href="#mistakes">Avoid Mistakes</a>
+      <a href="#faq">FAQ</a>
+      <a href="#roadmap">Income Roadmap</a>
+    </div>
+  </nav>
+
+<!-- ═══ SECTION 1: WHAT IS THIS ═══ -->
+<section class="section" id="what-is-this">
+  <div class="section-label">Chapter 1</div>
+  <h2>What Is Real Estate <em>Wholesaling?</em></h2>
+  <div class="divider"></div>
+
+  <p class="big-text">You find a great deal on a house, lock it up with a contract, then sell that contract to an investor for profit — without ever owning the house.</p>
+
+  <div class="analogy">
+    <div class="analogy-label">🧒 5th Grade Version</div>
+    <p>Imagine your friend wants to sell their bike for $50. You tell them "I'll buy it!" and get a signed note. Then you find someone who really wants that bike and sells it to them for $75. You never paid $50 — your investor paid $50, and you kept the $25 difference. That $25 is your assignment fee. That's wholesaling!</p>
+  </div>
+
+  <p style="color:rgba(253,250,243,0.75); font-size:15px; margin-bottom:24px;">In real estate, instead of a $50 bike it's a $100,000 house. Instead of $25 profit it's <span class="highlight">$20,000–$30,000</span>. And you never have to buy the house yourself.</p>
+
+  <div class="callout tip">
+    <div class="callout-icon">💡</div>
+    <div class="callout-body">
+      <strong>The 3 People In Every Deal</strong>
+      <p><strong>Seller</strong> — Wants to sell fast, often below market price (foreclosure, divorce, tired landlord) · <strong>You (Wholesaler)</strong> — Find the deal, lock it up, find a buyer · <strong>Investor/Buyer</strong> — Pays cash, fixes the house, makes their profit. Everyone wins.</p>
+    </div>
+  </div>
+</section>
+
+<div class="ornament">✦ ✦ ✦</div>
+
+<!-- ═══ SECTION 2: HOW MONEY WORKS ═══ -->
+<section class="section" id="how-money-works">
+  <div class="section-label">Chapter 2</div>
+  <h2>Exactly How <em>You Get Paid</em></h2>
+  <div class="divider"></div>
+
+  <p class="big-text">There are two ways to collect your money. Both are legal. The one you use depends on the type of deal.</p>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:32px 0;">
+    <div style="background:var(--gray); border:1px solid rgba(201,168,76,0.25); border-radius:6px; padding:28px;">
+      <div style="font-size:32px; margin-bottom:12px;">📄</div>
+      <h4 style="font-family:'Playfair Display',serif; font-size:18px; color:var(--gold); margin-bottom:12px;">Method 1: Assignment</h4>
+      <p style="font-size:14px; color:rgba(253,250,243,0.7); line-height:1.7;">You sign a purchase contract with the seller, then "assign" (transfer) that contract to your investor for a fee. You never buy the house. Title goes directly from seller to investor. <br><br><strong style="color:var(--gold-light);">Best for:</strong> Off-market deals where the seller agrees. Lower cost to you.</p>
+    </div>
+    <div style="background:var(--gray); border:1px solid rgba(201,168,76,0.25); border-radius:6px; padding:28px;">
+      <div style="font-size:32px; margin-bottom:12px;">🔄</div>
+      <h4 style="font-family:'Playfair Display',serif; font-size:18px; color:var(--gold); margin-bottom:12px;">Method 2: Double Close</h4>
+      <p style="font-size:14px; color:rgba(253,250,243,0.7); line-height:1.7;">You briefly "buy" the house using short-term money (transactional funding), then immediately sell it to your investor at a higher price. Two closings happen back-to-back. <br><br><strong style="color:var(--gold-light);">Best for:</strong> Auction.com deals where assignment is not allowed. Keeps your profit private.</p>
+    </div>
+  </div>
+
+  <div class="math-box">
+    <h4>💰 Real Deal Math Example</h4>
+    <div class="math-row">
+      <span class="label">House After-Repair Value (ARV)</span>
+      <span class="value">$250,000</span>
+    </div>
+    <div class="math-row">
+      <span class="label">Investor's Rule: Pay no more than 70% of ARV</span>
+      <span class="value">$175,000</span>
+    </div>
+    <div class="math-row">
+      <span class="label">Minus estimated repairs</span>
+      <span class="value">− $30,000</span>
+    </div>
+    <div class="math-row">
+      <span class="label">Minus YOUR fee (assignment fee)</span>
+      <span class="value">− $25,000</span>
+    </div>
+    <div class="math-row total">
+      <span class="label">Max you bid on Auction.com</span>
+      <span class="value">$120,000</span>
+    </div>
+    <p style="font-size:13px; color:var(--text-muted); margin-top:16px;">Investor pays $145,000 → you keep $25,000 → investor fixes house → sells for $250,000 → investor profits $75,000. Everybody wins.</p>
+  </div>
+</section>
+
+<div class="ornament">✦ ✦ ✦</div>
+
+<!-- ═══ SECTION 3: GLOSSARY ═══ -->
+<section class="section" id="glossary">
+  <div class="section-label">Chapter 3</div>
+  <h2>Words You <em>Need to Know</em></h2>
+  <div class="divider"></div>
+  <p style="color:rgba(253,250,243,0.6); font-size:14px; margin-bottom:24px;">These are the real estate words you'll hear every day. Master them and you'll sound like a pro from day one.</p>
+
+  <div class="glossary">
+    <div class="term"><div class="term-word">ARV</div><div class="term-def"><strong>After Repair Value.</strong> What the house will be worth AFTER an investor fixes it up. This is the most important number in every deal. Start here.</div></div>
+    <div class="term"><div class="term-word">Assignment Fee</div><div class="term-def">YOUR profit. The money an investor pays you to transfer your contract to them. Typically $5,000–$30,000+ per deal.</div></div>
+    <div class="term"><div class="term-word">Purchase Contract</div><div class="term-def">A legal paper that says "I agree to buy this house at this price." When you sign it, you control the deal. This is your #1 asset as a wholesaler.</div></div>
+    <div class="term"><div class="term-word">Assignor</div><div class="term-def">YOU. The person who found the deal, signed the original contract, and is selling their rights to an investor.</div></div>
+    <div class="term"><div class="term-word">Assignee</div><div class="term-def">Your INVESTOR/BUYER. The person who pays your fee and takes over your contract to actually close on the house.</div></div>
+    <div class="term"><div class="term-word">Equitable Interest</div><div class="term-def">A fancy legal term meaning you control the deal without owning the house. Once you sign a contract with the seller, you have equitable interest.</div></div>
+    <div class="term"><div class="term-word">Double Close</div><div class="term-def">When you actually buy the house and immediately sell it. Used when assignment isn't allowed (common on Auction.com). Requires short-term funding.</div></div>
+    <div class="term"><div class="term-word">Transactional Funding</div><div class="term-def">Short-term money (sometimes same-day) borrowed to fund the first purchase in a double close. Costs 1–2% of the purchase price. Paid back when your buyer closes.</div></div>
+    <div class="term"><div class="term-word">MAO</div><div class="term-def"><strong>Maximum Allowable Offer.</strong> The formula: ARV × 70% − Repairs − Your Fee = Highest you can bid. NEVER go over this number.</div></div>
+    <div class="term"><div class="term-word">Cash Buyer</div><div class="term-def">An investor who can buy the house without a mortgage. They close FAST (7–14 days). Building a list of cash buyers is your most valuable business asset.</div></div>
+    <div class="term"><div class="term-word">Earnest Money</div><div class="term-def">A small deposit (sometimes $100–$1,000) you put down when you sign the purchase contract. Shows the seller you're serious. You lose it if you walk away.</div></div>
+    <div class="term"><div class="term-word">Title Company</div><div class="term-def">A neutral business that handles the legal transfer of a house from seller to buyer. They hold the money and make sure the deal closes correctly.</div></div>
+    <div class="term"><div class="term-word">REO</div><div class="term-def"><strong>Real Estate Owned.</strong> A house the bank owns after foreclosure. Most Auction.com listings are REOs. Banks often prohibit assignment, so plan for a double close.</div></div>
+    <div class="term"><div class="term-word">Buyer's Premium</div><div class="term-def">An extra fee charged by Auction.com on top of your winning bid. Typically 5%. If you win a $100K bid, you pay $105K. Factor this into your MAO calculation.</div></div>
+    <div class="term"><div class="term-word">Motivated Seller</div><div class="term-def">A homeowner who NEEDS to sell quickly — often due to foreclosure, divorce, job loss, or being a tired landlord. They accept below-market prices. This is your target.</div></div>
+  </div>
+</section>
+
+<div class="ornament">✦ ✦ ✦</div>
+
+<!-- ═══ SECTION 4: STEP BY STEP ═══ -->
+<section class="section" id="steps">
+  <div class="section-label">Chapter 4</div>
+  <h2>The 8 Steps to <em>Your First Deal</em></h2>
+  <div class="divider"></div>
+  <p style="color:rgba(253,250,243,0.7); font-size:15px; margin-bottom:16px;">Click each step to expand the full instructions. Do these in order — every single time.</p>
+
+  <div class="steps-grid">
+
+    <div class="step-card" onclick="toggleStep(this)">
+      <div class="step-header">
+        <div class="step-num">1</div>
+        <div class="step-title-wrap">
+          <h3><span class="step-emoji">🏗️</span>Set Up Your Business</h3>
+          <p>Before you touch any deal — do this first</p>
+        </div>
+        <div class="step-toggle">+</div>
+      </div>
+      <div class="step-body">
+        <p>Think of this like building your tool belt before starting a job. You need the right foundation so you look professional and stay protected legally.</p>
+        <ul class="kid-steps">
+          <li><strong>Form an LLC (Limited Liability Company)</strong><span>Go to your state's Secretary of State website. File for an LLC in your business name. Costs $50–$200. This protects your personal savings if anything goes wrong.</span></li>
+          <li><strong>Open a Business Bank Account</strong><span>Take your LLC documents to a bank. Open a separate account just for real estate money. Never mix personal and business money.</span></li>
+          <li><strong>Hire a Real Estate Attorney</strong><span>Find one who specializes in wholesaling or investor transactions. They'll review your contracts and keep you legal. Cost: $150–$300/hour. Worth every penny.</span></li>
+          <li><strong>Get a Wholesaling-Friendly Purchase Contract</strong><span>Your attorney drafts or reviews a contract that includes assignment language. Key phrase to include: "[Buyer Name] and/or assigns." Those three words give you the right to assign.</span></li>
+          <li><strong>Check Your State's Licensing Laws</strong><span>As of 2025, 10 states require a real estate license after 1–2 assignments (PA, CT, MD, TN, OK, ND, and others). Know your state's rules BEFORE doing any deals.</span></li>
+        </ul>
+        <div class="callout warning">
+          <div class="callout-icon">⚠️</div>
+          <div class="callout-body">
+            <strong>Don't Skip This Step</strong>
+            <p>Many beginners jump straight to finding deals before setting up their business. Then they make money and don't know how to handle it legally. Set up first. Deals second.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-card" onclick="toggleStep(this)">
+      <div class="step-header">
+        <div class="step-num">2</div>
+        <div class="step-title-wrap">
+          <h3><span class="step-emoji">👥</span>Build Your Cash Buyer List</h3>
+          <p>Find investors BEFORE you find deals — this is the secret</p>
+        </div>
+        <div class="step-toggle">+</div>
+      </div>
+      <div class="step-body">
+        <p>Most people think "find a deal first, then find a buyer." That's backwards. Build your buyer list first so when you get a deal, you can sell it in 24–72 hours.</p>
+        <ul class="kid-steps">
+          <li><strong>Join Your Local REIA (Real Estate Investors Association)</strong><span>Search "[Your City] REIA" online. Attend monthly meetings. Introduce yourself as a wholesaler who brings deals. Collect business cards. These are your future buyers.</span></li>
+          <li><strong>Search Facebook Groups</strong><span>Join groups like "Cash Buyers [Your City]," "[City] Real Estate Investors," and "We Buy Houses [City]." Post that you're a wholesaler with deals coming. Message active members.</span></li>
+          <li><strong>Post on BiggerPockets.com</strong><span>Create a free account. Post in your local forum. Say you're a new wholesaler looking to connect with cash buyers. Respond to every reply.</span></li>
+          <li><strong>Call "We Buy Houses" Signs</strong><span>Drive around neighborhoods and call the phone numbers on those yellow signs. Those are investors. Tell them you're a wholesaler and ask if they want to be on your buyer list.</span></li>
+          <li><strong>Build a Simple Spreadsheet</strong><span>Name | Phone | Email | Markets They Buy In | Typical Budget | Preferred Property Type. Aim for 20–50 buyers before doing your first deal. 100+ is a power position.</span></li>
+        </ul>
+        <div class="callout tip">
+          <div class="callout-icon">💡</div>
+          <div class="callout-body">
+            <strong>Pro Move: Reverse Wholesale</strong>
+            <p>Ask buyers FIRST what they want (price range, neighborhoods, property type, condition). Then go find exactly that property. Your deal sells in hours, not weeks.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-card" onclick="toggleStep(this)">
+      <div class="step-header">
+        <div class="step-num">3</div>
+        <div class="step-title-wrap">
+          <h3><span class="step-emoji">🔍</span>Research Properties on Auction.com</h3>
+          <p>Finding the right house at the right price</p>
+        </div>
+        <div class="step-toggle">+</div>
+      </div>
+      <div class="step-body">
+        <p>Auction.com is one of the largest online foreclosure and bank-owned property marketplaces. Here's how to use it to find deals.</p>
+        <ul class="kid-steps">
+          <li><strong>Create a Free Account at Auction.com</strong><span>Go to Auction.com and register. It's free to browse. You only need to provide payment info when you're ready to bid. Explore the site and get comfortable with the filters.</span></li>
+          <li><strong>Set Your Search Filters</strong><span>Filter by: your target city/zip codes, property type (Single Family preferred for beginners), and price range below your MAO budget. Save your searches to get email alerts for new listings.</span></li>
+          <li><strong>Study Each Listing Carefully</strong><span>Note the starting bid, buyer's premium (usually 5%), estimated value, photos, and any property details. Check if there are liens, back taxes, or occupancy status. Read the "terms" section — this tells you if assignment is allowed.</span></li>
+          <li><strong>Run Comparable Sales (Comps)</strong><span>Use Zillow, Redfin, or Propstream to find what similar houses nearby sold for in the last 90 days. This tells you the ARV. Compare: same neighborhood, similar size, similar condition after repairs.</span></li>
+          <li><strong>Estimate Repairs</strong><span>Use the "$25 per square foot" rough rule for major rehabs, $10–15/sqft for light rehabs. Or use the app FlipperForce to estimate more accurately. Your investor will do their own inspection, but you need a ballpark first.</span></li>
+        </ul>
+        <div class="callout warning">
+          <div class="callout-icon">🏦</div>
+          <div class="callout-body">
+            <strong>Important: Most Auction.com Deals = Double Close</strong>
+            <p>Bank-owned (REO) properties on Auction.com usually have contracts that PROHIBIT assignment. Always read the purchase agreement before bidding. If it says "no assignment," you'll need to plan for a double close and have transactional funding ready.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-card" onclick="toggleStep(this)">
+      <div class="step-header">
+        <div class="step-num">4</div>
+        <div class="step-title-wrap">
+          <h3><span class="step-emoji">🧮</span>Run Your Numbers (The MAO Formula)</h3>
+          <p>Never guess — always calculate before bidding</p>
+        </div>
+        <div class="step-toggle">+</div>
+      </div>
+      <div class="step-body">
+        <p>This formula protects you. If the math works, do the deal. If it doesn't, walk away — no matter how excited you feel.</p>
+
+        <div class="math-box">
+          <h4>🔢 The MAO Formula</h4>
+          <div class="math-row">
+            <span class="label">Step 1: Find the ARV</span>
+            <span class="value">$250,000</span>
+          </div>
+          <div class="math-row">
+            <span class="label">Step 2: Multiply by 70%</span>
+            <span class="value">× 0.70 = $175,000</span>
+          </div>
+          <div class="math-row">
+            <span class="label">Step 3: Subtract repair costs</span>
+            <span class="value">− $30,000 = $145,000</span>
+          </div>
+          <div class="math-row">
+            <span class="label">Step 4: Subtract YOUR fee</span>
+            <span class="value">− $20,000 = $125,000</span>
+          </div>
+          <div class="math-row">
+            <span class="label">Step 5: Subtract Buyer's Premium (5%)</span>
+            <span class="value">÷ 1.05 = ~$119,000</span>
+          </div>
+          <div class="math-row total">
+            <span class="label">MAX BID on Auction.com</span>
+            <span class="value">$119,000</span>
+          </div>
+        </div>
+
+        <div class="callout danger">
+          <div class="callout-icon">🚫</div>
+          <div class="callout-body">
+            <strong>The #1 Mistake Beginners Make</strong>
+            <p>Getting emotionally attached to a deal and bidding over MAO. If the math doesn't leave room for your fee AND the investor's profit AND repairs — it's not a deal. Move on. There will always be another property.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-card" onclick="toggleStep(this)">
+      <div class="step-header">
+        <div class="step-num">5</div>
+        <div class="step-title-wrap">
+          <h3><span class="step-emoji">🔨</span>Win the Bid & Get Under Contract</h3>
+          <p>Placing your bid and locking up the deal</p>
+        </div>
+        <div class="step-toggle">+</div>
+      </div>
+      <div class="step-body">
+        <ul class="kid-steps">
+          <li><strong>Register to Bid on Auction.com</strong><span>You'll need to verify your identity and provide a credit card or proof of funds. Some auctions require a deposit just to bid. Know this before auction day.</span></li>
+          <li><strong>Set Your Maximum Bid and Don't Change It</strong><span>Enter your MAO as your maximum bid. Use Auction.com's auto-bid feature. Walk away if the price goes over your number. Discipline = profit.</span></li>
+          <li><strong>Prepare Your Earnest Money Deposit</strong><span>Expect 5–10% of the purchase price in certified funds or wire transfer. This is due immediately after winning. Have this ready BEFORE you bid. On a $120K win, that's $6,000–$12,000.</span></li>
+          <li><strong>Read the Purchase Agreement</strong><span>When you win, Auction.com sends you a purchase contract. Read every line. Confirm: closing deadline (often 7–30 days), assignment clause status, fees, title issues, and property condition notes.</span></li>
+          <li><strong>Do a Title Search Immediately</strong><span>Order a title search through a title company right after winning. Look for: unpaid liens, IRS tax liens, HOA dues, old mortgages. These can eat your profit or kill the deal. Find out NOW, not at closing.</span></li>
+        </ul>
+        <div class="callout tip">
+          <div class="callout-icon">⏰</div>
+          <div class="callout-body">
+            <strong>Speed Is Everything</strong>
+            <p>Closing timelines on Auction.com are tight — sometimes just 7 days. Have your transactional funder AND your investor lined up BEFORE you bid. Don't scramble after winning.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-card" onclick="toggleStep(this)">
+      <div class="step-header">
+        <div class="step-num">6</div>
+        <div class="step-title-wrap">
+          <h3><span class="step-emoji">📢</span>Market the Deal to Your Buyers</h3>
+          <p>Selling the contract to your investor — fast</p>
+        </div>
+        <div class="step-toggle">+</div>
+      </div>
+      <div class="step-body">
+        <p>Once you're under contract, the clock is ticking. Your goal: find your buyer within 24–72 hours. This is why building your buyer list in Step 2 is so critical.</p>
+        <ul class="kid-steps">
+          <li><strong>Send a "Deal Blast" to Your Buyer List</strong><span>Email/text every buyer on your list. Include: address, asking price (what you want them to pay), ARV, estimated repairs, photos, and close-by date. Keep it short and factual. Investors decide fast.</span></li>
+          <li><strong>Share in Facebook Real Estate Groups</strong><span>Post the deal (without your exact address until buyer is confirmed) in local investor groups. "Deal available in [zip code], ARV $250K, asking $145K, needs $30K in repairs. Cash buyers only, 14-day close." DMs only.</span></li>
+          <li><strong>Contact Your Top 5 Buyers First</strong><span>Call — don't just text or email — your most reliable cash buyers first. Give them a 12-24 hour window to say yes before opening to others. Good deals go fast.</span></li>
+          <li><strong>Be Honest About the Property</strong><span>Don't hide problems. If the roof needs replacing, say so. Your reputation is everything in this business. Investors who feel burned won't buy from you again — and they'll tell others.</span></li>
+        </ul>
+
+        <div class="math-box" style="margin-top:24px;">
+          <h4>📧 Sample Deal Blast Message</h4>
+          <p style="font-size:14px; color:rgba(253,250,243,0.8); font-style:italic; line-height:1.8; border-left:3px solid var(--gold); padding-left:16px; margin:0;">
+            "🏠 DEAL ALERT — [City, State]<br>
+            ARV: $250,000 (verified comps attached)<br>
+            Asking: $145,000<br>
+            Repairs: ~$30,000 (medium rehab)<br>
+            Investor Profit Potential: ~$75,000<br>
+            Close by: [Date — 14 days out]<br>
+            Photos: [link]<br>
+            Cash buyers only. No daisy chains. First verified buyer gets it. Reply or call [your number]."
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-card" onclick="toggleStep(this)">
+      <div class="step-header">
+        <div class="step-num">7</div>
+        <div class="step-title-wrap">
+          <h3><span class="step-emoji">✍️</span>Sign the Assignment Contract</h3>
+          <p>The legal paperwork that locks in your fee</p>
+        </div>
+        <div class="step-toggle">+</div>
+      </div>
+      <div class="step-body">
+        <p>Once your investor says yes, you sign a separate "Assignment of Contract" document. This transfers all your rights in the purchase agreement to them — and locks in your fee.</p>
+        <ul class="kid-steps">
+          <li><strong>Use a Proper Assignment Contract Template</strong><span>Your real estate attorney should draft this. It must include: property address, original purchase price, your assignment fee amount, payment terms, and the effective date.</span></li>
+          <li><strong>State Your Fee and Payment Terms Clearly</strong><span>Example: "Assignee agrees to pay Assignor an assignment fee of $20,000. $3,000 due upon signing this agreement. $17,000 due at closing." The non-refundable deposit protects you if the buyer backs out.</span></li>
+          <li><strong>Send to the Title Company</strong><span>Your title company handles the closing. Send them both documents: the original purchase contract AND the assignment contract. They'll confirm they can close the deal and coordinate both sides.</span></li>
+          <li><strong>For Double Close: Arrange Transactional Funding</strong><span>If doing a double close (no assignment allowed), contact a transactional funder. They wire money for Purchase 1 (you buying), you immediately close Purchase 2 (selling to investor), and their money is repaid same day.</span></li>
+        </ul>
+
+        <div class="callout tip">
+          <div class="callout-icon">📋</div>
+          <div class="callout-body">
+            <strong>Key Contract Language</strong>
+            <p>Assignment contract must say: "Assignor hereby assigns all rights, title, and interest in the Purchase Agreement dated [date] for property at [address] to Assignee." Without this exact transfer language, the contract may not hold up legally.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-card" onclick="toggleStep(this)">
+      <div class="step-header">
+        <div class="step-num">8</div>
+        <div class="step-title-wrap">
+          <h3><span class="step-emoji">💵</span>Close the Deal — Get Paid</h3>
+          <p>The moment everything comes together</p>
+        </div>
+        <div class="step-toggle">+</div>
+      </div>
+      <div class="step-body">
+        <ul class="kid-steps">
+          <li><strong>Attend or Monitor the Closing</strong><span>Your title company coordinates everything. For an assignment, the investor closes with the original seller. You don't need to be there, but stay in contact with the title company to confirm everything is on track.</span></li>
+          <li><strong>Receive Your Assignment Fee at Closing</strong><span>The title company writes you a check or wires your fee directly to your bank account at closing. This is YOUR payday. First check feels incredible — keep going.</span></li>
+          <li><strong>Track Everything for Taxes</strong><span>Assignment fees are ordinary income. You'll pay self-employment taxes on them. Set aside 25–30% of every check for taxes. Work with a CPA who understands real estate investing.</span></li>
+          <li><strong>Follow Up With Your Buyer</strong><span>After closing, text or call your investor. Ask how it went. Ask if they want more deals like this. A happy investor = repeat buyer = your business grows without spending more on marketing.</span></li>
+          <li><strong>Document Your Deal for Future Reference</strong><span>Save the purchase contract, assignment contract, closing statement, and your profit calculation. Each completed deal teaches you something. Review what worked and what you'd do differently.</span></li>
+        </ul>
+
+        <div class="callout tip">
+          <div class="callout-icon">🎯</div>
+          <div class="callout-body">
+            <strong>After Your First Deal: Scale It</strong>
+            <p>One deal proves the model. Two deals builds confidence. Five deals builds a business. After deal #1, reinvest a portion into better tools (PropStream, DealMachine) and marketing to find more sellers and buyers. That's how $20K becomes $200K per year.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="ornament">✦ ✦ ✦</div>
+
+<!-- ═══ SECTION 5: FULL PROCESS TIMELINE ═══ -->
+<section class="section" id="timeline">
+  <div class="section-label">Chapter 5</div>
+  <h2>Your Deal <em>Timeline</em></h2>
+  <div class="divider"></div>
+  <p style="color:rgba(253,250,243,0.7); font-size:15px; margin-bottom:8px;">From the moment you find a property to the day you collect your check — here's how time works.</p>
+
+  <div class="flow">
+    <div class="flow-step">
+      <div class="flow-dot">🔍</div>
+      <div class="flow-content">
+        <div class="time-badge">Week 1–4 (Ongoing)</div>
+        <h4>Research Phase</h4>
+        <p>Browse Auction.com daily. Run comps on promising properties. Build your buyer list. Get your LLC and attorney in place. This phase never truly ends — you're always looking for the next deal.</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-dot">🏆</div>
+      <div class="flow-content">
+        <div class="time-badge">Auction Day</div>
+        <h4>Win the Bid</h4>
+        <p>Place your bid (at or below MAO). Win at or under your number. Immediately wire your earnest money deposit (5–10%). Order a title search the same day.</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-dot">⚡</div>
+      <div class="flow-content">
+        <div class="time-badge">Day 1–3 After Winning</div>
+        <h4>Market to Buyers</h4>
+        <p>Send your deal blast to your buyer list. Call your top buyers. Get your investor to say yes and sign the assignment contract. Collect your non-refundable deposit from them.</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-dot">📋</div>
+      <div class="flow-content">
+        <div class="time-badge">Days 3–7</div>
+        <h4>Title & Paperwork</h4>
+        <p>Title company reviews all documents. They confirm clean title (or flag issues to resolve). If double closing, confirm transactional funding is confirmed and ready.</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-dot">💰</div>
+      <div class="flow-content">
+        <div class="time-badge">Day 7–30 (Per Contract)</div>
+        <h4>Closing Day — You Get Paid</h4>
+        <p>Title company wires your assignment fee or closing profit directly to your account. Deal done. Time to find the next one.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="ornament">✦ ✦ ✦</div>
+
+<!-- ═══ SECTION 6: CALCULATOR ═══ -->
+<section class="section" id="calculator">
+  <div class="section-label">Chapter 6</div>
+  <h2>Deal <em>Profit Calculator</em></h2>
+  <div class="divider"></div>
+
+  <div class="calculator">
+    <h3>🧮 Will This Deal Make Money?</h3>
+    <p class="sub">Enter your numbers below. The calculator shows if the deal works and how much you'd make.</p>
+
+    <div class="calc-row">
+      <div class="calc-field">
+        <label>ARV — What's It Worth Fixed Up? ($)</label>
+        <input type="number" id="arv" placeholder="250000" oninput="calcDeal()">
+      </div>
+      <div class="calc-field">
+        <label>Estimated Repair Cost ($)</label>
+        <input type="number" id="repairs" placeholder="30000" oninput="calcDeal()">
+      </div>
+    </div>
+    <div class="calc-row">
+      <div class="calc-field">
+        <label>Investor Rule % (Default: 70%)</label>
+        <input type="number" id="rule" placeholder="70" oninput="calcDeal()">
+      </div>
+      <div class="calc-field">
+        <label>Your Desired Assignment Fee ($)</label>
+        <input type="number" id="fee" placeholder="20000" oninput="calcDeal()">
+      </div>
+    </div>
+    <div class="calc-row">
+      <div class="calc-field">
+        <label>Buyer's Premium % (Auction.com: 5%)</label>
+        <input type="number" id="premium" placeholder="5" oninput="calcDeal()">
+      </div>
+      <div class="calc-field">
+        <label>Your Actual Winning Bid ($)</label>
+        <input type="number" id="bid" placeholder="119000" oninput="calcDeal()">
+      </div>
+    </div>
+
+    <div class="calc-result" id="calcResult">
+      <div class="result-label">Enter your numbers above to see if the deal works</div>
+      <div class="result-amount" id="resultAmount">—</div>
+      <div class="result-status" id="resultStatus">Waiting for input</div>
+    </div>
+  </div>
+</section>
+
+<div class="ornament">✦ ✦ ✦</div>
+
+<!-- ═══ SECTION 7: TOOLS ═══ -->
+<section class="section" id="tools">
+  <div class="section-label">Chapter 7</div>
+  <h2>The Tools That <em>Run This Business</em></h2>
+  <div class="divider"></div>
+  <p style="color:rgba(253,250,243,0.7); font-size:15px; margin-bottom:8px;">You don't need all of these on Day 1. Start with free tools and upgrade as your income grows.</p>
+
+  <h4 style="color:var(--gold); font-size:13px; letter-spacing:0.2em; text-transform:uppercase; margin:32px 0 16px;">🔍 Finding Deals</h4>
+  <div class="tools-grid">
+    <div class="tool-card">
+      <div class="tool-icon">🏠</div>
+      <div class="tool-type">Deal Source</div>
+      <h4>Auction.com</h4>
+      <p>The largest online foreclosure marketplace. Browse REO and bank-owned properties. Filter by location, price, and property type.</p>
+      <div class="cost">Free to browse · Deposit to bid</div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon">📊</div>
+      <div class="tool-type">Property Data</div>
+      <h4>PropStream</h4>
+      <p>Find distressed properties, pull owner contact info, run comps, analyze markets, and build targeted lists. The wholesaler's Swiss Army knife.</p>
+      <div class="cost">~$99/month</div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon">📱</div>
+      <div class="tool-type">Deal Finding App</div>
+      <h4>DealMachine</h4>
+      <p>Drive for dollars app. Photo a house, instantly see owner info, and send a postcard directly from your phone. Great for building off-market leads.</p>
+      <div class="cost">Free trial · $49+/month</div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon">🏘️</div>
+      <div class="tool-type">MLS Comps</div>
+      <h4>Zillow / Redfin</h4>
+      <p>Free tools for pulling comparable sales. Use to estimate ARV. Search "sold" listings in the same zip within the last 90 days.</p>
+      <div class="cost">Free</div>
+    </div>
+  </div>
+
+  <h4 style="color:var(--gold); font-size:13px; letter-spacing:0.2em; text-transform:uppercase; margin:32px 0 16px;">🧮 Analyzing Deals</h4>
+  <div class="tools-grid">
+    <div class="tool-card">
+      <div class="tool-icon">🔨</div>
+      <div class="tool-type">Repair Estimator</div>
+      <h4>FlipperForce</h4>
+      <p>Estimates repair costs using room-by-room inputs. More accurate than guessing. Use on mobile while walking a property or reviewing photos.</p>
+      <div class="cost">Free trial available</div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon">📐</div>
+      <div class="tool-type">Deal Analyzer</div>
+      <h4>REI/kit</h4>
+      <p>Full deal analysis tool. Enter your numbers and it generates a professional report you can share with investors to justify your price.</p>
+      <div class="cost">~$79/month</div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon">📋</div>
+      <div class="tool-type">Title Search</div>
+      <h4>Your Title Company</h4>
+      <p>Build a relationship with a local title company that works with wholesalers. They run title searches ($150–300) and handle your closings.</p>
+      <div class="cost">$150–$300 per search</div>
+    </div>
+  </div>
+
+  <h4 style="color:var(--gold); font-size:13px; letter-spacing:0.2em; text-transform:uppercase; margin:32px 0 16px;">👥 Managing Buyers & Deals</h4>
+  <div class="tools-grid">
+    <div class="tool-card">
+      <div class="tool-icon">💼</div>
+      <div class="tool-type">CRM (Buyer Tracking)</div>
+      <h4>REI BlackBook</h4>
+      <p>Built specifically for real estate investors and wholesalers. Track your buyer list, send deal blasts via email/text, automate follow-up.</p>
+      <div class="cost">~$97/month</div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon">📨</div>
+      <div class="tool-type">Email Marketing</div>
+      <h4>Mailchimp (Free)</h4>
+      <p>Build an email list of your buyers. Send deal alerts for free up to 500 contacts. Easy drag-and-drop emails. Perfect for beginners.</p>
+      <div class="cost">Free up to 500 contacts</div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon">📲</div>
+      <div class="tool-type">Text Marketing</div>
+      <h4>SimpleTexting</h4>
+      <p>Send bulk SMS deal alerts to your buyer list. Text messages have 98% open rates. Investors respond to deals faster via text than email.</p>
+      <div class="cost">~$29/month</div>
+    </div>
+  </div>
+
+  <h4 style="color:var(--gold); font-size:13px; letter-spacing:0.2em; text-transform:uppercase; margin:32px 0 16px;">💳 Funding Your Deals</h4>
+  <div class="tools-grid">
+    <div class="tool-card">
+      <div class="tool-icon">⚡</div>
+      <div class="tool-type">Double Close Funding</div>
+      <h4>Transactional Funding Co.</h4>
+      <p>Provides same-day funding for double closes. They wire money for Purchase 1 in the morning; you close Purchase 2 and repay them by end of day.</p>
+      <div class="cost">1–2% of loan amount</div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon">🏦</div>
+      <div class="tool-type">Hard Money</div>
+      <h4>Local Hard Money Lenders</h4>
+      <p>Short-term loans (6–12 months) for investors. Higher rates than banks but close in days. Find them at local REIA meetings. Good backup for double closes.</p>
+      <div class="cost">8–14% interest + 2–4 points</div>
+    </div>
+  </div>
+</section>
+
+<div class="ornament">✦ ✦ ✦</div>
+
+<!-- ═══ SECTION 8: LEGAL ═══ -->
+<section class="section" id="legal">
+  <div class="section-label">Chapter 8</div>
+  <h2>Staying <em>Legal</em> — Know the Rules</h2>
+  <div class="divider"></div>
+
+  <p style="color:rgba(253,250,243,0.75); font-size:15px; margin-bottom:24px;">Real estate wholesaling is 100% legal when done correctly. The rules changed significantly in 2025. Know where your state stands before doing any deals.</p>
+
+  <div class="analogy">
+    <div class="analogy-label">🧒 Simple Version</div>
+    <p>"You can sell lemonade on your street, but you need to follow the city's health rules. Some cities make you get a permit. Same with wholesaling — legal everywhere, but some states have extra steps."</p>
+  </div>
+
+  <table class="state-table">
+    <thead>
+      <tr>
+        <th>State</th>
+        <th>Status (2025)</th>
+        <th>What's Required</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Pennsylvania</td><td><span class="badge red">New Law 2025</span></td><td>Act 52: specific disclosures required, 30-day consumer cancellation window</td></tr>
+      <tr><td>Connecticut</td><td><span class="badge red">New Law 2025</span></td><td>Enhanced disclosure requirements enacted</td></tr>
+      <tr><td>Maryland</td><td><span class="badge red">New Law 2025</span></td><td>Licensing threshold and disclosure requirements</td></tr>
+      <tr><td>Tennessee</td><td><span class="badge red">New Law 2025</span></td><td>Disclosure and licensing requirements added</td></tr>
+      <tr><td>Oklahoma</td><td><span class="badge red">New Law 2025</span></td><td>Licensing after limited number of assignments</td></tr>
+      <tr><td>California</td><td><span class="badge yellow">Disclosure Required</span></td><td>License may be required at 8+ assignments/year if full-time</td></tr>
+      <tr><td>Texas</td><td><span class="badge yellow">Disclosure Required</span></td><td>Must disclose wholesaling activities to all parties</td></tr>
+      <tr><td>Florida</td><td><span class="badge green">Wholesaler Friendly</span></td><td>Legal with proper contracts; double close widely used</td></tr>
+      <tr><td>Most other states</td><td><span class="badge green">Generally Permitted</span></td><td>No specific wholesaling law; follow standard real estate rules</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout danger">
+    <div class="callout-icon">⚖️</div>
+    <div class="callout-body">
+      <strong>Always Check Your State — Laws Change</strong>
+      <p>This table reflects 2025 information. Laws update regularly. Before doing any deal, consult a local real estate attorney who knows your state's current wholesaling regulations. A $300 attorney consultation can save you from a $10,000 fine or license revocation.</p>
+    </div>
+  </div>
+
+  <h3 style="font-family:'Playfair Display',serif; font-size:22px; color:var(--white); margin:40px 0 16px;">Legal Must-Haves</h3>
+  <ul class="checklist" id="legalChecklist">
+    <li onclick="checkItem(this)"><div class="checkbox"></div>LLC formed in your state</li>
+    <li onclick="checkItem(this)"><div class="checkbox"></div>Real estate attorney consulted about your state's rules</li>
+    <li onclick="checkItem(this)"><div class="checkbox"></div>Purchase contract includes "and/or assigns" buyer language</li>
+    <li onclick="checkItem(this)"><div class="checkbox"></div>Assignment contract template drafted by attorney</li>
+    <li onclick="checkItem(this)"><div class="checkbox"></div>Seller is aware you may assign the contract (transparency)</li>
+    <li onclick="checkItem(this)"><div class="checkbox"></div>Licensing requirement researched for your state</li>
+    <li onclick="checkItem(this)"><div class="checkbox"></div>Title company familiar with wholesale/assignment closings identified</li>
+    <li onclick="checkItem(this)"><div class="checkbox"></div>CPA or bookkeeper in place to handle taxes</li>
+  </ul>
+</section>
+
+<div class="ornament">✦ ✦ ✦</div>
+
+<!-- ═══ SECTION 9: MISTAKES ═══ -->
+<section class="section" id="mistakes">
+  <div class="section-label">Chapter 9</div>
+  <h2>The 7 Mistakes That <em>Kill Deals</em></h2>
+  <div class="divider"></div>
+
+  <div style="display:grid; gap:16px; margin:32px 0;">
+    <div style="background:var(--gray); border:1px solid rgba(200,60,60,0.3); border-left:4px solid #eb5757; border-radius:4px; padding:24px;">
+      <h4 style="color:#eb5757; font-size:16px; margin-bottom:8px;">❌ Mistake 1: Bidding Without a Buyer Lined Up</h4>
+      <p style="font-size:14px; color:rgba(253,250,243,0.7); line-height:1.7;">You win the bid, then can't find an investor in time. You lose your earnest deposit and potentially get sued for breach of contract. Build your buyer list FIRST. Always.</p>
+    </div>
+    <div style="background:var(--gray); border:1px solid rgba(200,60,60,0.3); border-left:4px solid #eb5757; border-radius:4px; padding:24px;">
+      <h4 style="color:#eb5757; font-size:16px; margin-bottom:8px;">❌ Mistake 2: Skipping the Title Search</h4>
+      <p style="font-size:14px; color:rgba(253,250,243,0.7); line-height:1.7;">Hidden IRS liens, old mortgages, or HOA judgments can appear at closing and wipe out your profit — or kill the deal entirely. Always order a title search immediately after winning.</p>
+    </div>
+    <div style="background:var(--gray); border:1px solid rgba(200,60,60,0.3); border-left:4px solid #eb5757; border-radius:4px; padding:24px;">
+      <h4 style="color:#eb5757; font-size:16px; margin-bottom:8px;">❌ Mistake 3: Going Over Your MAO</h4>
+      <p style="font-size:14px; color:rgba(253,250,243,0.7); line-height:1.7;">Emotional bidding. The auction gets exciting, you go $10K over your number "just to win." Now there's no room for your fee. Stick to your formula. Walk away if needed.</p>
+    </div>
+    <div style="background:var(--gray); border:1px solid rgba(200,60,60,0.3); border-left:4px solid #eb5757; border-radius:4px; padding:24px;">
+      <h4 style="color:#eb5757; font-size:16px; margin-bottom:8px;">❌ Mistake 4: Forgetting the Buyer's Premium</h4>
+      <p style="font-size:14px; color:rgba(253,250,243,0.7); line-height:1.7;">Auction.com charges 5% on top of the winning bid. If you forget this in your MAO calculation, your profit shrinks by thousands. Always divide your MAO by 1.05 when calculating your true maximum bid.</p>
+    </div>
+    <div style="background:var(--gray); border:1px solid rgba(200,60,60,0.3); border-left:4px solid #eb5757; border-radius:4px; padding:24px;">
+      <h4 style="color:#eb5757; font-size:16px; margin-bottom:8px;">❌ Mistake 5: Assuming Assignment Is Allowed</h4>
+      <p style="font-size:14px; color:rgba(253,250,243,0.7); line-height:1.7;">Most Auction.com/REO deals prohibit assignment in the purchase contract. If you plan to assign without checking, you're in breach. Always read the contract. Plan for a double close as your default on Auction.com.</p>
+    </div>
+    <div style="background:var(--gray); border:1px solid rgba(200,60,60,0.3); border-left:4px solid #eb5757; border-radius:4px; padding:24px;">
+      <h4 style="color:#eb5757; font-size:16px; margin-bottom:8px;">❌ Mistake 6: Not Setting Money Aside for Taxes</h4>
+      <p style="font-size:14px; color:rgba(253,250,243,0.7); line-height:1.7;">Assignment fees are taxable income. Many new wholesalers spend their first $20K check and get hit with a surprise tax bill later. Set aside 25–30% of every deal in a separate savings account from day one.</p>
+    </div>
+    <div style="background:var(--gray); border:1px solid rgba(200,60,60,0.3); border-left:4px solid #eb5757; border-radius:4px; padding:24px;">
+      <h4 style="color:#eb5757; font-size:16px; margin-bottom:8px;">❌ Mistake 7: Not Being Transparent With Sellers</h4>
+      <p style="font-size:14px; color:rgba(253,250,243,0.7); line-height:1.7;">Hiding that you're a wholesaler or plan to assign their contract erodes trust and can cause legal problems. Always be clear: "I'm a real estate investor and may assign this contract to another buyer before closing." Transparency = protection.</p>
+    </div>
+  </div>
+</section>
+
+<div class="ornament">✦ ✦ ✦</div>
+
+<!-- ═══ SECTION 10: DEAL CHECKLIST ═══ -->
+<section class="section" id="checklist">
+  <div class="section-label">Chapter 10</div>
+  <h2>Your Pre-Deal <em>Checklist</em></h2>
+  <div class="divider"></div>
+  <p style="color:rgba(253,250,243,0.7); font-size:14px; margin-bottom:8px;">Tap each item to check it off. Complete every single one before you bid on any property.</p>
+
+  <h4 style="color:var(--gold-light); font-size:15px; margin:24px 0 12px;">⚙️ Business Setup</h4>
+  <ul class="checklist">
+    <li onclick="checkItem(this)"><div class="checkbox"></div>LLC formed and active</li>
+    <li onclick="checkItem(this)"><div class="checkbox"></div>Business bank account open</li>
+    <li onclick="checkItem(this)"><div class="checkbox"></div>Real estate attorney on standby</li>
+    <li onclick="checkItem(this)"><div class="checkbox"></div>Assignment contract template ready</li>
+    <li onclick="checkItem(this)"><div class="checkbox"></div>State licensing requirements confirmed</li>
+  </ul>
+
+  <h4 style="color:var(--gold-light); font-size:15px; margin:24px 0 12px;">👥 Buyers Ready</h4>
+  <ul class="checklist">
+    <li onclick="checkItem(this)"><div class="checkbox"></div>Minimum 20 cash buyers on my list</li>
+    <li onclick="checkItem(this)"><div class="checkbox"></div>Buyers' preferred markets and budgets documented</li>
+    <li onclick="checkItem(this)"><div class="checkbox"></div>At least 3 buyers confirmed for this specific market</li>
+    <li onclick="checkItem(this)"><div class="checkbox"></div>Transactional funder identified (for double close)</li>
+  </ul>
+
+  <h4 style="color:var(--gold-light); font-size:15px; margin:24px 0 12px;">🏠 Property Due Diligence</h4>
+  <ul class="checklist">
+    <li onclick="checkItem(this)"><div class="checkbox"></div>ARV calculated from 3+ recent comparable sales</li>
+    <li onclick="checkItem(this)"><div class="checkbox"></div>Repair estimate completed (FlipperForce or contractor input)</li>
+    <li onclick="checkItem(this)"><div class="checkbox"></div>MAO formula run — bid number confirmed</li>
+    <li onclick="checkItem(this)"><div class="checkbox"></div>Buyer's premium factored into bid</li>
+    <li onclick="checkItem(this)"><div class="checkbox"></div>Purchase contract reviewed — assignment clause checked</li>
+    <li onclick="checkItem(this)"><div class="checkbox"></div>Earnest money deposit ready in business account</li>
+  </ul>
+
+  <h4 style="color:var(--gold-light); font-size:15px; margin:24px 0 12px;">📋 After Winning</h4>
+  <ul class="checklist">
+    <li onclick="checkItem(this)"><div class="checkbox"></div>Title search ordered same day</li>
+    <li onclick="checkItem(this)"><div class="checkbox"></div>Deal blast sent to all buyers</li>
+    <li onclick="checkItem(this)"><div class="checkbox"></div>Investor confirmed and assignment contract signed</li>
+    <li onclick="checkItem(this)"><div class="checkbox"></div>Non-refundable deposit collected from investor</li>
+    <li onclick="checkItem(this)"><div class="checkbox"></div>Title company coordinating both sides of close</li>
+    <li onclick="checkItem(this)"><div class="checkbox"></div>25–30% of fee set aside for taxes</li>
+  </ul>
+</section>
+
+<div class="ornament">✦ ✦ ✦</div>
+
+<!-- ═══ SECTION 11: FAQ ═══ -->
+<section class="section" id="faq">
+  <div class="section-label">Chapter 11</div>
+  <h2>Questions <em>Everyone Asks</em></h2>
+  <div class="divider"></div>
+
+  <div class="faq-item" onclick="toggleFaq(this)">
+    <div class="faq-q">Do I need money to start wholesaling? <span class="faq-icon">+</span></div>
+    <div class="faq-a">Less than you think — but not zero. You need: earnest money deposit (sometimes as little as $100–$1,000 for off-market deals, but 5–10% for Auction.com bids), attorney fees to set up contracts ($300–$1,000), LLC formation ($50–$200), and tool subscriptions. For Auction.com specifically, having $5,000–$15,000 available for deposits and earnest money is realistic. For purely off-market wholesaling, some people have started with under $1,000.</div>
+  </div>
+  <div class="faq-item" onclick="toggleFaq(this)">
+    <div class="faq-q">Is wholesaling legal everywhere? <span class="faq-icon">+</span></div>
+    <div class="faq-a">Yes — wholesaling is legal in all 50 states, but some states require disclosures or licenses. As of 2025, six states passed new regulations (PA, CT, MD, TN, OK, ND). Ten states require a real estate license after a set number of assignments per year. Always consult a local real estate attorney before your first deal. The legal landscape changes regularly.</div>
+  </div>
+  <div class="faq-item" onclick="toggleFaq(this)">
+    <div class="faq-q">Can I really assign an Auction.com contract? <span class="faq-icon">+</span></div>
+    <div class="faq-a">Usually no. Most Auction.com properties are bank-owned REOs, and the purchase contracts explicitly prohibit assignment. The standard approach for Auction.com is a double close — you briefly purchase the property (using transactional funding) and immediately resell to your investor. This is legal, widely used, and protects everyone in the deal. Always read the specific contract terms before bidding.</div>
+  </div>
+  <div class="faq-item" onclick="toggleFaq(this)">
+    <div class="faq-q">What if I can't find a buyer in time? <span class="faq-icon">+</span></div>
+    <div class="faq-a">This is why you build your buyer list BEFORE doing deals. If you're running out of time: call every buyer personally, lower your assignment fee to make the deal more attractive, post in every investor Facebook group in your area, and contact local hard money lenders (they know active flippers). If you truly can't find a buyer, you may lose your earnest deposit. This is why you NEVER bid without buyers ready.</div>
+  </div>
+  <div class="faq-item" onclick="toggleFaq(this)">
+    <div class="faq-q">How do I find transactional funding for a double close? <span class="faq-icon">+</span></div>
+    <div class="faq-a">Search "transactional funding [your state]" online, or ask your title company — they often have relationships with transactional funders. Also check BiggerPockets.com forums. Companies like Coastal Funding, Easy IBC, and similar specialize in this. It typically costs 1–2% of the loan amount and is repaid the same day when your investor closes. You need to show them proof that the end buyer has funds ready.</div>
+  </div>
+  <div class="faq-item" onclick="toggleFaq(this)">
+    <div class="faq-q">How much should my assignment fee be? <span class="faq-icon">+</span></div>
+    <div class="faq-a">There's no universal rule — your fee is whatever the deal math supports while still leaving enough profit for your investor. In lower-priced markets ($80K–$150K ARV), fees of $5,000–$10,000 are common. In mid-range markets ($200K–$350K ARV), $15,000–$30,000 is realistic. In hot markets or high-value properties, $30,000–$50,000+ is possible. The key: your investor needs to still make at minimum $30,000–$50,000+ in profit after buying from you or they won't come back.</div>
+  </div>
+  <div class="faq-item" onclick="toggleFaq(this)">
+    <div class="faq-q">Do I need a real estate license? <span class="faq-icon">+</span></div>
+    <div class="faq-a">In most states, no — wholesalers operate on their own behalf as principals (not agents representing others). However, some states now require a license after a certain number of assignments per year, and marketing yourself as a "real estate agent" without a license is illegal everywhere. If you plan to do 5+ deals per year, consult an attorney about your state's specific threshold. Having a license is never a bad thing — it gives you more tools and credibility.</div>
+  </div>
+  <div class="faq-item" onclick="toggleFaq(this)">
+    <div class="faq-q">How long until I close my first deal? <span class="faq-icon">+</span></div>
+    <div class="faq-a">Realistically: 30–90 days for your first deal if you focus consistently. Setup (LLC, attorney, contracts) takes 1–2 weeks. Building a buyer list takes 2–4 weeks of active networking. Finding and analyzing deals can take another 2–4 weeks. Once you have a deal and a buyer list, closing can happen in as little as 7–14 days. Some people close their first deal in 30 days. Others take 6 months. Consistency and action speed determine your timeline.</div>
+  </div>
+</section>
+
+<div class="ornament">✦ ✦ ✦</div>
+
+<!-- ═══ INCOME ROADMAP ═══ -->
+<section class="section">
+  <div class="section-label">Chapter 12</div>
+  <h2>Your Income <em>Roadmap</em></h2>
+  <div class="divider"></div>
+
+  <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:16px; margin:32px 0;">
+    <div style="background:var(--gray); border:1px solid rgba(201,168,76,0.2); border-radius:6px; padding:24px; text-align:center;">
+      <div style="font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold); margin-bottom:8px;">Month 1–2</div>
+      <div style="font-family:'Playfair Display',serif; font-size:32px; color:var(--white); margin-bottom:8px;">$0</div>
+      <p style="font-size:12px; color:var(--text-muted);">Setup phase. LLC, attorney, buyer list building. No deals yet — this is investment in your foundation.</p>
+    </div>
+    <div style="background:var(--gray); border:1px solid rgba(201,168,76,0.2); border-radius:6px; padding:24px; text-align:center;">
+      <div style="font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold); margin-bottom:8px;">Month 2–3</div>
+      <div style="font-family:'Playfair Display',serif; font-size:32px; color:var(--gold-light); margin-bottom:8px;">$10–20K</div>
+      <p style="font-size:12px; color:var(--text-muted);">First deal closed. Smaller fee is normal — you're still learning. Celebrate and keep going.</p>
+    </div>
+    <div style="background:var(--gray); border:1px solid rgba(201,168,76,0.35); border-radius:6px; padding:24px; text-align:center;">
+      <div style="font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold); margin-bottom:8px;">Month 3–6</div>
+      <div style="font-family:'Playfair Display',serif; font-size:32px; color:var(--gold); margin-bottom:8px;">$30–60K</div>
+      <p style="font-size:12px; color:var(--text-muted);">2–3 deals completed. Buyer list growing. Process feels familiar. Reinvest in better tools.</p>
+    </div>
+    <div style="background:var(--gray); border:1px solid rgba(201,168,76,0.2); border-radius:6px; padding:24px; text-align:center;">
+      <div style="font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold); margin-bottom:8px;">Month 6–12</div>
+      <div style="font-family:'Playfair Display',serif; font-size:32px; color:#6fcf97; margin-bottom:8px;">$100K+</div>
+      <p style="font-size:12px; color:var(--text-muted);">5–8 deals. Repeat buyers. Systematized. This is when it becomes a real business with real income.</p>
+    </div>
+  </div>
+
+  <div class="analogy">
+    <div class="analogy-label">🧒 Remember This</div>
+    <p>"Every expert was once a beginner. Your first deal doesn't have to be perfect — it just has to happen. One closed deal teaches you more than 100 books. Go make your first offer."</p>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+
+  <!-- FOOTER -->
+  <footer role="contentinfo">
+    <div class="brand">T. Lott Creative</div>
+  <p>The Wholesale Playbook is a LUMINA educational resource. Part of the T. Lott Creative brand ecosystem spanning BabyLoveGrowth, Sacred Cycles, LUMINA, and LocalBotPro.</p>
+  <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap; margin:16px 0;">
+    <span style="font-size:11px; color:var(--gold); letter-spacing:0.2em;">LUMINA</span>
+    <span style="font-size:11px; color:rgba(255,255,255,0.2);">·</span>
+    <span style="font-size:11px; color:var(--gold); letter-spacing:0.2em;">BabyLoveGrowth</span>
+    <span style="font-size:11px; color:rgba(255,255,255,0.2);">·</span>
+    <span style="font-size:11px; color:var(--gold); letter-spacing:0.2em;">Sacred Cycles</span>
+    <span style="font-size:11px; color:rgba(255,255,255,0.2);">·</span>
+    <span style="font-size:11px; color:var(--gold); letter-spacing:0.2em;">LocalBotPro</span>
+  </div>
+  <div class="disclaimer">This workbook is for educational purposes only and does not constitute legal, financial, or investment advice. Real estate laws vary by state and change frequently. Always consult a licensed real estate attorney in your state before conducting any wholesale transactions. Past income examples are not guarantees of future results.</div>
+  </footer>
+
+  </main>
+</div><!-- end tab-playbook -->
+
+
+<!-- ═══════════════════════════════════════════════════════
+     TAB 1: CHECKLISTS
+═══════════════════════════════════════════════════════ -->
+<div id="tab-checklists" class="tab-panel" role="tabpanel" aria-labelledby="tabBtn-1">
+<div class="checklists-wrap">
+  <h2>Master <em style="color:var(--gold);font-style:italic;">Checklists</em></h2>
+  <p style="font-size:14px; color:var(--text-muted); margin-bottom:28px;">Every item saves as you tap. Green bar = deal readiness. Complete all sections before your first bid.</p>
+
+  <div id="checklists-container"></div>
+</div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     TAB 2: CALCULATOR (enhanced)
+═══════════════════════════════════════════════════════ -->
+<div id="tab-calculator" class="tab-panel" role="tabpanel" aria-labelledby="tabBtn-2">
+<div class="calc-tab-wrap">
+  <h2>Deal <em style="color:var(--gold);font-style:italic;">Calculator</em></h2>
+  <p class="sub">Run your numbers, save to history, export as a deal summary.</p>
+
+  <div class="calculator">
+    <h3>🧮 Will This Deal Make Money?</h3>
+    <p class="sub">Enter your numbers. The calculator tells you your max bid and whether the deal works.</p>
+    <div class="calc-row">
+      <div class="calc-field">
+        <label for="c-arv">ARV — What's It Worth Fixed Up? ($)</label>
+        <input type="number" id="c-arv" placeholder="250000" oninput="calcDeal2()">
+      </div>
+      <div class="calc-field">
+        <label for="c-repairs">Estimated Repair Cost ($)</label>
+        <input type="number" id="c-repairs" placeholder="30000" oninput="calcDeal2()">
+      </div>
+    </div>
+    <div class="calc-row">
+      <div class="calc-field">
+        <label for="c-rule">Investor Rule % (Default: 70)</label>
+        <input type="number" id="c-rule" placeholder="70" oninput="calcDeal2()">
+      </div>
+      <div class="calc-field">
+        <label for="c-fee">Your Desired Assignment Fee ($)</label>
+        <input type="number" id="c-fee" placeholder="20000" oninput="calcDeal2()">
+      </div>
+    </div>
+    <div class="calc-row">
+      <div class="calc-field">
+        <label for="c-premium">Buyer's Premium % (Auction.com: 5)</label>
+        <input type="number" id="c-premium" placeholder="5" oninput="calcDeal2()">
+      </div>
+      <div class="calc-field">
+        <label for="c-bid">Your Actual Winning Bid ($)</label>
+        <input type="number" id="c-bid" placeholder="0" oninput="calcDeal2()">
+      </div>
+    </div>
+
+    <div class="calc-result" id="calcResult2">
+      <div class="result-label">Enter ARV to begin</div>
+      <div class="result-amount" id="resultAmount2">—</div>
+      <div class="result-status" id="resultStatus2">Waiting for input</div>
+    </div>
+
+    <div class="calc-btn-row">
+      <button class="calc-action-btn primary" onclick="saveCalcToHistory()" aria-label="Save this calculation to history">💾 Save to History</button>
+      <button class="calc-action-btn" onclick="exportCalc()" aria-label="Export calculation as text">📋 Copy Summary</button>
+      <button class="calc-action-btn" onclick="clearCalcInputs()" aria-label="Clear all calculator inputs">🗑 Clear</button>
+    </div>
+  </div>
+
+  <div class="calc-history" id="calcHistorySection">
+    <h4>📜 Calculation History</h4>
+    <ul class="calc-history-list" id="calcHistoryList" aria-label="Saved calculations" aria-live="polite"></ul>
+    <div style="margin-top:12px;">
+      <button class="calc-action-btn" onclick="clearCalcHistory()" style="font-size:11px; padding:7px 14px;">Clear History</button>
+    </div>
+  </div>
+</div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     TAB 3: DEAL TRACKER
+═══════════════════════════════════════════════════════ -->
+<div id="tab-deals" class="tab-panel" role="tabpanel" aria-labelledby="tabBtn-3">
+<div class="deal-tracker-wrap">
+  <h2>My <em style="color:var(--gold);font-style:italic;">Deal Tracker</em></h2>
+  <p class="sub">Log every deal from prospecting to closing. Everything saves automatically.</p>
+
+  <div class="deal-stats" id="dealStats" aria-label="Deal summary statistics"></div>
+
+  <button class="deal-add-btn" onclick="addDeal()" aria-label="Add a new deal">+ New Deal</button>
+
+  <div id="deals-container" aria-label="Deal list" aria-live="polite"></div>
+</div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     TAB 4: NOTES
+═══════════════════════════════════════════════════════ -->
+<div id="tab-notes" class="tab-panel" role="tabpanel" aria-labelledby="tabBtn-4">
+<div class="notes-wrap">
+  <div class="notes-header">
+    <div>
+      <h2>My <em style="color:var(--gold);font-style:italic;">Notes</em></h2>
+      <p class="notes-sub">Private notes that auto-save in your browser.</p>
+    </div>
+    <div class="notes-save-status" id="notesSaveStatus" aria-live="polite"></div>
+  </div>
+
+  <div class="note-section">
+    <h4>🎯 Goals &amp; Intentions</h4>
+    <textarea class="note-textarea" id="note-goals" placeholder="What are your wholesaling goals? First deal by when? Income target?" rows="5" oninput="autoSaveNote('goals', this.value)" aria-label="Goals and intentions notes"></textarea>
+    <button class="note-clear-btn" onclick="clearNote('goals')" aria-label="Clear goals notes">Clear</button>
+  </div>
+
+  <div class="note-section">
+    <h4>🏠 Market Research</h4>
+    <textarea class="note-textarea" id="note-market" placeholder="Target cities, zip codes, average ARVs, repair costs in your market..." rows="6" oninput="autoSaveNote('market', this.value)" aria-label="Market research notes"></textarea>
+    <button class="note-clear-btn" onclick="clearNote('market')" aria-label="Clear market research notes">Clear</button>
+  </div>
+
+  <div class="note-section">
+    <h4>👥 Cash Buyer Contacts</h4>
+    <textarea class="note-textarea" id="note-buyers" placeholder="Name | Phone | Email | Markets | Budget | Notes&#10;---&#10;..." rows="8" oninput="autoSaveNote('buyers', this.value)" aria-label="Cash buyer contacts notes"></textarea>
+    <button class="note-clear-btn" onclick="clearNote('buyers')" aria-label="Clear buyer contacts notes">Clear</button>
+  </div>
+
+  <div class="note-section">
+    <h4>⚖️ Legal &amp; Setup</h4>
+    <textarea class="note-textarea" id="note-legal" placeholder="Attorney name/contact, LLC name/state, state licensing notes, title company contacts..." rows="5" oninput="autoSaveNote('legal', this.value)" aria-label="Legal and setup notes"></textarea>
+    <button class="note-clear-btn" onclick="clearNote('legal')" aria-label="Clear legal and setup notes">Clear</button>
+  </div>
+
+  <div class="note-section">
+    <h4>💡 Ideas &amp; Reminders</h4>
+    <textarea class="note-textarea" id="note-ideas" placeholder="Anything else you want to remember..." rows="6" oninput="autoSaveNote('ideas', this.value)" aria-label="Ideas and reminders notes"></textarea>
+    <button class="note-clear-btn" onclick="clearNote('ideas')" aria-label="Clear ideas notes">Clear</button>
+  </div>
+</div>
+</div>
+
+
+<script>
+/* ───────────────────────────────────────────────────────────
+   WHOLESALE PLAYBOOK — INTERACTIVE WORKBOOK v2.0
+   T. Lott Creative × LUMINA
+   All data persists in localStorage
+─────────────────────────────────────────────────────────── */
+
+const STORAGE_KEY = 'wholesalePlaybookV2';
+
+function getData() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch(e) { return {}; }
+}
+function saveData(data) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+// ─── TABS ───────────────────────────────────────────────
+function switchTab(idx) {
+  document.querySelectorAll('.tab-panel').forEach((p,i) => {
+    p.classList.toggle('active', i === idx);
+  });
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    b.classList.toggle('active', i === idx);
+    b.setAttribute('aria-selected', i === idx ? 'true' : 'false');
+  });
+  // Save active tab
+  const d = getData(); d.activeTab = idx; saveData(d);
+}
+
+// ─── SCROLL PROGRESS ────────────────────────────────────
+window.addEventListener('scroll', () => {
+  const st = window.scrollY;
+  const dh = document.documentElement.scrollHeight - window.innerHeight;
+  const pct = dh > 0 ? (st / dh) * 100 : 0;
+  const bar = document.getElementById('progress');
+  if (bar) { bar.style.width = pct + '%'; bar.setAttribute('aria-valuenow', Math.round(pct)); }
+});
+
+// ─── TOAST ──────────────────────────────────────────────
+function showToast(msg, type = 'success') {
+  const container = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  container.appendChild(t);
+  setTimeout(() => {
+    t.classList.add('dying');
+    setTimeout(() => t.remove(), 350);
+  }, 3000);
+}
+
+// ─── ORIGINAL STEP CARDS ────────────────────────────────
+function toggleStep(card) {
+  const wasActive = card.classList.contains('active');
+  document.querySelectorAll('.step-card').forEach(c => c.classList.remove('active'));
+  if (!wasActive) card.classList.add('active');
+}
+
+// ─── ORIGINAL FAQ ───────────────────────────────────────
+function toggleFaq(item) {
+  const wasOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+  if (!wasOpen) item.classList.add('open');
+}
+
+// ─── ORIGINAL INLINE CHECKLISTS (Playbook tab) ──────────
+function checkItem(item) {
+  item.classList.toggle('checked');
+  saveInlineChecklists();
+  updateOverallProgress();
+}
+
+function saveInlineChecklists() {
+  const data = getData();
+  const items = document.querySelectorAll('#tab-playbook .checklist li');
+  data.inlineChecks = [];
+  items.forEach((item, i) => {
+    data.inlineChecks.push(item.classList.contains('checked'));
+  });
+  saveData(data);
+}
+
+function loadInlineChecklists() {
+  const data = getData();
+  if (!data.inlineChecks) return;
+  const items = document.querySelectorAll('#tab-playbook .checklist li');
+  items.forEach((item, i) => {
+    if (data.inlineChecks[i]) item.classList.add('checked');
+  });
+}
+
+// ─── ORIGINAL CALCULATOR (Playbook tab) ─────────────────
+function calcDeal() {
+  const arv = parseFloat(document.getElementById('arv').value) || 0;
+  const repairs = parseFloat(document.getElementById('repairs').value) || 0;
+  const rule = parseFloat(document.getElementById('rule').value) || 70;
+  const fee = parseFloat(document.getElementById('fee').value) || 0;
+  const premium = parseFloat(document.getElementById('premium').value) || 5;
+  const bid = parseFloat(document.getElementById('bid').value) || 0;
+  const resultBox = document.getElementById('calcResult');
+  const resultAmount = document.getElementById('resultAmount');
+  const resultStatus = document.getElementById('resultStatus');
+  if (!arv) {
+    resultAmount.textContent = '—';
+    resultStatus.textContent = 'Enter ARV to begin';
+    resultBox.className = 'calc-result';
+    return;
+  }
+  const mao = ((arv * (rule / 100)) - repairs - fee) / (1 + premium / 100);
+  const fmt = n => '$' + Math.round(n).toLocaleString();
+  if (bid > 0) {
+    const investorCost = bid * (1 + premium / 100);
+    const investorProfit = arv - investorCost - repairs - fee;
+    const yourProfit = fee;
+    if (bid <= mao) {
+      resultAmount.textContent = fmt(yourProfit);
+      resultStatus.textContent = `✅ Deal Works! Investor cost: ${fmt(investorCost)} · Investor profit: ~${fmt(investorProfit)} · Max bid: ${fmt(mao)}`;
+      resultBox.className = 'calc-result good';
+    } else {
+      resultAmount.textContent = 'Over MAO';
+      resultStatus.textContent = `❌ Bid too high. You bid ${fmt(bid)} but max is ${fmt(mao)}. Reduce fee or walk away.`;
+      resultBox.className = 'calc-result bad';
+    }
+  } else {
+    resultAmount.textContent = fmt(mao);
+    resultStatus.textContent = `Maximum bid (includes ${premium}% buyer's premium) · Your fee: ${fmt(fee)}`;
+    resultBox.className = 'calc-result';
+  }
+}
+
+// ─── ENHANCED CALCULATOR (Calculator tab) ───────────────
+function calcDeal2() {
+  const arv = parseFloat(document.getElementById('c-arv').value) || 0;
+  const repairs = parseFloat(document.getElementById('c-repairs').value) || 0;
+  const rule = parseFloat(document.getElementById('c-rule').value) || 70;
+  const fee = parseFloat(document.getElementById('c-fee').value) || 0;
+  const premium = parseFloat(document.getElementById('c-premium').value) || 5;
+  const bid = parseFloat(document.getElementById('c-bid').value) || 0;
+  const resultBox = document.getElementById('calcResult2');
+  const resultAmount = document.getElementById('resultAmount2');
+  const resultStatus = document.getElementById('resultStatus2');
+  if (!arv) {
+    resultAmount.textContent = '—';
+    resultStatus.textContent = 'Enter ARV to begin';
+    resultBox.className = 'calc-result';
+    return;
+  }
+  const mao = ((arv * (rule / 100)) - repairs - fee) / (1 + premium / 100);
+  const fmt = n => '$' + Math.round(n).toLocaleString();
+  if (bid > 0) {
+    const investorCost = bid * (1 + premium / 100);
+    const investorProfit = arv - investorCost - repairs - fee;
+    if (bid <= mao) {
+      resultAmount.textContent = fmt(fee);
+      resultStatus.textContent = `✅ Deal Works! Investor cost: ${fmt(investorCost)} · Investor profit: ~${fmt(investorProfit)} · Max bid: ${fmt(mao)}`;
+      resultBox.className = 'calc-result good';
+    } else {
+      resultAmount.textContent = 'Over MAO';
+      resultStatus.textContent = `❌ Bid too high. You bid ${fmt(bid)} but max is ${fmt(mao)}. Reduce fee or walk away.`;
+      resultBox.className = 'calc-result bad';
+    }
+  } else {
+    resultAmount.textContent = fmt(mao);
+    resultStatus.textContent = `Maximum bid (includes ${premium}% buyer's premium) · Your fee: ${fmt(fee)}`;
+    resultBox.className = 'calc-result';
+  }
+}
+
+function saveCalcToHistory() {
+  const arv = parseFloat(document.getElementById('c-arv').value) || 0;
+  const repairs = parseFloat(document.getElementById('c-repairs').value) || 0;
+  const rule = parseFloat(document.getElementById('c-rule').value) || 70;
+  const fee = parseFloat(document.getElementById('c-fee').value) || 0;
+  const premium = parseFloat(document.getElementById('c-premium').value) || 5;
+  const bid = parseFloat(document.getElementById('c-bid').value) || 0;
+  if (!arv) { showToast('Enter an ARV first!', 'warning'); return; }
+  const mao = ((arv * (rule / 100)) - repairs - fee) / (1 + premium / 100);
+  const entry = {
+    id: Date.now(),
+    date: new Date().toLocaleDateString(),
+    arv, repairs, rule, fee, premium, bid, mao,
+    works: bid > 0 ? bid <= mao : null
+  };
+  const data = getData();
+  data.calcHistory = data.calcHistory || [];
+  data.calcHistory.unshift(entry);
+  if (data.calcHistory.length > 20) data.calcHistory = data.calcHistory.slice(0, 20);
+  saveData(data);
+  renderCalcHistory();
+  showToast('✅ Calculation saved to history!');
+}
+
+function renderCalcHistory() {
+  const data = getData();
+  const list = document.getElementById('calcHistoryList');
+  if (!list) return;
+  const history = data.calcHistory || [];
+  if (!history.length) {
+    list.innerHTML = '<li style="color:var(--text-muted); font-size:13px; padding:20px 0; text-align:center;">No saved calculations yet. Run a deal and hit Save.</li>';
+    return;
+  }
+  const fmt = n => '$' + Math.round(n).toLocaleString();
+  list.innerHTML = history.map((h,i) => {
+    const statusClass = h.works === true ? 'good' : h.works === false ? 'bad' : '';
+    const statusText = h.works === true ? '✅ DEAL WORKS' : h.works === false ? '❌ OVER MAO' : '📊 MAO Only';
+    return `<li>
+      <div>
+        <div><strong>ARV:</strong> ${fmt(h.arv)} &nbsp;·&nbsp; <strong>Repairs:</strong> ${fmt(h.repairs)} &nbsp;·&nbsp; <strong>Rule:</strong> ${h.rule}%</div>
+        <div style="margin-top:4px;"><strong>MAO:</strong> ${fmt(h.mao)} ${h.bid ? '&nbsp;·&nbsp; <strong>Bid:</strong> ' + fmt(h.bid) : ''}</div>
+      </div>
+      <div style="text-align:right; flex-shrink:0;">
+        <div class="hist-fee">${fmt(h.fee)}</div>
+        <div class="hist-status ${statusClass}" style="font-size:10px; margin-top:2px;">${statusText}</div>
+        <div class="hist-date">${h.date}</div>
+      </div>
+    </li>`;
+  }).join('');
+}
+
+function clearCalcHistory() {
+  if (!confirm('Clear all saved calculations?')) return;
+  const data = getData();
+  data.calcHistory = [];
+  saveData(data);
+  renderCalcHistory();
+  showToast('History cleared.', 'warning');
+}
+
+function clearCalcInputs() {
+  ['c-arv','c-repairs','c-rule','c-fee','c-premium','c-bid'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('calcResult2').className = 'calc-result';
+  document.getElementById('resultAmount2').textContent = '—';
+  document.getElementById('resultStatus2').textContent = 'Waiting for input';
+}
+
+function exportCalc() {
+  const arv = parseFloat(document.getElementById('c-arv').value) || 0;
+  const repairs = parseFloat(document.getElementById('c-repairs').value) || 0;
+  const rule = parseFloat(document.getElementById('c-rule').value) || 70;
+  const fee = parseFloat(document.getElementById('c-fee').value) || 0;
+  const premium = parseFloat(document.getElementById('c-premium').value) || 5;
+  const bid = parseFloat(document.getElementById('c-bid').value) || 0;
+  const mao = ((arv * (rule / 100)) - repairs - fee) / (1 + premium / 100);
+  const fmt = n => '$' + Math.round(n).toLocaleString();
+  const text = [
+    '─── WHOLESALE DEAL SUMMARY ───',
+    `ARV:              ${fmt(arv)}`,
+    `Investor Rule:    ${rule}%`,
+    `Est. Repairs:     ${fmt(repairs)}`,
+    `Assignment Fee:   ${fmt(fee)}`,
+    `Buyer's Premium:  ${premium}%`,
+    `─────────────────────────────`,
+    `MAX BID (MAO):    ${fmt(mao)}`,
+    bid ? `Your Actual Bid:  ${fmt(bid)} (${bid <= mao ? '✅ UNDER MAO' : '❌ OVER MAO'})` : '',
+    `─────────────────────────────`,
+    `Generated: ${new Date().toLocaleString()}`,
+    `The Wholesale Playbook — T. Lott Creative`
+  ].filter(Boolean).join('\n');
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('📋 Summary copied to clipboard!');
+  }).catch(() => {
+    showToast('Could not access clipboard. Select and copy manually.', 'warning');
+  });
+}
+
+// ─── CHECKLISTS TAB ─────────────────────────────────────
+const CHECKLIST_GROUPS = [
+  {
+    id: 'setup',
+    title: '⚙️ Business Setup',
+    items: [
+      'LLC formed and active in my state',
+      'Business bank account opened',
+      'Real estate attorney consulted',
+      'Attorney reviewed state licensing requirements',
+      'Purchase contract with "and/or assigns" language ready',
+      'Assignment contract template drafted',
+      'CPA or bookkeeper identified for taxes'
+    ]
+  },
+  {
+    id: 'buyers',
+    title: '👥 Build Your Cash Buyer List',
+    items: [
+      'Joined local REIA (Real Estate Investors Association)',
+      'Active in 3+ local Facebook investor groups',
+      'Profile created on BiggerPockets.com',
+      'Called at least 10 "We Buy Houses" signs/ads',
+      'Cash buyer spreadsheet created with Name/Phone/Email/Budget',
+      'Minimum 20 verified cash buyers on list',
+      'Buyers' preferred markets and budgets documented',
+      'Transactional funder identified for double closes'
+    ]
+  },
+  {
+    id: 'auction',
+    title: '🏠 Auction.com & Property Research',
+    items: [
+      'Auction.com account created and verified',
+      'Saved search filters set for target market',
+      'Understand difference between assignment and double close',
+      'Learned to run comparable sales on Zillow/Redfin',
+      'Familiar with buyer's premium (typically 5%) in MAO formula',
+      'Understand REO / bank-owned property restrictions',
+      'Repair estimating method chosen (FlipperForce, $25/sqft, etc.)'
+    ]
+  },
+  {
+    id: 'deal-analysis',
+    title: '🧮 Deal Analysis (Pre-Bid)',
+    items: [
+      'ARV calculated from 3+ comparable sales in last 90 days',
+      'Repair estimate completed',
+      'MAO formula run — bid number confirmed',
+      'Buyer's premium factored into max bid calculation',
+      'Purchase contract reviewed — assignment clause checked',
+      'Earnest money deposit amount ready in business account',
+      'At least 3 buyers pre-confirmed for this specific market/price range'
+    ]
+  },
+  {
+    id: 'post-win',
+    title: '🏆 After Winning the Bid',
+    items: [
+      'Earnest money wired immediately after winning',
+      'Title search ordered same day',
+      'Deal blast sent to all buyers (email/text)',
+      'Top 5 buyers called personally within 24 hours',
+      'Investor confirmed — assignment contract signed',
+      'Non-refundable deposit collected from investor',
+      'Title company coordinating both sides of transaction',
+      'Transactional funding confirmed (if double close)',
+      '25–30% of projected fee set aside for taxes'
+    ]
+  },
+  {
+    id: 'legal',
+    title: '⚖️ Legal Compliance',
+    items: [
+      'LLC formed in state where deals will occur',
+      'Attorney confirmed wholesaling is legal / requirements in my state',
+      'Assignment disclosures ready for seller conversations',
+      'Aware of states with enhanced 2025 requirements (PA, CT, MD, TN, OK)',
+      'Title company familiar with assignment / wholesale closings identified',
+      'All deals use properly drafted assignment contract (not a napkin deal)',
+      'Tax strategy in place — not spending full assignment fee'
+    ]
+  },
+  {
+    id: 'tools',
+    title: '🛠️ Tools & Systems',
+    items: [
+      'Zillow or Redfin used for ARV comps',
+      'Auction.com account set up',
+      'Spreadsheet or CRM for tracking buyer list',
+      'Email method to blast deals to buyers (Mailchimp or similar)',
+      'Phone/text method for deal alerts',
+      'FlipperForce or comparable repair estimator tried',
+      'PropStream (or free alternative) researched'
+    ]
+  }
+];
+
+function renderChecklists() {
+  const container = document.getElementById('checklists-container');
+  if (!container) return;
+  const data = getData();
+  data.checks = data.checks || {};
+  container.innerHTML = CHECKLIST_GROUPS.map(group => {
+    const checks = data.checks[group.id] || {};
+    const total = group.items.length;
+    const done = group.items.filter((_, i) => checks[i]).length;
+    const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+    return `
+      <div class="checklist-group" id="group-${group.id}">
+        <h3>${group.title}</h3>
+        <div class="checklist-group-progress">${done} of ${total} complete</div>
+        <div class="checklist-group-bar">
+          <div class="checklist-group-fill" id="fill-${group.id}" style="width:${pct}%"></div>
+        </div>
+        <ul class="checklist" role="list">
+          ${group.items.map((item, i) => `
+            <li onclick="toggleCheck('${group.id}', ${i}, this)"
+                class="${checks[i] ? 'checked' : ''}"
+                role="checkbox"
+                aria-checked="${checks[i] ? 'true' : 'false'}"
+                tabindex="0"
+                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}"
+            >
+              <div class="checkbox" aria-hidden="true">${checks[i] ? '✓' : ''}</div>
+              ${item}
+            </li>
+          `).join('')}
+        </ul>
+        <button class="checklist-reset-btn" onclick="resetGroup('${group.id}')" aria-label="Reset ${group.title} checklist">↺ Reset Group</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleCheck(groupId, idx, el) {
+  const data = getData();
+  data.checks = data.checks || {};
+  data.checks[groupId] = data.checks[groupId] || {};
+  const newVal = !data.checks[groupId][idx];
+  data.checks[groupId][idx] = newVal;
+  saveData(data);
+  el.classList.toggle('checked', newVal);
+  el.setAttribute('aria-checked', newVal ? 'true' : 'false');
+  el.querySelector('.checkbox').textContent = newVal ? '✓' : '';
+  updateGroupProgress(groupId);
+  updateOverallProgress();
+  if (newVal) showToast('✅ Item checked!');
+}
+
+function updateGroupProgress(groupId) {
+  const data = getData();
+  const group = CHECKLIST_GROUPS.find(g => g.id === groupId);
+  if (!group) return;
+  const checks = (data.checks || {})[groupId] || {};
+  const done = group.items.filter((_,i) => checks[i]).length;
+  const pct = Math.round((done / group.items.length) * 100);
+  const fill = document.getElementById(`fill-${groupId}`);
+  const prog = fill && fill.parentElement && fill.parentElement.previousElementSibling;
+  if (fill) fill.style.width = pct + '%';
+  // update the text
+  const groupEl = document.getElementById(`group-${groupId}`);
+  if (groupEl) {
+    const txt = groupEl.querySelector('.checklist-group-progress');
+    if (txt) txt.textContent = `${done} of ${group.items.length} complete`;
+  }
+}
+
+function resetGroup(groupId) {
+  if (!confirm('Reset all items in this checklist?')) return;
+  const data = getData();
+  data.checks = data.checks || {};
+  data.checks[groupId] = {};
+  saveData(data);
+  renderChecklists();
+  updateOverallProgress();
+  showToast('Checklist reset.', 'warning');
+}
+
+function updateOverallProgress() {
+  const data = getData();
+  const checks = data.checks || {};
+  // Count from checklists tab
+  let total = 0, done = 0;
+  CHECKLIST_GROUPS.forEach(group => {
+    total += group.items.length;
+    const gChecks = checks[group.id] || {};
+    done += group.items.filter((_,i) => gChecks[i]).length;
+  });
+  // Also count inline playbook checklists
+  const inlineChecks = data.inlineChecks || [];
+  total += inlineChecks.length;
+  done += inlineChecks.filter(Boolean).length;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  const fill = document.getElementById('overallBarFill');
+  const pctEl = document.getElementById('overallPct');
+  if (fill) { fill.style.width = pct + '%'; fill.parentElement.setAttribute('aria-valuenow', pct); }
+  if (pctEl) pctEl.textContent = pct + '%';
+}
+
+// ─── DEAL TRACKER ───────────────────────────────────────
+const DEAL_STATUSES = ['Prospecting', 'Under Contract', 'Buyer Found', 'Closed', 'Dead'];
+
+function getDeals() {
+  const data = getData();
+  return data.deals || [];
+}
+function saveDeals(deals) {
+  const data = getData();
+  data.deals = deals;
+  saveData(data);
+}
+
+function addDeal() {
+  const deals = getDeals();
+  const deal = {
+    id: Date.now(),
+    address: '',
+    city: '',
+    arv: '',
+    repairs: '',
+    maxBid: '',
+    yourFee: '',
+    status: 'Prospecting',
+    notes: '',
+    date: new Date().toLocaleDateString()
+  };
+  deals.unshift(deal);
+  saveDeals(deals);
+  renderDeals();
+  // Focus the first input of new deal
+  setTimeout(() => {
+    const first = document.querySelector('.deal-card input');
+    if (first) first.focus();
+  }, 50);
+  showToast('📋 New deal added!');
+}
+
+function updateDeal(id, field, value) {
+  const deals = getDeals();
+  const deal = deals.find(d => d.id === id);
+  if (!deal) return;
+  deal[field] = value;
+  saveDeals(deals);
+  // Recalculate profit if numeric fields change
+  if (['arv','repairs','yourFee','maxBid'].includes(field)) {
+    updateDealProfit(id);
+    updateDealStats();
+  }
+  if (field === 'status') {
+    renderDeals(); // re-render to update badge
+    updateDealStats();
+  }
+}
+
+function updateDealProfit(id) {
+  const deals = getDeals();
+  const deal = deals.find(d => d.id === id);
+  if (!deal) return;
+  const profitEl = document.getElementById(`deal-profit-${id}`);
+  if (!profitEl) return;
+  const fee = parseFloat(deal.yourFee) || 0;
+  if (fee > 0) {
+    profitEl.textContent = '$' + Math.round(fee).toLocaleString();
+    profitEl.className = 'deal-profit';
+  } else {
+    profitEl.textContent = '—';
+    profitEl.className = 'deal-profit';
+  }
+}
+
+function deleteDeal(id) {
+  if (!confirm('Delete this deal? This cannot be undone.')) return;
+  const deals = getDeals().filter(d => d.id !== id);
+  saveDeals(deals);
+  renderDeals();
+  updateDealStats();
+  showToast('Deal deleted.', 'warning');
+}
+
+function renderDeals() {
+  const container = document.getElementById('deals-container');
+  if (!container) return;
+  const deals = getDeals();
+  if (!deals.length) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="es-icon">🏠</div>
+        <h4>No deals yet</h4>
+        <p>Click "+ New Deal" to log your first property. Every successful wholesaler starts here.</p>
+      </div>`;
+    return;
+  }
+  const fmt = n => n ? '$' + Math.round(parseFloat(n)).toLocaleString() : '—';
+  container.innerHTML = deals.map(d => `
+    <div class="deal-card" id="deal-${d.id}">
+      <div class="deal-card-header">
+        <div>
+          <div class="deal-card-title" id="deal-title-${d.id}">${d.address || 'New Deal — ' + d.date}</div>
+          <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">${d.city || 'No city yet'} · Added ${d.date}</div>
+        </div>
+        <span class="deal-status-badge ${d.status}">${d.status}</span>
+      </div>
+
+      <div class="deal-fields">
+        <div class="deal-field" style="grid-column: span 2">
+          <label>Property Address</label>
+          <input type="text" value="${d.address}" placeholder="123 Main St, City, State"
+            oninput="updateDeal(${d.id}, 'address', this.value); document.getElementById('deal-title-${d.id}').textContent = this.value || 'New Deal'"
+            aria-label="Property address for deal ${d.id}"
+          >
+        </div>
+        <div class="deal-field">
+          <label>City / Market</label>
+          <input type="text" value="${d.city}" placeholder="Atlanta, GA"
+            oninput="updateDeal(${d.id}, 'city', this.value)"
+            aria-label="City for deal ${d.id}"
+          >
+        </div>
+        <div class="deal-field">
+          <label>Status</label>
+          <select onchange="updateDeal(${d.id}, 'status', this.value)" aria-label="Status for deal ${d.id}">
+            ${DEAL_STATUSES.map(s => `<option value="${s}" ${d.status === s ? 'selected' : ''}>${s}</option>`).join('')}
+          </select>
+        </div>
+        <div class="deal-field">
+          <label>ARV ($)</label>
+          <input type="number" value="${d.arv}" placeholder="250000"
+            oninput="updateDeal(${d.id}, 'arv', this.value)"
+            aria-label="ARV for deal ${d.id}"
+          >
+        </div>
+        <div class="deal-field">
+          <label>Est. Repairs ($)</label>
+          <input type="number" value="${d.repairs}" placeholder="30000"
+            oninput="updateDeal(${d.id}, 'repairs', this.value)"
+            aria-label="Estimated repairs for deal ${d.id}"
+          >
+        </div>
+        <div class="deal-field">
+          <label>Your Max Bid ($)</label>
+          <input type="number" value="${d.maxBid}" placeholder="119000"
+            oninput="updateDeal(${d.id}, 'maxBid', this.value)"
+            aria-label="Max bid for deal ${d.id}"
+          >
+        </div>
+        <div class="deal-field">
+          <label>Your Fee ($)</label>
+          <input type="number" value="${d.yourFee}" placeholder="20000"
+            oninput="updateDeal(${d.id}, 'yourFee', this.value)"
+            aria-label="Your assignment fee for deal ${d.id}"
+          >
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:16px; margin-top:16px; padding-top:16px; border-top: 1px solid rgba(255,255,255,0.06);">
+        <div>
+          <div style="font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px;">Your Fee</div>
+          <div class="deal-profit" id="deal-profit-${d.id}">${d.yourFee ? '$' + Math.round(parseFloat(d.yourFee)).toLocaleString() : '—'}</div>
+        </div>
+        <div style="flex:1">
+          <label style="font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:var(--text-muted); display:block; margin-bottom:4px;">Notes</label>
+          <textarea style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(201,168,76,0.15); border-radius:3px; padding:8px; color:var(--white); font-size:13px; font-family:Inter,sans-serif; resize:vertical; outline:none; min-height:56px;"
+            placeholder="Seller contact, title company, buyer name..."
+            oninput="updateDeal(${d.id}, 'notes', this.value)"
+            aria-label="Notes for deal ${d.id}"
+          >${d.notes}</textarea>
+        </div>
+      </div>
+
+      <div class="deal-card-actions">
+        <button class="deal-action-btn danger" onclick="deleteDeal(${d.id})" aria-label="Delete deal at ${d.address || d.id}">🗑 Delete</button>
+        <button class="deal-action-btn" onclick="copyDealSummary(${d.id})" aria-label="Copy deal summary for ${d.address || d.id}">📋 Copy Summary</button>
+      </div>
+    </div>
+  `).join('');
+  updateDealStats();
+}
+
+function updateDealStats() {
+  const deals = getDeals();
+  const container = document.getElementById('dealStats');
+  if (!container) return;
+  const total = deals.length;
+  const closed = deals.filter(d => d.status === 'Closed').length;
+  const active = deals.filter(d => !['Closed','Dead'].includes(d.status)).length;
+  const totalFees = deals.filter(d => d.status === 'Closed')
+    .reduce((sum, d) => sum + (parseFloat(d.yourFee) || 0), 0);
+  const fmt = n => n >= 1000 ? '$' + (n/1000).toFixed(1) + 'K' : '$' + n;
+  container.innerHTML = [
+    [total, 'Total Deals'],
+    [active, 'Active'],
+    [closed, 'Closed 🎉'],
+    [totalFees > 0 ? fmt(totalFees) : '$0', 'Total Earned']
+  ].map(([val, label]) => `
+    <div class="deal-stat">
+      <div class="ds-val">${val}</div>
+      <div class="ds-label">${label}</div>
+    </div>
+  `).join('');
+}
+
+function copyDealSummary(id) {
+  const deals = getDeals();
+  const d = deals.find(x => x.id === id);
+  if (!d) return;
+  const fmt = n => n ? '$' + Math.round(parseFloat(n)).toLocaleString() : 'N/A';
+  const text = [
+    '─── DEAL SUMMARY ───',
+    `Address:    ${d.address || 'TBD'}`,
+    `Market:     ${d.city || 'TBD'}`,
+    `Status:     ${d.status}`,
+    `ARV:        ${fmt(d.arv)}`,
+    `Repairs:    ${fmt(d.repairs)}`,
+    `Max Bid:    ${fmt(d.maxBid)}`,
+    `Your Fee:   ${fmt(d.yourFee)}`,
+    d.notes ? `Notes:\n  ${d.notes}` : '',
+    `────────────────────`,
+    `The Wholesale Playbook — T. Lott Creative`
+  ].filter(Boolean).join('\n');
+  navigator.clipboard.writeText(text).then(() => showToast('📋 Deal summary copied!'))
+    .catch(() => showToast('Clipboard not available.', 'warning'));
+}
+
+// ─── NOTES ──────────────────────────────────────────────
+let noteSaveTimer = null;
+
+function autoSaveNote(key, value) {
+  clearTimeout(noteSaveTimer);
+  document.getElementById('notesSaveStatus').textContent = 'Saving...';
+  noteSaveTimer = setTimeout(() => {
+    const data = getData();
+    data.notes = data.notes || {};
+    data.notes[key] = value;
+    saveData(data);
+    document.getElementById('notesSaveStatus').textContent = '✅ Saved';
+    setTimeout(() => {
+      const el = document.getElementById('notesSaveStatus');
+      if (el) el.textContent = '';
+    }, 2000);
+  }, 800);
+}
+
+function clearNote(key) {
+  if (!confirm('Clear this note section?')) return;
+  const data = getData();
+  data.notes = data.notes || {};
+  data.notes[key] = '';
+  saveData(data);
+  document.getElementById('note-' + key).value = '';
+  showToast('Note cleared.', 'warning');
+}
+
+function loadNotes() {
+  const data = getData();
+  const notes = data.notes || {};
+  ['goals','market','buyers','legal','ideas'].forEach(key => {
+    const el = document.getElementById('note-' + key);
+    if (el && notes[key]) el.value = notes[key];
+  });
+}
+
+// ─── SMOOTH SCROLL ──────────────────────────────────────
+document.querySelectorAll('a[href^="#"]').forEach(link => {
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(link.getAttribute('href'));
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+
+// ─── INIT ───────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const data = getData();
+
+  // Restore active tab
+  if (data.activeTab) switchTab(data.activeTab);
+
+  // Load inline playbook checklists
+  loadInlineChecklists();
+
+  // Render checklists tab
+  renderChecklists();
+
+  // Render deal tracker
+  renderDeals();
+  updateDealStats();
+
+  // Render calc history
+  renderCalcHistory();
+
+  // Load notes
+  loadNotes();
+
+  // Overall progress
+  updateOverallProgress();
+
+  // First-run tip
+  if (!data.onboarded) {
+    setTimeout(() => {
+      showToast('👋 Welcome! All progress saves automatically in your browser.', 'info');
+      const d2 = getData(); d2.onboarded = true; saveData(d2);
+    }, 1000);
+  }
+});
+</script>
+</body>
+</html>
