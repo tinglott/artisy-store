@@ -267,6 +267,15 @@ label{font-size:.85rem;color:var(--text-soft);font-weight:600;display:block;marg
   .combat-arena{grid-template-columns:1fr auto 1fr;gap:.5rem}
   .fighter-avatar{font-size:2.5rem}
 }
+
+/* ── TTS CONTROLS ── */
+#tts-bar{position:fixed;bottom:1rem;right:1rem;z-index:9999;display:flex;align-items:center;gap:.5rem;background:var(--bg-glass);border:1px solid var(--border);border-radius:2rem;padding:.4rem .8rem;backdrop-filter:blur(12px);box-shadow:0 4px 20px rgba(0,0,0,.4);font-size:.8rem}
+#tts-bar select{background:transparent;border:none;color:var(--text-main);font-size:.75rem;outline:none;max-width:130px;cursor:pointer}
+#tts-bar select option{background:#1e1040;color:var(--text-main)}
+#tts-bar input[type=range]{width:60px;accent-color:var(--gold-3);cursor:pointer}
+.tts-btn{background:none;border:none;cursor:pointer;font-size:1.1rem;padding:.1rem .2rem;transition:transform .15s}
+.tts-btn:hover{transform:scale(1.2)}
+#tts-off-overlay{position:fixed;inset:0;z-index:9998;pointer-events:none}
 </style>
 </head>
 <body>
@@ -298,6 +307,17 @@ label{font-size:.85rem;color:var(--text-soft);font-weight:600;display:block;marg
 </div>
 
 <!-- ==================== SCREEN: HOME ==================== -->
+<!-- TTS CONTROL BAR -->
+<div id="tts-bar" role="region" aria-label="Voice narrator controls">
+  <button class="tts-btn" id="ttsTgl" onclick="toggleTTS()" aria-label="Toggle voice narrator" title="Toggle voice">🔊</button>
+  <select id="ttsVoice" aria-label="Select narrator voice" onchange="setTTSVoice(this.value)">
+    <option value="">Loading voices…</option>
+  </select>
+  <span style="color:var(--text-muted);font-size:.7rem">Speed</span>
+  <input type="range" id="ttsSpeed" min="0.6" max="1.4" step="0.1" value="0.95" aria-label="Narrator speed" title="Speed" onchange="document.getElementById('ttsSpeedVal').textContent=parseFloat(this.value).toFixed(1)+'×'">
+  <span id="ttsSpeedVal" style="color:var(--gold-light);min-width:2.5rem">0.9×</span>
+</div>
+
 <main id="screen-home" class="screen active" role="main">
 <div id="main-content" class="container">
   <div class="text-center mt-lg">
@@ -1140,6 +1160,7 @@ function renderBattleScreen(){
 
   // Question
   document.getElementById('questionText').textContent=q.text;
+  speak(q.text, false);
   document.getElementById('hintText').style.display='none';
   document.getElementById('hintText').textContent=q.hint||'';
   document.getElementById('feedbackArea').style.display='none';
@@ -1373,6 +1394,8 @@ function startBossBattle(){
   });
   showScreen('screen-boss');
   toast('⚔️ Boss encounter! Use everything you learned!','info');
+  const _boss=BOSS_ENEMIES[state.currentFloor];
+  setTimeout(()=>speak(_boss.name+' appears! '+_boss.desc+' Can you defeat this boss? '+bq.text, true), 400);
 }
 
 function answerBoss(choiceIndex){
@@ -1391,6 +1414,7 @@ function answerBoss(choiceIndex){
     document.getElementById('bossHpText').textContent='0/5';
     fb.style.background='rgba(16,185,129,.1)'; fb.style.border='1px solid var(--success)'; fb.style.color='#6ee7b7';
     fb.innerHTML=`🏆 Boss defeated! <span class="xp-badge">+${bq.xp} XP</span>`;
+    speak('Boss defeated! Outstanding! You earned '+bq.xp+' experience points!', true);
     unlockAchievement('boss_slayer');
     state.answeredCorrect++; state.answeredTotal++;
     toast('⚔️ BOSS SLAIN! 🎉','success');
@@ -1465,6 +1489,8 @@ function showFloorComplete(floor,xpEarned){
 
   showScreen('screen-floor-complete');
   saveQuestProgress();
+  const _tierN=tierNames[tierIdx];
+  speak(_tierN+' floor cleared! Excellent work, adventurer! You earned '+xpEarned+' experience points. Prepare for the next challenge!', true);
 }
 
 function continueAfterFloor(){
@@ -1501,6 +1527,7 @@ function showVictory(){
 
   showScreen('screen-victory');
   updateHomeStats();
+  speak('Quest complete! Congratulations, adventurer! You have mastered '+state.questName+'. Your final score is '+state.xp+' experience points. Well done!', true);
 }
 
 function downloadCertificate(){
@@ -1695,6 +1722,121 @@ window.addEventListener('load',()=>{
   updateHomeStats();
   toast('🏰 Welcome to QuestForge! Press ? for keyboard shortcuts.','info');
 });
+
+// ══════════════════════════════════════════════════════════════
+// TTS — VOICE NARRATOR ENGINE
+// Uses Web Speech API (free, runs in browser, Microsoft Neural
+// voices available on Windows/Edge, system voices on all others)
+// ══════════════════════════════════════════════════════════════
+const TTS = {
+  enabled: true,
+  voice: null,
+  speed: 0.95,
+  utterance: null,
+  queue: [],
+  speaking: false
+};
+
+function initTTS(){
+  if(!window.speechSynthesis) return;
+
+  function populateVoices(){
+    const voices = speechSynthesis.getVoices();
+    if(!voices.length) return;
+
+    const sel = document.getElementById('ttsVoice');
+    sel.innerHTML = '';
+
+    // Prefer Microsoft Neural voices, then English voices
+    const preferred = voices.filter(v =>
+      v.name.includes('Microsoft') && v.lang.startsWith('en')
+    );
+    const english = voices.filter(v =>
+      v.lang.startsWith('en') && !v.name.includes('Microsoft')
+    );
+    const rest = voices.filter(v => !v.lang.startsWith('en'));
+
+    const ordered = [...preferred, ...english, ...rest];
+
+    ordered.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v.name;
+      opt.textContent = v.name.replace('Microsoft ','').replace(' Online (Natural)','').replace(' - English (United States)','').substring(0,28);
+      sel.appendChild(opt);
+    });
+
+    // Auto-pick a warm female Microsoft voice: Jenny > Aria > Natasha > first
+    const warm = ['Jenny','Aria','Natasha','Sonia','Hazel','Zira'];
+    let picked = null;
+    for(const name of warm){
+      picked = preferred.find(v => v.name.includes(name));
+      if(picked) break;
+    }
+    if(!picked) picked = preferred[0] || english[0] || voices[0];
+    if(picked){
+      TTS.voice = picked;
+      sel.value = picked.name;
+    }
+  }
+
+  if(speechSynthesis.onvoiceschanged !== undefined){
+    speechSynthesis.onvoiceschanged = populateVoices;
+  }
+  populateVoices();
+}
+
+function setTTSVoice(name){
+  const v = speechSynthesis.getVoices().find(v => v.name === name);
+  if(v) TTS.voice = v;
+}
+
+function toggleTTS(){
+  TTS.enabled = !TTS.enabled;
+  const btn = document.getElementById('ttsTgl');
+  const bar = document.getElementById('tts-bar');
+  if(!TTS.enabled){
+    speechSynthesis.cancel();
+    TTS.queue = [];
+    btn.textContent = '🔇';
+    bar.style.opacity = '0.5';
+    toast('Voice narrator off', 'info');
+  } else {
+    btn.textContent = '🔊';
+    bar.style.opacity = '1';
+    toast('Voice narrator on 🔊', 'success');
+  }
+}
+
+function speak(text, interrupt = false){
+  if(!TTS.enabled || !window.speechSynthesis) return;
+  const clean = text.replace(/[🎮⚔️🐉🏆💀🔥✅❌🎓🌐⚡🏅🎯🔮🧙🏹🔊🔇]/gu,'').trim();
+  if(!clean) return;
+
+  if(interrupt){
+    speechSynthesis.cancel();
+    TTS.queue = [];
+  }
+
+  const utter = new SpeechSynthesisUtterance(clean);
+  utter.voice = TTS.voice || null;
+  utter.rate = parseFloat(document.getElementById('ttsSpeed')?.value || TTS.speed);
+  utter.pitch = 1.05;
+  utter.volume = 1.0;
+
+  utter.onerror = ()=>{};
+  speechSynthesis.speak(utter);
+}
+
+// Init TTS when DOM ready
+window.addEventListener('load', initTTS);
+
+// Workaround for Chrome bug: speechSynthesis pauses after 15s
+setInterval(()=>{
+  if(TTS.enabled && speechSynthesis.speaking){
+    speechSynthesis.resume();
+  }
+}, 10000);
+
 </script>
 </body>
 </html>
