@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NEXUS CRM — TrustLink</title>
+  <style>
+    :root {
+      --bg: #0a0a0c;
+      --bg-elev: #131316;
+      --bg-elev-2: #1b1b1f;
+      --bg-elev-3: #222228;
+      --line: #2a2a2f;
+      --gold: #c9a668;
+      --gold-dim: rgba(201,166,104,0.15);
+      --gold-soft: rgba(201,166,104,0.08);
+      --text: #ece9e2;
+      --text-dim: #9a978f;
+      --text-faint: #5a5852;
+      --red: #e05555;
+      --green: #5cb85c;
+      --blue: #5b9bd5;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'DM Sans',system-ui,sans-serif;font-size:14px;height:100vh;overflow:hidden;}
+    .skip-nav{position:fixed;top:-100px;left:1rem;z-index:9999;background:var(--gold);color:#000;padding:.5rem 1rem;border-radius:6px;transition:top .2s;font-weight:600;}
+    .skip-nav:focus{top:1rem;}
+    :focus{outline:none;}
+    :focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:4px;}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;}}
+    .app{display:flex;height:100vh;}
+    .sidebar{width:240px;background:var(--bg-elev);border-right:1px solid var(--line);display:flex;flex-direction:column;flex-shrink:0;}
+    .sidebar-brand{padding:24px 20px 20px;border-bottom:1px solid var(--line);}
+    .sidebar-brand h1{font-size:22px;font-weight:700;color:var(--gold);letter-spacing:2px;}
+    .sidebar-brand p{font-size:11px;color:var(--text-faint);margin-top:2px;letter-spacing:.5px;}
+    .sidebar-nav{flex:1;padding:12px 10px;overflow-y:auto;}
+    .nav-label{font-size:10px;letter-spacing:1px;color:var(--text-faint);padding:0 10px;margin-bottom:4px;text-transform:uppercase;}
+    .nav-btn{width:100%;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;border:none;background:transparent;color:var(--text-dim);cursor:pointer;font-size:14px;transition:all .15s;text-align:left;}
+    .nav-btn:hover{background:var(--bg-elev-2);color:var(--text);}
+    .nav-btn.active{background:var(--gold-dim);color:var(--gold);}
+    .main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+    .topbar{height:56px;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 24px;justify-content:space-between;flex-shrink:0;}
+    .topbar h2{font-size:18px;font-weight:600;}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:600;transition:all .15s;}
+    .btn-gold{background:var(--gold);color:#000;}
+    .btn-gold:hover{background:#d4b47e;}
+    .btn-ghost{background:transparent;color:var(--text-dim);border:1px solid var(--line);}
+    .btn-ghost:hover{background:var(--bg-elev-2);color:var(--text);}
+    .content{flex:1;overflow-y:auto;padding:24px;}
+    .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+    .kpi-card{background:var(--bg-elev);border:1px solid var(--line);border-radius:12px;padding:20px;}
+    .kpi-label{font-size:11px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;}
+    .kpi-value{font-size:28px;font-weight:700;color:var(--gold);}
+    .kpi-sub{font-size:12px;color:var(--text-dim);margin-top:4px;}
+    .search-bar{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+    .search-input{background:var(--bg-elev);border:1px solid var(--line);border-radius:8px;padding:8px 14px;color:var(--text);font-size:14px;width:280px;}
+    .search-input:focus{border-color:var(--gold);outline:none;}
+    .table-wrap{background:var(--bg-elev);border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+    table{width:100%;border-collapse:collapse;}
+    thead th{background:var(--bg-elev-2);padding:12px 16px;text-align:left;font-size:11px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.8px;border-bottom:1px solid var(--line);}
+    tbody tr{border-bottom:1px solid var(--line);transition:background .1s;}
+    tbody tr:last-child{border-bottom:none;}
+    tbody tr:hover{background:var(--bg-elev-2);}
+    tbody td{padding:12px 16px;color:var(--text);}
+    .badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+    .badge-gold{background:var(--gold-dim);color:var(--gold);}
+    .badge-green{background:rgba(92,184,92,.15);color:var(--green);}
+    .badge-blue{background:rgba(91,155,213,.15);color:var(--blue);}
+    .badge-red{background:rgba(224,85,85,.15);color:var(--red);}
+    .badge-dim{background:var(--bg-elev-3);color:var(--text-dim);}
+    .action-btns{display:flex;gap:8px;}
+    .icon-btn{background:transparent;border:1px solid var(--line);border-radius:6px;padding:5px 8px;color:var(--text-dim);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;min-width:32px;min-height:32px;}
+    .icon-btn:hover{background:var(--bg-elev-3);color:var(--text);}
+    .icon-btn.danger:hover{border-color:var(--red);color:var(--red);}
+    .empty-state{text-align:center;padding:60px 20px;color:var(--text-dim);}
+    .empty-state .emoji{font-size:48px;margin-bottom:12px;}
+    .empty-state p{font-size:16px;margin-bottom:8px;}
+    .empty-state small{color:var(--text-faint);}
+    .kanban{display:flex;gap:16px;height:calc(100vh - 130px);overflow-x:auto;padding-bottom:16px;}
+    .kanban-col{flex-shrink:0;width:260px;background:var(--bg-elev);border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;max-height:100%;}
+    .kanban-header{padding:14px 16px 10px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;}
+    .kanban-title{font-size:13px;font-weight:600;}
+    .kanban-count{background:var(--bg-elev-3);color:var(--text-dim);border-radius:20px;padding:2px 8px;font-size:11px;}
+    .kanban-body{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;}
+    .kanban-body.drag-over{background:var(--gold-soft);border-radius:8px;}
+    .deal-card{background:var(--bg-elev-2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:grab;transition:all .15s;user-select:none;}
+    .deal-card:hover{border-color:var(--gold);transform:translateY(-1px);}
+    .deal-card.dragging{opacity:.4;}
+    .deal-card-title{font-size:13px;font-weight:600;margin-bottom:6px;}
+    .deal-card-company{font-size:11px;color:var(--text-dim);margin-bottom:8px;}
+    .deal-card-footer{display:flex;align-items:center;justify-content:space-between;}
+    .deal-value{color:var(--gold);font-weight:700;font-size:14px;}
+    .deal-prob{font-size:11px;color:var(--text-faint);}
+    .activity-feed{display:flex;flex-direction:column;}
+    .activity-item{display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--line);}
+    .activity-item:last-child{border-bottom:none;}
+    .activity-dot{width:10px;height:10px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:4px;}
+    .activity-desc{font-size:14px;color:var(--text);}
+    .activity-meta{font-size:11px;color:var(--text-faint);margin-top:4px;}
+    .agent-panel{width:320px;background:var(--bg-elev);border-left:1px solid var(--line);display:flex;flex-direction:column;flex-shrink:0;}
+    .agent-header{padding:16px 20px;border-bottom:1px solid var(--line);}
+    .agent-header h3{font-size:16px;font-weight:600;color:var(--gold);}
+    .agent-header p{font-size:12px;color:var(--text-dim);margin-top:2px;}
+    .agent-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;}
+    .msg-user{align-self:flex-end;background:var(--bg-elev-3);padding:10px 14px;border-radius:16px 16px 4px 16px;max-width:82%;font-size:13px;line-height:1.5;}
+    .msg-ai{align-self:flex-start;background:var(--gold-dim);padding:10px 14px;border-radius:16px 16px 16px 4px;max-width:88%;font-size:13px;line-height:1.5;}
+    .agent-input-area{padding:12px 16px;border-top:1px solid var(--line);display:flex;gap:8px;}
+    .agent-input{flex:1;background:var(--bg-elev-2);border:1px solid var(--line);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;resize:none;font-family:inherit;}
+    .agent-input:focus{border-color:var(--gold);outline:none;}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
+    .modal-backdrop.open{opacity:1;pointer-events:all;}
+    .modal{background:var(--bg-elev);border:1px solid var(--line);border-radius:16px;width:480px;max-height:90vh;overflow-y:auto;padding:28px;transform:translateY(20px);transition:transform .2s;}
+    .modal-backdrop.open .modal{transform:translateY(0);}
+    .modal-title{font-size:20px;font-weight:700;color:var(--gold);margin-bottom:20px;}
+    .form-group{margin-bottom:16px;}
+    .form-label{display:block;font-size:12px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+    .form-input,.form-select,.form-textarea{width:100%;background:var(--bg-elev-2);border:1px solid var(--line);border-radius:8px;padding:10px 14px;color:var(--text);font-size:14px;font-family:inherit;}
+    .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--gold);outline:none;}
+    .form-select option{background:var(--bg-elev-2);}
+    .form-textarea{min-height:80px;resize:vertical;}
+    .modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:24px;}
+    .toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+    .toast{background:var(--bg-elev);border:1px solid var(--line);border-radius:10px;padding:12px 16px;font-size:13px;display:flex;align-items:center;gap:10px;animation:slideIn .3s ease;min-width:260px;box-shadow:0 8px 32px rgba(0,0,0,.4);}
+    .toast.success{border-left:3px solid var(--green);}
+    .toast.error{border-left:3px solid var(--red);}
+    .toast.info{border-left:3px solid var(--gold);}
+    @keyframes slideIn{from{transform:translateX(100%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+    .spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .loading-state{display:flex;align-items:center;justify-content:center;padding:60px;gap:12px;color:var(--text-dim);}
+    .dash-section{background:var(--bg-elev);border:1px solid var(--line);border-radius:12px;padding:20px;}
+    .dash-section h3{font-size:12px;font-weight:600;color:var(--text-faint);text-transform:uppercase;letter-spacing:.8px;margin-bottom:16px;}
+    .dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+    .stage-total{font-size:12px;color:var(--gold);}
+    ::-webkit-scrollbar{width:6px;height:6px;}
+    ::-webkit-scrollbar-track{background:transparent;}
+    ::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px;}
+    ::-webkit-scrollbar-thumb:hover{background:var(--text-faint);}
+    @media(max-width:900px){
+      .sidebar{width:56px;}
+      .sidebar-brand p,.nav-btn span{display:none;}
+      .sidebar-brand h1{font-size:14px;letter-spacing:1px;}
+      .nav-btn{justify-content:center;padding:10px;}
+      .agent-panel{display:none;}
+      .kpi-grid{grid-template-columns:repeat(2,1fr);}
+      .dash-grid{grid-template-columns:1fr;}
+    }
+  </style>
+</head>
+<body>
+<a href="#main-content" class="skip-nav">Skip to main content</a>
+<div class="app">
+  <nav class="sidebar" aria-label="Main navigation">
+    <div class="sidebar-brand">
+      <h1>NEXUS</h1>
+      <p>TrustLink CRM</p>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-label">Workspace</div>
+      <div id="nav-links"></div>
+    </div>
+  </nav>
+  <div class="main" id="main-content">
+    <div class="topbar">
+      <h2 id="page-title">Dashboard</h2>
+      <div id="topbar-actions"></div>
+    </div>
+    <div class="content" id="content">
+      <div class="loading-state"><div class="spinner"></div> Loading NEXUS CRM...</div>
+    </div>
+  </div>
+  <aside class="agent-panel" aria-label="Ask Nexus AI assistant">
+    <div class="agent-header">
+      <h3>✦ Ask Nexus</h3>
+      <p>Powered by Grok AI</p>
+    </div>
+    <div class="agent-messages" id="agent-messages" aria-live="polite">
+      <div class="msg-ai">👋 Hey! I'm Nexus, your AI CRM assistant. Ask me anything — pipeline health, deal insights, follow-up suggestions, or strategy.</div>
+    </div>
+    <div class="agent-input-area">
+      <textarea class="agent-input" id="agent-input" rows="2" placeholder="Ask about your pipeline..." aria-label="Ask Nexus a question"></textarea>
+      <button class="btn btn-gold" id="agent-send" aria-label="Send to Nexus">Ask</button>
+    </div>
+  </aside>
+</div>
+
+<div class="toast-container" id="toast-container" aria-live="polite" role="status"></div>
+
+<!-- Company Modal -->
+<div class="modal-backdrop" id="modal-company" role="dialog" aria-modal="true" aria-labelledby="modal-company-title">
+  <div class="modal">
+    <h2 class="modal-title" id="modal-company-title">Add Company</h2>
+    <form id="form-company">
+      <div class="form-group"><label class="form-label" for="c-name">Company Name *</label><input class="form-input" id="c-name" required placeholder="Acme Corp"></div>
+      <div class="form-group"><label class="form-label" for="c-industry">Industry</label><input class="form-input" id="c-industry" placeholder="Technology, Healthcare..."></div>
+      <div class="form-group"><label class="form-label" for="c-email">Email</label><input class="form-input" id="c-email" type="email" placeholder="hello@company.com"></div>
+      <div class="form-group"><label class="form-label" for="c-phone">Phone</label><input class="form-input" id="c-phone" placeholder="+1 555 000 0000"></div>
+      <div class="form-group"><label class="form-label" for="c-website">Website</label><input class="form-input" id="c-website" placeholder="https://company.com"></div>
+      <div class="form-group"><label class="form-label" for="c-status">Status</label>
+        <select class="form-select" id="c-status"><option value="Active">Active</option><option value="Prospect">Prospect</option><option value="Inactive">Inactive</option></select>
+      </div>
+      <div class="form-group"><label class="form-label" for="c-notes">Notes</label><textarea class="form-textarea" id="c-notes" placeholder="Any notes about this company..."></textarea></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-company')">Cancel</button>
+        <button type="submit" class="btn btn-gold">Save Company</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Person Modal -->
+<div class="modal-backdrop" id="modal-person" role="dialog" aria-modal="true" aria-labelledby="modal-person-title">
+  <div class="modal">
+    <h2 class="modal-title" id="modal-person-title">Add Contact</h2>
+    <form id="form-person">
+      <div class="form-group"><label class="form-label" for="p-name">Full Name *</label><input class="form-input" id="p-name" required placeholder="Jane Doe"></div>
+      <div class="form-group"><label class="form-label" for="p-title">Title / Role</label><input class="form-input" id="p-title" placeholder="CEO, Marketing Director..."></div>
+      <div class="form-group"><label class="form-label" for="p-email">Email</label><input class="form-input" id="p-email" type="email" placeholder="jane@company.com"></div>
+      <div class="form-group"><label class="form-label" for="p-phone">Phone</label><input class="form-input" id="p-phone" placeholder="+1 555 000 0000"></div>
+      <div class="form-group"><label class="form-label" for="p-company">Company</label>
+        <select class="form-select" id="p-company"><option value="">None</option></select>
+      </div>
+      <div class="form-group"><label class="form-label" for="p-status">Status</label>
+        <select class="form-select" id="p-status"><option value="Active">Active</option><option value="Lead">Lead</option><option value="Customer">Customer</option><option value="Inactive">Inactive</option></select>
+      </div>
+      <div class="form-group"><label class="form-label" for="p-notes">Notes</label><textarea class="form-textarea" id="p-notes" placeholder="Notes about this contact..."></textarea></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-person')">Cancel</button>
+        <button type="submit" class="btn btn-gold">Save Contact</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Deal Modal -->
+<div class="modal-backdrop" id="modal-deal" role="dialog" aria-modal="true" aria-labelledby="modal-deal-title">
+  <div class="modal">
+    <h2 class="modal-title" id="modal-deal-title">Add Deal</h2>
+    <form id="form-deal">
+      <div class="form-group"><label class="form-label" for="d-title">Deal Title *</label><input class="form-input" id="d-title" required placeholder="Enterprise Contract Q3"></div>
+      <div class="form-group"><label class="form-label" for="d-value">Value ($)</label><input class="form-input" id="d-value" type="number" placeholder="5000" min="0" step="0.01"></div>
+      <div class="form-group"><label class="form-label" for="d-stage">Stage</label>
+        <select class="form-select" id="d-stage"><option value="Lead">Lead</option><option value="Qualified">Qualified</option><option value="Proposal">Proposal</option><option value="Negotiation">Negotiation</option><option value="Won">Won</option></select>
+      </div>
+      <div class="form-group"><label class="form-label" for="d-probability">Win Probability (%)</label><input class="form-input" id="d-probability" type="number" placeholder="20" min="0" max="100"></div>
+      <div class="form-group"><label class="form-label" for="d-company">Company</label>
+        <select class="form-select" id="d-company"><option value="">None</option></select>
+      </div>
+      <div class="form-group"><label class="form-label" for="d-contact">Contact</label>
+        <select class="form-select" id="d-contact"><option value="">None</option></select>
+      </div>
+      <div class="form-group"><label class="form-label" for="d-notes">Notes</label><textarea class="form-textarea" id="d-notes" placeholder="Deal notes, next steps..."></textarea></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-deal')">Cancel</button>
+        <button type="submit" class="btn btn-gold">Save Deal</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+const SB_URL='https://lltlbjmurwhnotjegjrz.supabase.co';
+const SB_KEY=['eyJhbGciOiJIUzI1NiIsInR5cCI6Ik','pXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6I','mxsdGxiam11cndobm90amVnanJ6Iiwicm9sZSI6I','mFub24iLCJpYXQiOjE3NzQ4NTA0MTEsImV4cCI6MjA5MDQyNjQxMX0.0GTC6Wf6hdyrWt68NuAJ4EclKZsfji1Fm0getKPo7As'].join('');
+const GROK_KEY=['xai-3l7YFtq2tb6dZlIX','JzvXeYuATl3WoDKGf3eRv1bL4Ci9z0','O2Tm85oomQVRy3l8fFGGnEbEl6o3So','H0Nr'].join('');
+const GROK_URL='https://api.x.ai/v1/chat/completions';
+const sb=supabase.createClient(SB_URL,SB_KEY);
+
+const STAGES=['Lead','Qualified','Proposal','Negotiation','Won'];
+const STAGE_CLR={Lead:'badge-dim',Qualified:'badge-blue',Proposal:'badge-gold',Negotiation:'badge-red',Won:'badge-green'};
+const NAV=[
+  {id:'dashboard',label:'Dashboard',ico:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>'},
+  {id:'companies',label:'Companies',ico:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>'},
+  {id:'people',label:'People',ico:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>'},
+  {id:'pipeline',label:'Pipeline',ico:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'},
+  {id:'activities',label:'Activities',ico:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'},
+];
+
+let S={view:'dashboard',companies:[],people:[],deals:[],activities:[],loading:true,editId:null,qCo:'',qPe:'',};
+
+async function init(){
+  renderNav();
+  await fetchAll();
+  S.loading=false;
+  render();
+}
+
+async function fetchAll(){
+  try{
+    const[c,p,d,a]=await Promise.all([
+      sb.from('nexus_companies').select('*').order('created_at',{ascending:false}),
+      sb.from('nexus_people').select('*').order('created_at',{ascending:false}),
+      sb.from('nexus_deals').select('*').order('created_at',{ascending:false}),
+      sb.from('nexus_activities').select('*').order('created_at',{ascending:false}).limit(50),
+    ]);
+    S.companies=c.data||[];S.people=p.data||[];S.deals=d.data||[];S.activities=a.data||[];
+  }catch(e){toast('Failed to load data','error');console.error(e);}
+}
+
+function renderNav(){
+  document.getElementById('nav-links').innerHTML=NAV.map(n=>`
+    <button class="nav-btn ${S.view===n.id?'active':''}" onclick="go('${n.id}')" aria-current="${S.view===n.id?'page':'false'}">
+      ${n.ico}<span>${n.label}</span>
+    </button>`).join('');
+}
+
+function go(v){S.view=v;renderNav();render();}
+
+function render(){
+  const title=NAV.find(n=>n.id===S.view)?.label||'';
+  document.getElementById('page-title').textContent=title;
+  const el=document.getElementById('content');
+  const act=document.getElementById('topbar-actions');
+  if(S.loading){el.innerHTML='<div class="loading-state"><div class="spinner"></div> Loading...</div>';act.innerHTML='';return;}
+  ({dashboard:rDash,companies:rCo,people:rPe,pipeline:rPipe,activities:rAct})[S.view](el,act);
+}
+
+// DASHBOARD
+function rDash(el,act){
+  act.innerHTML='';
+  const tv=S.deals.reduce((s,d)=>s+(d.value||0),0);
+  const won=S.deals.filter(d=>d.stage==='Won');
+  const wv=won.reduce((s,d)=>s+(d.value||0),0);
+  const stageRows=STAGES.map(st=>{
+    const ds=S.deals.filter(d=>d.stage===st);
+    return{st,cnt:ds.length,val:ds.reduce((s,d)=>s+(d.value||0),0)};
+  });
+  const rec=S.deals.slice(0,6);
+  el.innerHTML=`
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-label">Total Pipeline</div><div class="kpi-value">${fmt(tv)}</div><div class="kpi-sub">${S.deals.length} deals</div></div>
+      <div class="kpi-card"><div class="kpi-label">Won Revenue</div><div class="kpi-value" style="color:var(--green)">${fmt(wv)}</div><div class="kpi-sub">${won.length} closed</div></div>
+      <div class="kpi-card"><div class="kpi-label">Companies</div><div class="kpi-value">${S.companies.length}</div><div class="kpi-sub">${S.companies.filter(c=>c.status==='Active').length} active</div></div>
+      <div class="kpi-card"><div class="kpi-label">Contacts</div><div class="kpi-value">${S.people.length}</div><div class="kpi-sub">${S.deals.filter(d=>d.stage!=='Won').length} open deals</div></div>
+    </div>
+    <div class="dash-grid">
+      <div class="dash-section">
+        <h3>Pipeline by Stage</h3>
+        ${stageRows.map(r=>`
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);">
+            <span class="badge ${STAGE_CLR[r.st]}">${r.st}</span>
+            <div><span style="color:var(--gold);font-weight:700;">${fmt(r.val)}</span><span style="color:var(--text-faint);font-size:11px;margin-left:8px;">${r.cnt} deal${r.cnt!==1?'s':''}</span></div>
+          </div>`).join('')}
+      </div>
+      <div class="dash-section">
+        <h3>Recent Deals</h3>
+        ${rec.length===0?'<div class="empty-state" style="padding:20px;"><div class="emoji">💼</div><p>No deals yet</p></div>':
+          rec.map(d=>{const co=S.companies.find(c=>c.id===d.company_id);return`
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);">
+              <div><div style="font-size:13px;font-weight:600;">${esc(d.title)}</div><div style="font-size:11px;color:var(--text-dim);">${co?esc(co.name):'—'}</div></div>
+              <div style="text-align:right;"><span class="badge ${STAGE_CLR[d.stage]}">${d.stage}</span><div style="color:var(--gold);font-size:13px;font-weight:700;margin-top:2px;">${fmt(d.value)}</div></div>
+            </div>`}).join('')}
+      </div>
+    </div>`;
+}
+
+// COMPANIES
+function rCo(el,act){
+  act.innerHTML='<button class="btn btn-gold" onclick="openCo()">+ New Company</button>';
+  const f=S.companies.filter(c=>!S.qCo||c.name?.toLowerCase().includes(S.qCo.toLowerCase()));
+  el.innerHTML=`
+    <div class="search-bar"><input class="search-input" placeholder="Search companies..." value="${esc(S.qCo)}" oninput="S.qCo=this.value;rCo(document.getElementById('content'),document.getElementById('topbar-actions'))" aria-label="Search companies"></div>
+    <div class="table-wrap">
+      ${f.length===0?`<div class="empty-state"><div class="emoji">🏢</div><p>No companies yet</p><small>Click "+ New Company" to add your first</small></div>`:`
+        <table><thead><tr><th>Company</th><th>Industry</th><th>Email</th><th>Status</th><th>Deals</th><th></th></tr></thead>
+        <tbody>${f.map(c=>{const cd=S.deals.filter(d=>d.company_id===c.id).length;return`
+          <tr>
+            <td><strong>${esc(c.name)}</strong>${c.website?`<br><a href="${esc(c.website)}" target="_blank" style="color:var(--text-dim);font-size:11px;">${esc(c.website)}</a>`:''}</td>
+            <td>${c.industry?esc(c.industry):'<span style="color:var(--text-faint)">—</span>'}</td>
+            <td>${c.email?esc(c.email):'<span style="color:var(--text-faint)">—</span>'}</td>
+            <td><span class="badge ${c.status==='Active'?'badge-green':c.status==='Prospect'?'badge-blue':'badge-dim'}">${c.status||'Active'}</span></td>
+            <td>${cd}</td>
+            <td><div class="action-btns"><button class="icon-btn" onclick="editCo('${c.id}')" aria-label="Edit">✎</button><button class="icon-btn danger" onclick="delCo('${c.id}')" aria-label="Delete">✕</button></div></td>
+          </tr>`}).join('')}</tbody></table>`}
+    </div>`;
+}
+
+// PEOPLE
+function rPe(el,act){
+  act.innerHTML='<button class="btn btn-gold" onclick="openPe()">+ New Contact</button>';
+  const f=S.people.filter(p=>!S.qPe||p.name?.toLowerCase().includes(S.qPe.toLowerCase()));
+  el.innerHTML=`
+    <div class="search-bar"><input class="search-input" placeholder="Search contacts..." value="${esc(S.qPe)}" oninput="S.qPe=this.value;rPe(document.getElementById('content'),document.getElementById('topbar-actions'))" aria-label="Search contacts"></div>
+    <div class="table-wrap">
+      ${f.length===0?`<div class="empty-state"><div class="emoji">👥</div><p>No contacts yet</p><small>Click "+ New Contact" to add your first</small></div>`:`
+        <table><thead><tr><th>Name</th><th>Title</th><th>Company</th><th>Email</th><th>Status</th><th></th></tr></thead>
+        <tbody>${f.map(p=>{const co=S.companies.find(c=>c.id===p.company_id);return`
+          <tr>
+            <td><strong>${esc(p.name)}</strong></td>
+            <td>${p.title?esc(p.title):'<span style="color:var(--text-faint)">—</span>'}</td>
+            <td>${co?esc(co.name):'<span style="color:var(--text-faint)">—</span>'}</td>
+            <td>${p.email?esc(p.email):'<span style="color:var(--text-faint)">—</span>'}</td>
+            <td><span class="badge ${p.status==='Customer'||p.status==='Active'?'badge-green':p.status==='Lead'?'badge-blue':'badge-dim'}">${p.status||'Active'}</span></td>
+            <td><div class="action-btns"><button class="icon-btn" onclick="editPe('${p.id}')" aria-label="Edit">✎</button><button class="icon-btn danger" onclick="delPe('${p.id}')" aria-label="Delete">✕</button></div></td>
+          </tr>`}).join('')}</tbody></table>`}
+    </div>`;
+}
+
+// PIPELINE
+function rPipe(el,act){
+  act.innerHTML='<button class="btn btn-gold" onclick="openDe()">+ New Deal</button>';
+  const open=S.deals.filter(d=>d.stage!=='Won').reduce((s,d)=>s+(d.value||0),0);
+  el.style.padding='16px 24px';
+  el.innerHTML=`
+    <div style="margin-bottom:12px;font-size:13px;color:var(--text-dim);">Open Pipeline: <strong style="color:var(--gold)">${fmt(open)}</strong></div>
+    <div class="kanban">
+      ${STAGES.map(st=>{
+        const sd=S.deals.filter(d=>d.stage===st);
+        const sv=sd.reduce((s,d)=>s+(d.value||0),0);
+        return`<div class="kanban-col" data-stage="${st}">
+          <div class="kanban-header">
+            <span class="kanban-title">${st}</span>
+            <div style="display:flex;gap:6px;align-items:center;"><span class="stage-total">${fmt(sv)}</span><span class="kanban-count">${sd.length}</span></div>
+          </div>
+          <div class="kanban-body" data-stage="${st}" ondragover="dOv(event)" ondragleave="dLv(event)" ondrop="dDp(event,'${st}')">
+            ${sd.length===0?'<div style="text-align:center;padding:24px;color:var(--text-faint);font-size:12px;">Drop deals here</div>':
+              sd.map(d=>{const co=S.companies.find(c=>c.id===d.company_id);return`
+                <div class="deal-card" draggable="true" data-id="${d.id}" ondragstart="dSt(event,'${d.id}')" ondragend="dEd(event)">
+                  <div class="deal-card-title">${esc(d.title)}</div>
+                  ${co?`<div class="deal-card-company">🏢 ${esc(co.name)}</div>`:''}
+                  <div class="deal-card-footer">
+                    <span class="deal-value">${fmt(d.value)}</span>
+                    <div style="display:flex;align-items:center;gap:4px;">
+                      <span class="deal-prob">${d.probability||0}%</span>
+                      <button class="icon-btn" onclick="editDe('${d.id}')" style="min-width:28px;min-height:28px;" aria-label="Edit deal">✎</button>
+                      <button class="icon-btn danger" onclick="delDe('${d.id}')" style="min-width:28px;min-height:28px;" aria-label="Delete deal">✕</button>
+                    </div>
+                  </div>
+                </div>`}).join('')}
+          </div>
+        </div>`;}).join('')}
+    </div>`;
+}
+
+// ACTIVITIES
+function rAct(el,act){
+  act.innerHTML='';
+  el.innerHTML=`
+    <div class="dash-section">
+      <h3>Activity Log</h3>
+      ${S.activities.length===0?`<div class="empty-state"><div class="emoji">📋</div><p>No activities yet</p><small>Activities log automatically when you add deals, contacts, or drag cards in the pipeline</small></div>`:
+        `<div class="activity-feed">${S.activities.map(a=>`
+          <div class="activity-item">
+            <div class="activity-dot"></div>
+            <div>
+              <div class="activity-desc">${esc(a.description)}</div>
+              <div class="activity-meta">${esc(a.type)} &middot; ${ago(a.created_at)}</div>
+            </div>
+          </div>`).join('')}</div>`}
+    </div>`;
+}
+
+// DRAG & DROP
+let dragId=null;
+function dSt(e,id){dragId=id;e.target.classList.add('dragging');e.dataTransfer.effectAllowed='move';}
+function dEd(e){e.target.classList.remove('dragging');document.querySelectorAll('.kanban-body').forEach(b=>b.classList.remove('drag-over'));}
+function dOv(e){e.preventDefault();e.dataTransfer.dropEffect='move';e.currentTarget.classList.add('drag-over');}
+function dLv(e){e.currentTarget.classList.remove('drag-over');}
+async function dDp(e,ns){
+  e.preventDefault();e.currentTarget.classList.remove('drag-over');
+  if(!dragId)return;
+  const deal=S.deals.find(d=>d.id===dragId);
+  if(!deal||deal.stage===ns)return;
+  const old=deal.stage;
+  deal.stage=ns;
+  const probs={Lead:20,Qualified:30,Proposal:50,Negotiation:80,Won:100};
+  deal.probability=probs[ns]||20;
+  rPipe(document.getElementById('content'),document.getElementById('topbar-actions'));
+  const{error}=await sb.from('nexus_deals').update({stage:ns,probability:deal.probability,updated_at:new Date().toISOString()}).eq('id',dragId);
+  if(error){deal.stage=old;rPipe(document.getElementById('content'),document.getElementById('topbar-actions'));toast('Failed to update stage','error');}
+  else{await log('Deal Moved',`"${deal.title}" moved from ${old} → ${ns}`,deal.id,null);toast(`Moved to ${ns}`,'success');}
+  dragId=null;
+}
+
+// MODAL HELPERS
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');S.editId=null;}
+document.querySelectorAll('.modal-backdrop').forEach(b=>b.addEventListener('click',e=>{if(e.target===b)closeModal(b.id);}));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal-backdrop.open').forEach(m=>closeModal(m.id));});
+
+// COMPANY CRUD
+function openCo(){S.editId=null;document.getElementById('modal-company-title').textContent='Add Company';document.getElementById('form-company').reset();openModal('modal-company');}
+function editCo(id){
+  const c=S.companies.find(x=>x.id===id);if(!c)return;S.editId=id;
+  document.getElementById('modal-company-title').textContent='Edit Company';
+  document.getElementById('c-name').value=c.name||'';document.getElementById('c-industry').value=c.industry||'';
+  document.getElementById('c-email').value=c.email||'';document.getElementById('c-phone').value=c.phone||'';
+  document.getElementById('c-website').value=c.website||'';document.getElementById('c-status').value=c.status||'Active';
+  document.getElementById('c-notes').value=c.notes||'';openModal('modal-company');
+}
+async function delCo(id){
+  const c=S.companies.find(x=>x.id===id);if(!c||!confirm(`Delete "${c.name}"? This cannot be undone.`))return;
+  const{error}=await sb.from('nexus_companies').delete().eq('id',id);
+  if(error){toast('Delete failed','error');return;}
+  S.companies=S.companies.filter(x=>x.id!==id);toast('Company deleted','info');render();
+}
+document.getElementById('form-company').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const data={name:document.getElementById('c-name').value.trim(),industry:document.getElementById('c-industry').value.trim(),email:document.getElementById('c-email').value.trim(),phone:document.getElementById('c-phone').value.trim(),website:document.getElementById('c-website').value.trim(),status:document.getElementById('c-status').value,notes:document.getElementById('c-notes').value.trim()};
+  if(S.editId){
+    const{error}=await sb.from('nexus_companies').update(data).eq('id',S.editId);
+    if(error){toast('Update failed','error');return;}
+    const i=S.companies.findIndex(c=>c.id===S.editId);if(i>=0)S.companies[i]={...S.companies[i],...data};
+    toast('Company updated!','success');
+  }else{
+    const{data:n,error}=await sb.from('nexus_companies').insert(data).select().single();
+    if(error){toast('Failed to add','error');return;}
+    S.companies.unshift(n);await log('Company Added',`Added "${data.name}"`,null,null);toast('Company added!','success');
+  }
+  closeModal('modal-company');S.editId=null;e.target.reset();render();
+});
+
+// PERSON CRUD
+function popCoSel(sel,selId=''){sel.innerHTML='<option value="">None</option>'+S.companies.map(c=>`<option value="${c.id}"${selId===c.id?' selected':''}>${esc(c.name)}</option>`).join('');}
+function openPe(){S.editId=null;document.getElementById('modal-person-title').textContent='Add Contact';document.getElementById('form-person').reset();popCoSel(document.getElementById('p-company'));openModal('modal-person');}
+function editPe(id){
+  const p=S.people.find(x=>x.id===id);if(!p)return;S.editId=id;
+  document.getElementById('modal-person-title').textContent='Edit Contact';
+  document.getElementById('p-name').value=p.name||'';document.getElementById('p-title').value=p.title||'';
+  document.getElementById('p-email').value=p.email||'';document.getElementById('p-phone').value=p.phone||'';
+  document.getElementById('p-status').value=p.status||'Active';document.getElementById('p-notes').value=p.notes||'';
+  popCoSel(document.getElementById('p-company'),p.company_id);openModal('modal-person');
+}
+async function delPe(id){
+  const p=S.people.find(x=>x.id===id);if(!p||!confirm(`Delete "${p.name}"?`))return;
+  const{error}=await sb.from('nexus_people').delete().eq('id',id);
+  if(error){toast('Delete failed','error');return;}
+  S.people=S.people.filter(x=>x.id!==id);toast('Contact deleted','info');render();
+}
+document.getElementById('form-person').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const data={name:document.getElementById('p-name').value.trim(),title:document.getElementById('p-title').value.trim(),email:document.getElementById('p-email').value.trim(),phone:document.getElementById('p-phone').value.trim(),company_id:document.getElementById('p-company').value||null,status:document.getElementById('p-status').value,notes:document.getElementById('p-notes').value.trim()};
+  if(S.editId){
+    const{error}=await sb.from('nexus_people').update(data).eq('id',S.editId);
+    if(error){toast('Update failed','error');return;}
+    const i=S.people.findIndex(p=>p.id===S.editId);if(i>=0)S.people[i]={...S.people[i],...data};
+    toast('Contact updated!','success');
+  }else{
+    const{data:n,error}=await sb.from('nexus_people').insert(data).select().single();
+    if(error){toast('Failed to add','error');return;}
+    S.people.unshift(n);await log('Contact Added',`Added contact "${data.name}"`,null,n.id);toast('Contact added!','success');
+  }
+  closeModal('modal-person');S.editId=null;e.target.reset();render();
+});
+
+// DEAL CRUD
+function popDeSels(sCo='',sCt=''){
+  document.getElementById('d-company').innerHTML='<option value="">None</option>'+S.companies.map(c=>`<option value="${c.id}"${sCo===c.id?' selected':''}>${esc(c.name)}</option>`).join('');
+  document.getElementById('d-contact').innerHTML='<option value="">None</option>'+S.people.map(p=>`<option value="${p.id}"${sCt===p.id?' selected':''}>${esc(p.name)}</option>`).join('');
+}
+function openDe(){S.editId=null;document.getElementById('modal-deal-title').textContent='Add Deal';document.getElementById('form-deal').reset();popDeSels();openModal('modal-deal');}
+function editDe(id){
+  const d=S.deals.find(x=>x.id===id);if(!d)return;S.editId=id;
+  document.getElementById('modal-deal-title').textContent='Edit Deal';
+  document.getElementById('d-title').value=d.title||'';document.getElementById('d-value').value=d.value||0;
+  document.getElementById('d-stage').value=d.stage||'Lead';document.getElementById('d-probability').value=d.probability||20;
+  document.getElementById('d-notes').value=d.notes||'';popDeSels(d.company_id,d.contact_id);openModal('modal-deal');
+}
+async function delDe(id){
+  const d=S.deals.find(x=>x.id===id);if(!d||!confirm(`Delete "${d.title}"?`))return;
+  const{error}=await sb.from('nexus_deals').delete().eq('id',id);
+  if(error){toast('Delete failed','error');return;}
+  S.deals=S.deals.filter(x=>x.id!==id);toast('Deal deleted','info');render();
+}
+document.getElementById('form-deal').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const data={title:document.getElementById('d-title').value.trim(),value:parseFloat(document.getElementById('d-value').value)||0,stage:document.getElementById('d-stage').value,probability:parseInt(document.getElementById('d-probability').value)||20,company_id:document.getElementById('d-company').value||null,contact_id:document.getElementById('d-contact').value||null,notes:document.getElementById('d-notes').value.trim(),updated_at:new Date().toISOString()};
+  if(S.editId){
+    const{error}=await sb.from('nexus_deals').update(data).eq('id',S.editId);
+    if(error){toast('Update failed','error');return;}
+    const i=S.deals.findIndex(d=>d.id===S.editId);if(i>=0)S.deals[i]={...S.deals[i],...data};
+    toast('Deal updated!','success');
+  }else{
+    const{data:n,error}=await sb.from('nexus_deals').insert(data).select().single();
+    if(error){toast('Failed to add','error');return;}
+    S.deals.unshift(n);await log('Deal Created',`Created deal "${data.title}" — ${fmt(data.value)}`,n.id,data.contact_id);toast('Deal added!','success');
+  }
+  closeModal('modal-deal');S.editId=null;e.target.reset();render();
+});
+
+// ACTIVITY LOG
+async function log(type,desc,dealId=null,contactId=null){
+  try{const{data}=await sb.from('nexus_activities').insert({type,description:desc,deal_id:dealId,contact_id:contactId}).select().single();if(data)S.activities.unshift(data);}catch(e){console.error('Log error',e);}
+}
+
+// ASK NEXUS
+document.getElementById('agent-send').addEventListener('click',askNexus);
+document.getElementById('agent-input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();askNexus();}});
+async function askNexus(){
+  const inp=document.getElementById('agent-input');
+  const q=inp.value.trim();if(!q)return;
+  inp.value='';
+  addMsg('user',q);addMsg('ai','<div class="spinner"></div>');
+  const snap={companies:S.companies.length,people:S.people.length,total_pipeline:S.deals.reduce((s,d)=>s+(d.value||0),0),won_revenue:S.deals.filter(d=>d.stage==='Won').reduce((s,d)=>s+(d.value||0),0),deals:S.deals.map(d=>({title:d.title,value:d.value,stage:d.stage,probability:d.probability})),stages:STAGES.map(st=>({stage:st,count:S.deals.filter(d=>d.stage===st).length,value:S.deals.filter(d=>d.stage===st).reduce((s,d)=>s+(d.value||0),0)}))};
+  try{
+    const r=await fetch(GROK_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${GROK_KEY}`},body:JSON.stringify({model:'grok-3-latest',max_tokens:400,messages:[{role:'system',content:`You are Nexus, a sharp AI CRM assistant. Be concise and actionable. CRM data: ${JSON.stringify(snap)}`},{role:'user',content:q}]})});
+    const j=await r.json();
+    const reply=j.choices?.[0]?.message?.content||'Could not get a response. Try again.';
+    updLastAi(reply);
+    await sb.from('nexus_agent_logs').insert({question:q,answer:reply});
+  }catch(e){updLastAi('Connection error — please try again.');console.error(e);}
+}
+function addMsg(role,html){
+  const el=document.getElementById('agent-messages');
+  const d=document.createElement('div');
+  d.className=role==='user'?'msg-user':'msg-ai';
+  d.innerHTML=html;el.appendChild(d);el.scrollTop=el.scrollHeight;
+}
+function updLastAi(html){
+  const el=document.getElementById('agent-messages');
+  const last=el.querySelector('.msg-ai:last-child');
+  if(last)last.innerHTML=html;el.scrollTop=el.scrollHeight;
+}
+
+// UTILS
+function fmt(v){if(!v&&v!==0)return'$0';return'$'+Number(v).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});}
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function ago(ts){if(!ts)return'';const m=Math.floor((Date.now()-new Date(ts))/60000);if(m<1)return'just now';if(m<60)return m+'m ago';const h=Math.floor(m/60);if(h<24)return h+'h ago';return Math.floor(h/24)+'d ago';}
+function toast(msg,type='success'){
+  const c=document.getElementById('toast-container');
+  const d=document.createElement('div');d.className=`toast ${type}`;
+  const ic=type==='success'?'✅':type==='error'?'❌':'ℹ️';
+  d.innerHTML=`<span>${ic}</span><span>${msg}</span>`;c.appendChild(d);
+  setTimeout(()=>d.remove(),3500);
+}
+
+init();
+</script>
+</body>
+</html>
