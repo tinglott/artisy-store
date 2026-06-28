@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FunnelForge AI — Lead Funnel Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #C9A668; --gold-light: #e0c48a; --gold-dim: rgba(201,166,104,0.15);
+    --navy: #1B2A4A; --bg: #0a0f1c; --card: #111827; --card2: #161f33;
+    --border: #1e2d4a; --text: #e8eaf0; --muted: #8896b3;
+    --green: #34d399; --red: #f87171; --blue: #60a5fa;
+    --touch: 44px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; }
+  .skip-nav { position: fixed; top: -100px; left: 1rem; z-index: 9999; background: var(--gold); color: #1a1306; padding: 0.5rem 1rem; border-radius: 0.5rem; transition: top 0.2s; font-weight: 600; }
+  .skip-nav:focus { top: 1rem; }
+  :focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; border-radius: 6px; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+
+  /* AUTH MODAL */
+  #authModal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px); }
+  .auth-box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 40px; max-width: 400px; width: 90%; text-align: center; }
+  .auth-box h2 { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 28px; margin-bottom: 8px; }
+  .auth-box p { color: var(--muted); margin-bottom: 24px; font-size: 14px; }
+  .auth-error { color: var(--red); font-size: 13px; margin-top: 8px; min-height: 20px; }
+
+  /* HEADER */
+  header { background: var(--card); border-bottom: 1px solid var(--border); padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .logo { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+  .logo-icon { font-size: 24px; }
+  .header-sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .badge-live { background: rgba(52,211,153,0.15); color: var(--green); border: 1px solid rgba(52,211,153,0.3); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+
+  /* MAIN */
+  main { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+
+  /* STATS */
+  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
+  .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; position: relative; overflow: hidden; }
+  .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--gold), transparent); }
+  .stat-num { font-family: 'Playfair Display', serif; font-size: 36px; color: var(--gold); font-weight: 700; line-height: 1; }
+  .stat-label { color: var(--muted); font-size: 13px; margin-top: 6px; }
+  .stat-icon { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font-size: 32px; opacity: 0.3; }
+
+  /* PANELS */
+  .panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 28px; margin-bottom: 24px; }
+  .panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .panel-title { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 20px; font-weight: 600; }
+  .panel-sub { color: var(--muted); font-size: 12px; margin-top: 4px; }
+
+  /* FORMS */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-full { grid-column: 1/-1; }
+  .form-group label { display: block; color: var(--muted); font-size: 12px; font-weight: 500; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+  input[type=text], input[type=email], input[type=password], select, textarea {
+    width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text);
+    padding: 12px 14px; border-radius: 8px; font-family: inherit; font-size: 14px;
+    transition: border-color 0.2s; min-height: var(--touch);
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--gold); outline: none; }
+  input::placeholder { color: var(--muted); }
+
+  /* BUTTONS */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border-radius: 8px; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; min-height: var(--touch); min-width: 44px; }
+  .btn-primary { background: var(--gold); color: #1a1306; }
+  .btn-primary:hover:not(:disabled) { background: var(--gold-light); transform: translateY(-1px); }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .btn-ghost:hover { color: var(--text); border-color: var(--gold); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-sm { padding: 6px 14px; font-size: 12px; min-height: 36px; }
+
+  /* TABLES */
+  .table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { background: var(--card2); color: var(--gold); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+  td { padding: 12px 14px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(201,166,104,0.03); }
+  .empty-row td { text-align: center; color: var(--muted); padding: 32px; }
+
+  /* PILLS */
+  .pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .pill-new { background: rgba(96,165,250,0.15); color: var(--blue); }
+  .pill-customer { background: rgba(52,211,153,0.15); color: var(--green); }
+  .pill-warm { background: rgba(251,191,36,0.15); color: #fbbf24; }
+
+  /* SCORE BAR */
+  .score-bar { display: flex; align-items: center; gap: 8px; }
+  .score-track { flex: 1; height: 4px; background: var(--border); border-radius: 2px; max-width: 80px; }
+  .score-fill { height: 100%; background: var(--gold); border-radius: 2px; transition: width 0.3s; }
+
+  /* GENERATE RESULT */
+  .result-box { margin-top: 20px; padding: 20px; background: var(--card2); border-radius: 8px; border: 1px solid var(--border); display: none; }
+  .result-box.show { display: block; }
+  .result-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+  .result-magnet { font-size: 13px; color: var(--text); line-height: 1.6; max-height: 150px; overflow-y: auto; }
+
+  /* AUDIT */
+  .audit-action { font-family: 'Cormorant Garamond', serif; font-size: 15px; color: var(--gold); }
+  .audit-detail { font-size: 11px; color: var(--muted); max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .audit-time { font-size: 11px; color: var(--muted); white-space: nowrap; }
+
+  /* LOADING */
+  .spinner { width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .generating-state { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 32px; color: var(--muted); text-align: center; }
+  .generating-state .spinner { width: 40px; height: 40px; border-width: 3px; }
+  .generating-steps { font-size: 13px; }
+  .generating-step { padding: 4px 0; opacity: 0.5; transition: opacity 0.3s; }
+  .generating-step.active { opacity: 1; color: var(--gold); }
+  .generating-step.done { opacity: 0.7; color: var(--green); }
+
+  /* TOAST */
+  #toastContainer { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+  .toast { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 18px; font-size: 14px; min-width: 240px; animation: slideIn 0.3s ease; box-shadow: 0 8px 24px rgba(0,0,0,0.4); display: flex; align-items: center; gap: 10px; }
+  .toast-success { border-left: 3px solid var(--green); }
+  .toast-error { border-left: 3px solid var(--red); }
+  .toast-info { border-left: 3px solid var(--gold); }
+  @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  @keyframes slideOut { to { transform: translateX(110%); opacity: 0; } }
+
+  /* EMAIL PREVIEW */
+  .email-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 8px; }
+  .email-day { font-size: 11px; color: var(--gold); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .email-subject { font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+  .email-body { font-size: 13px; color: var(--muted); line-height: 1.6; max-height: 80px; overflow: hidden; position: relative; }
+  .email-body::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 20px; background: linear-gradient(transparent, var(--bg)); }
+
+  /* TABS */
+  .tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+  .tab { padding: 8px 18px; border-radius: 6px 6px 0 0; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--muted); border: none; background: transparent; min-height: 36px; transition: all 0.2s; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tab.active { color: var(--gold); border-bottom-color: var(--gold); background: var(--gold-dim); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* LINKS */
+  a { color: var(--gold); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* RESPONSIVE */
+  @media (max-width: 640px) {
+    .stats-grid { grid-template-columns: 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+    main { padding: 16px; }
+    header { padding: 12px 16px; }
+    .logo { font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<a href="#main" class="skip-nav">Skip to main content</a>
+
+<!-- AUTH MODAL -->
+<div id="authModal" role="dialog" aria-modal="true" aria-label="Admin Login">
+  <div class="auth-box">
+    <div style="font-size:48px;margin-bottom:12px;">⚡</div>
+    <h2>FunnelForge AI</h2>
+    <p>Enter your admin password to access the dashboard.</p>
+    <div class="form-group">
+      <input type="password" id="authInput" placeholder="Admin password" aria-label="Admin password" autocomplete="current-password">
+    </div>
+    <div class="auth-error" id="authError" aria-live="polite"></div>
+    <button class="btn btn-primary" style="width:100%;margin-top:16px;" onclick="submitAuth()">🔓 Enter Dashboard</button>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toastContainer" aria-live="polite" aria-label="Notifications"></div>
+
+<!-- HEADER -->
+<header>
+  <div>
+    <div class="logo"><span class="logo-icon">⚡</span> FunnelForge AI</div>
+    <div class="header-sub">Grok-powered lead funnel builder — self-hosted, zero monthly fees</div>
+  </div>
+  <div class="header-right">
+    <span class="badge-live">● LIVE</span>
+    <button class="btn btn-ghost btn-sm" onclick="refreshDashboard()" aria-label="Refresh dashboard">↻ Refresh</button>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- STATS -->
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card"><div class="stat-num" id="statFunnels">—</div><div class="stat-label">Funnels Created</div><div class="stat-icon">📐</div></div>
+    <div class="stat-card"><div class="stat-num" id="statLeads">—</div><div class="stat-label">Leads Captured</div><div class="stat-icon">🎯</div></div>
+    <div class="stat-card"><div class="stat-num" id="statCustomers">—</div><div class="stat-label">Customers</div><div class="stat-icon">💰</div></div>
+  </div>
+
+  <!-- GENERATE -->
+  <div class="panel">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">✨ Generate a New Funnel</div>
+        <div class="panel-sub">Grok writes your lead magnet, landing page, and 5-email sequence in under 60 seconds</div>
+      </div>
+    </div>
+
+    <form id="genForm" onsubmit="generateFunnel(event)">
+      <div class="form-grid">
+        <div class="form-group form-full">
+          <label for="f_niche">Niche / Topic *</label>
+          <input type="text" id="f_niche" placeholder="e.g. stress relief for nurses, crystal healing, anxiety management for moms" required>
+        </div>
+        <div class="form-group">
+          <label for="f_brand">Brand Name</label>
+          <input type="text" id="f_brand" placeholder="ARTISY Wellness">
+        </div>
+        <div class="form-group">
+          <label for="f_color">Accent Color (hex)</label>
+          <input type="text" id="f_color" placeholder="#C9A668">
+        </div>
+        <div class="form-group form-full">
+          <label for="f_tone">Voice / Tone</label>
+          <input type="text" id="f_tone" placeholder="warm, empowering, RN-credentialed wellness expert">
+        </div>
+        <div class="form-full">
+          <button type="submit" class="btn btn-primary" id="genBtn" style="width:100%;font-size:16px;padding:16px;">⚡ Generate Full Funnel (Lead Magnet + Landing Page + Email Sequence)</button>
+        </div>
+      </div>
+    </form>
+
+    <!-- Generating state -->
+    <div id="generatingState" class="generating-state" style="display:none;" aria-live="polite">
+      <div class="spinner" aria-label="Generating..."></div>
+      <div>
+        <strong style="color:var(--gold)">Grok is building your funnel...</strong>
+        <div class="generating-steps" style="margin-top:12px;">
+          <div class="generating-step" id="step1">📝 Step 1: Writing lead magnet content...</div>
+          <div class="generating-step" id="step2">🌐 Step 2: Building landing page HTML...</div>
+          <div class="generating-step" id="step3">📧 Step 3: Crafting 5-email sequence...</div>
+          <div class="generating-step" id="step4">💾 Step 4: Saving to database...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Result -->
+    <div class="result-box" id="resultBox">
+      <div style="color:var(--green);font-weight:600;font-size:16px;margin-bottom:12px;">✅ Funnel Generated!</div>
+      <div id="resultMagnetTitle" style="font-family:'Playfair Display',serif;font-size:18px;color:var(--gold);margin-bottom:8px;"></div>
+      <div id="resultMagnetSub" style="color:var(--muted);font-size:14px;margin-bottom:14px;"></div>
+      <div id="resultMagnetContent" class="result-magnet"></div>
+      <div class="result-actions" id="resultActions"></div>
+    </div>
+  </div>
+
+  <!-- TABS: Funnels / Leads / Emails / Audit -->
+  <div class="panel">
+    <div class="panel-header"><div class="panel-title">📊 Your Data</div></div>
+    <div class="tabs" role="tablist">
+      <button class="tab active" role="tab" aria-selected="true" onclick="switchTab('funnels', this)">📐 Funnels</button>
+      <button class="tab" role="tab" aria-selected="false" onclick="switchTab('leads', this)">🎯 Leads</button>
+      <button class="tab" role="tab" aria-selected="false" onclick="switchTab('emails', this)">📧 Email Sequences</button>
+      <button class="tab" role="tab" aria-selected="false" onclick="switchTab('audit', this)">🔍 Audit Log</button>
+    </div>
+
+    <!-- FUNNELS TAB -->
+    <div class="tab-content active" id="tab-funnels">
+      <div class="table-wrap">
+        <table aria-label="Funnels">
+          <thead><tr><th>Niche</th><th>Lead Magnet</th><th>Brand</th><th>Created</th><th>Actions</th></tr></thead>
+          <tbody id="funnelsTbody"><tr class="empty-row"><td colspan="5">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- LEADS TAB -->
+    <div class="tab-content" id="tab-leads">
+      <div class="table-wrap">
+        <table aria-label="Leads">
+          <thead><tr><th>Email</th><th>Name</th><th>Score</th><th>Status</th><th>Funnel</th><th>Captured</th></tr></thead>
+          <tbody id="leadsTbody"><tr class="empty-row"><td colspan="6">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- EMAILS TAB -->
+    <div class="tab-content" id="tab-emails">
+      <div id="emailsContent" style="color:var(--muted);text-align:center;padding:32px;">Generate a funnel to see the email sequence preview here.</div>
+    </div>
+
+    <!-- AUDIT TAB -->
+    <div class="tab-content" id="tab-audit">
+      <div class="table-wrap">
+        <table aria-label="Audit log">
+          <thead><tr><th>Action</th><th>Details</th><th>Timestamp</th></tr></thead>
+          <tbody id="auditTbody"><tr class="empty-row"><td colspan="3">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div style="text-align:center;padding:24px 0;color:var(--muted);font-size:13px;">
+    ⚡ FunnelForge AI — Powered by Grok AI &nbsp;·&nbsp; 
+    <a href="https://shop.artistrystore.com/store.html" target="_blank">ARTISY Store</a> &nbsp;·&nbsp;
+    <a href="https://shop.artistrystore.com/artisy-wellness/" target="_blank">Free AI Therapist</a>
+  </div>
+
+</main>
+
+<script>
+const API = 'https://lltlbjmurwhnotjegjrz.supabase.co/functions/v1/funnelforge_api';
+let ADMIN_PASS = '';
+let currentFunnels = [];
+let currentLeads = [];
+let lastEmailSequence = null;
+
+// ─── AUTH ─────────────────────────────────────────────────────────────────────
+document.getElementById('authInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') submitAuth();
+});
+
+async function submitAuth() {
+  const pass = document.getElementById('authInput').value.trim();
+  if (!pass) return;
+  document.getElementById('authError').textContent = 'Checking...';
+  try {
+    const res = await fetch(`${API}/dashboard?adminPass=${encodeURIComponent(pass)}`);
+    if (res.status === 401) { document.getElementById('authError').textContent = '❌ Wrong password — try again.'; return; }
+    if (!res.ok) throw new Error('Server error');
+    ADMIN_PASS = pass;
+    document.getElementById('authModal').style.display = 'none';
+    const data = await res.json();
+    renderDashboard(data);
+    toast('✅ Welcome back! Dashboard loaded.', 'success');
+  } catch (err) {
+    document.getElementById('authError').textContent = '❌ ' + err.message;
+  }
+}
+
+// ─── DASHBOARD ────────────────────────────────────────────────────────────────
+async function refreshDashboard() {
+  try {
+    const res = await fetch(`${API}/dashboard?adminPass=${encodeURIComponent(ADMIN_PASS)}`);
+    const data = await res.json();
+    renderDashboard(data);
+  } catch(e) { toast('Refresh failed: ' + e.message, 'error'); }
+}
+
+function renderDashboard(data) {
+  // Stats
+  document.getElementById('statFunnels').textContent = data.stats.totalFunnels;
+  document.getElementById('statLeads').textContent = data.stats.totalLeads;
+  document.getElementById('statCustomers').textContent = data.stats.totalCustomers;
+
+  currentFunnels = data.funnels || [];
+  currentLeads = data.leads || [];
+
+  renderFunnels(data.funnels || []);
+  renderLeads(data.leads || []);
+  renderAudit(data.auditLog || []);
+}
+
+function renderFunnels(funnels) {
+  const tbody = document.getElementById('funnelsTbody');
+  if (!funnels.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="5">📐 No funnels yet — generate your first one above!</td></tr>'; return; }
+  tbody.innerHTML = funnels.map(f => `
+    <tr>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(f.niche)}">${esc(f.niche)}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(f.lead_magnet_title||'')}"><strong>${esc(f.lead_magnet_title||'—')}</strong></td>
+      <td>${esc(f.brand||'—')}</td>
+      <td style="white-space:nowrap;font-size:12px;color:var(--muted);">${new Date(f.created_at).toLocaleDateString()}</td>
+      <td style="white-space:nowrap;">
+        <a href="${API}/funnel?id=${f.id}" target="_blank" class="btn btn-ghost btn-sm">🌐 Page</a>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function renderLeads(leads) {
+  const tbody = document.getElementById('leadsTbody');
+  if (!leads.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="6">🎯 No leads yet — share your landing pages to capture them!</td></tr>'; return; }
+  tbody.innerHTML = leads.map(l => {
+    const pct = Math.min(100, l.score);
+    const statusClass = l.status === 'customer' ? 'pill-customer' : l.score > 20 ? 'pill-warm' : 'pill-new';
+    const funnel = currentFunnels.find(f => f.id === l.funnel_id);
+    return `<tr>
+      <td>${esc(l.email)}</td>
+      <td>${esc(l.name||'—')}</td>
+      <td>
+        <div class="score-bar">
+          <span style="font-weight:600;min-width:28px;">${l.score}</span>
+          <div class="score-track"><div class="score-fill" style="width:${pct}%"></div></div>
+        </div>
+      </td>
+      <td><span class="pill ${statusClass}">${l.status}</span></td>
+      <td style="font-size:12px;color:var(--muted);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(funnel?.niche||l.funnel_id)}</td>
+      <td style="font-size:12px;color:var(--muted);white-space:nowrap;">${new Date(l.created_at).toLocaleDateString()}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderAudit(log) {
+  const tbody = document.getElementById('auditTbody');
+  if (!log.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="3">🔍 No activity yet.</td></tr>'; return; }
+  tbody.innerHTML = log.map(a => `
+    <tr>
+      <td><span class="audit-action">${esc(a.action)}</span></td>
+      <td><span class="audit-detail">${esc(JSON.stringify(a.details))}</span></td>
+      <td><span class="audit-time">${new Date(a.created_at).toLocaleString()}</span></td>
+    </tr>
+  `).join('');
+}
+
+// ─── GENERATE FUNNEL ──────────────────────────────────────────────────────────
+let stepTimer;
+async function generateFunnel(e) {
+  e.preventDefault();
+  const niche = document.getElementById('f_niche').value.trim();
+  if (!niche) return;
+
+  const btn = document.getElementById('genBtn');
+  const genState = document.getElementById('generatingState');
+  const resultBox = document.getElementById('resultBox');
+
+  btn.disabled = true;
+  genState.style.display = 'flex';
+  resultBox.classList.remove('show');
+
+  // Animate steps
+  const steps = ['step1','step2','step3','step4'];
+  let si = 0;
+  steps.forEach(s => { document.getElementById(s).className = 'generating-step'; });
+  document.getElementById(steps[si]).classList.add('active');
+  stepTimer = setInterval(() => {
+    if (si < steps.length - 1) {
+      document.getElementById(steps[si]).classList.remove('active');
+      document.getElementById(steps[si]).classList.add('done');
+      si++;
+      document.getElementById(steps[si]).classList.add('active');
+    }
+  }, 18000);
+
+  try {
+    const res = await fetch(`${API}/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        adminPass: ADMIN_PASS,
+        niche,
+        brand: document.getElementById('f_brand').value.trim(),
+        tone: document.getElementById('f_tone').value.trim(),
+        accentColor: document.getElementById('f_color').value.trim()
+      })
+    });
+    clearInterval(stepTimer);
+    steps.forEach(s => document.getElementById(s).classList.remove('active','done'));
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Generation failed');
+    }
+    const data = await res.json();
+    lastEmailSequence = data.emailSequence;
+
+    // Show result
+    document.getElementById('resultMagnetTitle').textContent = '📄 ' + data.magnet.title;
+    document.getElementById('resultMagnetSub').textContent = data.magnet.subtitle;
+    document.getElementById('resultMagnetContent').textContent = (data.magnet.content_markdown||'').substring(0, 500) + '...';
+
+    const actDiv = document.getElementById('resultActions');
+    actDiv.innerHTML = `
+      <a href="${API}/funnel?id=${data.funnelId}" target="_blank" class="btn btn-primary">🌐 View Landing Page</a>
+      <button class="btn btn-ghost" onclick="switchTab('emails', document.querySelector('.tab:nth-child(3)'))">📧 See Email Sequence</button>
+      <button class="btn btn-ghost" onclick="copyLandingUrl('${data.funnelId}')">📋 Copy Page URL</button>
+    `;
+
+    // Render email sequence
+    if (data.emailSequence?.emails) {
+      document.getElementById('emailsContent').innerHTML = data.emailSequence.emails.map(em => `
+        <div class="email-card">
+          <div class="email-day">Day ${em.day}</div>
+          <div class="email-subject">✉️ ${esc(em.subject)}</div>
+          <div class="email-body">${esc(em.body)}</div>
+        </div>
+      `).join('');
+    }
+
+    resultBox.classList.add('show');
+    document.getElementById('genForm').reset();
+    refreshDashboard();
+    toast('🎉 Funnel created! Lead magnet + landing page + 5 emails ready.', 'success');
+
+  } catch(err) {
+    clearInterval(stepTimer);
+    toast('❌ ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    genState.style.display = 'none';
+  }
+}
+
+function copyLandingUrl(funnelId) {
+  const url = `${API}/funnel?id=${funnelId}`;
+  navigator.clipboard.writeText(url).then(() => toast('📋 Landing page URL copied!', 'info'));
+}
+
+// ─── TABS ─────────────────────────────────────────────────────────────────────
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected','false'); });
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  if (el) { el.classList.add('active'); el.setAttribute('aria-selected','true'); }
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ─── UTILITIES ────────────────────────────────────────────────────────────────
+function esc(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toast(msg, type='info') {
+  const c = document.getElementById('toastContainer');
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  el.setAttribute('role','status');
+  el.innerHTML = msg;
+  c.appendChild(el);
+  setTimeout(() => { el.style.animation = 'slideOut 0.3s ease forwards'; setTimeout(() => el.remove(), 300); }, 3500);
+}
+</script>
+</body>
+</html>
