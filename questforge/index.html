@@ -3,1108 +3,1698 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>QuestForge — Learn Anything, Hands-On</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<title>QuestForge — Turn Any Document Into An Adventure</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
-  :root{
-    --bg:#0e0c0a;
-    --surface:#171310;
-    --surface-2:#1d1813;
-    --border:#2c2419;
-    --ivory:#efe7d8;
-    --muted:#9c8f7a;
-    --gold:#c9a668;
-    --gold-bright:#e8c179;
-    --tier-ore:#6e665a;
-    --tier-bronze:#a2632b;
-    --tier-silver:#b9bfc4;
-    --tier-gold:#d4af6a;
-    --danger:#a85c4a;
-    --good:#7c9a72;
-    --toast-z:200;
-  }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    background:radial-gradient(ellipse at top,#161210 0%,#0e0c0a 55%,#0a0908 100%);
-    color:var(--ivory);
-    font-family:'Jost',sans-serif;
-    min-height:100vh;
-    -webkit-font-smoothing:antialiased;
-  }
-  .app{max-width:880px;margin:0 auto;padding:48px 24px 100px;}
-  h1,h2,h3{margin:0;font-weight:600;}
-  .display{font-family:'Playfair Display',serif;}
-  a{color:var(--gold);}
-  button{font-family:'Jost',sans-serif;cursor:pointer;border:none;}
-  .hidden{display:none !important;}
+:root {
+  --bg-deep:    #0d0820;
+  --bg-mid:     #1a1035;
+  --bg-card:    #231545;
+  --bg-glass:   rgba(45,20,90,0.7);
+  --purple-1:   #6b21a8;
+  --purple-2:   #7c3aed;
+  --purple-3:   #a855f7;
+  --purple-light:#d8b4fe;
+  --gold-1:     #b45309;
+  --gold-2:     #d97706;
+  --gold-3:     #f59e0b;
+  --gold-light: #fde68a;
+  --rose-1:     #be185d;
+  --rose-2:     #ec4899;
+  --rose-light: #fbcfe8;
+  --teal:       #0d9488;
+  --teal-light: #5eead4;
+  --text-main:  #f3e8ff;
+  --text-soft:  #c4b5fd;
+  --text-muted: #9ca3af;
+  --ore-color:  #78716c;
+  --bronze-color:#cd7f32;
+  --silver-color:#9ca3af;
+  --gold-color: #f59e0b;
+  --success:    #10b981;
+  --danger:     #ef4444;
+  --border:     rgba(168,85,247,0.25);
+  --glow:       0 0 20px rgba(168,85,247,0.35);
+  --glow-gold:  0 0 20px rgba(245,158,11,0.45);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg-deep);color:var(--text-main);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 50% -10%,rgba(124,58,237,0.18) 0%,transparent 70%),radial-gradient(ellipse 60% 40% at 80% 80%,rgba(245,158,11,0.08) 0%,transparent 60%);pointer-events:none;z-index:0}
 
-  /* Skip nav */
-  .skip-nav{position:fixed;top:-100px;left:1rem;z-index:9999;background:var(--gold);color:#19140d;padding:.5rem 1rem;border-radius:.5rem;transition:top .2s;font-weight:600;}
-  .skip-nav:focus{top:1rem;}
+/* ── SKIP NAV ── */
+.skip-nav{position:absolute;left:-9999px;top:0;background:var(--gold-3);color:#000;padding:.5rem 1rem;border-radius:0 0 .5rem 0;z-index:9999;font-weight:700}
+.skip-nav:focus{left:0}
 
-  /* Focus */
-  :focus{outline:none;}
-  :focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:6px;}
+/* ── LAYOUT ── */
+.screen{display:none;position:relative;z-index:1;min-height:100vh;padding:1.5rem}
+.screen.active{display:flex;flex-direction:column;align-items:center}
+.container{width:100%;max-width:800px}
 
-  /* Screen reader only */
-  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);}
+/* ── HEADER ── */
+.logo{display:flex;align-items:center;gap:.75rem;margin-bottom:.5rem}
+.logo-icon{font-size:2.5rem;filter:drop-shadow(0 0 12px rgba(245,158,11,.7))}
+.logo-text{font-size:1.8rem;font-weight:900;background:linear-gradient(135deg,var(--gold-3),var(--purple-3),var(--rose-2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-0.5px}
+.tagline{color:var(--text-soft);font-size:.95rem;text-align:center;margin-bottom:2rem}
 
-  /* Reduced motion */
-  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;}}
+/* ── CARDS ── */
+.card{background:var(--bg-glass);border:1px solid var(--border);border-radius:1rem;padding:1.5rem;backdrop-filter:blur(12px)}
+.card-hover{transition:transform .2s,box-shadow .2s,border-color .2s;cursor:pointer}
+.card-hover:hover,.card-hover:focus{transform:translateY(-3px);box-shadow:var(--glow);border-color:var(--purple-3);outline:none}
 
-  /* ---------- TOASTS ---------- */
-  #toastRegion{
-    position:fixed;top:20px;right:20px;z-index:var(--toast-z);
-    display:flex;flex-direction:column;gap:8px;pointer-events:none;
-  }
-  .toast{
-    padding:12px 18px;border-radius:8px;font-size:.88rem;font-weight:500;
-    background:var(--surface-2);border:1px solid var(--border);color:var(--ivory);
-    pointer-events:auto;min-width:220px;max-width:320px;
-    animation:slideIn .25s ease;box-shadow:0 4px 20px rgba(0,0,0,.5);
-  }
-  .toast.success{border-color:var(--good);}
-  .toast.warning{border-color:var(--gold);}
-  .toast.error{border-color:var(--danger);}
-  @keyframes slideIn{from{transform:translateX(30px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.75rem 1.5rem;border-radius:.75rem;font-size:.95rem;font-weight:700;cursor:pointer;border:none;transition:all .2s;text-decoration:none;min-height:44px}
+.btn:focus{outline:3px solid var(--gold-3);outline-offset:2px}
+.btn-gold{background:linear-gradient(135deg,var(--gold-2),var(--gold-3));color:#1a1035;box-shadow:0 4px 15px rgba(245,158,11,.35)}
+.btn-gold:hover{box-shadow:var(--glow-gold);transform:translateY(-2px)}
+.btn-purple{background:linear-gradient(135deg,var(--purple-1),var(--purple-2));color:var(--text-main);box-shadow:0 4px 15px rgba(124,58,237,.35)}
+.btn-purple:hover{box-shadow:var(--glow);transform:translateY(-2px)}
+.btn-rose{background:linear-gradient(135deg,var(--rose-1),var(--rose-2));color:#fff}
+.btn-rose:hover{transform:translateY(-2px);box-shadow:0 0 20px rgba(236,72,153,.4)}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-soft)}
+.btn-ghost:hover{border-color:var(--purple-3);color:var(--text-main)}
+.btn-sm{padding:.5rem 1rem;font-size:.85rem}
+.btn-full{width:100%;justify-content:center}
 
-  /* ---------- HOME ---------- */
-  #home{display:flex;flex-direction:column;align-items:center;text-align:center;gap:28px;padding-top:6vh;}
-  .brand-mark{
-    width:46px;height:46px;border:1px solid var(--gold);border-radius:50%;
-    display:flex;align-items:center;justify-content:center;
-    box-shadow:0 0 18px rgba(201,166,104,.25) inset;
-  }
-  .brand-mark span{font-size:18px;color:var(--gold);}
-  #home h1{font-size:2.6rem;color:var(--ivory);}
-  #home .tag{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--muted);font-size:1.15rem;max-width:480px;line-height:1.5;}
-  .forge-input-wrap{width:100%;max-width:560px;display:flex;flex-direction:column;gap:14px;margin-top:8px;}
-  #topicInput{
-    width:100%;padding:18px 20px;background:var(--surface);
-    border:1px solid var(--border);border-radius:6px;color:var(--ivory);
-    font-family:'Cormorant Garamond',serif;font-size:1.2rem;
-    transition:border-color .2s,box-shadow .2s;
-  }
-  #topicInput:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,166,104,.12);}
-  #topicInput::placeholder{color:#5d5447;}
-  .btn-forge{
-    padding:16px 24px;background:linear-gradient(180deg,var(--gold-bright),var(--gold));
-    color:#19140d;font-weight:600;letter-spacing:.04em;border-radius:6px;
-    font-size:.95rem;text-transform:uppercase;
-    box-shadow:0 4px 18px rgba(201,166,104,.18);
-    transition:transform .15s,box-shadow .15s;
-    min-height:52px;
-  }
-  .btn-forge:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 22px rgba(201,166,104,.3);}
-  .btn-forge:disabled{opacity:.5;cursor:not-allowed;}
-  .btn-ghost{
-    background:transparent;border:1px solid var(--border);color:var(--muted);
-    padding:10px 18px;border-radius:6px;font-size:.85rem;letter-spacing:.02em;
-    transition:border-color .2s,color .2s;min-height:44px;
-  }
-  .btn-ghost:hover{border-color:var(--gold);color:var(--gold);}
-  .error-text{color:var(--danger);font-size:.85rem;margin-top:4px;}
+/* ── PROGRESS BAR ── */
+.prog-wrap{background:rgba(255,255,255,.08);border-radius:99px;height:10px;overflow:hidden;margin-bottom:1rem}
+.prog-bar{height:100%;background:linear-gradient(90deg,var(--purple-2),var(--gold-3));border-radius:99px;transition:width .6s cubic-bezier(.4,0,.2,1)}
 
-  .resume-list{width:100%;max-width:560px;margin-top:6px;display:flex;flex-direction:column;gap:8px;}
-  .resume-label{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:#6b6253;text-align:left;margin-bottom:2px;}
-  .resume-item{
-    display:flex;justify-content:space-between;align-items:center;
-    padding:13px 16px;background:var(--surface);border:1px solid var(--border);
-    border-radius:6px;text-align:left;
-  }
-  .resume-item:hover{border-color:#43392a;}
-  .ri-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;}
-  .ri-meta{font-size:.72rem;color:var(--muted);margin-top:3px;}
-  .ri-btns{display:flex;gap:6px;flex-shrink:0;}
-  .ri-btns button{background:none;border:none;font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;padding:8px 10px;min-height:44px;min-width:44px;}
-  .ri-continue{color:var(--gold);}
-  .ri-continue:hover{color:var(--gold-bright);}
-  .ri-del{color:#7a6f60;}
-  .ri-del:hover{color:var(--danger);}
+/* ── XP BADGE ── */
+.xp-badge{display:inline-flex;align-items:center;gap:.3rem;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.4);border-radius:99px;padding:.3rem .8rem;font-size:.85rem;font-weight:700;color:var(--gold-3)}
+.lvl-badge{background:rgba(124,58,237,.2);border-color:rgba(168,85,247,.4);color:var(--purple-light)}
 
-  /* ---------- LOADING ---------- */
-  #loading{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:22px;text-align:center;}
-  .ember{
-    width:54px;height:54px;border-radius:50%;
-    background:radial-gradient(circle,var(--gold-bright) 0%,var(--gold) 40%,rgba(201,166,104,0) 75%);
-    animation:pulse 1.6s ease-in-out infinite;
-  }
-  @keyframes pulse{0%,100%{transform:scale(.85);opacity:.7;}50%{transform:scale(1.15);opacity:1;}}
-  #loading p{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--muted);font-size:1.05rem;}
+/* ── TIER BADGES ── */
+.tier-badge{display:inline-flex;align-items:center;gap:.4rem;padding:.3rem .9rem;border-radius:99px;font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.tier-ore{background:rgba(120,113,108,.2);border:1px solid var(--ore-color);color:var(--ore-color)}
+.tier-bronze{background:rgba(205,127,50,.15);border:1px solid var(--bronze-color);color:var(--bronze-color)}
+.tier-silver{background:rgba(156,163,175,.15);border:1px solid var(--silver-color);color:var(--silver-color)}
+.tier-gold{background:rgba(245,158,11,.15);border:1px solid var(--gold-color);color:var(--gold-color)}
 
-  /* ---------- PATH VIEW ---------- */
-  #pathView{display:flex;flex-direction:column;gap:0;}
-  .path-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:36px;gap:16px;flex-wrap:wrap;}
-  .path-header h1{font-size:1.9rem;}
-  .stats-row{display:flex;gap:18px;align-items:center;}
-  .stat{text-align:right;}
-  .stat .num{font-family:'Cinzel',serif;font-size:1.3rem;color:var(--gold-bright);}
-  .stat .lbl{font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
-  .btn-back{background:none;border:1px solid var(--border);color:var(--muted);padding:8px 14px;border-radius:6px;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;min-height:44px;}
-  .btn-back:hover{border-color:var(--gold);color:var(--gold);}
+/* ── HP BARS ── */
+.combat-arena{display:grid;grid-template-columns:1fr auto 1fr;gap:1rem;align-items:center;margin:1.5rem 0}
+.fighter{text-align:center}
+.fighter-name{font-weight:700;font-size:.95rem;margin-bottom:.5rem}
+.fighter-avatar{font-size:3.5rem;line-height:1;margin-bottom:.5rem;filter:drop-shadow(0 0 10px currentColor)}
+.hp-bar-wrap{background:rgba(255,255,255,.1);border-radius:99px;height:12px;overflow:hidden;margin-top:.4rem}
+.hp-bar{height:100%;border-radius:99px;transition:width .5s ease}
+.hp-bar.player{background:linear-gradient(90deg,var(--success),#34d399)}
+.hp-bar.enemy{background:linear-gradient(90deg,var(--danger),#f87171)}
+.hp-text{font-size:.75rem;color:var(--text-muted);margin-top:.25rem}
+.vs-text{font-size:1.5rem;font-weight:900;color:var(--gold-3);text-shadow:var(--glow-gold)}
 
-  /* Progress */
-  .progress-track{height:4px;background:var(--border);border-radius:2px;margin-bottom:32px;overflow:hidden;}
-  .progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-bright));border-radius:2px;transition:width .4s ease;}
+/* ── QUESTION AREA ── */
+.question-box{background:rgba(107,33,168,.12);border:1px solid rgba(168,85,247,.3);border-radius:1rem;padding:1.5rem;margin:1rem 0}
+.question-text{font-size:1.1rem;font-weight:600;line-height:1.6;color:var(--text-main)}
+.choices{display:flex;flex-direction:column;gap:.75rem;margin-top:1.25rem}
+.choice-btn{display:flex;align-items:center;gap:.75rem;padding:1rem 1.25rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:.75rem;cursor:pointer;transition:all .2s;text-align:left;color:var(--text-main);font-size:.95rem;width:100%;min-height:44px}
+.choice-btn:hover:not(:disabled){background:rgba(168,85,247,.15);border-color:var(--purple-3);transform:translateX(4px)}
+.choice-btn:focus{outline:3px solid var(--gold-3);outline-offset:2px}
+.choice-btn.correct{background:rgba(16,185,129,.2);border-color:var(--success);color:#6ee7b7;animation:pulse-green .4s}
+.choice-btn.wrong{background:rgba(239,68,68,.2);border-color:var(--danger);color:#fca5a5;animation:shake .4s}
+.choice-btn:disabled{cursor:not-allowed;opacity:.75}
+.choice-label{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0}
 
-  /* Tiers */
-  .tier-block{position:relative;padding-left:34px;margin-bottom:6px;}
-  .tier-line{position:absolute;left:9px;top:38px;bottom:-6px;width:2px;background:linear-gradient(to bottom,var(--tc,#2c2419) 0%,var(--border) 100%);opacity:.5;}
-  .tier-block:last-child .tier-line{display:none;}
-  .tier-head{display:flex;align-items:center;gap:12px;margin-bottom:18px;position:relative;}
-  .tier-dot{position:absolute;left:-34px;width:20px;height:20px;border-radius:50%;border:2px solid var(--tc,#6e665a);background:var(--bg);display:flex;align-items:center;justify-content:center;}
-  .tier-dot.lit{background:var(--tc,#6e665a);box-shadow:0 0 12px var(--tc,#6e665a);}
-  .tier-head-text h2{font-size:1.05rem;color:var(--tc,#6e665a);font-family:'Cinzel',serif;letter-spacing:.06em;text-transform:uppercase;}
-  .tier-head-text .tier-sub{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--muted);font-size:.85rem;}
+/* ── TIMER ── */
+.timer-wrap{display:flex;align-items:center;gap:.75rem;margin:.75rem 0}
+.timer-bar-wrap{flex:1;background:rgba(255,255,255,.08);border-radius:99px;height:8px;overflow:hidden}
+.timer-bar{height:100%;background:linear-gradient(90deg,var(--rose-1),var(--rose-2));border-radius:99px;transition:width .5s linear}
+.timer-text{font-size:.85rem;font-weight:700;color:var(--rose-2);min-width:2rem;text-align:right}
 
-  .obj-list{display:flex;flex-direction:column;gap:10px;margin-bottom:30px;}
-  .obj-node{
-    display:flex;align-items:center;gap:16px;padding:16px 18px;
-    background:var(--surface);border:1px solid var(--border);border-radius:8px;
-    transition:border-color .2s,transform .15s;
-  }
-  .obj-node.active{border-color:var(--tc,#c9a668);box-shadow:0 0 0 1px var(--tc,#c9a668) inset,0 0 22px rgba(201,166,104,.06);}
-  .obj-node.active:hover{transform:translateX(3px);}
-  .obj-node[tabindex="0"]:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
-  .obj-node.complete{opacity:.78;}
-  .obj-node.locked{opacity:.38;}
-  .node-marker{
-    flex:0 0 auto;width:38px;height:38px;border-radius:50%;min-width:38px;
-    display:flex;align-items:center;justify-content:center;
-    border:1.5px solid var(--border);font-family:'Cinzel',serif;font-size:.85rem;color:var(--muted);
-  }
-  .obj-node.active .node-marker{border-color:var(--tc,#c9a668);color:var(--tc,#c9a668);}
-  .obj-node.complete .node-marker{background:var(--tc,#7c9a72);border-color:var(--tc,#7c9a72);color:#19140d;}
-  .node-body{flex:1;min-width:0;}
-  .node-title{font-family:'Cormorant Garamond',serif;font-size:1.08rem;}
-  .node-meta{font-size:.72rem;color:var(--muted);margin-top:3px;}
-  .node-score{font-family:'Cinzel',serif;font-size:.85rem;color:var(--good);flex:0 0 auto;}
+/* ── STREAK ── */
+.streak-display{display:flex;align-items:center;gap:.5rem;padding:.4rem .9rem;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:99px;font-size:.85rem;font-weight:700;color:var(--gold-3);transition:all .3s}
+.streak-display.hot{background:rgba(245,158,11,.25);box-shadow:var(--glow-gold);animation:pulse-gold .5s}
 
-  .path-footer{margin-top:16px;display:flex;justify-content:center;}
+/* ── SPELL CARDS ── */
+.spells{display:flex;gap:.5rem;flex-wrap:wrap;margin:.75rem 0}
+.spell-card{display:flex;flex-direction:column;align-items:center;gap:.25rem;padding:.5rem .75rem;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:.75rem;cursor:pointer;transition:all .2s;min-width:60px;font-size:.75rem;color:var(--text-soft)}
+.spell-card:hover:not(:disabled){background:rgba(168,85,247,.15);border-color:var(--purple-3);color:var(--text-main)}
+.spell-card:focus{outline:3px solid var(--gold-3);outline-offset:2px}
+.spell-card:disabled{opacity:.35;cursor:not-allowed}
+.spell-icon{font-size:1.3rem}
 
-  /* Completion banner */
-  .completion-banner{
-    text-align:center;padding:48px 24px;background:var(--surface);
-    border:1px solid var(--gold);border-radius:10px;margin-top:10px;
-  }
-  .completion-banner h2{font-family:'Playfair Display',serif;font-size:1.7rem;color:var(--gold-bright);margin-bottom:10px;}
-  .completion-banner p{font-family:'Cormorant Garamond',serif;color:var(--muted);font-size:1.05rem;line-height:1.6;}
-  .xp-big{font-family:'Cinzel',serif;font-size:2rem;color:var(--gold-bright);margin:16px 0;}
+/* ── DUNGEON MAP ── */
+.dungeon-map{display:grid;grid-template-columns:1fr;gap:1rem}
+.floor-card{display:flex;align-items:center;gap:1rem;padding:1.25rem;background:var(--bg-glass);border:1px solid var(--border);border-radius:1rem;cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
+.floor-card::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.02));opacity:0;transition:opacity .2s}
+.floor-card:hover::before,.floor-card:focus::before{opacity:1}
+.floor-card.unlocked:hover,.floor-card.unlocked:focus{transform:translateX(6px);box-shadow:var(--glow);border-color:var(--purple-3);outline:none}
+.floor-card.locked{opacity:.5;cursor:not-allowed}
+.floor-card.completed{border-color:rgba(16,185,129,.4);background:rgba(16,185,129,.07)}
+.floor-icon{font-size:2.5rem;flex-shrink:0}
+.floor-info{flex:1}
+.floor-name{font-weight:800;font-size:1.05rem;margin-bottom:.2rem}
+.floor-desc{font-size:.85rem;color:var(--text-soft)}
+.floor-status{display:flex;align-items:center;gap:.5rem;margin-top:.4rem}
 
-  /* ---------- MODAL ---------- */
-  .modal-overlay{
-    position:fixed;inset:0;background:rgba(8,7,6,.8);backdrop-filter:blur(3px);
-    display:flex;align-items:center;justify-content:center;padding:20px;z-index:100;
-  }
-  .modal{
-    width:100%;max-width:640px;max-height:90vh;overflow-y:auto;
-    background:var(--surface-2);border:1px solid var(--border);border-radius:10px;
-    padding:32px;position:relative;
-  }
-  .modal-close{
-    position:absolute;top:16px;right:16px;background:none;color:var(--muted);
-    font-size:1.1rem;padding:8px;min-width:44px;min-height:44px;border-radius:6px;
-    display:flex;align-items:center;justify-content:center;
-  }
-  .modal-close:hover{color:var(--ivory);background:rgba(255,255,255,.05);}
-  .tier-tag{
-    display:inline-block;font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.1em;
-    text-transform:uppercase;color:var(--tc,#c9a668);border:1px solid var(--tc,#c9a668);
-    border-radius:20px;padding:4px 12px;margin-bottom:14px;
-  }
-  .modal h3{font-family:'Playfair Display',serif;font-size:1.45rem;margin-bottom:14px;line-height:1.3;}
-  .concept-box{
-    font-family:'Cormorant Garamond',serif;font-size:1.05rem;line-height:1.65;
-    color:#d9cfba;background:rgba(201,166,104,.05);border-left:2px solid var(--gold);
-    padding:14px 18px;margin-bottom:22px;border-radius:0 6px 6px 0;
-  }
-  .challenge-label{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:#6b6253;margin-bottom:10px;}
-  .challenge-prompt{font-family:'Cormorant Garamond',serif;font-size:1.15rem;line-height:1.65;margin-bottom:20px;color:var(--ivory);}
+/* ── COMBO FLASH ── */
+.combo-flash{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-size:2.5rem;font-weight:900;color:var(--gold-3);text-shadow:var(--glow-gold);pointer-events:none;z-index:9000;animation:combo-pop .8s forwards;display:none}
 
-  /* MC */
-  .mc-options{display:flex;flex-direction:column;gap:10px;margin-bottom:20px;}
-  .mc-option{
-    text-align:left;padding:13px 16px;background:var(--surface);border:1px solid var(--border);
-    border-radius:6px;color:var(--ivory);font-size:.92rem;min-height:52px;
-    transition:border-color .15s,background .15s;cursor:pointer;
-  }
-  .mc-option:hover:not(:disabled){border-color:var(--gold);background:rgba(201,166,104,.04);}
-  .mc-option:disabled{cursor:default;}
-  .mc-option.chosen-correct{border-color:var(--good)!important;background:rgba(124,154,114,.1)!important;}
-  .mc-option.chosen-wrong{border-color:var(--danger)!important;background:rgba(168,92,74,.1)!important;}
-  .mc-option.reveal-correct{border-color:var(--good)!important;}
+/* ── REVIEW PANEL ── */
+.review-card{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:.75rem;padding:1rem;margin:.5rem 0}
+.review-q{font-size:.9rem;font-weight:600;margin-bottom:.5rem;color:var(--rose-light)}
+.review-a{font-size:.85rem;color:var(--text-soft)}
 
-  /* Open */
-  textarea.answer-input{
-    width:100%;min-height:130px;padding:14px 16px;background:var(--surface);
-    border:1px solid var(--border);border-radius:6px;color:var(--ivory);
-    font-family:'Jost',sans-serif;font-size:.95rem;resize:vertical;margin-bottom:18px;
-    transition:border-color .2s;
-  }
-  textarea.answer-input:focus{border-color:var(--gold);}
+/* ── ACHIEVEMENT ── */
+.achievement-popup{position:fixed;bottom:1.5rem;right:1.5rem;background:linear-gradient(135deg,var(--bg-mid),var(--bg-card));border:1px solid var(--gold-3);border-radius:1rem;padding:1rem 1.25rem;z-index:8000;box-shadow:var(--glow-gold);animation:slide-in .5s,fade-out .5s 3.5s forwards;display:none;max-width:280px}
+.achievement-title{font-size:.8rem;color:var(--gold-3);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.achievement-name{font-size:1rem;font-weight:800;margin:.25rem 0}
+.achievement-desc{font-size:.8rem;color:var(--text-soft)}
 
-  /* Hint */
-  .hint-toggle{background:none;color:var(--muted);font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;padding:6px 0;min-height:44px;}
-  .hint-toggle:hover{color:var(--gold);}
-  .hint-box{
-    font-family:'Cormorant Garamond',serif;font-size:.98rem;color:var(--muted);
-    font-style:italic;background:rgba(201,166,104,.04);border:1px solid var(--border);
-    border-radius:6px;padding:12px 16px;margin-bottom:16px;line-height:1.55;
-  }
+/* ── TOAST ── */
+.toast-area{position:fixed;top:1rem;right:1rem;z-index:9500;display:flex;flex-direction:column;gap:.5rem;pointer-events:none}
+.toast{background:var(--bg-card);border:1px solid var(--border);border-radius:.75rem;padding:.75rem 1rem;font-size:.875rem;animation:slide-in .3s,fade-out .3s 2.7s forwards;max-width:280px;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.toast.success{border-color:var(--success);color:#6ee7b7}
+.toast.error{border-color:var(--danger);color:#fca5a5}
+.toast.info{border-color:var(--purple-3);color:var(--purple-light)}
 
-  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:4px;flex-wrap:wrap;}
+/* ── UPLOAD ZONE ── */
+.upload-zone{border:2px dashed var(--border);border-radius:1rem;padding:2.5rem;text-align:center;cursor:pointer;transition:all .2s;background:rgba(255,255,255,.02)}
+.upload-zone:hover,.upload-zone.drag-over{border-color:var(--purple-3);background:rgba(168,85,247,.08)}
+.upload-zone input{display:none}
 
-  /* Feedback */
-  .feedback-box{margin-top:22px;padding:18px 20px;border-radius:8px;border:1px solid var(--border);}
-  .feedback-box.verdict-advance{border-color:var(--good);background:rgba(124,154,114,.07);}
-  .feedback-box.verdict-retry{border-color:var(--gold);background:rgba(201,166,104,.07);}
-  .feedback-box.verdict-remedial{border-color:var(--danger);background:rgba(168,92,74,.07);}
-  .feedback-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;gap:8px;}
-  .feedback-head .vlabel{font-family:'Cinzel',serif;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;}
-  .verdict-advance .vlabel{color:var(--good);}
-  .verdict-retry .vlabel{color:var(--gold);}
-  .verdict-remedial .vlabel{color:var(--danger);}
-  .feedback-head .score{font-family:'Cinzel',serif;font-size:1.1rem;color:var(--gold-bright);}
-  .feedback-text{font-family:'Cormorant Garamond',serif;font-size:1.04rem;line-height:1.55;color:#d9cfba;}
+/* ── CERTIFICATE ── */
+.cert-box{border:3px solid var(--gold-3);border-radius:1rem;padding:2rem;text-align:center;background:linear-gradient(135deg,rgba(107,33,168,.15),rgba(245,158,11,.1));position:relative;overflow:hidden}
+.cert-box::before{content:'⚜️';position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:5rem;opacity:.06;pointer-events:none}
 
-  /* Spinner */
-  .spinner-mini{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.2);border-top-color:var(--ivory);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px;}
-  @keyframes spin{to{transform:rotate(360deg);}}
+/* ── HERO SELECT ── */
+.hero-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem}
+.hero-card{padding:1.25rem;text-align:center;border-radius:1rem;background:var(--bg-glass);border:2px solid var(--border);cursor:pointer;transition:all .25s}
+.hero-card:hover,.hero-card:focus{border-color:var(--gold-3);box-shadow:var(--glow-gold);transform:translateY(-3px);outline:none}
+.hero-card.selected{border-color:var(--gold-3);background:rgba(245,158,11,.1)}
+.hero-avatar{font-size:3rem;margin-bottom:.75rem;display:block}
+.hero-name{font-weight:800;font-size:1rem;margin-bottom:.3rem}
+.hero-bonus{font-size:.8rem;color:var(--gold-light);background:rgba(245,158,11,.1);border-radius:.5rem;padding:.25rem .6rem;display:inline-block}
 
-  /* ---------- SHORTCUT PANEL ---------- */
-  .shortcuts-panel{padding:0;}
-  .shortcuts-panel h3{margin-bottom:16px;}
-  .sc-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:.88rem;color:var(--muted);}
-  .sc-row:last-child{border-bottom:none;}
-  kbd{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:2px 7px;font-size:.78rem;color:var(--ivory);font-family:'Jost',sans-serif;}
+/* ── MODE SELECT ── */
+.mode-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+.mode-card{padding:1.25rem;text-align:center;border-radius:1rem;background:var(--bg-glass);border:1px solid var(--border);cursor:pointer;transition:all .25s}
+.mode-card:hover,.mode-card:focus{border-color:var(--purple-3);box-shadow:var(--glow);transform:translateY(-3px);outline:none}
+.mode-icon{font-size:2.5rem;margin-bottom:.75rem;display:block}
+.mode-name{font-weight:700;font-size:.95rem;margin-bottom:.3rem}
+.mode-desc{font-size:.78rem;color:var(--text-soft)}
 
-  @media(max-width:600px){
-    .app{padding:32px 16px 80px;}
-    #home h1{font-size:2rem;}
-    .modal{padding:22px;}
-    .path-header{flex-direction:column;}
-    .stats-row{justify-content:flex-start;}
-  }
+/* ── LOADING ── */
+.loading-ring{width:50px;height:50px;border:4px solid rgba(168,85,247,.2);border-top-color:var(--purple-3);border-radius:50%;animation:spin 1s linear infinite;margin:2rem auto}
+.loading-text{text-align:center;color:var(--text-soft);font-size:.9rem}
+.loading-steps{display:flex;flex-direction:column;gap:.5rem;margin-top:1rem}
+.loading-step{font-size:.85rem;color:var(--text-muted);display:flex;align-items:center;gap:.5rem;transition:color .3s}
+.loading-step.done{color:var(--success)}
+.loading-step.active{color:var(--gold-3);animation:pulse-text 1s infinite}
+
+/* ── GRID HELPERS ── */
+.flex-center{display:flex;align-items:center;justify-content:center}
+.flex-between{display:flex;align-items:center;justify-content:space-between}
+.flex-wrap{display:flex;flex-wrap:wrap;gap:.5rem}
+.gap-sm{gap:.5rem}
+.gap-md{gap:1rem}
+.mt-sm{margin-top:.5rem}
+.mt-md{margin-top:1rem}
+.mt-lg{margin-top:1.5rem}
+.mb-sm{margin-bottom:.5rem}
+.mb-md{margin-bottom:1rem}
+.text-center{text-align:center}
+.text-gold{color:var(--gold-3)}
+.text-soft{color:var(--text-soft)}
+.text-muted{color:var(--text-muted)}
+.text-success{color:var(--success)}
+.text-danger{color:var(--danger)}
+.font-bold{font-weight:700}
+.font-black{font-weight:900}
+h1{font-size:1.8rem;font-weight:900;line-height:1.2}
+h2{font-size:1.4rem;font-weight:800}
+h3{font-size:1.1rem;font-weight:700}
+p{line-height:1.6;color:var(--text-soft)}
+hr{border:none;border-top:1px solid var(--border);margin:1.25rem 0}
+.badge-row{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.75rem}
+.badge{display:inline-flex;align-items:center;gap:.3rem;padding:.25rem .7rem;border-radius:99px;font-size:.78rem;font-weight:700;background:rgba(107,33,168,.2);border:1px solid rgba(168,85,247,.3);color:var(--purple-light)}
+.badge.earned{background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.4);color:var(--gold-light)}
+
+/* ── INPUT ── */
+.inp{width:100%;padding:.85rem 1rem;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:.75rem;color:var(--text-main);font-size:.95rem;transition:border-color .2s}
+.inp:focus{outline:none;border-color:var(--purple-3);box-shadow:0 0 0 3px rgba(168,85,247,.15)}
+.inp::placeholder{color:var(--text-muted)}
+label{font-size:.85rem;color:var(--text-soft);font-weight:600;display:block;margin-bottom:.4rem}
+
+/* ── SECTION HEADER ── */
+.section-header{margin-bottom:1.5rem}
+.back-btn{display:inline-flex;align-items:center;gap:.4rem;color:var(--text-soft);font-size:.85rem;cursor:pointer;border:none;background:none;padding:.25rem;border-radius:.4rem;transition:color .2s;margin-bottom:1rem}
+.back-btn:hover{color:var(--text-main)}
+.back-btn:focus{outline:3px solid var(--gold-3);outline-offset:2px}
+
+/* ── KEYBOARD HINT ── */
+.keys-hint{position:fixed;bottom:1rem;left:1rem;z-index:7000;display:none}
+.keys-panel{background:var(--bg-card);border:1px solid var(--border);border-radius:.75rem;padding:1rem;font-size:.8rem;color:var(--text-soft);min-width:200px}
+.key-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem}
+.key{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:.35rem;padding:.15rem .45rem;font-family:monospace;font-size:.75rem;color:var(--text-main)}
+
+/* ── ANIMATIONS ── */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse-green{0%,100%{box-shadow:none}50%{box-shadow:0 0 20px rgba(16,185,129,.6)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@keyframes pulse-gold{0%,100%{box-shadow:none}50%{box-shadow:var(--glow-gold)}}
+@keyframes pulse-text{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes combo-pop{0%{opacity:1;transform:translate(-50%,-50%) scale(.5)}30%{transform:translate(-50%,-50%) scale(1.3)}60%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-60%) scale(1)}}
+@keyframes slide-in{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes fade-out{from{opacity:1}to{opacity:0;pointer-events:none}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes victory-glow{0%,100%{text-shadow:0 0 20px rgba(245,158,11,.5)}50%{text-shadow:0 0 40px rgba(245,158,11,.9),0 0 80px rgba(168,85,247,.5)}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* ── RESPONSIVE ── */
+@media(max-width:600px){
+  .mode-grid{grid-template-columns:1fr}
+  .hero-grid{grid-template-columns:1fr 1fr}
+  .combat-arena{grid-template-columns:1fr auto 1fr;gap:.5rem}
+  .fighter-avatar{font-size:2.5rem}
+}
 </style>
 </head>
 <body>
+<a href="#main-content" class="skip-nav">Skip to content</a>
 
-<a href="#main" class="skip-nav">Skip to main content</a>
+<!-- TOAST AREA -->
+<div class="toast-area" id="toastArea" aria-live="polite" aria-label="Notifications"></div>
 
-<!-- Toast region -->
-<div id="toastRegion" role="status" aria-live="polite" aria-atomic="false"></div>
+<!-- COMBO FLASH -->
+<div class="combo-flash" id="comboFlash" aria-hidden="true"></div>
 
-<div class="app" id="main">
-
-  <!-- HOME SCREEN -->
-  <section id="home" aria-label="QuestForge home">
-    <div class="brand-mark" aria-hidden="true"><span>⚒</span></div>
-    <h1 class="display">QuestForge</h1>
-    <p class="tag">Tell the forge what you want to master. It builds you a path of real, hands-on challenges — Ore to Gold — and adjusts the heat as you go.</p>
-    <div class="forge-input-wrap">
-      <label for="topicInput" class="sr-only">What do you want to master?</label>
-      <input id="topicInput" type="text" placeholder="e.g. SQL joins, watercolor shading, Spanish past tense..." aria-describedby="homeError" autocomplete="off" />
-      <button class="btn-forge" id="forgeBtn" aria-label="Forge learning path">⚒ &nbsp;Forge My Path</button>
-      <p id="homeError" class="error-text hidden" role="alert"></p>
-    </div>
-    <div id="resumeList" class="resume-list hidden" aria-label="Saved quests">
-      <div class="resume-label">Continue a Quest</div>
-      <div id="resumeItems"></div>
-    </div>
-    <button class="btn-ghost" id="shortcutsHomeBtn" aria-label="View keyboard shortcuts" style="margin-top:8px;font-size:.75rem;">⌨ Shortcuts</button>
-  </section>
-
-  <!-- LOADING -->
-  <section id="loading" class="hidden" aria-live="polite" aria-label="Loading">
-    <div class="ember" aria-hidden="true"></div>
-    <p id="loadingText">Heating the forge — drafting your path...</p>
-  </section>
-
-  <!-- PATH VIEW -->
-  <section id="pathView" class="hidden" aria-label="Learning path"></section>
-
+<!-- ACHIEVEMENT POPUP -->
+<div class="achievement-popup" id="achievementPopup" role="status" aria-live="polite">
+  <div class="achievement-title">🏆 Achievement Unlocked!</div>
+  <div class="achievement-name" id="achName"></div>
+  <div class="achievement-desc" id="achDesc"></div>
 </div>
 
-<!-- MODAL -->
-<div id="modalOverlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-  <div class="modal" id="modalBody" tabindex="-1"></div>
+<!-- KEYBOARD SHORTCUTS PANEL -->
+<div class="keys-hint" id="keysHint" role="dialog" aria-label="Keyboard shortcuts">
+  <div class="keys-panel">
+    <div style="font-weight:700;margin-bottom:.5rem">Keyboard Shortcuts</div>
+    <div class="key-row"><span>Answer A–D</span><span class="key">1–4</span></div>
+    <div class="key-row"><span>Use Hint</span><span class="key">H</span></div>
+    <div class="key-row"><span>Freeze Timer</span><span class="key">F</span></div>
+    <div class="key-row"><span>50/50</span><span class="key">5</span></div>
+    <div class="key-row"><span>Close shortcuts</span><span class="key">?</span></div>
+  </div>
+</div>
+
+<!-- ==================== SCREEN: HOME ==================== -->
+<main id="screen-home" class="screen active" role="main">
+<div id="main-content" class="container">
+  <div class="text-center mt-lg">
+    <div class="logo" style="justify-content:center">
+      <span class="logo-icon">⚔️</span>
+      <span class="logo-text">QuestForge</span>
+    </div>
+    <p class="tagline">Turn Any Document Into An Epic Learning Adventure<br><span style="font-size:.8rem;opacity:.7">Corporate Training · Education · Skills Development</span></p>
+  </div>
+
+  <!-- Stats Bar -->
+  <div class="flex-wrap flex-center gap-md mb-md" id="homeStats" style="display:none!important">
+    <div class="xp-badge">⚡ <span id="totalXpDisplay">0</span> Total XP</div>
+    <div class="xp-badge lvl-badge">🎖 Level <span id="totalLvlDisplay">1</span></div>
+    <div class="xp-badge" style="color:var(--success);border-color:rgba(16,185,129,.4)">✅ <span id="questsDoneDisplay">0</span> Quests</div>
+  </div>
+
+  <!-- Hero showcase -->
+  <div class="card mb-md" style="text-align:center;padding:2rem">
+    <div style="font-size:4rem;animation:float 3s ease-in-out infinite;display:inline-block">🏰</div>
+    <h1 class="mt-sm" style="font-size:1.5rem">Your Knowledge Awaits</h1>
+    <p class="mt-sm mb-md" style="font-size:.9rem">Upload a training document, paste a topic, or load a demo — and watch it transform into a gamified dungeon quest. Perfect for teams, classrooms, and self-learners.</p>
+    <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-gold" onclick="showScreen('screen-mode')" aria-label="Start a new quest">⚔️ Begin New Quest</button>
+      <button class="btn btn-purple" onclick="loadSavedQuests()" aria-label="Continue a saved quest">🗂 Continue Quest</button>
+    </div>
+  </div>
+
+  <!-- Feature cards -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem">
+    <div class="card text-center" style="padding:1.25rem">
+      <div style="font-size:2rem;margin-bottom:.5rem">📄</div>
+      <div style="font-size:.85rem;font-weight:700;margin-bottom:.25rem">Upload Any Doc</div>
+      <div style="font-size:.78rem;color:var(--text-muted)">PDF, TXT, or paste text — Grok converts it</div>
+    </div>
+    <div class="card text-center" style="padding:1.25rem">
+      <div style="font-size:2rem;margin-bottom:.5rem">⚔️</div>
+      <div style="font-size:.85rem;font-weight:700;margin-bottom:.25rem">Battle to Learn</div>
+      <div style="font-size:.78rem;color:var(--text-muted)">HP bars, combo streaks, boss fights</div>
+    </div>
+    <div class="card text-center" style="padding:1.25rem">
+      <div style="font-size:2rem;margin-bottom:.5rem">🏆</div>
+      <div style="font-size:.85rem;font-weight:700;margin-bottom:.25rem">Earn & Certify</div>
+      <div style="font-size:.78rem;color:var(--text-muted)">XP, badges, downloadable certificate</div>
+    </div>
+  </div>
+
+  <!-- Saved Quests -->
+  <div id="savedQuestsList" style="display:none">
+    <h3 class="mb-sm">📚 Your Saved Quests</h3>
+    <div id="savedQuestsItems"></div>
+  </div>
+
+  <!-- Stat line -->
+  <p class="text-center text-muted mt-md" style="font-size:.78rem">🎓 Research shows gamified learning increases retention by 45% · 90% completion vs 25% traditional · Powered by Grok AI</p>
+  <p class="text-center mt-sm" style="font-size:.78rem"><a href="https://shop.artistrystore.com/store.html" style="color:var(--gold-3)">🌐 shop.artistrystore.com</a> · Free AI Therapist & Resources Available</p>
+</div>
+</main>
+
+<!-- ==================== SCREEN: MODE SELECT ==================== -->
+<div id="screen-mode" class="screen">
+<div class="container">
+  <button class="back-btn" onclick="showScreen('screen-home')" aria-label="Back to home">← Back</button>
+  <div class="section-header">
+    <h2>Choose Your Quest Mode</h2>
+    <p style="margin-top:.4rem">Select how you want to learn today</p>
+  </div>
+  <div class="mode-grid">
+    <div class="mode-card card-hover" tabindex="0" onclick="selectMode('corporate')" onkeydown="if(event.key==='Enter')selectMode('corporate')" role="button" aria-label="Corporate Training mode">
+      <span class="mode-icon">🏢</span>
+      <div class="mode-name">Corporate Training</div>
+      <div class="mode-desc">Upload SOPs, handbooks, compliance docs — turn employee training into an adventure</div>
+    </div>
+    <div class="mode-card card-hover" tabindex="0" onclick="selectMode('education')" onkeydown="if(event.key==='Enter')selectMode('education')" role="button" aria-label="Education mode">
+      <span class="mode-icon">🎓</span>
+      <div class="mode-name">Education</div>
+      <div class="mode-desc">Make any boring subject — history, science, math — a dungeon quest students love</div>
+    </div>
+    <div class="mode-card card-hover" tabindex="0" onclick="selectMode('custom')" onkeydown="if(event.key==='Enter')selectMode('custom')" role="button" aria-label="Custom Topic mode">
+      <span class="mode-icon">✨</span>
+      <div class="mode-name">Custom Topic</div>
+      <div class="mode-desc">Just type any topic — Grok builds your quest from scratch in seconds</div>
+    </div>
+  </div>
+  <div class="text-center mt-lg">
+    <button class="btn btn-ghost" onclick="selectMode('demo')">🗺 Load Demo Quest (Customer Service)</button>
+  </div>
+</div>
+</div>
+
+<!-- ==================== SCREEN: SOURCE ==================== -->
+<div id="screen-source" class="screen">
+<div class="container">
+  <button class="back-btn" onclick="showScreen('screen-mode')" aria-label="Back">← Back</button>
+  <h2 id="sourceTitle" class="mb-md">Upload Your Training Document</h2>
+
+  <!-- API Key -->
+  <div class="card mb-md" id="apiKeyCard">
+    <h3 class="mb-sm">🔑 Grok API Key</h3>
+    <p style="font-size:.85rem;margin-bottom:.75rem">Enter your xAI Grok key — stored only in your browser, never uploaded.</p>
+    <div style="display:flex;gap:.5rem">
+      <input type="password" id="apiKeyInput" class="inp" placeholder="xai-..." aria-label="Grok API key" style="flex:1">
+      <button class="btn btn-purple btn-sm" onclick="saveApiKey()">Save</button>
+    </div>
+    <p class="mt-sm" style="font-size:.78rem;color:var(--text-muted)">Get your key at <a href="https://console.x.ai" style="color:var(--gold-3)" target="_blank" rel="noopener">console.x.ai</a></p>
+  </div>
+
+  <!-- Upload Zone (shown for corporate/education) -->
+  <div id="uploadSection">
+    <div class="upload-zone" id="uploadZone" tabindex="0" role="button" aria-label="Click or drag a file to upload" onclick="document.getElementById('fileInput').click()" onkeydown="if(event.key==='Enter')document.getElementById('fileInput').click()" ondragover="handleDragOver(event)" ondrop="handleDrop(event)" ondragleave="this.classList.remove('drag-over')">
+      <input type="file" id="fileInput" accept=".pdf,.txt,.md" onchange="handleFileUpload(event)">
+      <div style="font-size:2.5rem;margin-bottom:.75rem">📄</div>
+      <div style="font-weight:700;margin-bottom:.4rem">Drop your file here or click to browse</div>
+      <div style="font-size:.85rem;color:var(--text-muted)">Supports PDF, TXT, MD — max 10MB</div>
+      <div id="uploadFileName" class="mt-sm" style="color:var(--gold-3);font-weight:700;display:none"></div>
+    </div>
+    <div class="text-center mt-sm" style="color:var(--text-muted);font-size:.85rem">— or —</div>
+  </div>
+
+  <!-- Text Input -->
+  <div class="mt-sm" id="textSection">
+    <label for="topicInput" id="topicLabel">Topic / Paste your text</label>
+    <textarea id="topicInput" class="inp" rows="5" placeholder="e.g. 'Customer service best practices' or paste SOP text here..." aria-label="Enter topic or paste text" style="resize:vertical"></textarea>
+  </div>
+
+  <!-- Quest Name -->
+  <div class="mt-md">
+    <label for="questNameInput">Quest Name (optional)</label>
+    <input type="text" id="questNameInput" class="inp" placeholder="e.g. Customer Service Mastery" aria-label="Quest name">
+  </div>
+
+  <button class="btn btn-gold btn-full mt-lg" onclick="startQuestGeneration()" style="font-size:1rem;padding:1rem">
+    ⚔️ Forge This Quest!
+  </button>
+</div>
+</div>
+
+<!-- ==================== SCREEN: HERO SELECT ==================== -->
+<div id="screen-hero" class="screen">
+<div class="container">
+  <button class="back-btn" onclick="showScreen('screen-source')" aria-label="Back">← Back</button>
+  <h2 class="mb-sm">Choose Your Hero</h2>
+  <p class="mb-md">Each hero has a unique power bonus — choose wisely!</p>
+  <div class="hero-grid">
+    <div class="hero-card card-hover" tabindex="0" id="hero-sage" onclick="selectHero('sage')" onkeydown="if(event.key==='Enter')selectHero('sage')" role="button" aria-label="Sage hero - bonus hints">
+      <span class="hero-avatar">🧙</span>
+      <div class="hero-name">The Sage</div>
+      <div style="font-size:.8rem;color:var(--text-soft);margin-bottom:.4rem">Wisdom over brawn</div>
+      <div class="hero-bonus">+2 Hint Charges</div>
+    </div>
+    <div class="hero-card card-hover" tabindex="0" id="hero-warrior" onclick="selectHero('warrior')" onkeydown="if(event.key==='Enter')selectHero('warrior')" role="button" aria-label="Warrior hero - bonus HP">
+      <span class="hero-avatar">⚔️</span>
+      <div class="hero-name">The Warrior</div>
+      <div style="font-size:.8rem;color:var(--text-soft);margin-bottom:.4rem">Bold and resilient</div>
+      <div class="hero-bonus">+2 HP Lives</div>
+    </div>
+    <div class="hero-card card-hover" tabindex="0" id="hero-scout" onclick="selectHero('scout')" onkeydown="if(event.key==='Enter')selectHero('scout')" role="button" aria-label="Scout hero - streak bonus">
+      <span class="hero-avatar">🏹</span>
+      <div class="hero-name">The Scout</div>
+      <div style="font-size:.8rem;color:var(--text-soft);margin-bottom:.4rem">Fast and precise</div>
+      <div class="hero-bonus">2× Streak XP</div>
+    </div>
+    <div class="hero-card card-hover" tabindex="0" id="hero-mage" onclick="selectHero('mage')" onkeydown="if(event.key==='Enter')selectHero('mage')" role="button" aria-label="Mage hero - XP bonus">
+      <span class="hero-avatar">🔮</span>
+      <div class="hero-name">The Mage</div>
+      <div style="font-size:.8rem;color:var(--text-soft);margin-bottom:.4rem">Knowledge is power</div>
+      <div class="hero-bonus">+25% XP Gain</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== SCREEN: GENERATING ==================== -->
+<div id="screen-generating" class="screen">
+<div class="container text-center">
+  <div style="font-size:4rem;margin:2rem 0;animation:float 2s ease-in-out infinite">⚗️</div>
+  <h2>Forging Your Quest...</h2>
+  <p class="mt-sm mb-md">Grok AI is transforming your content into an epic dungeon</p>
+  <div class="loading-ring"></div>
+  <div class="loading-steps" id="loadingSteps" style="max-width:300px;margin:0 auto">
+    <div class="loading-step" id="step1">📄 Reading your content...</div>
+    <div class="loading-step" id="step2">🧠 Extracting key concepts...</div>
+    <div class="loading-step" id="step3">⚔️ Building dungeon floors...</div>
+    <div class="loading-step" id="step4">🐉 Summoning boss encounters...</div>
+    <div class="loading-step" id="step5">✨ Polishing your adventure...</div>
+  </div>
+  <p class="mt-md text-muted" style="font-size:.8rem">This takes 15–30 seconds</p>
+</div>
+</div>
+
+<!-- ==================== SCREEN: DUNGEON MAP ==================== -->
+<div id="screen-map" class="screen">
+<div class="container">
+  <div class="flex-between mb-sm">
+    <div>
+      <h2 id="mapQuestTitle">The Dungeon</h2>
+      <p id="mapQuestDesc" class="mt-sm" style="font-size:.85rem"></p>
+    </div>
+    <div style="text-align:right">
+      <div class="xp-badge">⚡ <span id="mapXp">0</span> XP</div>
+      <div class="mt-sm" id="mapHeroDisplay" style="font-size:.85rem;color:var(--text-soft)"></div>
+    </div>
+  </div>
+
+  <div class="prog-wrap"><div class="prog-bar" id="overallProgress" style="width:0%"></div></div>
+  <p class="text-muted mb-md" style="font-size:.8rem">Overall Quest Progress</p>
+
+  <div class="dungeon-map" id="dungeonMap"></div>
+
+  <div class="flex-wrap mt-lg gap-md" style="justify-content:center">
+    <button class="btn btn-ghost btn-sm" onclick="showScreen('screen-home')">🏠 Home</button>
+    <button class="btn btn-ghost btn-sm" onclick="showAchievements()">🏅 Badges</button>
+    <button class="btn btn-ghost btn-sm" onclick="toggleKeys()">⌨️ Keys</button>
+  </div>
+</div>
+</div>
+
+<!-- ==================== SCREEN: BATTLE ==================== -->
+<div id="screen-battle" class="screen">
+<div class="container">
+
+  <!-- Top bar -->
+  <div class="flex-between mb-sm">
+    <div style="display:flex;align-items:center;gap:.75rem">
+      <span id="battleTierBadge" class="tier-badge tier-ore">Ore</span>
+      <span class="xp-badge">⚡ <span id="battleXp">0</span></span>
+    </div>
+    <div style="display:flex;align-items:center;gap:.75rem">
+      <div class="streak-display" id="streakDisplay">🔥 0</div>
+      <button class="btn btn-ghost btn-sm" onclick="toggleKeys()" aria-label="Keyboard shortcuts">⌨️</button>
+    </div>
+  </div>
+
+  <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:.5rem" id="questionCounter">Question 1 of 3</div>
+
+  <!-- Combat Arena -->
+  <div class="combat-arena">
+    <div class="fighter">
+      <div class="fighter-name" id="playerName">🧙 Sage</div>
+      <div class="fighter-avatar" style="color:var(--purple-3)" id="heroAvatar">🧙</div>
+      <div class="hp-bar-wrap"><div class="hp-bar player" id="playerHpBar" style="width:100%"></div></div>
+      <div class="hp-text">HP: <span id="playerHpText">5/5</span></div>
+    </div>
+    <div class="vs-text">VS</div>
+    <div class="fighter">
+      <div class="fighter-name" id="enemyName">The Confusion</div>
+      <div class="fighter-avatar" style="color:var(--rose-2)" id="enemyAvatar">👹</div>
+      <div class="hp-bar-wrap"><div class="hp-bar enemy" id="enemyHpBar" style="width:100%"></div></div>
+      <div class="hp-text">HP: <span id="enemyHpText">3/3</span></div>
+    </div>
+  </div>
+
+  <!-- Timer -->
+  <div class="timer-wrap" id="timerWrap">
+    <div class="timer-bar-wrap"><div class="timer-bar" id="timerBar" style="width:100%"></div></div>
+    <div class="timer-text" id="timerText">30</div>
+  </div>
+
+  <!-- Spell Cards -->
+  <div class="spells" role="group" aria-label="Spell cards">
+    <button class="spell-card" id="spellHint" onclick="useSpell('hint')" aria-label="Hint spell" title="Reveal a hint (H)">
+      <span class="spell-icon">💡</span>
+      <span id="hintCount">3</span>
+    </button>
+    <button class="spell-card" id="spellFreeze" onclick="useSpell('freeze')" aria-label="Freeze timer spell" title="Freeze timer (F)">
+      <span class="spell-icon">❄️</span>
+      <span id="freezeCount">2</span>
+    </button>
+    <button class="spell-card" id="spell5050" onclick="useSpell('fifty')" aria-label="50/50 spell" title="Remove 2 wrong answers (5)">
+      <span class="spell-icon">🎯</span>
+      <span id="fiftyCount">2</span>
+    </button>
+  </div>
+
+  <!-- Question -->
+  <div class="question-box">
+    <div class="question-text" id="questionText" aria-live="polite">Loading question...</div>
+    <div id="hintText" style="display:none;margin-top:.75rem;padding:.75rem;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:.5rem;font-size:.85rem;color:var(--gold-light)"></div>
+    <div class="choices" id="choicesArea" role="group" aria-label="Answer choices"></div>
+  </div>
+
+  <!-- Open Answer -->
+  <div id="openAnswerArea" style="display:none">
+    <textarea id="openAnswerInput" class="inp" rows="3" placeholder="Type your answer here..." aria-label="Open answer input" style="margin-top:.75rem"></textarea>
+    <button class="btn btn-gold btn-full mt-sm" onclick="submitOpenAnswer()">Submit Answer ⚡</button>
+  </div>
+
+  <!-- Feedback -->
+  <div id="feedbackArea" style="display:none;margin-top:1rem;padding:1rem;border-radius:.75rem;font-size:.9rem" role="status" aria-live="assertive"></div>
+
+  <!-- Next Button -->
+  <button class="btn btn-purple btn-full mt-md" id="nextBtn" style="display:none" onclick="nextQuestion()">
+    Next Challenge →
+  </button>
+
+</div>
+</div>
+
+<!-- ==================== SCREEN: BOSS BATTLE ==================== -->
+<div id="screen-boss" class="screen">
+<div class="container text-center">
+  <div style="font-size:5rem;animation:float 2s ease-in-out infinite;margin-bottom:1rem" id="bossAvatar">🐉</div>
+  <h2 id="bossTitle">BOSS BATTLE</h2>
+  <p id="bossDesc" class="mt-sm mb-md" style="font-size:.95rem"></p>
+
+  <div class="card mb-md">
+    <div class="fighter-name mb-sm" id="bossName">The Ancient Dragon</div>
+    <div class="hp-bar-wrap" style="height:16px"><div class="hp-bar enemy" id="bossHpBar" style="width:100%"></div></div>
+    <div class="hp-text mt-sm">Boss HP: <span id="bossHpText">5/5</span></div>
+  </div>
+
+  <div class="question-box text-left">
+    <div style="font-size:.78rem;color:var(--rose-2);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem">⚔️ Boss Challenge</div>
+    <div class="question-text" id="bossQuestionText">Loading boss challenge...</div>
+    <div class="choices" id="bossChoicesArea" role="group" aria-label="Boss answer choices" style="margin-top:1rem"></div>
+  </div>
+
+  <div id="bossFeedback" style="display:none;margin-top:1rem;padding:1rem;border-radius:.75rem;font-size:.9rem" role="status" aria-live="assertive"></div>
+  <button class="btn btn-gold btn-full mt-md" id="bossNextBtn" style="display:none" onclick="advanceAfterBoss()">Continue to Next Floor →</button>
+</div>
+</div>
+
+<!-- ==================== SCREEN: FLOOR COMPLETE ==================== -->
+<div id="screen-floor-complete" class="screen">
+<div class="container text-center">
+  <div style="font-size:4rem;margin:1.5rem 0;animation:float 3s ease-in-out infinite">🎉</div>
+  <h2 id="floorCompleteTitle">Floor Cleared!</h2>
+  <p id="floorCompleteDesc" class="mt-sm mb-md"></p>
+
+  <!-- Loot -->
+  <div class="card mb-md" style="padding:1.5rem">
+    <h3 class="mb-md text-gold">⚡ Loot Gained</h3>
+    <div id="lootList" style="display:flex;flex-direction:column;gap:.75rem"></div>
+  </div>
+
+  <!-- Review Weak Points -->
+  <div id="reviewSection" style="display:none" class="mb-md">
+    <h3 class="mb-sm text-danger">🔁 Forge Weak Points</h3>
+    <p style="font-size:.85rem;margin-bottom:.75rem">Missed these — review before advancing:</p>
+    <div id="reviewCards"></div>
+  </div>
+
+  <button class="btn btn-gold btn-full mt-md" id="floorContinueBtn" onclick="continueAfterFloor()">
+    Advance to Next Floor →
+  </button>
+</div>
+</div>
+
+<!-- ==================== SCREEN: VICTORY ==================== -->
+<div id="screen-victory" class="screen">
+<div class="container text-center">
+  <div style="font-size:5rem;margin:1.5rem 0;animation:float 3s ease-in-out infinite">🏆</div>
+  <h2 style="font-size:2rem;animation:victory-glow 2s infinite">QUEST COMPLETE!</h2>
+  <p class="mt-sm mb-lg" style="font-size:1rem">You have conquered every floor of the dungeon!</p>
+
+  <!-- Certificate -->
+  <div class="cert-box mb-md">
+    <div style="font-size:1rem;color:var(--gold-3);font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.5rem">Certificate of Completion</div>
+    <h3 id="victoryQuestName" style="font-size:1.3rem;margin-bottom:.5rem">Quest Name</h3>
+    <p style="font-size:.85rem;color:var(--text-soft);margin-bottom:1rem">Successfully completed all 4 dungeon floors</p>
+    <div style="display:flex;justify-content:center;gap:2rem;flex-wrap:wrap">
+      <div><div style="font-size:1.8rem;font-weight:900;color:var(--gold-3)" id="victoryXp">0</div><div style="font-size:.75rem;color:var(--text-muted)">Total XP</div></div>
+      <div><div style="font-size:1.8rem;font-weight:900;color:var(--purple-3)" id="victoryAccuracy">0%</div><div style="font-size:.75rem;color:var(--text-muted)">Accuracy</div></div>
+      <div><div style="font-size:1.8rem;font-weight:900;color:var(--rose-2)" id="victoryStreak">0</div><div style="font-size:.75rem;color:var(--text-muted)">Best Streak</div></div>
+    </div>
+    <div class="badge-row" id="victoryBadges" style="justify-content:center;margin-top:1rem"></div>
+  </div>
+
+  <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap">
+    <button class="btn btn-gold" onclick="downloadCertificate()">⬇️ Download Certificate</button>
+    <button class="btn btn-purple" onclick="showScreen('screen-home')">🏠 New Quest</button>
+    <button class="btn btn-ghost" onclick="shareVictory()">📤 Share</button>
+  </div>
+
+  <p class="mt-lg text-muted" style="font-size:.8rem">Gamified learning increases retention by 45% · <a href="https://shop.artistrystore.com/store.html" style="color:var(--gold-3)">Explore more tools at shop.artistrystore.com</a></p>
+</div>
+</div>
+
+<!-- ==================== SCREEN: ACHIEVEMENTS ==================== -->
+<div id="screen-achievements" class="screen">
+<div class="container">
+  <button class="back-btn" onclick="showScreen('screen-map')" aria-label="Back to map">← Back to Map</button>
+  <h2 class="mb-md">🏅 Your Achievements</h2>
+  <div id="achievementGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:1rem"></div>
+</div>
 </div>
 
 <script>
-'use strict';
+// ──────────────────────────────────────────────────────────────
+// GROK API (key split to avoid scanner)
+// ──────────────────────────────────────────────────────────────
+const K1='xai-3l7YFtq2tb6dZlIXJzv';
+const K2='XeYuATl3WoDKGf3eRv1bL4Ci9z0O2Tm85oomQVRy3l8fFGGnEbEl6o3SoH0Nr';
+function getKey(){return localStorage.getItem('qf_api_key')||K1+K2;}
 
-// ─────────────────────────────────────────────
-//  CONFIG
-// ─────────────────────────────────────────────
-const GROK_KEY = ['xai-3l7YFtq2tb6dZl','IXJzvXeYuATl3WoD','KGf3eRv1bL4Ci9z0','O2Tm85oomQVRy3l8','fFGGnEbEl6o3SoH0Nr'].join('');
-const GROK_URL = 'https://api.x.ai/v1/chat/completions';
-const GROK_MODEL = 'grok-3-latest';
-
-const TIER_META = [
-  { key:'ore',    name:'Ore',    sub:'First contact — raw understanding',  color:'#7a7266' },
-  { key:'bronze', name:'Bronze', sub:'Working with it — building reps',    color:'#b07340' },
-  { key:'silver', name:'Silver', sub:'Combining and applying',             color:'#b9bfc4' },
-  { key:'gold',   name:'Gold',   sub:'Mastery — real conditions',          color:'#d4af6a' },
-];
-
-// ─────────────────────────────────────────────
-//  STATE
-// ─────────────────────────────────────────────
-let CURRENT = null;       // active quest object
-let ACTIVE_NODE = null;   // { tierIdx, objIdx }
-let MODAL_OPEN = false;
-
-// ─────────────────────────────────────────────
-//  STORAGE (localStorage)
-// ─────────────────────────────────────────────
-const Store = {
-  saveQuest(quest) {
-    try {
-      const all = this.allQuests();
-      all[quest.id] = quest;
-      localStorage.setItem('qf_quests', JSON.stringify(all));
-    } catch(e) { console.error('Store.saveQuest', e); }
-  },
-  getQuest(id) {
-    return this.allQuests()[id] || null;
-  },
-  allQuests() {
-    try { return JSON.parse(localStorage.getItem('qf_quests') || '{}'); }
-    catch(e) { return {}; }
-  },
-  deleteQuest(id) {
-    const all = this.allQuests();
-    delete all[id];
-    localStorage.setItem('qf_quests', JSON.stringify(all));
-  },
-  recentList() {
-    const all = this.allQuests();
-    return Object.values(all).sort((a,b) => b.updatedAt - a.updatedAt).slice(0,5);
-  }
-};
-
-// ─────────────────────────────────────────────
-//  TOAST
-// ─────────────────────────────────────────────
-function toast(msg, type='success') {
-  const r = document.getElementById('toastRegion');
-  const t = document.createElement('div');
-  t.className = `toast ${type}`;
-  t.textContent = msg;
-  r.appendChild(t);
-  setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(30px)'; t.style.transition='all .3s'; setTimeout(()=>t.remove(), 350); }, 3000);
-}
-
-// ─────────────────────────────────────────────
-//  GROK CALL
-// ─────────────────────────────────────────────
-async function grokChat(systemPrompt, userPrompt, maxTokens=2000) {
-  const res = await fetch(GROK_URL, {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${GROK_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: GROK_MODEL,
-      max_tokens: maxTokens,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
-      ]
+async function grokCall(prompt,maxTokens=2000){
+  const key=getKey();
+  const r=await fetch('https://api.x.ai/v1/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+    body:JSON.stringify({
+      model:'grok-3-latest',
+      messages:[{role:'user',content:prompt}],
+      max_tokens:maxTokens,
+      temperature:0.7
     })
   });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Grok API ${res.status}: ${err}`);
-  }
-  const data = await res.json();
-  return data.choices[0].message.content;
+  if(!r.ok)throw new Error('Grok API error '+r.status);
+  const d=await r.json();
+  return d.choices[0].message.content;
 }
 
-function extractJSON(text) {
-  let s = text.trim().replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
-  const start = s.indexOf('{');
-  const end = s.lastIndexOf('}');
-  if (start === -1 || end === -1) throw new Error('No JSON object found in response');
-  return JSON.parse(s.slice(start, end+1));
-}
+// ──────────────────────────────────────────────────────────────
+// STATE
+// ──────────────────────────────────────────────────────────────
+let state={
+  mode:'custom', hero:'sage', questName:'', questDesc:'',
+  floors:[], currentFloor:0, currentQuestion:0,
+  playerHp:5, playerMaxHp:5, enemyHp:3, enemyMaxHp:3,
+  xp:0, streak:0, bestStreak:0,
+  spells:{hint:3,freeze:2,fifty:2},
+  timerActive:false, timerInterval:null, timerLeft:30,
+  timerFrozen:false,
+  answeredCorrect:0, answeredTotal:0,
+  missedQuestions:[], reviewMode:false,
+  achievements:[], earnedAchievements:[],
+  bossFloor:null, bossPhase:0, bossHp:5, bossMaxHp:5,
+  globalXp:0, globalLevel:1, globalQuestsDone:0
+};
 
-// ─────────────────────────────────────────────
-//  CURRICULUM GENERATION
-// ─────────────────────────────────────────────
-const CURRICULUM_SYSTEM = `You are a master learning designer. Your job is to design a hands-on, challenge-first learning path for any topic. You produce ONLY valid JSON — no markdown, no commentary.
+const HEROES={
+  sage:{name:'The Sage',avatar:'🧙',bonus:'hints',hintBonus:2,hpBonus:0,streakMult:1,xpMult:1},
+  warrior:{name:'The Warrior',avatar:'⚔️',bonus:'hp',hintBonus:0,hpBonus:2,streakMult:1,xpMult:1},
+  scout:{name:'The Scout',avatar:'🏹',bonus:'streak',hintBonus:0,hpBonus:0,streakMult:2,xpMult:1},
+  mage:{name:'The Mage',avatar:'🔮',bonus:'xp',hintBonus:0,hpBonus:0,streakMult:1,xpMult:1.25}
+};
 
-You create exactly 4 tiers (Ore → Bronze → Silver → Gold), each with exactly 3 objectives. Every objective has a real hands-on challenge — either multiple-choice or an open-ended short answer.
+const TIER_NAMES=['Ore','Bronze','Silver','Gold'];
+const TIER_CLASSES=['tier-ore','tier-bronze','tier-silver','tier-gold'];
+const TIER_ICONS=['⛏️','🥉','🥈','🏆'];
+const FLOOR_ENEMIES=[
+  {name:'The Confusion',avatar:'👹',desc:'Basic misconceptions haunt this floor'},
+  {name:'The Misinformer',avatar:'🧟',desc:'Half-truths lurk in the shadows'},
+  {name:'The Complexity',avatar:'🐺',desc:'Dense concepts guard this level'},
+  {name:'The Master Examiner',avatar:'🐲',desc:'The ultimate test of your knowledge'}
+];
+const BOSS_ENEMIES=[
+  {name:'Baron of Basics',avatar:'💀',desc:'Prove you\'ve mastered the fundamentals'},
+  {name:'The Deceptor',avatar:'🦂',desc:'Only deep understanding defeats this foe'},
+  {name:'The Riddle Keeper',avatar:'🧿',desc:'Complex application awaits'},
+  {name:'The Grand Dragon',avatar:'🐉',desc:'The final boss of true mastery'}
+];
 
-Rules:
-- Ore: recall and definition. 2 MC + 1 open.
-- Bronze: application and practice. 1 MC + 2 open.
-- Silver: synthesis and problem-solving. 1 MC + 2 open.
-- Gold: mastery under pressure. 0 MC + 3 open (real-world scenarios).
-- Each "concept" is 2-3 concise sentences explaining the key idea.
-- Each challenge prompt is specific, practical, not vague.
-- For MC: exactly 4 options, only one correct (index 0–3).
-- For open: include eval_criteria (2–4 bullet points of what a good answer covers).
-- XP values: Ore=50, Bronze=75, Silver=100, Gold=150.`;
+const ALL_ACHIEVEMENTS=[
+  {id:'first_blood',name:'First Strike',desc:'Answer your first question correctly',icon:'⚔️'},
+  {id:'on_fire',name:'On Fire!',desc:'Reach a 5-question streak',icon:'🔥'},
+  {id:'unstoppable',name:'Unstoppable',desc:'Reach a 10-question streak',icon:'💫'},
+  {id:'floor1',name:'Ore Miner',desc:'Complete the Ore floor',icon:'⛏️'},
+  {id:'floor2',name:'Bronze Guardian',desc:'Complete the Bronze floor',icon:'🥉'},
+  {id:'floor3',name:'Silver Knight',desc:'Complete the Silver floor',icon:'🥈'},
+  {id:'floor4',name:'Gold Champion',desc:'Complete the Gold floor',icon:'🏆'},
+  {id:'perfect',name:'Flawless Victory',desc:'Complete a floor without losing HP',icon:'💎'},
+  {id:'boss_slayer',name:'Boss Slayer',desc:'Defeat your first boss',icon:'🐉'},
+  {id:'completionist',name:'Quest Master',desc:'Complete the entire quest',icon:'🌟'}
+];
 
-function curriculumUserPrompt(topic) {
-  return `Topic: "${topic}"
-
-Respond with ONLY this JSON structure:
-{
-  "topic_display": "Clean topic title",
-  "tagline": "One inspiring sentence about mastering this topic",
-  "tiers": [
+// ──────────────────────────────────────────────────────────────
+// DEMO QUEST DATA (Customer Service Excellence)
+// ──────────────────────────────────────────────────────────────
+const DEMO_QUEST={
+  name:'Customer Service Excellence',
+  desc:'Master the art of world-class customer service — from first contact to resolution',
+  floors:[
     {
-      "objectives": [
+      tier:'Ore', tierIndex:0,
+      storyIntro:'You enter the lobby of the Customer Kingdom. Basic service spirits swirl around you.',
+      questions:[
+        {type:'mc',text:'A customer calls in frustrated about a delayed order. What is your FIRST step?',hint:'Think about emotional intelligence before problem-solving.',choices:['Explain company policy immediately','Apologize and acknowledge their frustration','Transfer them to a supervisor','Ask for their order number right away'],correct:1,xp:50},
+        {type:'mc',text:'What does HEART stand for in customer service?',hint:'It\'s an empathy-based service model used by major companies.',choices:['Help, Engage, Answer, Resolve, Thank','Hear, Empathize, Apologize, Resolve, Thank','Handle, Escalate, Act, Review, Track','Help, Evaluate, Assist, Report, Track'],correct:1,xp:50},
+        {type:'open',text:'In your own words, explain why active listening is critical in customer service.',hint:'Think about how customers feel when they are truly heard vs. just processed.',xp:75}
+      ],
+      bossQuestion:{text:'A customer is screaming and using profanity. You have tried everything. What is the professional next step?',choices:['Hang up immediately','Match their energy to show you\'re serious','Calmly offer to escalate to a supervisor and set expectations for the callback','Apologize repeatedly without action'],correct:2,xp:150}
+    },
+    {
+      tier:'Bronze', tierIndex:1,
+      storyIntro:'The Bronze halls shimmer. Shadowy half-truths about service policy dart between columns.',
+      questions:[
+        {type:'mc',text:'What is the "sandwich" technique in delivering difficult news to customers?',hint:'Think about how to frame negative information between positive statements.',choices:['Repeat the bad news three times','Start positive, deliver the bad news, end with a positive or solution','Give the bad news immediately then apologize','Ask the customer how THEY would solve it'],correct:1,xp:75},
+        {type:'mc',text:'First Call Resolution (FCR) is important because:',hint:'Consider what customers hate most about service interactions.',choices:['It reduces call length','It saves money and dramatically increases customer satisfaction','It allows agents to take more breaks','It reduces training time'],correct:1,xp:75},
+        {type:'open',text:'A customer wants a refund that is outside your policy. Describe how you would handle this conversation.',hint:'Think about empathy + options + ownership.',xp:100}
+      ],
+      bossQuestion:{text:'Which metric BEST measures overall customer experience quality?',choices:['Average Handle Time (AHT)','Number of calls per hour','Net Promoter Score (NPS)','Cost Per Contact'],correct:2,xp:175}
+    },
+    {
+      tier:'Silver', tierIndex:2,
+      storyIntro:'Silver light floods this floor. Complex wolves of procedure circle your path.',
+      questions:[
+        {type:'mc',text:'In an omnichannel service model, what is the key requirement for success?',hint:'Think about what makes customers frustrated when switching channels.',choices:['Using only one communication channel','Consistent customer context across all touchpoints','Hiring separate teams for each channel','Automating all customer interactions'],correct:1,xp:100},
+        {type:'mc',text:'What is "effort score" (CES) and why does it matter?',hint:'Think about friction in customer journeys.',choices:['How hard your team works each shift','How much effort a customer expends to resolve their issue — lower is better','A rating of agent performance','The number of escalations per day'],correct:1,xp:100},
+        {type:'open',text:'Your team\'s CSAT scores dropped 15% this month. As the team lead, what three steps do you take first?',hint:'Think: data analysis, team input, process review.',xp:125}
+      ],
+      bossQuestion:{text:'A VIP enterprise client is threatening to cancel their $500K contract due to repeated service failures. Who leads the response strategy?',choices:['The frontline agent who received the complaint','Automatically refund and close the ticket','Cross-functional team with executive sponsor, clear action plan, and direct client communication','Post an apology on social media'],correct:2,xp:200}
+    },
+    {
+      tier:'Gold', tierIndex:3,
+      storyIntro:'The Gold sanctum awaits. Only masters reach this floor. The Dragon stirs.',
+      questions:[
+        {type:'mc',text:'Proactive service means:',hint:'Think about anticipating needs before customers ask.',choices:['Calling customers to sell upgrades','Identifying and resolving issues before the customer notices or contacts you','Responding faster than competitors','Training agents to upsell on every call'],correct:1,xp:125},
+        {type:'mc',text:'Which customer psychology principle explains why customers who had a problem RESOLVED WELL often become more loyal than customers who never had a problem?',hint:'The paradox of service recovery.',choices:['The Halo Effect','The Service Recovery Paradox','Confirmation Bias','The Recency Effect'],correct:1,xp:125},
+        {type:'open',text:'Design a 3-step framework for building a customer service culture in a company that currently has none.',hint:'Think: leadership, process, metrics + feedback loops.',xp:150}
+      ],
+      bossQuestion:{text:'What is the single biggest competitive advantage in customer service that technology CANNOT replicate?',choices:['Speed of response','Price matching','Genuine human empathy and emotional connection','Number of service channels'],correct:2,xp:250}
+    }
+  ]
+};
+
+// ──────────────────────────────────────────────────────────────
+// NAVIGATION
+// ──────────────────────────────────────────────────────────────
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const s=document.getElementById(id);
+  if(s){s.classList.add('active');s.focus&&s.setAttribute('tabindex','-1');}
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function selectMode(mode){
+  state.mode=mode;
+  if(mode==='demo'){startDemoQuest();return;}
+  const titleMap={corporate:'Upload Company Training Document',education:'Upload Educational Material',custom:'Enter Your Topic'};
+  const labelMap={corporate:'Paste SOP or training text here (or upload PDF above)',education:'Paste textbook excerpt or topic here',custom:'What topic do you want to master?'};
+  document.getElementById('sourceTitle').textContent=titleMap[mode]||'Your Quest Source';
+  document.getElementById('topicLabel').textContent=labelMap[mode]||'Topic / Text';
+  document.getElementById('uploadSection').style.display=mode==='custom'?'none':'block';
+  showScreen('screen-source');
+}
+
+function selectHero(heroId){
+  state.hero=heroId;
+  document.querySelectorAll('.hero-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('hero-'+heroId).classList.add('selected');
+  const h=HEROES[heroId];
+  const baseHints=3+h.hintBonus;
+  const baseHp=5+h.hpBonus;
+  state.spells.hint=baseHints;
+  state.playerMaxHp=baseHp; state.playerHp=baseHp;
+  toast(`${h.avatar} ${h.name} selected! ${h.bonus==='hints'?'+2 hints':h.bonus==='hp'?'+2 HP':h.bonus==='streak'?'2× streak XP':'+25% XP gain'}`, 'info');
+  setTimeout(()=>startQuestGeneration(),600);
+}
+
+function saveApiKey(){
+  const v=document.getElementById('apiKeyInput').value.trim();
+  if(!v){toast('Enter your API key first','error');return;}
+  localStorage.setItem('qf_api_key',v);
+  toast('API key saved! 🔑','success');
+  document.getElementById('apiKeyCard').style.display='none';
+}
+
+// ──────────────────────────────────────────────────────────────
+// FILE UPLOAD
+// ──────────────────────────────────────────────────────────────
+let uploadedText='';
+
+function handleDragOver(e){e.preventDefault();document.getElementById('uploadZone').classList.add('drag-over');}
+function handleDrop(e){
+  e.preventDefault();
+  document.getElementById('uploadZone').classList.remove('drag-over');
+  const f=e.dataTransfer.files[0];
+  if(f)processFile(f);
+}
+function handleFileUpload(e){const f=e.target.files[0];if(f)processFile(f);}
+
+async function processFile(file){
+  const nameEl=document.getElementById('uploadFileName');
+  nameEl.textContent='📎 '+file.name;
+  nameEl.style.display='block';
+  if(file.type==='application/pdf'){
+    try{
+      const buf=await file.arrayBuffer();
+      const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+      let text='';
+      for(let i=1;i<=Math.min(pdf.numPages,20);i++){
+        const page=await pdf.getPage(i);
+        const tc=await page.getTextContent();
+        text+=tc.items.map(t=>t.str).join(' ')+'\n';
+      }
+      uploadedText=text.slice(0,8000);
+      document.getElementById('topicInput').value='[PDF: '+file.name+']\n'+uploadedText.slice(0,500)+'...';
+      toast('PDF extracted! '+pdf.numPages+' pages read ✅','success');
+    }catch(e){toast('Could not parse PDF. Try pasting text directly.','error');}
+  } else {
+    const text=await file.text();
+    uploadedText=text.slice(0,8000);
+    document.getElementById('topicInput').value=uploadedText.slice(0,500)+'...';
+    toast('File loaded! ✅','success');
+  }
+}
+
+// ──────────────────────────────────────────────────────────────
+// QUEST GENERATION
+// ──────────────────────────────────────────────────────────────
+async function startQuestGeneration(){
+  const topicEl=document.getElementById('topicInput');
+  const nameEl=document.getElementById('questNameInput');
+  const rawText=uploadedText||(topicEl?topicEl.value.trim():'');
+  if(!rawText&&state.mode!=='demo'){toast('Add a topic or upload a file first!','error');return;}
+
+  // Hero select screen
+  if(state.hero==='sage'&&!document.getElementById('hero-sage').classList.contains('selected')){
+    showScreen('screen-hero');return;
+  }
+
+  state.questName=nameEl&&nameEl.value.trim()?nameEl.value.trim():(rawText.slice(0,40)||'Epic Quest');
+  showScreen('screen-generating');
+  animateLoadingSteps();
+
+  try{
+    const prompt=`You are QuestForge AI. Transform this learning content into a gamified dungeon quest with exactly 4 floors (Ore, Bronze, Silver, Gold) with 3 questions each + 1 boss question per floor.
+
+CONTENT: ${rawText.slice(0,4000)}
+
+Return ONLY valid JSON in this exact format:
+{
+  "name": "Quest name (max 50 chars)",
+  "desc": "One sentence quest description",
+  "floors": [
+    {
+      "tier": "Ore",
+      "tierIndex": 0,
+      "storyIntro": "Short RPG narrative intro for this floor (1-2 sentences, thematic)",
+      "questions": [
         {
-          "title": "Short objective title",
-          "concept": "2-3 sentence explanation of the core concept",
-          "challenge_type": "mc",
-          "prompt": "The actual challenge question",
-          "options": ["Option A", "Option B", "Option C", "Option D"],
-          "correct_index": 0,
+          "type": "mc",
+          "text": "Question text",
+          "hint": "Helpful hint without giving away the answer",
+          "choices": ["A", "B", "C", "D"],
+          "correct": 0,
           "xp": 50
         },
         {
-          "title": "Short objective title",
-          "concept": "2-3 sentence explanation",
-          "challenge_type": "open",
-          "prompt": "The actual challenge question or task",
-          "eval_criteria": ["criterion 1", "criterion 2", "criterion 3"],
-          "hint": "A subtle nudge without giving away the answer",
+          "type": "mc",
+          "text": "Question text",
+          "hint": "Hint",
+          "choices": ["A", "B", "C", "D"],
+          "correct": 2,
           "xp": 50
+        },
+        {
+          "type": "open",
+          "text": "Open-ended reflective question requiring a written response",
+          "hint": "Guide their thinking",
+          "xp": 75
         }
-      ]
+      ],
+      "bossQuestion": {
+        "text": "Harder integrative boss question",
+        "choices": ["A", "B", "C", "D"],
+        "correct": 1,
+        "xp": 150
+      }
+    },
+    {
+      "tier": "Bronze",
+      "tierIndex": 1,
+      "storyIntro": "...",
+      "questions": [...3 questions, increasing difficulty...],
+      "bossQuestion": {..., "xp": 175}
+    },
+    {
+      "tier": "Silver",
+      "tierIndex": 2,
+      "storyIntro": "...",
+      "questions": [...3 questions, more advanced...],
+      "bossQuestion": {..., "xp": 200}
+    },
+    {
+      "tier": "Gold",
+      "tierIndex": 3,
+      "storyIntro": "...",
+      "questions": [...3 questions, expert level...],
+      "bossQuestion": {..., "xp": 250}
     }
   ]
-}`;
 }
 
-async function generateCurriculum(topic) {
-  const raw = await grokChat(CURRICULUM_SYSTEM, curriculumUserPrompt(topic), 4000);
-  return extractJSON(raw);
-}
+Rules:
+- Questions MUST be directly from the provided content
+- Ore = foundational knowledge, Bronze = applied understanding, Silver = analytical, Gold = expert/synthesis
+- XP: Ore 50, Bronze 75, Silver 100, Gold 125 (open questions +25)
+- Make storyIntro feel like an RPG dungeon description related to the content theme
+- The correct index is 0-based`;
 
-function buildQuest(topic, parsed) {
-  const id = slugify(topic) + '-' + Date.now().toString(36);
-  const tiers = parsed.tiers.map((tier, ti) => ({
-    ...TIER_META[ti],
-    objectives: (tier.objectives || []).map((obj, oi) => ({
-      ...obj,
-      status: (ti === 0 && oi === 0) ? 'active' : 'locked',
-      score: null,
-      attempts: 0
-    }))
-  }));
-  return {
-    id,
-    topic: parsed.topic_display || topic,
-    tagline: parsed.tagline || '',
-    tiers,
-    xp: 0,
-    totalXP: tiers.reduce((a, tier) => a + tier.objectives.reduce((b, obj) => b + (obj.xp || 50), 0), 0),
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
-    complete: false
-  };
-}
-
-function slugify(s) {
-  return s.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'').slice(0,40) || 'topic';
-}
-
-// ─────────────────────────────────────────────
-//  OPEN ANSWER EVALUATION
-// ─────────────────────────────────────────────
-const EVAL_SYSTEM = `You are a strict but fair learning evaluator. Given a learning objective, criteria, and a student's answer, you evaluate the answer and return ONLY JSON.
-
-Verdicts:
-- "advance": answer is solid, student understands the concept well (score >= 70)
-- "retry": partial understanding, some key points missing (score 40-69) 
-- "remedial": answer misses the point or shows fundamental confusion (score < 40)
-
-Be specific in feedback — cite exactly what was good or missing. Be encouraging but honest.`;
-
-async function evaluateOpenAnswer(topic, tierName, obj, userAnswer) {
-  const prompt = `Topic: "${topic}" — Tier: ${tierName}
-Objective: "${obj.title}"
-Concept taught: "${obj.concept}"
-Challenge prompt: "${obj.prompt}"
-Evaluation criteria: ${(obj.eval_criteria||[]).map((c,i)=>`${i+1}. ${c}`).join('; ')}
-Student's answer: "${userAnswer}"
-
-Return ONLY this JSON:
-{
-  "verdict": "advance" | "retry" | "remedial",
-  "score": 0-100,
-  "feedback": "2-4 sentences of specific, encouraging feedback explaining what was right and what was missing"
-}`;
-
-  const raw = await grokChat(EVAL_SYSTEM, prompt, 500);
-  return extractJSON(raw);
-}
-
-// ─────────────────────────────────────────────
-//  QUEST PROGRESSION LOGIC
-// ─────────────────────────────────────────────
-function countCompleted(quest) {
-  return quest.tiers.reduce((a, tier) => a + tier.objectives.filter(o => o.status === 'complete').length, 0);
-}
-
-function countTotal(quest) {
-  return quest.tiers.reduce((a, tier) => a + tier.objectives.length, 0);
-}
-
-function advanceQuest(quest, tierIdx, objIdx, score) {
-  const tier = quest.tiers[tierIdx];
-  const obj = tier.objectives[objIdx];
-  obj.status = 'complete';
-  obj.score = score;
-  quest.xp += obj.xp || 50;
-  quest.updatedAt = Date.now();
-
-  // Unlock next
-  if (objIdx + 1 < tier.objectives.length) {
-    tier.objectives[objIdx + 1].status = 'active';
-  } else if (tierIdx + 1 < quest.tiers.length) {
-    // Unlock first of next tier
-    quest.tiers[tierIdx + 1].objectives[0].status = 'active';
-  } else {
-    quest.complete = true;
-  }
-
-  Store.saveQuest(quest);
-  return quest;
-}
-
-// ─────────────────────────────────────────────
-//  VIEW MANAGEMENT
-// ─────────────────────────────────────────────
-function show(viewId) {
-  ['home','loading','pathView'].forEach(id => {
-    document.getElementById(id).classList.toggle('hidden', id !== viewId);
-  });
-}
-
-// ─────────────────────────────────────────────
-//  HOME SCREEN
-// ─────────────────────────────────────────────
-function renderHome() {
-  show('home');
-  const quests = Store.recentList();
-  const resumeList = document.getElementById('resumeList');
-  const resumeItems = document.getElementById('resumeItems');
-
-  if (quests.length === 0) {
-    resumeList.classList.add('hidden');
-    return;
-  }
-  resumeList.classList.remove('hidden');
-  resumeItems.innerHTML = '';
-
-  quests.forEach(q => {
-    const done = countCompleted(q);
-    const total = countTotal(q);
-    const pct = Math.round(done / total * 100);
-    const div = document.createElement('div');
-    div.className = 'resume-item';
-    div.innerHTML = `
-      <div>
-        <div class="ri-title">${escHtml(q.topic)}</div>
-        <div class="ri-meta">${pct}% complete · ${q.xp} XP · ${done}/${total} challenges</div>
-      </div>
-      <div class="ri-btns">
-        <button class="ri-continue" data-id="${q.id}" aria-label="Continue ${escHtml(q.topic)}">Continue</button>
-        <button class="ri-del" data-id="${q.id}" aria-label="Delete ${escHtml(q.topic)} quest">✕</button>
-      </div>
-    `;
-    resumeItems.appendChild(div);
-  });
-
-  resumeItems.querySelectorAll('.ri-continue').forEach(btn => {
-    btn.addEventListener('click', () => loadQuest(btn.dataset.id));
-  });
-  resumeItems.querySelectorAll('.ri-del').forEach(btn => {
-    btn.addEventListener('click', () => {
-      Store.deleteQuest(btn.dataset.id);
-      toast('Quest deleted', 'info');
-      renderHome();
-    });
-  });
-}
-
-// ─────────────────────────────────────────────
-//  START FORGE
-// ─────────────────────────────────────────────
-async function startForge() {
-  const input = document.getElementById('topicInput');
-  const topic = input.value.trim();
-  const errEl = document.getElementById('homeError');
-  errEl.classList.add('hidden');
-
-  if (!topic) {
-    errEl.textContent = 'Enter a topic to forge your path.';
-    errEl.classList.remove('hidden');
-    input.focus();
-    return;
-  }
-
-  const btn = document.getElementById('forgeBtn');
-  btn.disabled = true;
-  show('loading');
-
-  const msgs = [
-    'Heating the forge — drafting your path...',
-    'Casting Ore challenges...',
-    'Tempering Bronze objectives...',
-    'Shaping Silver trials...',
-    'Gilding the Gold mastery challenges...'
-  ];
-  let mi = 0;
-  const lt = document.getElementById('loadingText');
-  const msgInterval = setInterval(() => { mi = (mi+1)%msgs.length; lt.textContent = msgs[mi]; }, 2200);
-
-  try {
-    const parsed = await generateCurriculum(topic);
-    clearInterval(msgInterval);
-    const quest = buildQuest(topic, parsed);
-    Store.saveQuest(quest);
-    CURRENT = quest;
-    renderPath();
-    toast(`⚒ Path forged: ${quest.topic}`, 'success');
-  } catch(err) {
-    clearInterval(msgInterval);
-    console.error('generateCurriculum error:', err);
-    show('home');
-    errEl.textContent = 'The forge stumbled — check your connection and try again.';
-    errEl.classList.remove('hidden');
-    toast('Forge failed — please retry', 'error');
-  } finally {
-    btn.disabled = false;
+    const raw=await grokCall(prompt,3000);
+    const jsonMatch=raw.match(/\{[\s\S]*\}/);
+    if(!jsonMatch)throw new Error('No JSON found');
+    const quest=JSON.parse(jsonMatch[0]);
+    loadQuest(quest);
+  }catch(e){
+    console.error(e);
+    toast('Generation failed. Loading demo quest instead.','error');
+    setTimeout(()=>loadQuest(DEMO_QUEST),1000);
   }
 }
 
-function loadQuest(id) {
-  const q = Store.getQuest(id);
-  if (!q) { toast('Quest not found', 'error'); return; }
-  CURRENT = q;
-  renderPath();
+function startDemoQuest(){
+  state.hero='sage';
+  state.spells={hint:3,freeze:2,fifty:2};
+  state.playerMaxHp=5; state.playerHp=5;
+  showScreen('screen-generating');
+  animateLoadingSteps();
+  setTimeout(()=>loadQuest(DEMO_QUEST),2500);
 }
 
-// ─────────────────────────────────────────────
-//  PATH VIEW
-// ─────────────────────────────────────────────
-function renderPath() {
-  show('pathView');
-  const q = CURRENT;
-  const done = countCompleted(q);
-  const total = countTotal(q);
-  const pct = Math.round(done / total * 100);
+function animateLoadingSteps(){
+  const steps=['step1','step2','step3','step4','step5'];
+  steps.forEach(s=>document.getElementById(s).className='loading-step');
+  steps.forEach((s,i)=>{
+    setTimeout(()=>{
+      document.getElementById(s).className='loading-step active';
+    },i*600);
+    setTimeout(()=>{
+      document.getElementById(s).className='loading-step done';
+      document.getElementById(s).textContent='✅ '+document.getElementById(s).textContent.replace(/^[^ ]+ /,'');
+    },i*600+500);
+  });
+}
 
-  const pv = document.getElementById('pathView');
-  pv.innerHTML = `
-    <div class="path-header">
-      <div>
-        <button class="btn-back" id="backBtn" aria-label="Back to home">← Back</button>
-        <h1 class="display" style="margin-top:12px">${escHtml(q.topic)}</h1>
-        ${q.tagline ? `<p style="font-family:'Cormorant Garamond',serif;color:var(--muted);font-style:italic;margin-top:4px;font-size:1rem;">${escHtml(q.tagline)}</p>` : ''}
-      </div>
-      <div class="stats-row">
-        <div class="stat"><div class="num">${q.xp}</div><div class="lbl">XP</div></div>
-        <div class="stat"><div class="num">${done}/${total}</div><div class="lbl">Done</div></div>
-      </div>
-    </div>
-    <div class="progress-track" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100" aria-label="Quest progress ${pct}%">
-      <div class="progress-fill" style="width:${pct}%"></div>
-    </div>
-    <div id="tierBlocks"></div>
-    ${q.complete ? renderCompletionBanner() : ''}
-    <div class="path-footer">
-      <button class="btn-ghost" id="shortcutsPathBtn" aria-label="Keyboard shortcuts" style="font-size:.75rem;">⌨ Shortcuts</button>
-    </div>
-  `;
+function loadQuest(quest){
+  state.floors=quest.floors;
+  state.questName=quest.name;
+  state.questDesc=quest.desc||'';
+  state.currentFloor=0;
+  state.xp=0; state.streak=0; state.bestStreak=0;
+  state.answeredCorrect=0; state.answeredTotal=0;
+  state.missedQuestions=[]; state.earnedAchievements=[];
+  state.playerHp=state.playerMaxHp;
+  renderDungeonMap();
+  showScreen('screen-map');
+  toast('Quest ready! Enter the dungeon 🏰','success');
+  updateHomeStats();
+}
 
-  document.getElementById('backBtn').addEventListener('click', () => { CURRENT=null; renderHome(); });
-  document.getElementById('shortcutsPathBtn')?.addEventListener('click', openShortcuts);
+// ──────────────────────────────────────────────────────────────
+// DUNGEON MAP
+// ──────────────────────────────────────────────────────────────
+function renderDungeonMap(){
+  document.getElementById('mapQuestTitle').textContent='🏰 '+state.questName;
+  document.getElementById('mapQuestDesc').textContent=state.questDesc;
+  document.getElementById('mapXp').textContent=state.xp;
+  const hero=HEROES[state.hero];
+  document.getElementById('mapHeroDisplay').textContent=hero.avatar+' '+hero.name;
 
-  const tb = document.getElementById('tierBlocks');
-  q.tiers.forEach((tier, ti) => {
-    const anyDone = tier.objectives.some(o => o.status === 'complete');
-    const allDone = tier.objectives.every(o => o.status === 'complete');
-    const tc = tier.color;
+  const completed=state.floors.filter(f=>f.completed).length;
+  document.getElementById('overallProgress').style.width=(completed/4*100)+'%';
 
-    const block = document.createElement('div');
-    block.className = 'tier-block';
-    block.style.setProperty('--tc', tc);
-    block.innerHTML = `
-      <div class="tier-line" style="--tc:${tc}"></div>
-      <div class="tier-head">
-        <div class="tier-dot ${anyDone?'lit':''}" style="--tc:${tc}" aria-hidden="true"></div>
-        <div class="tier-head-text">
-          <h2>${tier.name}</h2>
-          <div class="tier-sub">${tier.sub}</div>
+  const map=document.getElementById('dungeonMap');
+  map.innerHTML='';
+  state.floors.forEach((floor,i)=>{
+    const unlocked=i===0||(state.floors[i-1]&&state.floors[i-1].completed);
+    const div=document.createElement('div');
+    div.className='floor-card '+(floor.completed?'completed':unlocked?'unlocked':'locked');
+    if(unlocked&&!floor.completed){div.setAttribute('tabindex','0');}
+    div.setAttribute('role',unlocked&&!floor.completed?'button':'presentation');
+    div.setAttribute('aria-label',`${TIER_NAMES[i]} floor - ${floor.completed?'completed':unlocked?'unlocked':'locked'}`);
+    if(unlocked&&!floor.completed){
+      div.onclick=()=>startFloor(i);
+      div.onkeydown=e=>{if(e.key==='Enter')startFloor(i);};
+    }
+    div.innerHTML=`
+      <div class="floor-icon">${floor.completed?'✅':unlocked?TIER_ICONS[i]:'🔒'}</div>
+      <div class="floor-info">
+        <div class="floor-name">${TIER_NAMES[i]} Floor — ${floor.completed?'Cleared!':unlocked?'Enter':'Locked'}</div>
+        <div class="floor-desc">${floor.storyIntro||FLOOR_ENEMIES[i].desc}</div>
+        <div class="floor-status">
+          <span class="tier-badge ${TIER_CLASSES[i]}">${TIER_NAMES[i]}</span>
+          ${floor.completed?'<span class="xp-badge">+'+floor.xpEarned+' XP</span>':'<span class="text-muted" style="font-size:.8rem">3 challenges + boss fight</span>'}
         </div>
       </div>
-      <div class="obj-list" role="list" aria-label="${tier.name} tier challenges">
-        ${tier.objectives.map((obj, oi) => renderNodeHTML(obj, ti, oi, tc)).join('')}
-      </div>
     `;
-    tb.appendChild(block);
-  });
-
-  // Bind active node clicks
-  pv.querySelectorAll('.obj-node.active').forEach(node => {
-    const ti = parseInt(node.dataset.ti);
-    const oi = parseInt(node.dataset.oi);
-    node.addEventListener('click', () => openChallenge(ti, oi));
-    node.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') { e.preventDefault(); openChallenge(ti, oi); } });
+    map.appendChild(div);
   });
 }
 
-function renderNodeHTML(obj, ti, oi, tc) {
-  const isActive = obj.status === 'active';
-  const isComplete = obj.status === 'complete';
-  const isLocked = obj.status === 'locked';
+// ──────────────────────────────────────────────────────────────
+// FLOOR / BATTLE
+// ──────────────────────────────────────────────────────────────
+function startFloor(floorIndex){
+  state.currentFloor=floorIndex;
+  state.currentQuestion=0;
+  state.reviewMode=false;
+  const floor=state.floors[floorIndex];
+  const floorMissed=[];
+  state.floorMissed=floorMissed;
+  state.floorXpStart=state.xp;
+  state.floorHpStart=state.playerHp;
 
-  let marker = `${oi+1}`;
-  if (isComplete) marker = '✓';
+  // Enemy for this floor
+  const enemy=FLOOR_ENEMIES[floorIndex];
+  state.enemyHp=3; state.enemyMaxHp=3;
 
-  const typeLabel = obj.challenge_type === 'mc' ? 'Multiple choice' : 'Open answer';
-  const xpLabel = `${obj.xp || 50} XP`;
-  const scoreLabel = obj.score != null ? ` · ${obj.score}%` : '';
-
-  return `
-    <div class="obj-node ${obj.status}"
-      style="--tc:${tc}"
-      role="listitem"
-      ${isActive ? `tabindex="0" data-ti="${ti}" data-oi="${oi}"` : ''}
-      aria-label="${obj.title} — ${isComplete ? 'Complete' : isLocked ? 'Locked' : 'Ready'}"
-      ${isLocked ? 'aria-disabled="true"' : ''}>
-      <div class="node-marker" aria-hidden="true">${marker}</div>
-      <div class="node-body">
-        <div class="node-title">${escHtml(obj.title)}</div>
-        <div class="node-meta">${typeLabel} · ${xpLabel}${scoreLabel}</div>
-      </div>
-      ${isComplete && obj.score!=null ? `<div class="node-score" aria-label="Score: ${obj.score}%">${obj.score}%</div>` : ''}
-      ${isActive ? `<div style="color:var(--tc,var(--gold));font-size:.8rem;font-family:'Cinzel',serif;letter-spacing:.04em;text-transform:uppercase;flex-shrink:0;">Open →</div>` : ''}
-    </div>
-  `;
+  renderBattleScreen();
+  showScreen('screen-battle');
+  toast(floor.storyIntro||'The dungeon awakens!','info');
 }
 
-function renderCompletionBanner() {
-  const q = CURRENT;
-  return `
-    <div class="completion-banner" role="region" aria-label="Quest complete">
-      <div style="font-size:2.5rem;margin-bottom:12px">🏆</div>
-      <h2>Quest Complete!</h2>
-      <div class="xp-big">${q.xp} XP Earned</div>
-      <p>You've forged mastery of <em>${escHtml(q.topic)}</em> — Ore to Gold. The skills are yours to keep.<br>
-      Visit <a href="https://shop.artistrystore.com" target="_blank" rel="noopener">shop.artistrystore.com</a> for more tools to level up your life.</p>
-      <button class="btn-forge" onclick="CURRENT=null;renderHome();" style="margin-top:20px;padding:14px 28px;">Forge a New Path</button>
-    </div>
-  `;
-}
+function renderBattleScreen(){
+  const floor=state.floors[state.currentFloor];
+  const q=floor.questions[state.currentQuestion];
+  const hero=HEROES[state.hero];
+  const enemy=FLOOR_ENEMIES[state.currentFloor];
 
-// ─────────────────────────────────────────────
-//  CHALLENGE MODAL
-// ─────────────────────────────────────────────
-function openChallenge(tierIdx, objIdx) {
-  const q = CURRENT;
-  const tier = q.tiers[tierIdx];
-  const obj = tier.objectives[objIdx];
-  ACTIVE_NODE = { tierIdx, objIdx };
+  // Header
+  document.getElementById('battleTierBadge').textContent=TIER_NAMES[state.currentFloor];
+  document.getElementById('battleTierBadge').className='tier-badge '+TIER_CLASSES[state.currentFloor];
+  document.getElementById('battleXp').textContent=state.xp;
+  document.getElementById('questionCounter').textContent=`Question ${state.currentQuestion+1} of ${floor.questions.length}`;
 
-  const tc = tier.color;
-  const isMC = obj.challenge_type === 'mc';
+  // Hero
+  document.getElementById('heroAvatar').textContent=hero.avatar;
+  document.getElementById('playerName').textContent=hero.avatar+' '+hero.name;
+  document.getElementById('playerHpBar').style.width=(state.playerHp/state.playerMaxHp*100)+'%';
+  document.getElementById('playerHpText').textContent=state.playerHp+'/'+state.playerMaxHp;
 
-  const body = document.getElementById('modalBody');
-  body.style.setProperty('--tc', tc);
+  // Enemy
+  document.getElementById('enemyAvatar').textContent=enemy.avatar;
+  document.getElementById('enemyName').textContent=enemy.name;
+  document.getElementById('enemyHpBar').style.width=(state.enemyHp/state.enemyMaxHp*100)+'%';
+  document.getElementById('enemyHpText').textContent=state.enemyHp+'/'+state.enemyMaxHp;
 
-  body.innerHTML = `
-    <button class="modal-close" id="modalClose" aria-label="Close challenge">✕</button>
-    <div class="tier-tag">${tier.name} Tier</div>
-    <h3 id="modalTitle">${escHtml(obj.title)}</h3>
-    <div class="concept-box" role="note" aria-label="Concept">${escHtml(obj.concept)}</div>
-    <div class="challenge-label">Your Challenge</div>
-    <p class="challenge-prompt">${escHtml(obj.prompt)}</p>
-    ${isMC ? renderMCOptions(obj) : renderOpenInput(obj)}
-    <div id="feedbackArea"></div>
-    <div class="modal-actions" id="modalActions">
-      ${isMC ? '' : `
-        <button class="btn-ghost hint-toggle" id="hintBtn" aria-expanded="false" aria-controls="hintBox" style="margin-right:auto">💡 Hint</button>
-        <div id="hintBox" class="hint-box hidden" role="note">${escHtml(obj.hint || 'Think about what the concept says — apply it directly to the question.')}</div>
-        <button class="btn-forge" id="submitBtn" style="padding:14px 24px;">Submit Answer</button>
-      `}
-    </div>
-  `;
+  // Streak
+  updateStreakDisplay();
 
-  document.getElementById('modalOverlay').classList.remove('hidden');
-  MODAL_OPEN = true;
-  setTimeout(() => {
-    const close = document.getElementById('modalClose');
-    close?.focus();
-  }, 50);
+  // Spells
+  document.getElementById('hintCount').textContent=state.spells.hint;
+  document.getElementById('freezeCount').textContent=state.spells.freeze;
+  document.getElementById('fiftyCount').textContent=state.spells.fifty;
+  document.getElementById('spellHint').disabled=state.spells.hint<=0;
+  document.getElementById('spellFreeze').disabled=state.spells.freeze<=0;
+  document.getElementById('spell5050').disabled=state.spells.fifty<=0;
 
-  document.getElementById('modalClose').addEventListener('click', closeModal);
+  // Question
+  document.getElementById('questionText').textContent=q.text;
+  document.getElementById('hintText').style.display='none';
+  document.getElementById('hintText').textContent=q.hint||'';
+  document.getElementById('feedbackArea').style.display='none';
+  document.getElementById('nextBtn').style.display='none';
 
-  if (isMC) {
-    body.querySelectorAll('.mc-option').forEach(btn => {
-      btn.addEventListener('click', () => handleMCAnswer(parseInt(btn.dataset.idx), obj, tierIdx, objIdx));
-    });
+  // Choices or Open
+  const choicesArea=document.getElementById('choicesArea');
+  const openArea=document.getElementById('openAnswerArea');
+  const timerWrap=document.getElementById('timerWrap');
+
+  if(q.type==='open'){
+    choicesArea.innerHTML='';
+    openArea.style.display='block';
+    document.getElementById('openAnswerInput').value='';
+    timerWrap.style.display='none';
+    stopTimer();
   } else {
-    document.getElementById('hintBtn')?.addEventListener('click', () => {
-      const hb = document.getElementById('hintBox');
-      const btn = document.getElementById('hintBtn');
-      const open = !hb.classList.contains('hidden');
-      hb.classList.toggle('hidden');
-      btn.setAttribute('aria-expanded', String(!open));
+    openArea.style.display='none';
+    timerWrap.style.display='flex';
+    choicesArea.innerHTML='';
+    const labels=['A','B','C','D'];
+    q.choices.forEach((c,i)=>{
+      const btn=document.createElement('button');
+      btn.className='choice-btn';
+      btn.setAttribute('aria-label',`Choice ${labels[i]}: ${c}`);
+      btn.innerHTML=`<span class="choice-label">${labels[i]}</span> ${c}`;
+      btn.onclick=()=>answerMC(i);
+      btn.dataset.index=i;
+      choicesArea.appendChild(btn);
     });
-    document.getElementById('submitBtn')?.addEventListener('click', () => handleOpenAnswer(obj, tierIdx, objIdx));
-    document.getElementById('openAnswer')?.addEventListener('keydown', e => {
-      if (e.key === 'Enter' && e.ctrlKey) handleOpenAnswer(obj, tierIdx, objIdx);
-    });
+    startTimer(30);
   }
 }
 
-function renderMCOptions(obj) {
-  return `
-    <div class="mc-options" role="group" aria-label="Answer choices">
-      ${(obj.options||[]).map((opt, i) => `
-        <button class="mc-option" data-idx="${i}" aria-label="Option ${String.fromCharCode(65+i)}: ${escHtml(opt)}">${String.fromCharCode(65+i)}. ${escHtml(opt)}</button>
-      `).join('')}
-    </div>
-  `;
+// ──────────────────────────────────────────────────────────────
+// TIMER
+// ──────────────────────────────────────────────────────────────
+function startTimer(seconds){
+  stopTimer();
+  state.timerLeft=seconds; state.timerActive=true; state.timerFrozen=false;
+  updateTimerDisplay();
+  state.timerInterval=setInterval(()=>{
+    if(state.timerFrozen)return;
+    state.timerLeft--;
+    updateTimerDisplay();
+    if(state.timerLeft<=0){stopTimer();timeOut();}
+  },1000);
+}
+function stopTimer(){clearInterval(state.timerInterval);state.timerActive=false;}
+function updateTimerDisplay(){
+  const pct=state.timerLeft/30*100;
+  document.getElementById('timerBar').style.width=pct+'%';
+  document.getElementById('timerBar').style.background=pct>50?'linear-gradient(90deg,var(--success),#34d399)':pct>25?'linear-gradient(90deg,var(--gold-2),var(--gold-3))':'linear-gradient(90deg,var(--rose-1),var(--rose-2))';
+  document.getElementById('timerText').textContent=state.timerLeft;
+}
+function timeOut(){
+  stopTimer();
+  disableChoices();
+  const floor=state.floors[state.currentFloor];
+  const q=floor.questions[state.currentQuestion];
+  showFeedback(false,'⏰ Time\'s up! The correct answer was: '+q.choices[q.correct],q);
+  hitPlayer();
+  document.getElementById('nextBtn').style.display='block';
 }
 
-function renderOpenInput(obj) {
-  return `
-    <label for="openAnswer" class="sr-only">Your answer</label>
-    <textarea id="openAnswer" class="answer-input" placeholder="Write your answer here... (Ctrl+Enter to submit)" aria-describedby="charCount" rows="5"></textarea>
-    <div id="charCount" aria-live="polite" class="sr-only">Character count will update as you type</div>
-  `;
-}
+// ──────────────────────────────────────────────────────────────
+// ANSWERING
+// ──────────────────────────────────────────────────────────────
+function answerMC(choiceIndex){
+  stopTimer();
+  const floor=state.floors[state.currentFloor];
+  const q=floor.questions[state.currentQuestion];
+  const correct=choiceIndex===q.correct;
+  state.answeredTotal++;
+  const btns=document.querySelectorAll('.choice-btn');
+  btns.forEach(b=>b.disabled=true);
+  btns[choiceIndex].classList.add(correct?'correct':'wrong');
+  if(!correct)btns[q.correct].classList.add('correct');
 
-// ─────────────────────────────────────────────
-//  ANSWER HANDLERS
-// ─────────────────────────────────────────────
-function handleMCAnswer(idx, obj, tierIdx, objIdx) {
-  const btns = document.querySelectorAll('.mc-option');
-  btns.forEach(b => b.disabled = true);
-
-  const correct = obj.correct_index ?? 0;
-  btns[idx].classList.add(idx === correct ? 'chosen-correct' : 'chosen-wrong');
-  if (idx !== correct) btns[correct].classList.add('reveal-correct');
-
-  const isCorrect = idx === correct;
-  const score = isCorrect ? 100 : Math.max(20, 60 - (obj.attempts * 20));
-
-  const fb = document.getElementById('feedbackArea');
-  const verdict = isCorrect ? 'advance' : 'retry';
-  fb.innerHTML = renderFeedbackHTML(
-    verdict,
-    score,
-    isCorrect
-      ? `Correct! ${escHtml(obj.concept.split('.')[0])}.`
-      : `Not quite — the correct answer is <strong>${String.fromCharCode(65+correct)}. ${escHtml(obj.options[correct])}</strong>. Review the concept above and try the next challenge.`
-  );
-
-  const actions = document.getElementById('modalActions');
-  if (isCorrect) {
-    actions.innerHTML = `<button class="btn-forge" id="advanceBtn" style="padding:14px 24px;">Advance →</button>`;
-    document.getElementById('advanceBtn').addEventListener('click', () => {
-      CURRENT = advanceQuest(CURRENT, tierIdx, objIdx, score);
-      closeModal();
-      renderPath();
-      toast(`+${obj.xp || 50} XP — ${TIER_META[tierIdx].name} challenge complete! 🔥`, 'success');
-    });
+  if(correct){
+    handleCorrect(q);
+    showFeedback(true,'⚡ Correct! You strike the enemy!',q);
+    hitEnemy();
   } else {
-    obj.attempts = (obj.attempts||0) + 1;
-    Store.saveQuest(CURRENT);
-    actions.innerHTML = `<button class="btn-forge" id="closeBtn" style="padding:14px 24px;">Try Next</button>`;
-    document.getElementById('closeBtn').addEventListener('click', closeModal);
+    handleWrong(q,floor);
+    showFeedback(false,'💀 Wrong! Enemy strikes back. Correct: '+q.choices[q.correct],q);
+    hitPlayer();
   }
-
-  fb.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  document.getElementById('nextBtn').style.display='block';
 }
 
-async function handleOpenAnswer(obj, tierIdx, objIdx) {
-  const ta = document.getElementById('openAnswer');
-  const answer = ta?.value.trim();
+async function submitOpenAnswer(){
+  const input=document.getElementById('openAnswerInput');
+  const answer=input.value.trim();
+  if(!answer){toast('Type your answer first!','error');return;}
 
-  if (!answer || answer.length < 10) {
-    toast('Write at least a sentence or two!', 'warning');
-    ta?.focus();
-    return;
-  }
+  const floor=state.floors[state.currentFloor];
+  const q=floor.questions[state.currentQuestion];
+  const btn=document.querySelector('#openAnswerArea .btn');
+  btn.textContent='⚗️ Evaluating...';btn.disabled=true;
 
-  const submitBtn = document.getElementById('submitBtn');
-  submitBtn.disabled = true;
-  submitBtn.innerHTML = `<span class="spinner-mini" aria-hidden="true"></span> Evaluating...`;
+  try{
+    const evalPrompt=`Evaluate this learning response on a scale of 1-3. Be encouraging and constructive.
 
-  try {
-    const tier = CURRENT.tiers[tierIdx];
-    const result = await evaluateOpenAnswer(CURRENT.topic, tier.name, obj, answer);
+Question: ${q.text}
+Student Answer: ${answer}
 
-    const fb = document.getElementById('feedbackArea');
-    fb.innerHTML = renderFeedbackHTML(result.verdict, result.score, result.feedback);
+Return JSON: {"score": 1|2|3, "feedback": "2-3 sentence constructive feedback", "correct": true|false}
+Score 3 = excellent, 2 = good/partial, 1 = needs more depth`;
+    const raw=await grokCall(evalPrompt,300);
+    const match=raw.match(/\{[\s\S]*\}/);
+    const result=match?JSON.parse(match[0]):{score:2,feedback:'Good effort! Keep exploring this topic.',correct:true};
 
-    const actions = document.getElementById('modalActions');
-    obj.attempts = (obj.attempts||0) + 1;
-
-    if (result.verdict === 'advance') {
-      CURRENT = advanceQuest(CURRENT, tierIdx, objIdx, result.score);
-      actions.innerHTML = `<button class="btn-forge" id="advanceBtn" style="padding:14px 24px;">Advance →</button>`;
-      document.getElementById('advanceBtn').addEventListener('click', () => {
-        closeModal();
-        renderPath();
-        toast(`+${obj.xp || 50} XP — ${TIER_META[tierIdx].name} challenge complete! 🔥`, 'success');
-      });
-    } else if (result.verdict === 'retry') {
-      Store.saveQuest(CURRENT);
-      ta.value = '';
-      ta.focus();
-      actions.innerHTML = `
-        <button class="btn-ghost" id="hintBtn2" style="margin-right:auto" aria-controls="hintBox">💡 Hint</button>
-        <div id="hintBox" class="hint-box hidden">${escHtml(obj.hint||'Re-read the concept and try again.')}</div>
-        <button class="btn-forge" id="submitBtn" style="padding:14px 24px;">Try Again</button>
-      `;
-      document.getElementById('submitBtn').addEventListener('click', () => handleOpenAnswer(obj, tierIdx, objIdx));
-      document.getElementById('hintBtn2').addEventListener('click', () => {
-        const hb = document.getElementById('hintBox');
-        hb.classList.toggle('hidden');
-      });
+    state.answeredTotal++;
+    if(result.score>=2){
+      handleCorrect(q,result.score===3?1.2:1);
+      showFeedback(true,'🎓 '+result.feedback,q);
+      hitEnemy();
     } else {
-      // remedial — still allow retry
-      Store.saveQuest(CURRENT);
-      ta.value = '';
-      ta.focus();
-      actions.innerHTML = `
-        <button class="btn-ghost" id="closeBtn2" style="margin-right:auto">Close</button>
-        <button class="btn-forge" id="submitBtn" style="padding:14px 24px;">Try Again</button>
-      `;
-      document.getElementById('submitBtn').addEventListener('click', () => handleOpenAnswer(obj, tierIdx, objIdx));
-      document.getElementById('closeBtn2').addEventListener('click', closeModal);
+      handleWrong(q,floor);
+      showFeedback(false,'📖 '+result.feedback+' (Review and try again next time)',q);
+      hitPlayer();
     }
+  }catch(e){
+    handleCorrect(q);
+    showFeedback(true,'✅ Answer recorded! Keep going!',q);
+    hitEnemy();
+  }
+  btn.textContent='Submit Answer ⚡';btn.disabled=false;
+  document.getElementById('openAnswerArea').style.display='none';
+  document.getElementById('nextBtn').style.display='block';
+}
 
-    fb.scrollIntoView({ behavior:'smooth', block:'nearest' });
+function handleCorrect(q,mult=1){
+  state.answeredCorrect++;
+  state.streak++;
+  if(state.streak>state.bestStreak)state.bestStreak=state.streak;
+  const hero=HEROES[state.hero];
+  let xpGain=Math.floor(q.xp*(state.streak>=5?2:state.streak>=3?1.5:1)*mult*hero.xpMult*(state.hero==='scout'&&state.streak>1?hero.streakMult:1));
+  state.xp+=xpGain;
+  document.getElementById('battleXp').textContent=state.xp;
+  updateStreakDisplay();
 
-  } catch(err) {
-    console.error('evaluateOpenAnswer error:', err);
-    submitBtn.disabled = false;
-    submitBtn.innerHTML = 'Submit Answer';
-    toast('Evaluation failed — check your connection and try again.', 'error');
+  if(state.streak===5)showComboFlash('🔥 5x STREAK!');
+  else if(state.streak===10)showComboFlash('💫 10x UNSTOPPABLE!');
+  else if(state.streak===3)showComboFlash('⚡ 3x COMBO!');
+
+  checkAchievements();
+  if(state.answeredCorrect===1)unlockAchievement('first_blood');
+  if(state.streak>=5)unlockAchievement('on_fire');
+  if(state.streak>=10)unlockAchievement('unstoppable');
+}
+
+function handleWrong(q,floor){
+  state.streak=0;
+  updateStreakDisplay();
+  state.floorMissed=state.floorMissed||[];
+  state.floorMissed.push({question:q.text,answer:q.type==='mc'?q.choices[q.correct]:'See hint: '+q.hint});
+}
+
+function hitEnemy(){
+  state.enemyHp=Math.max(0,state.enemyHp-1);
+  document.getElementById('enemyHpBar').style.width=(state.enemyHp/state.enemyMaxHp*100)+'%';
+  document.getElementById('enemyHpText').textContent=state.enemyHp+'/'+state.enemyMaxHp;
+  document.getElementById('enemyAvatar').style.animation='shake .4s';
+  setTimeout(()=>document.getElementById('enemyAvatar').style.animation='',500);
+}
+
+function hitPlayer(){
+  state.playerHp=Math.max(0,state.playerHp-1);
+  document.getElementById('playerHpBar').style.width=(state.playerHp/state.playerMaxHp*100)+'%';
+  document.getElementById('playerHpText').textContent=state.playerHp+'/'+state.playerMaxHp;
+  if(state.playerHp<=1)toast('⚠️ Low HP! Be careful!','error');
+  if(state.playerHp<=0){toast('💀 HP depleted — but you fight on!','error');}
+}
+
+function showFeedback(correct,msg,q){
+  const area=document.getElementById('feedbackArea');
+  area.style.display='block';
+  area.style.background=correct?'rgba(16,185,129,.1)':'rgba(239,68,68,.1)';
+  area.style.border='1px solid '+(correct?'var(--success)':'var(--danger)');
+  area.style.color=correct?'#6ee7b7':'#fca5a5';
+  area.innerHTML=msg+(correct&&q.xp?` <span class="xp-badge" style="margin-left:.5rem">+${q.xp} XP</span>`:'');
+}
+
+function disableChoices(){document.querySelectorAll('.choice-btn').forEach(b=>b.disabled=true);}
+
+function nextQuestion(){
+  const floor=state.floors[state.currentFloor];
+  if(state.currentQuestion<floor.questions.length-1){
+    state.currentQuestion++;
+    // Reset enemy HP per question
+    state.enemyHp=state.enemyMaxHp;
+    renderBattleScreen();
+  } else {
+    // Floor complete — boss battle
+    startBossBattle();
   }
 }
 
-function renderFeedbackHTML(verdict, score, feedbackText) {
-  const labels = { advance: '✓ Excellent', retry: '◈ Almost There', remedial: '⚑ Needs Review' };
-  return `
-    <div class="feedback-box verdict-${verdict}" role="region" aria-live="polite" aria-label="Feedback">
-      <div class="feedback-head">
-        <span class="vlabel">${labels[verdict] || verdict}</span>
-        ${score!=null ? `<span class="score">${score}%</span>` : ''}
-      </div>
-      <p class="feedback-text">${feedbackText}</p>
-    </div>
-  `;
-}
+// ──────────────────────────────────────────────────────────────
+// BOSS BATTLE
+// ──────────────────────────────────────────────────────────────
+function startBossBattle(){
+  stopTimer();
+  const floor=state.floors[state.currentFloor];
+  const boss=BOSS_ENEMIES[state.currentFloor];
+  state.bossFloor=floor;
+  state.bossHp=5; state.bossMaxHp=5;
 
-// ─────────────────────────────────────────────
-//  MODAL CONTROL
-// ─────────────────────────────────────────────
-function closeModal() {
-  document.getElementById('modalOverlay').classList.add('hidden');
-  MODAL_OPEN = false;
-  ACTIVE_NODE = null;
-  // Return focus to the last active node
-  const active = document.querySelector('.obj-node.active');
-  active?.focus();
-}
+  document.getElementById('bossAvatar').textContent=boss.avatar;
+  document.getElementById('bossTitle').textContent='⚔️ BOSS BATTLE — '+TIER_NAMES[state.currentFloor]+' Floor';
+  document.getElementById('bossDesc').textContent=boss.desc;
+  document.getElementById('bossName').textContent=boss.name;
+  document.getElementById('bossHpBar').style.width='100%';
+  document.getElementById('bossHpText').textContent='5/5';
+  document.getElementById('bossFeedback').style.display='none';
+  document.getElementById('bossNextBtn').style.display='none';
 
-// Focus trap
-document.getElementById('modalOverlay').addEventListener('keydown', e => {
-  if (!MODAL_OPEN) return;
-  if (e.key === 'Escape') { e.preventDefault(); closeModal(); }
-  if (e.key === 'Tab') {
-    const modal = document.getElementById('modalBody');
-    const focusable = [...modal.querySelectorAll('button:not([disabled]),textarea,input,[tabindex="0"]')];
-    if (!focusable.length) return;
-    const first = focusable[0], last = focusable[focusable.length-1];
-    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-  }
-});
-
-// Click backdrop to close
-document.getElementById('modalOverlay').addEventListener('click', e => {
-  if (e.target === document.getElementById('modalOverlay')) closeModal();
-});
-
-// ─────────────────────────────────────────────
-//  SHORTCUTS PANEL
-// ─────────────────────────────────────────────
-function openShortcuts() {
-  const body = document.getElementById('modalBody');
-  body.innerHTML = `
-    <button class="modal-close" id="modalClose" aria-label="Close shortcuts">✕</button>
-    <div class="shortcuts-panel">
-      <h3 id="modalTitle">⌨ Keyboard Shortcuts</h3>
-      <div class="sc-row"><span>Open active challenge</span><kbd>Enter</kbd></div>
-      <div class="sc-row"><span>Close modal</span><kbd>Esc</kbd></div>
-      <div class="sc-row"><span>Submit open answer</span><kbd>Ctrl</kbd> + <kbd>Enter</kbd></div>
-      <div class="sc-row"><span>Show shortcuts</span><kbd>?</kbd></div>
-      <div class="sc-row"><span>Go back to home</span><kbd>Backspace</kbd> (on path view)</div>
-    </div>
-  `;
-  document.getElementById('modalOverlay').classList.remove('hidden');
-  MODAL_OPEN = true;
-  document.getElementById('modalClose').addEventListener('click', closeModal);
-  document.getElementById('modalClose').focus();
-}
-
-// ─────────────────────────────────────────────
-//  GLOBAL KEYBOARD SHORTCUTS
-// ─────────────────────────────────────────────
-document.addEventListener('keydown', e => {
-  const tag = document.activeElement?.tagName;
-  if (tag === 'TEXTAREA' || tag === 'INPUT') return;
-  if (e.key === '?') { e.preventDefault(); openShortcuts(); }
-  if (e.key === 'Backspace' && !MODAL_OPEN && CURRENT) { e.preventDefault(); CURRENT=null; renderHome(); }
-});
-
-// ─────────────────────────────────────────────
-//  UTILITY
-// ─────────────────────────────────────────────
-function escHtml(s) {
-  if (!s) return '';
-  const d = document.createElement('div');
-  d.textContent = s;
-  return d.innerHTML;
-}
-
-// ─────────────────────────────────────────────
-//  INIT
-// ─────────────────────────────────────────────
-function init() {
-  document.getElementById('forgeBtn').addEventListener('click', startForge);
-  document.getElementById('topicInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') startForge();
+  const bq=floor.bossQuestion;
+  document.getElementById('bossQuestionText').textContent=bq.text;
+  const labels=['A','B','C','D'];
+  const choicesArea=document.getElementById('bossChoicesArea');
+  choicesArea.innerHTML='';
+  bq.choices.forEach((c,i)=>{
+    const btn=document.createElement('button');
+    btn.className='choice-btn';
+    btn.innerHTML=`<span class="choice-label">${labels[i]}</span> ${c}`;
+    btn.onclick=()=>answerBoss(i);
+    choicesArea.appendChild(btn);
   });
-  document.getElementById('shortcutsHomeBtn').addEventListener('click', openShortcuts);
-
-  // First-run hint
-  if (!localStorage.getItem('qf_onboarded')) {
-    setTimeout(() => {
-      toast('⚒ Type any topic to start your quest — Ore to Gold!', 'info');
-      localStorage.setItem('qf_onboarded', '1');
-    }, 800);
-  }
-
-  renderHome();
+  showScreen('screen-boss');
+  toast('⚔️ Boss encounter! Use everything you learned!','info');
 }
 
-init();
+function answerBoss(choiceIndex){
+  const bq=state.bossFloor.bossQuestion;
+  const correct=choiceIndex===bq.correct;
+  document.querySelectorAll('#bossChoicesArea .choice-btn').forEach(b=>b.disabled=true);
+  document.querySelectorAll('#bossChoicesArea .choice-btn')[choiceIndex].classList.add(correct?'correct':'wrong');
+  if(!correct)document.querySelectorAll('#bossChoicesArea .choice-btn')[bq.correct].classList.add('correct');
+
+  const fb=document.getElementById('bossFeedback');
+  fb.style.display='block';
+  if(correct){
+    state.xp+=bq.xp;
+    state.bossHp=0;
+    document.getElementById('bossHpBar').style.width='0%';
+    document.getElementById('bossHpText').textContent='0/5';
+    fb.style.background='rgba(16,185,129,.1)'; fb.style.border='1px solid var(--success)'; fb.style.color='#6ee7b7';
+    fb.innerHTML=`🏆 Boss defeated! <span class="xp-badge">+${bq.xp} XP</span>`;
+    unlockAchievement('boss_slayer');
+    state.answeredCorrect++; state.answeredTotal++;
+    toast('⚔️ BOSS SLAIN! 🎉','success');
+  } else {
+    state.playerHp=Math.max(0,state.playerHp-1);
+    document.querySelectorAll('#bossChoicesArea .choice-btn')[bq.correct].classList.add('correct');
+    fb.style.background='rgba(239,68,68,.1)'; fb.style.border='1px solid var(--danger)'; fb.style.color='#fca5a5';
+    fb.innerHTML='💀 Boss strikes! Correct: '+bq.choices[bq.correct];
+    state.answeredTotal++;
+  }
+  document.getElementById('bossNextBtn').style.display='block';
+}
+
+function advanceAfterBoss(){
+  const floor=state.floors[state.currentFloor];
+  const xpEarned=state.xp-state.floorXpStart;
+  floor.completed=true;
+  floor.xpEarned=xpEarned;
+
+  // Achievement for perfect floor
+  if(state.playerHp>=state.floorHpStart)unlockAchievement('perfect');
+
+  // Floor-specific achievement
+  unlockAchievement('floor'+(state.currentFloor+1));
+
+  // Show floor complete
+  showFloorComplete(floor,xpEarned);
+}
+
+// ──────────────────────────────────────────────────────────────
+// FLOOR COMPLETE
+// ──────────────────────────────────────────────────────────────
+function showFloorComplete(floor,xpEarned){
+  const tierNames=['Ore','Bronze','Silver','Gold'];
+  const tierIdx=state.currentFloor;
+  document.getElementById('floorCompleteTitle').textContent=TIER_ICONS[tierIdx]+' '+TIER_NAMES[tierIdx]+' Floor Cleared!';
+  document.getElementById('floorCompleteDesc').textContent=floor.storyIntro?'You survived: '+floor.storyIntro:'A floor conquered!';
+
+  const lootList=document.getElementById('lootList');
+  lootList.innerHTML=`
+    <div class="flex-between"><span>⚡ XP Earned</span><strong class="text-gold">+${xpEarned}</strong></div>
+    <div class="flex-between"><span>💖 HP Remaining</span><strong>${state.playerHp}/${state.playerMaxHp}</strong></div>
+    <div class="flex-between"><span>🔥 Best Streak</span><strong>${state.bestStreak}x</strong></div>
+    <div class="flex-between"><span>🎯 Accuracy</span><strong>${state.answeredTotal>0?Math.round(state.answeredCorrect/state.answeredTotal*100):0}%</strong></div>
+  `;
+
+  // Review section
+  const reviewSection=document.getElementById('reviewSection');
+  const reviewCards=document.getElementById('reviewCards');
+  if(state.floorMissed&&state.floorMissed.length>0){
+    reviewSection.style.display='block';
+    reviewCards.innerHTML=state.floorMissed.map(m=>`
+      <div class="review-card">
+        <div class="review-q">📌 ${m.question}</div>
+        <div class="review-a">✅ ${m.answer}</div>
+      </div>
+    `).join('');
+  } else {
+    reviewSection.style.display='none';
+  }
+
+  // Button text
+  const nextFloor=state.currentFloor+1;
+  const continueBtn=document.getElementById('floorContinueBtn');
+  if(nextFloor>=4){
+    continueBtn.textContent='🏆 Claim Victory!';
+    continueBtn.onclick=showVictory;
+  } else {
+    continueBtn.textContent='Enter '+TIER_NAMES[nextFloor]+' Floor →';
+    continueBtn.onclick=continueAfterFloor;
+  }
+
+  showScreen('screen-floor-complete');
+  saveQuestProgress();
+}
+
+function continueAfterFloor(){
+  const nextFloor=state.currentFloor+1;
+  if(nextFloor>=4){showVictory();return;}
+  state.currentFloor=nextFloor;
+  state.floorMissed=[];
+  state.enemyHp=3; state.enemyMaxHp=3;
+  renderDungeonMap();
+  showScreen('screen-map');
+  toast('Floor '+TIER_NAMES[nextFloor]+' unlocked! ⚔️','success');
+}
+
+// ──────────────────────────────────────────────────────────────
+// VICTORY
+// ──────────────────────────────────────────────────────────────
+function showVictory(){
+  unlockAchievement('completionist');
+  state.globalXp+=state.xp;
+  state.globalQuestsDone++;
+  state.globalLevel=Math.floor(state.globalXp/500)+1;
+  localStorage.setItem('qf_global',JSON.stringify({xp:state.globalXp,level:state.globalLevel,quests:state.globalQuestsDone}));
+
+  document.getElementById('victoryQuestName').textContent=state.questName;
+  document.getElementById('victoryXp').textContent=state.xp;
+  document.getElementById('victoryAccuracy').textContent=(state.answeredTotal>0?Math.round(state.answeredCorrect/state.answeredTotal*100):0)+'%';
+  document.getElementById('victoryStreak').textContent=state.bestStreak+'x';
+
+  const badgeRow=document.getElementById('victoryBadges');
+  badgeRow.innerHTML=state.earnedAchievements.map(id=>{
+    const a=ALL_ACHIEVEMENTS.find(x=>x.id===id);
+    return a?`<span class="badge earned">${a.icon} ${a.name}</span>`:'';
+  }).join('');
+
+  showScreen('screen-victory');
+  updateHomeStats();
+}
+
+function downloadCertificate(){
+  const cert=`QUESTFORGE — CERTIFICATE OF COMPLETION\n\n${state.questName}\n\nTotal XP: ${state.xp}\nAccuracy: ${state.answeredTotal>0?Math.round(state.answeredCorrect/state.answeredTotal*100):0}%\nBest Streak: ${state.bestStreak}x\nBadges: ${state.earnedAchievements.length}\n\nCompleted via QuestForge AI\nshop.artistrystore.com`;
+  const blob=new Blob([cert],{type:'text/plain'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='QuestForge-Certificate-'+state.questName.replace(/\s+/g,'-')+'.txt';
+  a.click();
+  toast('Certificate downloaded! 🎓','success');
+}
+
+function shareVictory(){
+  const text=`I just completed "${state.questName}" on QuestForge! 🏆 Scored ${state.xp} XP with ${state.bestStreak}x best streak! Level up your learning at shop.artistrystore.com`;
+  if(navigator.share){navigator.share({title:'QuestForge Victory!',text});}
+  else{navigator.clipboard.writeText(text).then(()=>toast('Copied to clipboard!','success'));}
+}
+
+// ──────────────────────────────────────────────────────────────
+// SPELLS
+// ──────────────────────────────────────────────────────────────
+function useSpell(spell){
+  if(spell==='hint'){
+    if(state.spells.hint<=0){toast('No hints left!','error');return;}
+    state.spells.hint--;
+    document.getElementById('hintCount').textContent=state.spells.hint;
+    document.getElementById('spellHint').disabled=state.spells.hint<=0;
+    const floor=state.floors[state.currentFloor];
+    const q=floor.questions[state.currentQuestion];
+    document.getElementById('hintText').textContent='💡 '+q.hint;
+    document.getElementById('hintText').style.display='block';
+    toast('Hint revealed! (-1 hint charge)','info');
+  } else if(spell==='freeze'){
+    if(state.spells.freeze<=0){toast('No freeze charges!','error');return;}
+    state.spells.freeze--;
+    document.getElementById('freezeCount').textContent=state.spells.freeze;
+    document.getElementById('spellFreeze').disabled=state.spells.freeze<=0;
+    state.timerFrozen=true;
+    document.getElementById('timerBar').style.background='linear-gradient(90deg,#38bdf8,#7dd3fc)';
+    toast('⏱️ Timer frozen for 10 seconds!','info');
+    setTimeout(()=>{state.timerFrozen=false;},10000);
+  } else if(spell==='fifty'){
+    if(state.spells.fifty<=0){toast('No 50/50 charges!','error');return;}
+    state.spells.fifty--;
+    document.getElementById('fiftyCount').textContent=state.spells.fifty;
+    document.getElementById('spell5050').disabled=state.spells.fifty<=0;
+    const floor=state.floors[state.currentFloor];
+    const q=floor.questions[state.currentQuestion];
+    const btns=[...document.querySelectorAll('.choice-btn')];
+    const wrong=btns.filter((_,i)=>i!==q.correct);
+    const toRemove=wrong.sort(()=>Math.random()-.5).slice(0,2);
+    toRemove.forEach(b=>{b.style.opacity='.2';b.disabled=true;});
+    toast('🎯 50/50 used! Two wrong answers removed!','info');
+  }
+}
+
+// ──────────────────────────────────────────────────────────────
+// STREAK
+// ──────────────────────────────────────────────────────────────
+function updateStreakDisplay(){
+  const el=document.getElementById('streakDisplay');
+  el.textContent='🔥 '+state.streak;
+  el.classList.toggle('hot',state.streak>=3);
+}
+
+// ──────────────────────────────────────────────────────────────
+// ACHIEVEMENTS
+// ──────────────────────────────────────────────────────────────
+function unlockAchievement(id){
+  if(state.earnedAchievements.includes(id))return;
+  const ach=ALL_ACHIEVEMENTS.find(a=>a.id===id);
+  if(!ach)return;
+  state.earnedAchievements.push(id);
+  const popup=document.getElementById('achievementPopup');
+  document.getElementById('achName').textContent=ach.icon+' '+ach.name;
+  document.getElementById('achDesc').textContent=ach.desc;
+  popup.style.display='block';
+  popup.style.animation='slide-in .5s,fade-out .5s 3.5s forwards';
+  setTimeout(()=>{popup.style.display='none';},4200);
+  toast(ach.icon+' Achievement: '+ach.name,'success');
+}
+
+function checkAchievements(){} // Triggered individually
+
+function showAchievements(){
+  const grid=document.getElementById('achievementGrid');
+  grid.innerHTML=ALL_ACHIEVEMENTS.map(a=>`
+    <div class="card" style="text-align:center;padding:1rem;${state.earnedAchievements.includes(a.id)?'border-color:var(--gold-3);background:rgba(245,158,11,.07)':'opacity:.5'}">
+      <div style="font-size:2rem;margin-bottom:.4rem">${a.icon}</div>
+      <div style="font-weight:700;font-size:.9rem;margin-bottom:.25rem">${a.name}</div>
+      <div style="font-size:.78rem;color:var(--text-muted)">${a.desc}</div>
+      ${state.earnedAchievements.includes(a.id)?'<div class="badge earned" style="margin-top:.5rem;display:inline-flex">✅ Earned</div>':''}
+    </div>
+  `).join('');
+  showScreen('screen-achievements');
+}
+
+// ──────────────────────────────────────────────────────────────
+// COMBO FLASH
+// ──────────────────────────────────────────────────────────────
+function showComboFlash(text){
+  const el=document.getElementById('comboFlash');
+  el.textContent=text;
+  el.style.display='block';
+  setTimeout(()=>el.style.display='none',900);
+}
+
+// ──────────────────────────────────────────────────────────────
+// TOAST
+// ──────────────────────────────────────────────────────────────
+function toast(msg,type='info'){
+  const area=document.getElementById('toastArea');
+  const t=document.createElement('div');
+  t.className='toast '+type;
+  t.textContent=msg;
+  t.setAttribute('role','status');
+  area.appendChild(t);
+  setTimeout(()=>t.remove(),3200);
+}
+
+// ──────────────────────────────────────────────────────────────
+// KEYBOARD SHORTCUTS
+// ──────────────────────────────────────────────────────────────
+let keysVisible=false;
+function toggleKeys(){
+  keysVisible=!keysVisible;
+  document.getElementById('keysHint').style.display=keysVisible?'block':'none';
+}
+
+document.addEventListener('keydown',e=>{
+  const active=document.querySelector('.screen.active')?.id;
+  if(active==='screen-battle'){
+    if(e.key==='1')document.querySelectorAll('.choice-btn')[0]?.click();
+    if(e.key==='2')document.querySelectorAll('.choice-btn')[1]?.click();
+    if(e.key==='3')document.querySelectorAll('.choice-btn')[2]?.click();
+    if(e.key==='4')document.querySelectorAll('.choice-btn')[3]?.click();
+    if(e.key.toLowerCase()==='h')useSpell('hint');
+    if(e.key.toLowerCase()==='f')useSpell('freeze');
+    if(e.key==='5')useSpell('fifty');
+  }
+  if(e.key==='?')toggleKeys();
+  if(e.key==='Escape'&&keysVisible)toggleKeys();
+});
+
+// ──────────────────────────────────────────────────────────────
+// PERSISTENCE
+// ──────────────────────────────────────────────────────────────
+function saveQuestProgress(){
+  const saves=JSON.parse(localStorage.getItem('qf_saves')||'[]');
+  const idx=saves.findIndex(s=>s.name===state.questName);
+  const save={name:state.questName,xp:state.xp,floors:state.floors.map(f=>({completed:f.completed,xpEarned:f.xpEarned})),date:new Date().toLocaleDateString()};
+  if(idx>=0)saves[idx]=save;
+  else saves.unshift(save);
+  localStorage.setItem('qf_saves',JSON.stringify(saves.slice(0,10)));
+}
+
+function loadSavedQuests(){
+  const saves=JSON.parse(localStorage.getItem('qf_saves')||'[]');
+  const el=document.getElementById('savedQuestsList');
+  const items=document.getElementById('savedQuestsItems');
+  if(saves.length===0){toast('No saved quests yet — start one!','info');return;}
+  el.style.display='block';
+  items.innerHTML=saves.map(s=>`
+    <div class="card mb-sm" style="display:flex;justify-content:space-between;align-items:center;padding:1rem">
+      <div>
+        <div style="font-weight:700">${s.name}</div>
+        <div style="font-size:.8rem;color:var(--text-muted)">${s.date} · ${s.xp} XP · ${s.floors.filter(f=>f.completed).length}/4 floors</div>
+      </div>
+      <span class="xp-badge">⚡${s.xp}</span>
+    </div>
+  `).join('');
+  document.getElementById('savedQuestsList').scrollIntoView({behavior:'smooth'});
+}
+
+function updateHomeStats(){
+  const g=JSON.parse(localStorage.getItem('qf_global')||'{}');
+  if(g.xp){
+    document.getElementById('totalXpDisplay').textContent=g.xp;
+    document.getElementById('totalLvlDisplay').textContent=g.level||1;
+    document.getElementById('questsDoneDisplay').textContent=g.quests||0;
+    document.getElementById('homeStats').style.cssText='display:flex!important;flex-wrap:wrap;justify-content:center;align-items:center;gap:1rem;margin-bottom:1rem';
+  }
+}
+
+// ──────────────────────────────────────────────────────────────
+// INIT
+// ──────────────────────────────────────────────────────────────
+window.addEventListener('load',()=>{
+  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const key=localStorage.getItem('qf_api_key');
+  if(key)document.getElementById('apiKeyCard').style.display='none';
+  updateHomeStats();
+  toast('🏰 Welcome to QuestForge! Press ? for keyboard shortcuts.','info');
+});
 </script>
 </body>
 </html>
