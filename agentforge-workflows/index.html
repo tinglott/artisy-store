@@ -3,1082 +3,515 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgentForge Workflows — 15-Agent Franchise Operations</title>
+    <title>AgentForge Workflows v3 - Enterprise Multi-Agent System</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.0/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-            color: #fff;
-            min-height: 100vh;
-            padding: 20px;
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+        
+        .sidebar { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #fff; overflow-y: auto; }
+        .sidebar-tab { padding: 12px 16px; cursor: pointer; border-left: 3px solid transparent; transition: all 0.2s; }
+        .sidebar-tab:hover { background: rgba(255,255,255,0.05); border-left-color: #fbbf24; }
+        .sidebar-tab.active { background: rgba(251,191,36,0.1); border-left-color: #fbbf24; color: #fbbf24; }
+        
+        .canvas { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); position: relative; overflow: auto; }
+        .agent-node { 
+            background: white; border: 2px solid #2d5016; border-radius: 8px; padding: 12px; 
+            width: 180px; cursor: move; user-select: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.2s;
         }
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
+        .agent-node:hover { box-shadow: 0 8px 12px rgba(0,0,0,0.2); transform: scale(1.02); }
+        .agent-node.core { border-color: #dc2626; }
+        .agent-node.finance { border-color: #2563eb; }
+        .agent-node.operations { border-color: #059669; }
+        .agent-node.support { border-color: #7c3aed; }
+        
+        .agent-label { font-weight: 600; font-size: 12px; margin-bottom: 8px; }
+        .agent-name { font-size: 13px; margin-bottom: 6px; }
+        .agent-status { font-size: 11px; color: #666; }
+        
+        .connection-line { stroke: #999; stroke-width: 2; stroke-dasharray: 5,5; }
+        .connection-line.active { stroke: #fbbf24; stroke-width: 3; stroke-dasharray: none; }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.show { display: flex; }
+        .modal-content { background: white; border-radius: 12px; padding: 24px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; }
+        
+        .upload-zone { border: 2px dashed #999; border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .upload-zone:hover { border-color: #fbbf24; background: rgba(251,191,36,0.05); }
+        .upload-zone.dragover { border-color: #fbbf24; background: rgba(251,191,36,0.1); }
+        
+        .kb-item { background: #f3f4f6; border-left: 3px solid #fbbf24; padding: 12px; margin: 8px 0; border-radius: 4px; }
+        .kb-item-name { font-weight: 600; font-size: 13px; }
+        .kb-item-meta { font-size: 11px; color: #666; margin-top: 4px; }
+        
+        .workflow-preset { 
+            background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 8px; padding: 12px; 
+            margin: 8px 0; cursor: pointer; transition: all 0.2s;
         }
-        header {
-            text-align: center;
-            margin-bottom: 40px;
-            border-bottom: 2px solid #d4af37;
-            padding-bottom: 20px;
-        }
-        h1 {
-            font-size: 2.5em;
-            color: #d4af37;
-            margin-bottom: 10px;
-        }
-        .tagline {
-            font-size: 1.1em;
-            color: #aaa;
-            margin-bottom: 10px;
-        }
-        .nav-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-            border-bottom: 1px solid #444;
-            padding-bottom: 15px;
-            flex-wrap: wrap;
-        }
-        .nav-tabs button {
-            padding: 10px 20px;
-            background: transparent;
-            border: none;
-            color: #aaa;
-            cursor: pointer;
-            font-size: 1em;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s;
-        }
-        .nav-tabs button.active {
-            color: #d4af37;
-            border-bottom-color: #d4af37;
-        }
-        .nav-tabs button:hover {
-            color: #d4af37;
-        }
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
-        .section {
-            background: #222;
-            border: 1px solid #444;
-            border-radius: 8px;
-            padding: 25px;
-            margin-bottom: 20px;
-        }
-        .agent-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-        .agent-card {
-            background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
-            border: 1px solid #d4af37;
-            border-radius: 8px;
-            padding: 20px;
-            cursor: pointer;
-            transition: all 0.3s;
-            position: relative;
-        }
-        .agent-card:hover {
-            background: linear-gradient(135deg, #3d3d3d 0%, #2a2a2a 100%);
-            box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
-            transform: translateY(-5px);
-        }
-        .agent-card h3 {
-            color: #d4af37;
-            margin-bottom: 10px;
-            font-size: 1.1em;
-        }
-        .agent-card p {
-            color: #aaa;
-            font-size: 0.9em;
-            line-height: 1.6;
-        }
-        .kb-section {
-            background: #1a1a1a;
-            border: 2px dashed #d4af37;
-            border-radius: 8px;
-            padding: 30px;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .upload-zone {
-            position: relative;
-            display: inline-block;
-            width: 100%;
-            max-width: 400px;
-        }
-        .upload-zone input[type="file"] {
-            position: absolute;
-            left: -9999px;
-        }
-        .upload-label {
-            display: block;
-            padding: 40px 20px;
-            background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
-            border: 2px dashed #d4af37;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-            color: #d4af37;
-            font-weight: bold;
-        }
-        .upload-label:hover {
-            background: linear-gradient(135deg, #3d3d3d 0%, #2a2a2a 100%);
-            box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
-        }
-        .uploaded-docs {
-            margin-top: 20px;
-            text-align: left;
-        }
-        .doc-item {
-            background: #222;
-            border: 1px solid #444;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .doc-item span {
-            color: #d4af37;
-        }
-        .doc-item button {
-            background: #d4af37;
-            color: #1a1a1a;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.8em;
-        }
-        .workflow-timeline {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 30px 0;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .timeline-item {
-            flex: 1;
-            min-width: 120px;
-            text-align: center;
-            background: #222;
-            padding: 15px;
-            border-radius: 6px;
-            border-left: 4px solid #d4af37;
-        }
-        .timeline-item time {
-            color: #d4af37;
-            font-weight: bold;
-            display: block;
-            margin-bottom: 5px;
-        }
-        .timeline-item p {
-            color: #aaa;
-            font-size: 0.9em;
-        }
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-        .btn {
-            padding: 12px 24px;
-            background: #d4af37;
-            color: #1a1a1a;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 1em;
-            transition: all 0.3s;
-        }
-        .btn:hover {
-            background: #e5c158;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
-        }
-        .btn-secondary {
-            background: #444;
-            color: #fff;
-        }
-        .btn-secondary:hover {
-            background: #555;
-        }
-        .status-badge {
-            display: inline-block;
-            padding: 5px 12px;
-            background: #2a5a2a;
-            color: #7fd27f;
-            border-radius: 20px;
-            font-size: 0.85em;
-            margin-bottom: 15px;
-        }
-        .dept-section {
-            margin-bottom: 30px;
-        }
-        .dept-header {
-            font-size: 1.3em;
-            color: #d4af37;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #d4af37;
-        }
-        .info-box {
-            background: #1a1a1a;
-            border-left: 4px solid #d4af37;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 4px;
-        }
-        .info-box strong {
-            color: #d4af37;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-        .modal.active {
-            display: flex;
-        }
-        .modal-content {
-            background: #222;
-            border: 2px solid #d4af37;
-            border-radius: 8px;
-            padding: 30px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-        .modal-close {
-            color: #d4af37;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-            float: right;
-        }
-        .modal-close:hover {
-            color: #e5c158;
-        }
-        .data-model {
-            background: #1a1a1a;
-            border: 1px solid #444;
-            padding: 15px;
-            border-radius: 6px;
-            margin-top: 10px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-            overflow-x: auto;
-        }
-        .success-message {
-            background: #2a5a2a;
-            border-left: 4px solid #7fd27f;
-            color: #7fd27f;
-            padding: 15px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            display: none;
-        }
-        .success-message.show {
-            display: block;
-        }
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 1.8em;
-            }
-            .agent-grid {
-                grid-template-columns: 1fr;
-            }
-            .workflow-timeline {
-                flex-direction: column;
-            }
-            .nav-tabs {
-                overflow-x: auto;
-            }
-        }
+        .workflow-preset:hover { border-color: #fbbf24; background: #fef3c7; }
+        
+        .toast { position: fixed; bottom: 20px; right: 20px; background: #1f2937; color: white; padding: 12px 16px; border-radius: 6px; z-index: 2000; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { transform: translateX(400px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        
+        .execution-log { font-family: 'Courier New', monospace; font-size: 11px; line-height: 1.4; }
+        .log-entry { padding: 4px 0; border-bottom: 1px solid #e5e7eb; }
+        .log-time { color: #999; }
+        .log-success { color: #059669; }
+        .log-error { color: #dc2626; }
+        .log-info { color: #2563eb; }
     </style>
 </head>
-<body>
-    <div class="container">
-        <header>
-            <h1>🤖 AgentForge Workflows v3</h1>
-            <p class="tagline">15-Agent Franchise Operations Suite + Company Knowledge Base</p>
-            <div class="status-badge">✅ All Systems Operational</div>
-        </header>
-
-        <div class="nav-tabs">
-            <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
-            <button class="tab-btn" data-tab="knowledge-base">📚 Knowledge Base</button>
-            <button class="tab-btn" data-tab="agents">🤖 Agents</button>
-            <button class="tab-btn" data-tab="workflows">⚙️ Workflows</button>
-            <button class="tab-btn" data-tab="data-models">📊 Data Models</button>
+<body class="bg-gray-100">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="sidebar w-64 flex flex-col">
+            <div class="p-6 border-b border-gray-700">
+                <h1 class="text-2xl font-bold text-yellow-400">AgentForge</h1>
+                <p class="text-sm text-gray-400 mt-1">Multi-Agent System v3</p>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto">
+                <div class="p-4">
+                    <p class="text-xs text-gray-400 uppercase font-bold mb-4">Dashboard</p>
+                    <div class="sidebar-tab active" onclick="showTab('workspace')">📊 Workflow Canvas</div>
+                    <div class="sidebar-tab" onclick="showTab('agents')">🤖 Agent Management</div>
+                    <div class="sidebar-tab" onclick="showTab('knowledge')">📚 Knowledge Base</div>
+                    <div class="sidebar-tab" onclick="showTab('execution')">⚙️ Execution Log</div>
+                    
+                    <p class="text-xs text-gray-400 uppercase font-bold mt-6 mb-4">Departments</p>
+                    <div class="sidebar-tab" onclick="filterDept('core')">🎯 Core Operations</div>
+                    <div class="sidebar-tab" onclick="filterDept('finance')">💰 Finance & Analytics</div>
+                    <div class="sidebar-tab" onclick="filterDept('operations')">📦 Operations</div>
+                    <div class="sidebar-tab" onclick="filterDept('support')">⭐ Support & Growth</div>
+                    
+                    <p class="text-xs text-gray-400 uppercase font-bold mt-6 mb-4">Company Protocols</p>
+                    <div class="sidebar-tab" onclick="showTab('upload')">📤 Upload Docs</div>
+                    <div class="sidebar-tab" onclick="showTab('templates')">📋 SOP Templates</div>
+                </div>
+            </div>
+            
+            <div class="p-4 border-t border-gray-700 text-sm">
+                <div class="bg-green-900 bg-opacity-30 p-3 rounded mb-2">
+                    <p class="text-green-400 font-bold">✓ System Ready</p>
+                    <p class="text-xs text-gray-300 mt-1">15 agents • 4 departments</p>
+                </div>
+                <button onclick="saveConfig()" class="w-full bg-yellow-500 text-black py-2 px-3 rounded font-bold text-sm hover:bg-yellow-400 transition">
+                    💾 Save Config
+                </button>
+            </div>
         </div>
-
-        <!-- DASHBOARD TAB -->
-        <div id="dashboard" class="tab-content active">
-            <div class="section">
-                <h2>System Overview</h2>
-                <p style="margin-bottom: 20px; color: #aaa;">Your AI franchise operations system with custom company knowledge integration.</p>
+        
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col">
+            <!-- Top Bar -->
+            <div class="bg-white border-b border-gray-200 p-4 flex justify-between items-center">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800" id="pageTitle">Workflow Canvas</h2>
+                    <p class="text-sm text-gray-500">Design and manage your multi-agent workflows</p>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="runWorkflow()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 font-bold text-sm">
+                        ▶️ Run Workflow
+                    </button>
+                    <button onclick="showModal('help')" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-bold text-sm">
+                        ❓ Help
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Tabs Content -->
+            <div class="flex-1 overflow-auto bg-gray-50 p-6">
+                <!-- Workspace Tab -->
+                <div id="workspace-tab" class="tab-content">
+                    <div class="bg-white rounded-lg shadow-sm p-6 mb-4">
+                        <h3 class="font-bold mb-4">Your Workflow Templates</h3>
+                        <div class="workflow-preset" onclick="loadTemplate('daily_standup')">
+                            <p class="font-bold">📅 Daily Standup</p>
+                            <p class="text-sm text-gray-600">6 AM: Revenue check → KPI sync → Operations briefing</p>
+                        </div>
+                        <div class="workflow-preset" onclick="loadTemplate('lead_gen')">
+                            <p class="font-bold">🎯 Lead Generation Pipeline</p>
+                            <p class="text-sm text-gray-600">Content → Social → Email → Lead Nurture → Sales</p>
+                        </div>
+                        <div class="workflow-preset" onclick="loadTemplate('customer_retention')">
+                            <p class="font-bold">⭐ Customer Retention</p>
+                            <p class="text-sm text-gray-600">Feedback → Sentiment → Product Fixes → Re-engagement</p>
+                        </div>
+                        <div class="workflow-preset" onclick="loadTemplate('inventory_sync')">
+                            <p class="font-bold">📦 Inventory Reorder Automation</p>
+                            <p class="text-sm text-gray-600">Stock Check → Reorder → Vendor Mgmt → Delivery Tracking</p>
+                        </div>
+                        <div class="workflow-preset" onclick="loadTemplate('revenue_reporting')">
+                            <p class="font-bold">💹 Revenue & Reporting</p>
+                            <p class="text-sm text-gray-600">Sales Data → Analytics → Forecast → Executive Report</p>
+                        </div>
+                        <div class="workflow-preset" onclick="loadTemplate('compliance_audit')">
+                            <p class="font-bold">✅ Compliance & Audit Trail</p>
+                            <p class="text-sm text-gray-600">Log All Actions → Verify Regulations → Generate Report</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow-sm p-6">
+                        <h3 class="font-bold mb-4">Agent Network Graph</h3>
+                        <svg id="canvas" class="canvas w-full border border-gray-200 rounded" style="height: 500px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);"></svg>
+                    </div>
+                </div>
                 
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
-                    <div style="background: #1a1a1a; padding: 15px; border-radius: 6px; border-left: 4px solid #d4af37;">
-                        <div style="color: #d4af37; font-size: 1.8em; font-weight: bold;">15</div>
-                        <div style="color: #aaa; margin-top: 5px;">Active Agents</div>
-                    </div>
-                    <div style="background: #1a1a1a; padding: 15px; border-radius: 6px; border-left: 4px solid #d4af37;">
-                        <div style="color: #d4af37; font-size: 1.8em; font-weight: bold;">4</div>
-                        <div style="color: #aaa; margin-top: 5px;">Departments</div>
-                    </div>
-                    <div style="background: #1a1a1a; padding: 15px; border-radius: 6px; border-left: 4px solid #d4af37;">
-                        <div style="color: #d4af37; font-size: 1.8em; font-weight: bold;">47</div>
-                        <div style="color: #aaa; margin-top: 5px;">Daily Workflows</div>
-                    </div>
-                    <div style="background: #1a1a1a; padding: 15px; border-radius: 6px; border-left: 4px solid #d4af37;">
-                        <div style="color: #d4af37; font-size: 1.8em; font-weight: bold;">∞</div>
-                        <div style="color: #aaa; margin-top: 5px;">Custom Protocols</div>
+                <!-- Agent Management -->
+                <div id="agents-tab" class="tab-content hidden">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div id="agents-list"></div>
                     </div>
                 </div>
-
-                <h3 style="color: #d4af37; margin-top: 30px; margin-bottom: 15px;">📅 Daily Workflow Timeline</h3>
-                <div class="workflow-timeline">
-                    <div class="timeline-item">
-                        <time>6:00 AM</time>
-                        <p>Daily Standup</p>
-                    </div>
-                    <div class="timeline-item">
-                        <time>9:00 AM</time>
-                        <p>Content Generation</p>
-                    </div>
-                    <div class="timeline-item">
-                        <time>2:00 PM</time>
-                        <p>Sales Analysis</p>
-                    </div>
-                    <div class="timeline-item">
-                        <time>5:00 PM</time>
-                        <p>Inventory Check</p>
-                    </div>
-                    <div class="timeline-item">
-                        <time>8:00 PM</time>
-                        <p>Compliance Audit</p>
-                    </div>
-                </div>
-
-                <div class="button-group">
-                    <button class="btn" onclick="document.querySelector('[data-tab=\'knowledge-base\']').click()">Start Setup</button>
-                    <button class="btn btn-secondary" onclick="viewSystemHealth()">View System Health</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- KNOWLEDGE BASE TAB -->
-        <div id="knowledge-base" class="tab-content">
-            <div class="section">
-                <h2>📚 Company Knowledge Base</h2>
-                <p style="margin-bottom: 20px; color: #aaa;">Upload your company SOPs, protocols, and policies for AI agents to learn from.</p>
-
-                <div class="dept-section">
-                    <div class="dept-header">📝 Core Operations Department</div>
-                    <div class="kb-section">
-                        <div class="upload-zone">
-                            <input type="file" id="coreOpsInput" accept=".pdf,.docx,.txt,.md" multiple>
-                            <label for="coreOpsInput" class="upload-label">
-                                📄 Drop SOP documents here<br><small>PDF, DOCX, TXT, or Markdown</small>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="uploaded-docs" id="coreOpsdocs"></div>
-                    <div class="info-box">
-                        <strong>What AI learns:</strong> Your content creation processes, social media guidelines, email templates, product launch procedures, team communication standards.
-                    </div>
-                </div>
-
-                <div class="dept-section">
-                    <div class="dept-header">💰 Finance & Analytics Department</div>
-                    <div class="kb-section">
-                        <div class="upload-zone">
-                            <input type="file" id="financeInput" accept=".pdf,.docx,.txt,.md" multiple>
-                            <label for="financeInput" class="upload-label">
-                                📊 Drop financial procedures<br><small>Accounting, forecasting, reporting</small>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="uploaded-docs" id="financeDocs"></div>
-                    <div class="info-box">
-                        <strong>What AI learns:</strong> Revenue recognition rules, expense policies, reporting formats, budget approval thresholds, KPI definitions, tax planning strategies.
-                    </div>
-                </div>
-
-                <div class="dept-section">
-                    <div class="dept-header">📦 Operations Department</div>
-                    <div class="kb-section">
-                        <div class="upload-zone">
-                            <input type="file" id="opsInput" accept=".pdf,.docx,.txt,.md" multiple>
-                            <label for="opsInput" class="upload-label">
-                                🏭 Drop operational procedures<br><small>Inventory, vendors, fulfillment</small>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="uploaded-docs" id="opsDocs"></div>
-                    <div class="info-box">
-                        <strong>What AI learns:</strong> Inventory thresholds, supplier contracts, fulfillment workflows, quality standards, location coordination procedures, disaster recovery.
-                    </div>
-                </div>
-
-                <div class="dept-section">
-                    <div class="dept-header">⭐ Support & Growth Department</div>
-                    <div class="kb-section">
-                        <div class="upload-zone">
-                            <input type="file" id="supportInput" accept=".pdf,.docx,.txt,.md" multiple>
-                            <label for="supportInput" class="upload-label">
-                                🎓 Drop support & compliance docs<br><small>Training, policies, customer service</small>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="uploaded-docs" id="supportDocs"></div>
-                    <div class="info-box">
-                        <strong>What AI learns:</strong> Customer service standards, training curriculum, compliance requirements, escalation procedures, feedback handling, certification pathways.
-                    </div>
-                </div>
-
-                <div style="background: #1a1a1a; border: 1px solid #d4af37; padding: 20px; border-radius: 6px; margin-top: 30px;">
-                    <h3 style="color: #d4af37; margin-bottom: 10px;">💡 Pro Tips</h3>
-                    <ul style="color: #aaa; line-height: 1.8;">
-                        <li><strong>Be specific:</strong> Include exact procedures, approval chains, and decision frameworks</li>
-                        <li><strong>Include examples:</strong> Good/bad examples help AI understand nuance</li>
-                        <li><strong>Add context:</strong> Explain WHY you do things, not just the HOW</li>
-                        <li><strong>Update regularly:</strong> As processes change, upload updated docs</li>
-                        <li><strong>Use clear formatting:</strong> Numbered lists, tables, and headers help AI parse better</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <!-- AGENTS TAB -->
-        <div id="agents" class="tab-content">
-            <div class="section">
-                <h2>🤖 All 15 Agents</h2>
-
-                <div class="dept-section">
-                    <div class="dept-header">📝 Core Operations (6 agents)</div>
-                    <div class="agent-grid">
-                        <div class="agent-card" onclick="showAgentDetail('content')">
-                            <h3>📝 Content Creator</h3>
-                            <p>Blogs, social media copy, email content, product descriptions based on YOUR brand voice and guidelines.</p>
-                        </div>
-                        <div class="agent-card" onclick="showAgentDetail('data')">
-                            <h3>📊 Data Analyzer</h3>
-                            <p>Sales insights, customer behavior, trend identification using your historical data patterns.</p>
-                        </div>
-                        <div class="agent-card" onclick="showAgentDetail('email')">
-                            <h3>📧 Email Sender</h3>
-                            <p>Automated campaigns, sequences, transactional emails following your approval workflows.</p>
-                        </div>
-                        <div class="agent-card" onclick="showAgentDetail('social')">
-                            <h3>📱 Social Poster</h3>
-                            <p>Multi-channel posting to Bluesky, TikTok, Instagram with your brand messaging.</p>
-                        </div>
-                        <div class="agent-card" onclick="showAgentDetail('lead')">
-                            <h3>🎯 Lead Nurture</h3>
-                            <p>Lead scoring, qualification, automated nurture sequences based on your sales process.</p>
-                        </div>
-                        <div class="agent-card" onclick="showAgentDetail('product')">
-                            <h3>🏗️ Product Builder</h3>
-                            <p>Catalog management, inventory updates, product info following your structure.</p>
+                
+                <!-- Knowledge Base -->
+                <div id="knowledge-tab" class="tab-content hidden">
+                    <div class="grid grid-cols-1 gap-4">
+                        <div class="bg-white rounded-lg shadow-sm p-6">
+                            <h3 class="font-bold mb-4">📚 Company Knowledge Base</h3>
+                            <p class="text-sm text-gray-600 mb-4">Upload your company's SOPs, policies, and protocols. Agents will reference these when making decisions.</p>
+                            <div id="kb-list"></div>
                         </div>
                     </div>
                 </div>
-
-                <div class="dept-section">
-                    <div class="dept-header">💰 Finance & Analytics (3 agents)</div>
-                    <div class="agent-grid">
-                        <div class="agent-card" onclick="showAgentDetail('financial')">
-                            <h3>💰 Financial Analytics</h3>
-                            <p>Revenue forecasting, ROI analysis, cost projections using your accounting standards.</p>
-                        </div>
-                        <div class="agent-card" onclick="showAgentDetail('dashboard')">
-                            <h3>📈 Performance Dashboard</h3>
-                            <p>Real-time KPIs, metrics, and health indicators per YOUR definitions.</p>
-                        </div>
-                        <div class="agent-card" onclick="showAgentDetail('reporting')">
-                            <h3>📋 Reporting</h3>
-                            <p>Compliance reports, franchise summaries, investor updates in your format.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="dept-section">
-                    <div class="dept-header">📦 Operations (3 agents)</div>
-                    <div class="agent-grid">
-                        <div class="agent-card" onclick="showAgentDetail('inventory')">
-                            <h3>📦 Inventory Manager</h3>
-                            <p>Stock level alerts, reorder triggers, supply chain optimization per your thresholds.</p>
-                        </div>
-                        <div class="agent-card" onclick="showAgentDetail('vendor')">
-                            <h3>🤝 Vendor Management</h3>
-                            <p>Supplier relationships, contract tracking, quality assurance following your standards.</p>
-                        </div>
-                        <div class="agent-card" onclick="showAgentDetail('location')">
-                            <h3>🌐 Multi-Location Coordinator</h3>
-                            <p>Syncs operations across franchise locations, ensures consistency, manages rollouts.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="dept-section">
-                    <div class="dept-header">⭐ Support & Growth (3 agents)</div>
-                    <div class="agent-grid">
-                        <div class="agent-card" onclick="showAgentDetail('feedback')">
-                            <h3>⭐ Customer Feedback</h3>
-                            <p>Review analysis, sentiment tracking, quality assurance per YOUR service standards.</p>
-                        </div>
-                        <div class="agent-card" onclick="showAgentDetail('compliance')">
-                            <h3>⚖️ Compliance & Legal</h3>
-                            <p>Audit trails, regulatory tracking, risk management following your policies.</p>
-                        </div>
-                        <div class="agent-card" onclick="showAgentDetail('training')">
-                            <h3>🎓 Training & Onboarding</h3>
-                            <p>Certification tracking, SOP distribution, training delivery per your curriculum.</p>
+                
+                <!-- Upload Documents -->
+                <div id="upload-tab" class="tab-content hidden">
+                    <div class="bg-white rounded-lg shadow-sm p-6">
+                        <h3 class="font-bold mb-4">📤 Upload Company Protocols</h3>
+                        <p class="text-sm text-gray-600 mb-6">Upload PDFs, Word docs, or markdown files containing your company's specific SOPs, process docs, and policies. Agents will learn from these and apply them to all workflows.</p>
+                        
+                        <div class="grid grid-cols-1 gap-6">
+                            <div>
+                                <label class="block font-bold mb-3">Core Operations SOP</label>
+                                <div class="upload-zone" id="core-zone" ondrop="handleDrop(event,'core')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                                    📄 Drop files or click to upload
+                                </div>
+                                <div id="core-files" class="mt-2"></div>
+                            </div>
+                            
+                            <div>
+                                <label class="block font-bold mb-3">Finance & Analytics SOP</label>
+                                <div class="upload-zone" id="finance-zone" ondrop="handleDrop(event,'finance')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                                    📄 Drop files or click to upload
+                                </div>
+                                <div id="finance-files" class="mt-2"></div>
+                            </div>
+                            
+                            <div>
+                                <label class="block font-bold mb-3">Operations SOP</label>
+                                <div class="upload-zone" id="operations-zone" ondrop="handleDrop(event,'operations')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                                    📄 Drop files or click to upload
+                                </div>
+                                <div id="operations-files" class="mt-2"></div>
+                            </div>
+                            
+                            <div>
+                                <label class="block font-bold mb-3">Support & Growth SOP</label>
+                                <div class="upload-zone" id="support-zone" ondrop="handleDrop(event,'support')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                                    📄 Drop files or click to upload
+                                </div>
+                                <div id="support-files" class="mt-2"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- WORKFLOWS TAB -->
-        <div id="workflows" class="tab-content">
-            <div class="section">
-                <h2>⚙️ Pre-Built Workflow Templates</h2>
-                <p style="margin-bottom: 20px; color: #aaa;">6 complete franchise workflows. Customize with your company knowledge base.</p>
-
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
-                    <div class="agent-card" onclick="showWorkflow('standup')">
-                        <h3>📅 Daily Standup</h3>
-                        <p><strong>6:00 AM Daily</strong></p>
-                        <p>All 15 agents report status. Finance agent summarizes yesterday's revenue. Operations flags inventory issues. Support escalates customer problems.</p>
-                    </div>
-                    <div class="agent-card" onclick="showWorkflow('leadgen')">
-                        <h3>🎯 Lead Generation Pipeline</h3>
-                        <p><strong>Continuous, 6-hour cycles</strong></p>
-                        <p>Content Creator → Social Poster → Email Sender → Lead Nurture → Data Analyzer. Full funnel automation.</p>
-                    </div>
-                    <div class="agent-card" onclick="showWorkflow('retention')">
-                        <h3>❤️ Customer Retention</h3>
-                        <p><strong>Weekly</strong></p>
-                        <p>Customer Feedback identifies churn risks. Email Sender → Lead Nurture winback campaign. Support reaches out with personalized help.</p>
-                    </div>
-                    <div class="agent-card" onclick="showWorkflow('revenue')">
-                        <h3>💰 Revenue Reporting</h3>
-                        <p><strong>Daily + Weekly + Monthly</strong></p>
-                        <p>Financial Analytics calculates revenue. Performance Dashboard updates KPIs. Reporting generates franchise summaries for leadership.</p>
-                    </div>
-                    <div class="agent-card" onclick="showWorkflow('inventory')">
-                        <h3>📦 Inventory Alerts</h3>
-                        <p><strong>6-hour intervals</strong></p>
-                        <p>Inventory Manager monitors stock. Vendor Management triggers reorders. Multi-Location Coordinator syncs across franchises.</p>
-                    </div>
-                    <div class="agent-card" onclick="showWorkflow('compliance')">
-                        <h3>⚖️ Weekly Compliance Audit</h3>
-                        <p><strong>Every Monday, 5:00 PM</strong></p>
-                        <p>Compliance Agent reviews all operations. Training Agent flags certification gaps. Reporting generates audit trail.</p>
+                
+                <!-- SOP Templates -->
+                <div id="templates-tab" class="tab-content hidden">
+                    <div class="bg-white rounded-lg shadow-sm p-6">
+                        <h3 class="font-bold mb-4">📋 Standard SOP Templates</h3>
+                        <p class="text-sm text-gray-600 mb-6">Start with these pre-built SOPs for each department. Customize them with your company's specific processes.</p>
+                        
+                        <div class="space-y-4">
+                            <div class="border border-gray-200 rounded p-4">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h4 class="font-bold">Core Operations Standard SOP</h4>
+                                        <p class="text-sm text-gray-600">Content Creator, Data Analyzer, Email Sender, Social Poster, Lead Nurture, Product Builder</p>
+                                    </div>
+                                    <button onclick="downloadTemplate('core')" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
+                                        ⬇️ Download
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="border border-gray-200 rounded p-4">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h4 class="font-bold">Finance & Analytics Standard SOP</h4>
+                                        <p class="text-sm text-gray-600">Financial Analytics, Performance Dashboard, Reporting</p>
+                                    </div>
+                                    <button onclick="downloadTemplate('finance')" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
+                                        ⬇️ Download
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="border border-gray-200 rounded p-4">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h4 class="font-bold">Operations Standard SOP</h4>
+                                        <p class="text-sm text-gray-600">Inventory Manager, Vendor Management, Multi-Location Coordinator</p>
+                                    </div>
+                                    <button onclick="downloadTemplate('operations')" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
+                                        ⬇️ Download
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="border border-gray-200 rounded p-4">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h4 class="font-bold">Support & Growth Standard SOP</h4>
+                                        <p class="text-sm text-gray-600">Customer Feedback, Compliance & Legal, Training & Onboarding</p>
+                                    </div>
+                                    <button onclick="downloadTemplate('support')" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
+                                        ⬇️ Download
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- DATA MODELS TAB -->
-        <div id="data-models" class="tab-content">
-            <div class="section">
-                <h2>📊 Agent Data Models & Communication</h2>
-                <p style="margin-bottom: 20px; color: #aaa;">How agents learn from YOUR data and communicate with each other.</p>
-
-                <div style="background: #1a1a1a; border: 1px solid #d4af37; padding: 20px; border-radius: 6px; margin-bottom: 20px;">
-                    <h3 style="color: #d4af37; margin-bottom: 15px;">🔄 How AI Learns Your Company</h3>
-                    <ol style="color: #aaa; line-height: 2;">
-                        <li><strong>You upload:</strong> SOP docs, policies, past reports to Knowledge Base</li>
-                        <li><strong>AI ingests:</strong> System parses PDFs/docs, extracts procedures and rules</li>
-                        <li><strong>Agents customize:</strong> Each agent applies YOUR procedures to its tasks</li>
-                        <li><strong>Consistency:</strong> All agents follow same company standards & terminology</li>
-                        <li><strong>Continuous learning:</strong> New uploads immediately improve agent behavior</li>
-                    </ol>
-                </div>
-
-                <h3 style="color: #d4af37; margin-bottom: 15px;">🔗 Agent Communication Protocol</h3>
-                <div class="data-model">
-// Agent A → Agent B Message Format
-{
-  "from_agent": "Content Creator",
-  "to_agent": "Social Poster",
-  "action": "post_content",
-  "data": {
-    "content": "Blog post about customer retention",
-    "platforms": ["bluesky", "tiktok", "instagram"],
-    "timestamp": "2026-06-29T09:15:00Z",
-    "requester_id": "core_ops_dept",
-    "approval_status": "approved"
-  },
-  "context_from_kb": {
-    "brand_voice": "helpful, empathetic, professional",
-    "tone_guidelines": "warm and approachable",
-    "hashtag_strategy": "industry + trending + branded"
-  }
-}
-                </div>
-
-                <h3 style="color: #d4af37; margin-top: 30px; margin-bottom: 15px;">📋 Core Data Shared Across All Agents</h3>
-                <div class="data-model">
-{
-  "company_profile": {
-    "name": "Your Company",
-    "industry": "Your Industry",
-    "franchises": 5,
-    "employees_per_location": 8,
-    "fiscal_year_start": "January 1"
-  },
-  "communication_standards": {
-    "approval_chain": ["manager", "director", "cfo"],
-    "escalation_time": "2 hours",
-    "decision_log_required": true
-  },
-  "brand_guidelines": {
-    "voice": "Professional yet approachable",
-    "primary_color": "#d4af37",
-    "tone": "Empowering, solution-focused"
-  },
-  "operational_metrics": {
-    "revenue_target": 500000,
-    "customer_acquisition_cost": 150,
-    "customer_lifetime_value": 5000,
-    "inventory_safety_stock": "2 weeks"
-  }
-}
-                </div>
-
-                <div style="background: #2a5a2a; border-left: 4px solid #7fd27f; padding: 15px; border-radius: 6px; margin-top: 20px;">
-                    <strong style="color: #7fd27f;">✅ Privacy Note:</strong> <span style="color: #aaa;">All company data stays in YOUR account. AI agents process documents locally. No external storage or sharing.</span>
+                
+                <!-- Execution Log -->
+                <div id="execution-tab" class="tab-content hidden">
+                    <div class="bg-white rounded-lg shadow-sm p-6">
+                        <h3 class="font-bold mb-4">⚙️ Real-Time Execution Log</h3>
+                        <div class="execution-log bg-gray-900 text-green-400 p-4 rounded font-mono text-xs overflow-y-auto" style="height: 400px;" id="execution-log">
+                            <div class="log-entry"><span class="log-time">[09:00:15]</span> <span class="log-success">✓ READY</span> AgentForge system initialized</div>
+                            <div class="log-entry"><span class="log-time">[09:00:16]</span> <span class="log-info">→ LOAD</span> Standard SOP loaded into Knowledge Base</div>
+                            <div class="log-entry"><span class="log-time">[09:00:17]</span> <span class="log-success">✓ READY</span> All 15 agents online</div>
+                            <div class="log-entry"><span class="log-time">[09:00:18]</span> <span class="log-success">✓ READY</span> Workflow templates cached</div>
+                            <div class="log-entry"><span class="log-time">[09:00:19]</span> <span class="log-info">→ WAIT</span> Waiting for workflow selection...</div>
+                        </div>
+                        <button onclick="clearLog()" class="mt-4 bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 text-sm">🗑️ Clear Log</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- AGENT DETAIL MODAL -->
-    <div id="agentModal" class="modal">
+    
+    <!-- Help Modal -->
+    <div id="help-modal" class="modal">
         <div class="modal-content">
-            <span class="modal-close" onclick="closeAgentDetail()">&times;</span>
-            <div id="agentDetailContent"></div>
+            <h2 class="text-xl font-bold mb-4">How to Use AgentForge</h2>
+            <div class="space-y-4">
+                <div>
+                    <h3 class="font-bold text-green-600">Step 1: Load Standard SOP</h3>
+                    <p class="text-sm">Your company starts with our standard SOP templates. These cover all 15 agents and 4 departments.</p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-blue-600">Step 2: Upload Your Protocols</h3>
+                    <p class="text-sm">Upload your company's specific SOPs, policies, and docs for each department. Agents will learn from these.</p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-purple-600">Step 3: Choose a Workflow Template</h3>
+                    <p class="text-sm">Select a pre-built workflow (Daily Standup, Lead Gen, Customer Retention, etc.) or design your own.</p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-orange-600">Step 4: Run the Workflow</h3>
+                    <p class="text-sm">Click "Run Workflow" to execute. Agents follow your SOP and coordinate with each other automatically.</p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-red-600">Step 5: Monitor Execution</h3>
+                    <p class="text-sm">Watch the execution log in real-time. All agent actions are logged with timestamps and rationales.</p>
+                </div>
+            </div>
+            <button onclick="hideModal('help')" class="mt-6 bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">Close</button>
         </div>
     </div>
-
+    
     <script>
-        // Tab switching
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                btn.classList.add('active');
-                const tab = btn.getAttribute('data-tab');
-                document.getElementById(tab).classList.add('active');
-            });
-        });
-
-        // File upload handlers
-        const departments = {
-            'coreOps': { input: 'coreOpsInput', docs: 'coreOpsDocsContainer', name: 'Core Operations' },
-            'finance': { input: 'financeInput', docs: 'financeDocsContainer', name: 'Finance & Analytics' },
-            'ops': { input: 'opsInput', docs: 'opsDocsContainer', name: 'Operations' },
-            'support': { input: 'supportInput', docs: 'supportDocsContainer', name: 'Support & Growth' }
+        // Starter SOP data
+        const starterSOP = {
+            company: "Your Company Name",
+            departments: [
+                { name: "Core Operations", color: "#dc2626", agents: ["Content Creator", "Data Analyzer", "Email Sender", "Social Poster", "Lead Nurture", "Product Builder"] },
+                { name: "Finance & Analytics", color: "#2563eb", agents: ["Financial Analytics", "Performance Dashboard", "Reporting"] },
+                { name: "Operations", color: "#059669", agents: ["Inventory Manager", "Vendor Management", "Multi-Location Coordinator"] },
+                { name: "Support & Growth", color: "#7c3aed", agents: ["Customer Feedback", "Compliance & Legal", "Training & Onboarding"] }
+            ]
         };
-
-        // Store uploads in localStorage
-        const uploadedFiles = JSON.parse(localStorage.getItem('agentforgeUploads') || '{}');
-
-        function setupUploadHandlers() {
-            ['coreOpsInput', 'financeInput', 'opsInput', 'supportInput'].forEach(inputId => {
-                const input = document.getElementById(inputId);
-                if (!input) return;
-
-                input.addEventListener('change', (e) => {
-                    const deptKey = inputId.replace('Input', '');
-                    const files = Array.from(e.target.files);
-                    
-                    if (!uploadedFiles[deptKey]) uploadedFiles[deptKey] = [];
-                    
-                    files.forEach(file => {
-                        uploadedFiles[deptKey].push({
-                            name: file.name,
-                            size: (file.size / 1024).toFixed(2) + ' KB',
-                            timestamp: new Date().toLocaleString()
-                        });
-                    });
-                    
-                    localStorage.setItem('agentforgeUploads', JSON.stringify(uploadedFiles));
-                    renderUploadedDocs();
-                    showSuccess(`Added ${files.length} document(s) to ${getDeptName(deptKey)}`);
-                });
-            });
-        }
-
-        function getDeptName(key) {
-            const names = {
-                'coreOps': 'Core Operations',
-                'finance': 'Finance & Analytics',
-                'ops': 'Operations',
-                'support': 'Support & Growth'
-            };
-            return names[key] || key;
-        }
-
-        function renderUploadedDocs() {
-            Object.entries(uploadedFiles).forEach(([dept, files]) => {
-                const containerId = `${dept}Docs`;
-                const container = document.getElementById(containerId);
-                if (!container) return;
-                
-                container.innerHTML = files.map((file, idx) => `
-                    <div class="doc-item">
-                        <span>📄 ${file.name}</span>
-                        <button onclick="removeDoc('${dept}', ${idx})">Remove</button>
-                    </div>
-                `).join('');
-            });
-        }
-
-        function removeDoc(dept, idx) {
-            uploadedFiles[dept].splice(idx, 1);
-            localStorage.setItem('agentforgeUploads', JSON.stringify(uploadedFiles));
-            renderUploadedDocs();
-            showSuccess(`Document removed from ${getDeptName(dept)}`);
-        }
-
-        function showSuccess(msg) {
-            const box = document.createElement('div');
-            box.className = 'success-message show';
-            box.textContent = '✅ ' + msg;
-            document.querySelector('.container').insertBefore(box, document.querySelector('header').nextSibling);
-            setTimeout(() => box.remove(), 3000);
-        }
-
-        const agentDetails = {
-            'content': {
-                title: '📝 Content Creator Agent',
-                dept: 'Core Operations',
-                data: `
-                    <strong>Purpose:</strong> Generate all content (blogs, social, emails, product descriptions)<br><br>
-                    <strong>Learns from KB:</strong>
-                    <ul style="margin-left: 20px; margin-top: 10px;">
-                        <li>Brand voice guidelines</li>
-                        <li>Tone & personality standards</li>
-                        <li>Content approval workflows</li>
-                        <li>SEO/hashtag strategies</li>
-                        <li>Topic calendars</li>
-                    </ul>
-                    <strong style="margin-top: 15px; display: block;">Data Requirements:</strong>
-                    <div class="data-model">
-{
-  "content_request": {
-    "type": "blog|email|social|product_description",
-    "topic": "customer retention",
-    "target_audience": "existing customers",
-    "tone": "empathetic, solution-focused",
-    "length": "1500 words",
-    "keywords": ["retention", "loyalty", "customer success"],
-    "deadline": "2026-06-30"
-  }
-}
-                    </div>
-                `
-            },
-            'data': {
-                title: '📊 Data Analyzer Agent',
-                dept: 'Core Operations',
-                data: `
-                    <strong>Purpose:</strong> Analyze sales, customer behavior, trends<br><br>
-                    <strong>Learns from KB:</strong>
-                    <ul style="margin-left: 20px; margin-top: 10px;">
-                        <li>KPI definitions</li>
-                        <li>Reporting standards</li>
-                        <li>Analysis methodologies</li>
-                        <li>Benchmarks & targets</li>
-                    </ul>
-                    <strong style="margin-top: 15px; display: block;">Data Requirements:</strong>
-                    <div class="data-model">
-{
-  "analysis_request": {
-    "data_source": "sales_system",
-    "metric": "monthly_revenue",
-    "time_period": "last_6_months",
-    "breakdown": ["by_product", "by_location", "by_customer_segment"],
-    "compare_to": "forecast"
-  }
-}
-                    </div>
-                `
-            },
-            'email': {
-                title: '📧 Email Sender Agent',
-                dept: 'Core Operations',
-                data: `
-                    <strong>Purpose:</strong> Automated email campaigns, sequences, transactional emails<br><br>
-                    <strong>Learns from KB:</strong>
-                    <ul style="margin-left: 20px; margin-top: 10px;">
-                        <li>Email template standards</li>
-                        <li>Approval workflows</li>
-                        <li>Send time optimization</li>
-                        <li>Unsubscribe policies</li>
-                        <li>Compliance requirements (GDPR, CAN-SPAM)</li>
-                    </ul>
-                    <strong style="margin-top: 15px; display: block;">Integrations:</strong> Emailit, Gmail, HubSpot
-                `
-            },
-            'social': {
-                title: '📱 Social Poster Agent',
-                dept: 'Core Operations',
-                data: `
-                    <strong>Purpose:</strong> Multi-channel posting to Bluesky, TikTok, Instagram<br><br>
-                    <strong>Learns from KB:</strong>
-                    <ul style="margin-left: 20px; margin-top: 10px;">
-                        <li>Platform-specific posting rules</li>
-                        <li>Hashtag strategies</li>
-                        <li>Post timing optimization</li>
-                        <li>Content moderation policies</li>
-                        <li>Engagement response standards</li>
-                    </ul>
-                    <strong style="margin-top: 15px; display: block;">Integrations:</strong> Bluesky, TikTok, Instagram APIs
-                `
-            },
-            'lead': {
-                title: '🎯 Lead Nurture Agent',
-                dept: 'Core Operations',
-                data: `
-                    <strong>Purpose:</strong> Lead scoring, qualification, automated nurture sequences<br><br>
-                    <strong>Learns from KB:</strong>
-                    <ul style="margin-left: 20px; margin-top: 10px;">
-                        <li>Lead scoring criteria</li>
-                        <li>Sales funnel stages</li>
-                        <li>MQL/SQL definitions</li>
-                        <li>Nurture sequence templates</li>
-                        <li>Sales handoff procedures</li>
-                    </ul>
-                    <strong style="margin-top: 15px; display: block;">Data Requirements:</strong>
-                    <div class="data-model">
-{
-  "lead": {
-    "name": "John Doe",
-    "email": "john@example.com",
-    "company": "Acme Corp",
-    "source": "website",
-    "first_engagement": "2026-06-15",
-    "engagement_score": 45,
-    "stage": "lead"
-  }
-}
-                    </div>
-                `
-            },
-            'product': {
-                title: '🏗️ Product Builder Agent',
-                dept: 'Core Operations',
-                data: `
-                    <strong>Purpose:</strong> Catalog management, inventory updates, product information<br><br>
-                    <strong>Learns from KB:</strong>
-                    <ul style="margin-left: 20px; margin-top: 10px;">
-                        <li>Product taxonomy</li>
-                        <li>Description templates</li>
-                        <li>Pricing policies</li>
-                        <li>Photo/video guidelines</li>
-                        <li>Publishing workflows</li>
-                    </ul>
-                `
-            },
-            'financial': {
-                title: '💰 Financial Analytics Agent',
-                dept: 'Finance & Analytics',
-                data: `
-                    <strong>Purpose:</strong> Revenue forecasting, ROI analysis, cost projections<br><br>
-                    <strong>Learns from KB:</strong>
-                    <ul style="margin-left: 20px; margin-top: 10px;">
-                        <li>Revenue recognition policies</li>
-                        <li>Expense categorization</li>
-                        <li>Forecasting methodologies</li>
-                        <li>Cost allocation rules</li>
-                        <li>Budget thresholds for approval</li>
-                    </ul>
-                `
-            },
-            'dashboard': {
-                title: '📈 Performance Dashboard Agent',
-                dept: 'Finance & Analytics',
-                data: `
-                    <strong>Purpose:</strong> Real-time KPIs, metrics, health indicators<br><br>
-                    <strong>Learns from KB:</strong>
-                    <ul style="margin-left: 20px; margin-top: 10px;">
-                        <li>KPI definitions & formulas</li>
-                        <li>Target values</li>
-                        <li>Alert thresholds</li>
-                        <li>Dashboard layout preferences</li>
-                        <li>Reporting cadence</li>
-                    </ul>
-                `
-            },
-            'reporting': {
-                title: '📋 Reporting Agent',
-                dept: 'Finance & Analytics',
-                data: `
-                    <strong>Purpose:</strong> Compliance reports, franchise summaries, investor updates<br><br>
-                    <strong>Learns from KB:</strong>
-                    <ul style="margin-left: 20px; margin-top: 10px;">
-                        <li>Report templates</li>
-                        <li>Compliance requirements</li>
-                        <li>Data sources</li>
-                        <li>Distribution lists</li>
-                        <li>Regulatory timelines</li>
-                    </ul>
-                `
-            },
-            'inventory': {
-                title: '📦 Inventory Manager Agent',
-                dept: 'Operations',
-                data: `
-                    <strong>Purpose:</strong> Stock level alerts, reorder triggers, supply chain optimization<br><br>
-                    <strong>Learns from KB:</strong>
-                    <ul style="margin-left: 20px; margin-top: 10px;">
-                        <li>Reorder point thresholds</li>
-                        <li>Lead times per supplier</li>
-                        <li>Safety stock policies</li>
-                        <li>Seasonal demand patterns</li>
-                        <li>Warehouse procedures</li>
-                    </ul>
-                `
-            },
-            'vendor': {
-                title: '🤝 Vendor Management Agent',
-                dept: 'Operations',
-                data: `
-                    <strong>Purpose:</strong> Supplier relationships, contract tracking, quality assurance<br><br>
-                    <strong>Learns from KB:</strong>
-                    <ul style="margin-left: 20px; margin-top: 10px;">
-                        <li>Vendor scorecard criteria</li>
-                        <li>Contract terms & conditions</li>
-                        <li>Quality standards</li>
-                        <li>Payment terms</li>
-                        <li>Dispute resolution procedures</li>
-                    </ul>
-                `
-            },
-            'location': {
-                title: '🌐 Multi-Location Coordinator Agent',
-                dept: 'Operations',
-                data: `
-                    <strong>Purpose:</strong> Syncs operations across franchise locations<br><br>
-                    <strong>Learns from KB:</strong>
-                    <ul style="margin-left: 20px; margin-top: 10px;">
-                        <li>Corporate standards</li>
-                        <li>Location autonomy limits</li>
-                        <li>Rollout procedures</li>
-                        <li>Conflict resolution</li>
-                        <li>Communication protocols</li>
-                    </ul>
-                `
-            },
-            'feedback': {
-                title: '⭐ Customer Feedback Agent',
-                dept: 'Support & Growth',
-                data: `
-                    <strong>Purpose:</strong> Review analysis, sentiment tracking, QA<br><br>
-                    <strong>Learns from KB:</strong>
-                    <ul style="margin-left: 20px; margin-top: 10px;">
-                        <li>Service standards</li>
-                        <li>Quality benchmarks</li>
-                        <li>Feedback categorization</li>
-                        <li>Escalation criteria</li>
-                        <li>Response templates</li>
-                    </ul>
-                `
-            },
-            'compliance': {
-                title: '⚖️ Compliance & Legal Agent',
-                dept: 'Support & Growth',
-                data: `
-                    <strong>Purpose:</strong> Audit trails, regulatory tracking, risk management<br><br>
-                    <strong>Learns from KB:</strong>
-                    <ul style="margin-left: 20px; margin-top: 10px;">
-                        <li>Regulatory requirements</li>
-                        <li>Audit procedures</li>
-                        <li>Policy manual</li>
-                        <li>Approval chains</li>
-                        <li>Documentation standards</li>
-                    </ul>
-                `
-            },
-            'training': {
-                title: '🎓 Training & Onboarding Agent',
-                dept: 'Support & Growth',
-                data: `
-                    <strong>Purpose:</strong> Certification tracking, SOP distribution, training delivery<br><br>
-                    <strong>Learns from KB:</strong>
-                    <ul style="margin-left: 20px; margin-top: 10px;">
-                        <li>Training curriculum</li>
-                        <li>Certification requirements</li>
-                        <li>Onboarding checklist</li>
-                        <li>Assessment criteria</li>
-                        <li>Continuing education requirements</li>
-                    </ul>
-                `
-            }
-        };
-
-        function showAgentDetail(key) {
-            const detail = agentDetails[key];
-            document.getElementById('agentDetailContent').innerHTML = `
-                <h2>${detail.title}</h2>
-                <p style="color: #d4af37; margin-bottom: 15px;"><strong>Department:</strong> ${detail.dept}</p>
-                <div style="color: #aaa; line-height: 1.8;">${detail.data}</div>
-            `;
-            document.getElementById('agentModal').classList.add('active');
-        }
-
-        function closeAgentDetail() {
-            document.getElementById('agentModal').classList.remove('active');
-        }
-
-        function showWorkflow(key) {
-            const workflows = {
-                'standup': 'Daily Standup<br><br>All 15 agents report. Finance summarizes revenue. Operations flags inventory issues. Takes 30 minutes.',
-                'leadgen': 'Lead Generation Pipeline<br><br>Content Creator writes → Social Poster shares → Email Sender nurtures → Lead Nurture scores → Data Analyzer reports. Continuous 6-hour cycles.',
-                'retention': 'Customer Retention<br><br>Customer Feedback identifies churn risks. Email Sender initiates winback campaign. Support reaches out with personalized help.',
-                'revenue': 'Revenue Reporting<br><br>Financial Analytics calculates. Dashboard updates. Reporting generates franchise summaries. Daily, weekly, monthly versions.',
-                'inventory': 'Inventory Alerts<br><br>Inventory Manager monitors stock levels. Vendor Management triggers reorders when thresholds hit. Multi-Location Coordinator syncs across franchises.',
-                'compliance': 'Weekly Compliance Audit<br><br>Compliance Agent audits all operations. Training Agent flags gaps. Reporting generates audit trail. Monday 5:00 PM.'
-            };
-            alert(workflows[key] || 'Workflow not found');
-        }
-
-        function viewSystemHealth() {
-            alert('✅ AgentForge System Health\n\n15 Agents: ONLINE\n4 Departments: ACTIVE\n47 Workflows: RUNNING\nKnowledge Base: READY\nLast Sync: Just now');
-        }
-
+        
         // Initialize
-        setupUploadHandlers();
-        renderUploadedDocs();
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStandardSOP();
+            renderAgents();
+            drawWorkflow();
+        });
+        
+        function loadStandardSOP() {
+            const stored = localStorage.getItem('agentforge_sop');
+            if (!stored) {
+                localStorage.setItem('agentforge_sop', JSON.stringify(starterSOP));
+                showToast('✅ Standard SOP loaded. Upload your company protocols in the Knowledge Base tab.');
+            }
+        }
+        
+        function showTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+            document.getElementById(tab + '-tab').classList.remove('hidden');
+            
+            const titles = { workspace: '📊 Workflow Canvas', agents: '🤖 Agent Management', knowledge: '📚 Knowledge Base', upload: '📤 Upload Protocols', templates: '📋 SOP Templates', execution: '⚙️ Execution Log' };
+            document.getElementById('pageTitle').textContent = titles[tab] || 'AgentForge';
+            
+            document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+        
+        function renderAgents() {
+            const agents = starterSOP.departments.flatMap(d => d.agents);
+            const list = document.getElementById('agents-list');
+            list.innerHTML = agents.map(a => `
+                <div class="bg-white rounded shadow p-4 border-l-4" style="border-color: ${starterSOP.departments.find(d => d.agents.includes(a)).color}">
+                    <p class="font-bold">${a}</p>
+                    <p class="text-sm text-gray-600">Status: <span class="text-green-600">● Online</span></p>
+                    <p class="text-xs text-gray-500 mt-2">Awaiting workflow assignment</p>
+                </div>
+            `).join('');
+        }
+        
+        function drawWorkflow() {
+            const svg = document.getElementById('canvas');
+            svg.innerHTML = '';
+            
+            const agents = starterSOP.departments.flatMap(d => d.agents);
+            const nodeWidth = 180, nodeHeight = 80;
+            const cols = 4, rows = Math.ceil(agents.length / cols);
+            
+            agents.forEach((agent, i) => {
+                const x = (i % cols) * (nodeWidth + 80) + 40;
+                const y = Math.floor(i / cols) * (nodeHeight + 60) + 40;
+                
+                const dept = starterSOP.departments.find(d => d.agents.includes(agent));
+                
+                const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                rect.setAttribute('x', x);
+                rect.setAttribute('y', y);
+                rect.setAttribute('width', nodeWidth);
+                rect.setAttribute('height', nodeHeight);
+                rect.setAttribute('rx', '8');
+                rect.setAttribute('fill', 'white');
+                rect.setAttribute('stroke', dept.color);
+                rect.setAttribute('stroke-width', '2');
+                svg.appendChild(rect);
+                
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', x + nodeWidth / 2);
+                text.setAttribute('y', y + 30);
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('font-weight', 'bold');
+                text.setAttribute('font-size', '12');
+                text.textContent = agent;
+                svg.appendChild(text);
+                
+                const status = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                status.setAttribute('x', x + nodeWidth / 2);
+                status.setAttribute('y', y + 60);
+                status.setAttribute('text-anchor', 'middle');
+                status.setAttribute('font-size', '10');
+                status.setAttribute('fill', '#666');
+                status.textContent = '● Online';
+                svg.appendChild(status);
+            });
+        }
+        
+        function loadTemplate(template) {
+            showToast(`📋 Workflow template "${template.replace(/_/g, ' ')}" loaded`);
+            logExecution(`LOAD workflow template: ${template}`);
+        }
+        
+        function runWorkflow() {
+            logExecution('START workflow execution');
+            showToast('▶️ Running workflow... check execution log for details');
+            setTimeout(() => {
+                logExecution('✓ All agents synchronized');
+                logExecution('✓ Data exchanged between departments');
+                logExecution('✓ Workflow completed successfully');
+            }, 2000);
+        }
+        
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.target.closest('.upload-zone').classList.add('dragover');
+        }
+        
+        function handleDragLeave(e) {
+            e.target.closest('.upload-zone').classList.remove('dragover');
+        }
+        
+        function handleDrop(e, dept) {
+            e.preventDefault();
+            e.target.closest('.upload-zone').classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            
+            Array.from(files).forEach(file => {
+                const container = document.getElementById(`${dept}-files`);
+                const item = document.createElement('div');
+                item.className = 'kb-item';
+                item.innerHTML = `
+                    <p class="kb-item-name">📄 ${file.name}</p>
+                    <p class="kb-item-meta">${(file.size / 1024).toFixed(1)} KB • Uploaded now</p>
+                `;
+                container.appendChild(item);
+                logExecution(`UPLOAD document: ${file.name} to ${dept} department`);
+                showToast(`📤 Uploaded: ${file.name}`);
+            });
+        }
+        
+        function downloadTemplate(dept) {
+            const templates = {
+                core: 'Core_Operations_SOP.md',
+                finance: 'Finance_Analytics_SOP.md',
+                operations: 'Operations_SOP.md',
+                support: 'Support_Growth_SOP.md'
+            };
+            showToast(`⬇️ Downloaded: ${templates[dept]}`);
+        }
+        
+        function saveConfig() {
+            localStorage.setItem('agentforge_config', JSON.stringify({ saved: new Date().toISOString() }));
+            showToast('✅ Configuration saved');
+        }
+        
+        function filterDept(dept) {
+            showToast(`🔍 Filtering: ${dept.replace(/_/g, ' ')}`);
+        }
+        
+        function logExecution(msg) {
+            const log = document.getElementById('execution-log');
+            const time = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `<span class="log-time">[${time}]</span> <span class="log-success">→</span> ${msg}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+        
+        function clearLog() {
+            document.getElementById('execution-log').innerHTML = '';
+            showToast('🗑️ Log cleared');
+        }
+        
+        function showModal(modal) {
+            document.getElementById(modal + '-modal').classList.add('show');
+        }
+        
+        function hideModal(modal) {
+            document.getElementById(modal + '-modal').classList.remove('show');
+        }
+        
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
     </script>
 </body>
 </html>
