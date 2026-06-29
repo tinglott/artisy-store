@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Open-Source Fin Stack · AI Support Research Tool</title>
+<meta name="description" content="Research the open-source alternative to Intercom Fin. 5 layers, 20+ tools, self-hosted, $0-50/mo vs $1/resolution."/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a0f;color:#e2e8f0;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer;font-family:inherit}
+:focus-visible{outline:2px solid #7c3aed;outline-offset:2px;border-radius:4px}
+
+/* Header */
+.header{background:linear-gradient(135deg,#1a0a2e 0%,#0f172a 100%);padding:2rem 1.5rem 1.5rem;text-align:center;border-bottom:1px solid #1e293b}
+.header h1{font-size:clamp(1.4rem,4vw,2rem);font-weight:800;background:linear-gradient(135deg,#a78bfa,#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:.5rem}
+.header p{color:#94a3b8;font-size:.9rem;max-width:600px;margin:0 auto}
+.header .savings{display:inline-block;margin-top:.75rem;background:rgba(5,150,105,.15);border:1px solid #059669;color:#34d399;padding:.3rem .9rem;border-radius:999px;font-size:.8rem;font-weight:600}
+
+/* Tabs */
+.tabs{display:flex;justify-content:center;gap:.5rem;padding:1rem 1.5rem;background:#0d1117;border-bottom:1px solid #1e293b;flex-wrap:wrap}
+.tab-btn{padding:.5rem 1.4rem;border-radius:999px;border:1px solid #334155;background:transparent;color:#94a3b8;font-size:.85rem;font-weight:600;transition:all .2s}
+.tab-btn.active,.tab-btn:hover{background:#7c3aed;border-color:#7c3aed;color:#fff}
+
+/* Content */
+.content{padding:1.5rem;max-width:1100px;margin:0 auto}
+
+/* Stack Cards */
+.stack-grid{display:grid;gap:1rem}
+.layer-card{background:#111827;border:1px solid #1e293b;border-radius:12px;overflow:hidden;transition:border-color .2s}
+.layer-card:hover{border-color:#374151}
+.layer-header{display:flex;align-items:center;gap:.75rem;padding:1rem 1.25rem;cursor:pointer}
+.layer-icon{font-size:1.4rem;width:2.2rem;text-align:center}
+.layer-meta{flex:1}
+.layer-meta h3{font-size:.95rem;font-weight:700;color:#f1f5f9}
+.layer-meta p{font-size:.75rem;color:#64748b;margin-top:.1rem}
+.layer-count{font-size:.75rem;color:#94a3b8;background:#1e293b;padding:.2rem .6rem;border-radius:999px}
+.layer-toggle{color:#64748b;font-size:.7rem;transition:transform .2s}
+.layer-toggle.open{transform:rotate(180deg)}
+
+.tools-list{border-top:1px solid #1e293b;padding:.75rem 1.25rem 1.25rem}
+.tool-item{display:flex;flex-wrap:wrap;align-items:flex-start;gap:.5rem;padding:.65rem 0;border-bottom:1px solid #0f172a}
+.tool-item:last-child{border-bottom:none}
+.tool-main{flex:1;min-width:180px}
+.tool-name{font-size:.85rem;font-weight:700;color:#e2e8f0;display:flex;align-items:center;gap:.4rem;flex-wrap:wrap}
+.badge{font-size:.65rem;padding:.15rem .5rem;border-radius:999px;font-weight:700}
+.hf-badge{background:rgba(255,161,0,.12);border:1px solid rgba(255,161,0,.4);color:#fbbf24}
+.tool-desc{font-size:.75rem;color:#64748b;margin-top:.2rem;line-height:1.5}
+.tool-right{display:flex;flex-direction:column;align-items:flex-end;gap:.25rem}
+.free-tag{font-size:.7rem;color:#34d399;background:rgba(5,150,105,.1);padding:.15rem .5rem;border-radius:999px;border:1px solid rgba(52,211,153,.2);white-space:nowrap}
+.tool-link{font-size:.7rem;color:#7c3aed;opacity:.7;transition:opacity .2s}
+.tool-link:hover{opacity:1}
+
+/* Architecture */
+.arch-section{display:grid;gap:1rem}
+.arch-card{background:#111827;border:1px solid #1e293b;border-radius:12px;padding:1.25rem}
+.arch-card h3{font-size:.95rem;font-weight:700;color:#a78bfa;margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
+.arch-flow{display:flex;flex-direction:column;gap:.5rem}
+.flow-step{display:flex;align-items:flex-start;gap:.75rem;padding:.6rem .75rem;background:#0d1117;border-radius:8px;border-left:3px solid #7c3aed}
+.flow-step .num{background:#7c3aed;color:#fff;width:1.4rem;height:1.4rem;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;flex-shrink:0;margin-top:.05rem}
+.flow-step-text strong{display:block;font-size:.82rem;color:#e2e8f0;margin-bottom:.15rem}
+.flow-step-text span{font-size:.73rem;color:#64748b;line-height:1.5}
+
+.arch-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:600px){.arch-grid-2{grid-template-columns:1fr}}
+.mini-card{background:#0d1117;border-radius:8px;padding:1rem;border:1px solid #1e293b}
+.mini-card h4{font-size:.8rem;font-weight:700;color:#38bdf8;margin-bottom:.5rem}
+.mini-list{list-style:none;display:flex;flex-direction:column;gap:.3rem}
+.mini-list li{font-size:.75rem;color:#94a3b8;display:flex;align-items:center;gap:.4rem}
+.mini-list li::before{content:"▸";color:#7c3aed;flex-shrink:0}
+
+/* Compare */
+.compare-wrapper{overflow-x:auto}
+.compare-table{width:100%;border-collapse:collapse;min-width:560px}
+.compare-table th{background:#1a1a2e;padding:.75rem 1rem;text-align:left;font-size:.78rem;font-weight:700;color:#94a3b8;border-bottom:2px solid #1e293b}
+.compare-table td{padding:.7rem 1rem;font-size:.78rem;border-bottom:1px solid #0f172a;vertical-align:top;color:#cbd5e1}
+.compare-table tr:hover td{background:rgba(124,58,237,.05)}
+.compare-table .col-fin{color:#64748b}
+.compare-table .col-oss{color:#34d399}
+.win{color:#34d399;font-weight:700}
+.lose{color:#ef4444}
+.neutral{color:#fbbf24}
+
+/* Cost calculator */
+.cost-calc{background:linear-gradient(135deg,rgba(5,150,105,.08),rgba(124,58,237,.08));border:1px solid rgba(52,211,153,.2);border-radius:12px;padding:1.25rem;margin-top:1rem}
+.cost-calc h3{font-size:.9rem;font-weight:700;color:#34d399;margin-bottom:1rem}
+.cost-row{display:flex;justify-content:space-between;align-items:center;padding:.4rem 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:.8rem}
+.cost-row:last-child{border-bottom:none}
+.cost-row .label{color:#94a3b8}
+.cost-total{display:flex;justify-content:space-between;align-items:center;margin-top:.75rem;padding:.75rem;background:rgba(5,150,105,.1);border-radius:8px}
+.cost-total .label{font-weight:700;color:#f1f5f9}
+.cost-total .amount{font-size:1.2rem;font-weight:800;color:#34d399}
+
+/* Footer */
+.footer{text-align:center;padding:2rem 1.5rem;color:#374151;font-size:.75rem;border-top:1px solid #1e293b;margin-top:2rem}
+.footer a{color:#7c3aed;opacity:.7}
+.footer a:hover{opacity:1}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <h1>🤖 Open-Source Fin Stack · 2026</h1>
+  <p>A complete research guide for building your own AI support agent — self-hosted, multi-agent, production-ready.</p>
+  <span class="savings">💰 Save $0.85–$2+ per resolution vs Intercom Fin</span>
+</header>
+
+<nav class="tabs" role="tablist" aria-label="Research tabs">
+  <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="panel-stack" id="tab-stack" onclick="showTab('stack',this)">🧱 Stack</button>
+  <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-arch" id="tab-arch" onclick="showTab('arch',this)">🏗️ Architecture</button>
+  <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-compare" id="tab-compare" onclick="showTab('compare',this)">⚖️ Compare</button>
+</nav>
+
+<!-- STACK TAB -->
+<main class="content" id="panel-stack" role="tabpanel" aria-labelledby="tab-stack">
+
+  <div class="stack-grid">
+
+    <!-- Layer 1: Brain -->
+    <article class="layer-card">
+      <div class="layer-header" onclick="toggleLayer('brain')" aria-expanded="true" aria-controls="brain-tools" role="button" tabindex="0">
+        <span class="layer-icon" aria-hidden="true">🧠</span>
+        <div class="layer-meta">
+          <h3>Layer 1 — LLM Engine &amp; Agents</h3>
+          <p>The reasoning core + multi-agent orchestration</p>
+        </div>
+        <span class="layer-count">4 tools</span>
+        <span class="layer-toggle open" id="brain-arrow" aria-hidden="true">▼</span>
+      </div>
+      <div class="tools-list" id="brain-tools">
+        <div class="tool-item">
+          <div class="tool-main">
+            <div class="tool-name">
+              Claude Sonnet 4 / Opus
+              <span class="badge" style="background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.4);color:#a78bfa">BEST QUALITY</span>
+            </div>
+            <div class="tool-desc">Complex multi-turn reasoning, refund logic, agentic procedure handling. Best for nuanced customer support flows requiring judgment.</div>
+          </div>
+          <div class="tool-right">
+            <span class="free-tag">Claude.ai / API</span>
+            <a href="https://anthropic.com" target="_blank" rel="noopener" class="tool-link" aria-label="Anthropic docs (opens new tab)">↗ anthropic.com</a>
+          </div>
+        </div>
+        <div class="tool-item">
+          <div class="tool-main">
+            <div class="tool-name">
+              Qwen3 8B/14B · DeepSeek-R2
+              <span class="badge" style="background:rgba(5,150,105,.12);border:1px solid rgba(5,150,105,.4);color:#34d399">APACHE 2.0</span>
+              <span class="hf-badge badge">🤗 HF</span>
+            </div>
+            <div class="tool-desc">Strong tool-use, 100+ language support, local-first. Qwen3 excels at structured output + function calling. DeepSeek for chain-of-thought.</div>
+          </div>
+          <div class="tool-right">
+            <span class="free-tag">HuggingFace + Groq</span>
+            <a href="https://huggingface.co/Qwen" target="_blank" rel="noopener" class="tool-link" aria-label="Qwen on HuggingFace (opens new tab)">↗ HuggingFace</a>
+          </div>
+        </div>
+        <div class="tool-item">
+          <div class="tool-main">
+            <div class="tool-name">
+              Mistral Small 4 · Llama 4 Scout
+              <span class="badge" style="background:rgba(5,150,105,.12);border:1px solid rgba(5,150,105,.4);color:#34d399">APACHE 2.0</span>
+              <span class="hf-badge badge">🤗 HF</span>
+            </div>
+            <div class="tool-desc">Low-latency responses via MoE architecture. Llama 4 Scout handles 10M token context. Best for real-time chat + retrieval fusion.</div>
+          </div>
+          <div class="tool-right">
+            <span class="free-tag">Groq free tier</span>
+            <a href="https://huggingface.co/mistralai" target="_blank" rel="noopener" class="tool-link" aria-label="Mistral on HuggingFace (opens new tab)">↗ HuggingFace</a>
+          </div>
+        </div>
+        <div class="tool-item">
+          <div class="tool-main">
+            <div class="tool-name">
+              LangGraph + CrewAI Patterns
+              <span class="badge" style="background:rgba(5,150,105,.12);border:1px solid rgba(5,150,105,.4);color:#34d399">MIT</span>
+            </div>
+            <div class="tool-desc">Stateful multi-agent orchestration with cycles, HITL checkpoints, and specialist sub-agents (order, refund, recommendation). Replace Fin's black-box routing.</div>
+          </div>
+          <div class="tool-right">
+            <span class="free-tag">Open source</span>
+            <a href="https://github.com/langchain-ai/langgraph" target="_blank" rel="noopener" class="tool-link" aria-label="LangGraph GitHub (opens new tab)">↗ GitHub</a>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Layer 2: Memory -->
+    <article class="layer-card">
+      <div class="layer-header" onclick="toggleLayer('memory')" aria-expanded="true" aria-controls="memory-tools" role="button" tabindex="0">
+        <span class="layer-icon" aria-hidden="true">💾</span>
+        <div class="layer-meta">
+          <h3>Layer 2 — Memory &amp; RAG</h3>
+          <p>Knowledge retrieval, vector search, conversation state</p>
+        </div>
+        <span class="layer-count">4 tools</span>
+        <span class="layer-toggle open" id="memory-arrow" aria-hidden="true">▼</span>
+      </div>
+      <div class="tools-list" id="memory-tools">
+        <div class="tool-item">
+          <div class="tool-main">
+            <div class="tool-name">
+              Supabase + pgvector
+              <span class="badge" style="background:rgba(5,150,105,.12);border:1px solid rgba(5,150,105,.4);color:#34d399">FREE TIER</span>
+            </div>
+            <div class="tool-desc">Postgres-native vector similarity search. Store product docs, FAQs, policies as embeddings. Full SQL + RLS security. No separate vector DB needed.</div>
+          </div>
+          <div class="tool-right">
+            <span class="free-tag">500MB free tier</span>
+            <a href="https://supabase.com/docs/guides/ai/vector-columns" target="_blank" rel="noopener" class="tool-link">↗ Supabase</a>
+          </div>
+        </div>
+        <div class="tool-item">
+          <div class="tool-main">
+            <div class="tool-name">
+              RAGFlow
+              <span class="badge" style="background:rgba(5,150,105,.12);border:1px solid rgba(5,150,105,.4);color:#34d399">APACHE 2.0</span>
+              <span class="hf-badge badge">🤗 HF</span>
+            </div>
+            <div class="tool-desc">Deep-document understanding with visual parsing, table extraction, and chunk coherence scoring. Handles messy PDF policies far better than naive chunking.</div>
+          </div>
+          <div class="tool-right">
+            <span class="free-tag">Self-hosted</span>
+            <a href="https://github.com/infiniflow/ragflow" target="_blank" rel="noopener" class="tool-link">↗ GitHub</a>
+          </div>
+        </div>
+        <div class="tool-item">
+          <div class="tool-main">
+            <div class="tool-name">
+              Qdrant
+              <span class="badge" style="background:rgba(5,150,105,.12);border:1px solid rgba(5,150,105,.4);color:#34d399">APACHE 2.0</span>
+            </div>
+            <div class="tool-desc">High-performance vector DB with filtering and payload storage. 1GB free cloud tier. Use when Supabase pgvector isn't enough at scale (&gt;1M vectors).</div>
+          </div>
+          <div class="tool-right">
+            <span class="free-tag">1GB free cloud</span>
+            <a href="https://qdrant.tech" target="_blank" rel="noopener" class="tool-link">↗ qdrant.tech</a>
+          </div>
+        </div>
+        <div class="tool-item">
+          <div class="tool-main">
+            <div class="tool-name">
+              Mem0
+              <span class="badge" style="background:rgba(5,150,105,.12);border:1px solid rgba(5,150,105,.4);color:#34d399">APACHE 2.0</span>
+            </div>
+            <div class="tool-desc">Persistent user-level memory across sessions. Remembers customer preferences, past issues, and order history automatically. Critical for human-like continuity.</div>
+          </div>
+          <div class="tool-right">
+            <span class="free-tag">Self-hosted / API</span>
+            <a href="https://github.com/mem0ai/mem0" target="_blank" rel="noopener" class="tool-link">↗ GitHub</a>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Layer 3: Actions -->
+    <article class="layer-card">
+      <div class="layer-header" onclick="toggleLayer('actions')" aria-expanded="true" aria-controls="actions-tools" role="button" tabindex="0">
+        <span class="layer-icon" aria-hidden="true">⚡</span>
+        <div class="layer-meta">
+          <h3>Layer 3 — Actions &amp; Integrations</h3>
+          <p>Shopify MCP, order management, n8n automations</p>
+        </div>
+        <span class="layer-count">5 tools</span>
+        <span class="layer-toggle open" id="actions-arrow" aria-hidden="true">▼</span>
+      </div>
+      <div class="tools-list" id="actions-tools">
+        <div class="tool-item">
+          <div class="tool-main">
+            <div class="tool-name">
+              Shopify MCP + Storefront AI
+              <span class="badge" style="background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.4);color:#60a5fa">MCP</span>
+            </div>
+            <div class="tool-desc">Official Shopify MCP server gives agents universal cart management, live inventory, order lookup, and checkout via natural language. No custom API wrangling.</div>
+          </div>
+          <div class="tool-right">
+            <span class="free-tag">Shopify included</span>
+            <a href="https://github.com/Shopify/dev-mcp" target="_blank" rel="noopener" class="tool-link">↗ GitHub</a>
+          </div>
+        </div>
+        <div class="tool-item">
+          <div class="tool-main">
+            <div class="tool-name">
+              n8n Automations
+              <span class="badge" style="background:rgba(5,150,105,.12);border:1px solid rgba(5,150,105,.4);color:#34d399">FAIR CODE</span>
+            </div>
+            <div class="tool-desc">Visual workflow engine for refunds, escalations, SMS alerts, email sends, and Stripe mutations. 350+ integrations. Self-host on Render free tier.</div>
+          </div>
+          <div class="tool-right">
+            <span class="free-tag">Self-hosted free</span>
+            <a href="https://n8n.io" target="_blank" rel="noopener" class="tool-link">↗ n8n.io</a>
+          </div>
+        </div>
+        <div class="tool-item">
+          <div class="tool-main">
+            <div class="tool-name">
+              Enthusiast (upsidelab)
+              <span class="badge" style="background:rgba(5,150,105,.12);border:1px solid rgba(5,150,105,.4);color:#34d399">MIT</span>
+            </div>
+            <div class="tool-desc">Open-source ecommerce AI connector for Shopify + WooCommerce. Real-time product search, recommendations, and cart actions from agent context.</div>
+          </div>
+          <div class="tool-right">
+            <span class="free-tag">Open source</span>
+            <a href="https://github.com/upsidelab/enthusiast" target="_blank" rel="noopener" class="tool-link">↗ GitHub</a>
+          </div>
+        </div>
+        <div class="tool-item">
+          <div class="tool-main">
+            <div class="tool-name">
+              Dify · Visual Agent Builder
+              <span class="badge" style="background:rgba(5,150,105,.12);border:1px solid rgba(5,150,105,.4);color:#34d399">APACHE 2.0</span>
+            </div>
+            <div class="tool-desc">No-code/low-code visual builder for LLM workflows with tool nodes, variable injection, and conditional routing. Perfect for non-dev teams to customize flows.</div>
+          </div>
+          <div class="tool-right">
+            <span class="free-tag">Cloud free tier</span>
+            <a href="https://dify.ai" target="_blank" rel="noopener" class="tool-link">↗ dify.ai</a>
+          </div>
+        </div>
+        <div class="tool-item">
+          <div class="tool-main">
+            <div class="tool-name">
+              LiveKit · Voice &amp; WebRTC
+              <span class="badge" style="background:rgba(5,150,105,.12);border:1px solid rgba(5,150,105,.4);color:#34d399">APACHE 2.0</span>
+            </div>
+            <div class="tool-desc">Real-time voice support via WebRTC. Connect LLM + STT + TTS for voice AI agents with sub-second latency. Open source; pairs with Chatwoot inbox.</div>
+          </div>
+          <div class="tool-right">
+            <span class="free-tag">Self-hosted / free</span>
+            <a href="https://livekit.io" target="_blank" rel="noopener" class="tool-link">↗ livekit.io</a>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Layer 4: UI / Inbox -->
+    <article class="layer-card">
+      <div class="layer-header" onclick="toggleLayer('ui')" aria-expanded="true" aria-controls="ui-tools" role="button" tabindex="0">
+        <span class="layer-icon" aria-hidden="true">💬</span>
+        <div class="layer-meta">
+          <h3>Layer 4 — UI &amp; Inbox</h3>
+          <p>Customer-facing chat widget + human handoff</p>
+        </div>
+        <span class="layer-count">4 tools</span>
+        <span class="layer-toggle open" id="ui-arrow" aria-hidden="true">▼</span>
+      </div>
+      <div class="tools-list" id="ui-tools">
+        <div class="tool-item">
+          <div class="tool-main">
+            <div class="tool-name">
+              Chatwoot
+              <span class="badge" style="background:rgba(5,150,105,.12);border:1px solid rgba(5,150,105,.4);color:#34d399">MIT</span>
+            </div>
+            <div class="tool-desc">Self-hosted Intercom replacement with chat widget, email inbox, live view, and HITL escalation. Webhook-driven so your LangGraph agent can take over any conversation.</div>
+          </div>
+          <div class="tool-right">
+            <span class="free-tag">Self-hosted free</span>
+            <a href="https://chatwoot.com" target="_blank" rel="noopener" class="tool-link">↗ chatwoot.com</a>
+          </div>
+        </div>
+        <div class="tool-item">
+          <div class="tool-main">
+            <div class="tool-name">
+              Papercups
+              <span class="badge" style="background:rgba(5,150,105,.12);border:1px solid rgba(5,150,105,.4);color:#34d399">MIT</span>
+              <span class="hf-badge badge">🤗 HF</span>
+            </div>
+            <div class="tool-desc">Lightweight Intercom alternative built on Elixir/Phoenix. Embeddable widget, Slack integration, and clean API. Good alternative if Chatwoot feels heavy.</div>
+          </div>
+          <div class="tool-right">
+            <span class="free-tag">Self-hosted</span>
+            <a href="https://github.com/papercups-io/papercups" target="_blank" rel="noopener" class="tool-link">↗ GitHub</a>
+          </div>
+        </div>
+        <div class="tool-item">
+          <div class="tool-main">
+            <div class="tool-name">
+              Botpress
+              <span class="badge" style="background:rgba(5,150,105,.12);border:1px solid rgba(5,150,105,.4);color:#34d399">MIT</span>
+            </div>
+            <div class="tool-desc">Enterprise-grade bot framework with built-in conversation designer, analytics, and multi-channel deployment (web, WhatsApp, Facebook). 200K msgs/mo free.</div>
+          </div>
+          <div class="tool-right">
+            <span class="free-tag">200K msgs free</span>
+            <a href="https://botpress.com" target="_blank" rel="noopener" class="tool-link">↗ botpress.com</a>
+          </div>
+        </div>
+        <div class="tool-item">
+          <div class="tool-main">
+            <div class="tool-name">
+              Typebot
+              <span class="badge" style="background:rgba(5,150,105,.12);border:1px solid rgba(5,150,105,.4);color:#34d399">AGPL 3.0</span>
+            </div>
+            <div class="tool-desc">Visual conversation flow builder. Drag-and-drop chatbot with LLM integration block. Perfect for intake forms, onboarding flows, and structured data collection.</div>
+          </div>
+          <div class="tool-right">
+            <span class="free-tag">Self-hosted</span>
+            <a href="https://typebot.io" target="_blank" rel="noopener" class="tool-link">↗ typebot.io</a>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Layer 5: Observability -->
+    <article class="layer-card">
+      <div class="layer-header" onclick="toggleLayer('obs')" aria-expanded="true" aria-controls="obs-tools" role="button" tabindex="0">
+        <span class="layer-icon" aria-hidden="true">📊</span>
+        <div class="layer-meta">
+          <h3>Layer 5 — Observability &amp; Evals</h3>
+          <p>Tracing, RAGAS evals, audit logs, proactive triggers</p>
+        </div>
+        <span class="layer-count">4 tools</span>
+        <span class="layer-toggle open" id="obs-arrow" aria-hidden="true">▼</span>
+      </div>
+      <div class="tools-list" id="obs-tools">
+        <div class="tool-item">
+          <div class="tool-main">
+            <div class="tool-name">
+              LangSmith · LangFuse
+              <span class="badge" style="background:rgba(5,150,105,.12);border:1px solid rgba(5,150,105,.4);color:#34d399">MIT (Fuse)</span>
+            </div>
+            <div class="tool-desc">Full LLM observability: trace every agent step, token usage, latency, and tool call. LangFuse is fully self-hostable. Use both for dev vs prod visibility.</div>
+          </div>
+          <div class="tool-right">
+            <span class="free-tag">LangSmith free / Fuse OSS</span>
+            <a href="https://langfuse.com" target="_blank" rel="noopener" class="tool-link">↗ langfuse.com</a>
+          </div>
+        </div>
+        <div class="tool-item">
+          <div class="tool-main">
+            <div class="tool-name">
+              RAGAS + Agenta
+              <span class="badge" style="background:rgba(5,150,105,.12);border:1px solid rgba(5,150,105,.4);color:#34d399">APACHE 2.0</span>
+            </div>
+            <div class="tool-desc">Automated RAG evaluation: faithfulness, answer relevancy, context recall. Agenta adds visual experiment tracking. Run evals before every deploy.</div>
+          </div>
+          <div class="tool-right">
+            <span class="free-tag">Open source</span>
+            <a href="https://github.com/explodinggradients/ragas" target="_blank" rel="noopener" class="tool-link">↗ GitHub</a>
+          </div>
+        </div>
+        <div class="tool-item">
+          <div class="tool-main">
+            <div class="tool-name">
+              Prometheus + Grafana
+              <span class="badge" style="background:rgba(5,150,105,.12);border:1px solid rgba(5,150,105,.4);color:#34d399">APACHE 2.0</span>
+            </div>
+            <div class="tool-desc">Infrastructure metrics: resolution rates, deflection %, p95 response latency, CSAT scores. Standard stack for any production deployment dashboard.</div>
+          </div>
+          <div class="tool-right">
+            <span class="free-tag">Open source</span>
+            <a href="https://grafana.com" target="_blank" rel="noopener" class="tool-link">↗ grafana.com</a>
+          </div>
+        </div>
+        <div class="tool-item">
+          <div class="tool-main">
+            <div class="tool-name">
+              Proactive Engine (n8n + Sentiment)
+              <span class="badge" style="background:rgba(234,88,12,.12);border:1px solid rgba(234,88,12,.4);color:#fb923c">ADVANCED</span>
+            </div>
+            <div class="tool-desc">Trigger proactive outreach on: cart abandonment, negative sentiment score &lt;-0.3, repeated page views on refund policy, or support ticket volume spikes.</div>
+          </div>
+          <div class="tool-right">
+            <span class="free-tag">n8n self-hosted</span>
+            <a href="https://n8n.io/workflows" target="_blank" rel="noopener" class="tool-link">↗ n8n workflows</a>
+          </div>
+        </div>
+      </div>
+    </article>
+
+  </div><!-- end stack-grid -->
+</main>
+
+<!-- ARCHITECTURE TAB -->
+<main class="content" id="panel-arch" role="tabpanel" aria-labelledby="tab-arch" style="display:none">
+
+  <div class="arch-section">
+    <div class="arch-card">
+      <h3>🔄 Request Flow — Chat to Resolution</h3>
+      <div class="arch-flow">
+        <div class="flow-step"><span class="num">1</span><div class="flow-step-text"><strong>Customer sends message → Chatwoot Widget</strong><span>Widget fires webhook to your Express/Node.js backend on every new message</span></div></div>
+        <div class="flow-step"><span class="num">2</span><div class="flow-step-text"><strong>RAG Retrieval — Supabase pgvector</strong><span>Embed query, cosine-search policy docs, FAQs, and product catalog; top-5 chunks injected as context</span></div></div>
+        <div class="flow-step"><span class="num">3</span><div class="flow-step-text"><strong>Memory Load — Mem0</strong><span>Pull session history + persistent user memory (past orders, preferences, prior issues)</span></div></div>
+        <div class="flow-step"><span class="num">4</span><div class="flow-step-text"><strong>LangGraph Agent Routes to Specialist</strong><span>Classifier node routes: ORDER → order-agent, REFUND → refund-agent, PRODUCT → product-agent, GENERAL → base LLM</span></div></div>
+        <div class="flow-step"><span class="num">5</span><div class="flow-step-text"><strong>Tool Calls — Shopify MCP / n8n</strong><span>Agent fetches live order status, checks inventory, or triggers n8n refund workflow via webhook</span></div></div>
+        <div class="flow-step"><span class="num">6</span><div class="flow-step-text"><strong>Response + HITL Check</strong><span>If confidence &lt; 0.7 or refund &gt; $200, pause graph at HITL checkpoint → Chatwoot assigns to human agent</span></div></div>
+        <div class="flow-step"><span class="num">7</span><div class="flow-step-text"><strong>Tracing — LangFuse / LangSmith</strong><span>Every step, token, latency, and tool call logged; RAGAS eval runs post-batch nightly</span></div></div>
+      </div>
+    </div>
+
+    <div class="arch-grid-2">
+      <div class="mini-card">
+        <h4>🤖 Multi-Agent Specialist Roles</h4>
+        <ul class="mini-list">
+          <li>Order Agent — status, tracking, modifications</li>
+          <li>Refund Agent — eligibility, Stripe mutations</li>
+          <li>Product Agent — search, recommendations, MCP cart</li>
+          <li>Escalation Agent — HITL, ticket creation, routing</li>
+          <li>Proactive Agent — abandonment, sentiment triggers</li>
+        </ul>
+      </div>
+      <div class="mini-card">
+        <h4>🛡️ Security &amp; Compliance</h4>
+        <ul class="mini-list">
+          <li>Supabase RLS on all customer data tables</li>
+          <li>API key rotation via environment variables</li>
+          <li>Rate limiting with express-rate-limit</li>
+          <li>PII scrubbing before LLM calls</li>
+          <li>Audit log table for all agent actions</li>
+        </ul>
+      </div>
+      <div class="mini-card">
+        <h4>🌍 Scale &amp; Deployment</h4>
+        <ul class="mini-list">
+          <li>Docker Compose: Node + Chatwoot + n8n + Ollama</li>
+          <li>Railway / Render / Fly.io for $5-20/mo hosting</li>
+          <li>Supabase free tier → Pro at 10K users</li>
+          <li>100+ language support via Qwen3 multilingual</li>
+          <li>Horizontal scale: stateless Node workers + Redis</li>
+        </ul>
+      </div>
+      <div class="mini-card">
+        <h4>📡 Ingest Pipeline (RAG Setup)</h4>
+        <ul class="mini-list">
+          <li>Chunk PDFs/HTML via RAGFlow parsing</li>
+          <li>Generate embeddings: text-embedding-3-small</li>
+          <li>Store in Supabase with metadata filters</li>
+          <li>Re-ingest on product/policy update webhook</li>
+          <li>Scheduled nightly coherence checks</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="arch-card">
+      <h3>💻 Backend Quickstart (Node.js + LangGraph)</h3>
+      <div style="background:#0d1117;border-radius:8px;padding:1rem;font-family:'Courier New',monospace;font-size:.75rem;line-height:1.7;color:#94a3b8;overflow-x:auto">
+        <span style="color:#64748b"># 1. Install</span><br>
+        <span style="color:#34d399">npm</span> install express @langchain/core @langchain/anthropic langgraph <span style="color:#64748b">\</span><br>
+        &nbsp;&nbsp;@supabase/supabase-js zod cors dotenv mem0ai<br><br>
+        <span style="color:#64748b"># 2. .env</span><br>
+        <span style="color:#fbbf24">SUPABASE_URL</span>=https://xxx.supabase.co<br>
+        <span style="color:#fbbf24">ANTHROPIC_API_KEY</span>=sk-ant-...<br>
+        <span style="color:#fbbf24">SHOPIFY_ACCESS_TOKEN</span>=shpat_...<br>
+        <span style="color:#fbbf24">N8N_WEBHOOK_URL</span>=https://your-n8n.io/webhook/refund<br><br>
+        <span style="color:#64748b"># 3. Run</span><br>
+        <span style="color:#34d399">npx</span> ts-node src/server.ts<br><br>
+        <span style="color:#64748b"># 4. Docker (full stack)</span><br>
+        <span style="color:#34d399">docker-compose</span> up -d  <span style="color:#64748b"># node + chatwoot + n8n + ollama</span>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- COMPARE TAB -->
+<main class="content" id="panel-compare" role="tabpanel" aria-labelledby="tab-compare" style="display:none">
+
+  <div class="compare-wrapper">
+    <table class="compare-table" aria-label="Intercom Fin vs Open-Source Stack comparison">
+      <thead>
+        <tr>
+          <th scope="col">Feature</th>
+          <th scope="col">Intercom Fin</th>
+          <th scope="col">This OSS Stack</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>💰 Pricing</td><td class="col-fin lose">$0.99–$2.50 / resolution</td><td class="col-oss win">$0.002–$0.05 / resolution</td></tr>
+        <tr><td>🔒 Data Privacy</td><td class="col-fin lose">Vendor cloud</td><td class="col-oss win">100% self-hosted / your servers</td></tr>
+        <tr><td>🧠 LLM Choice</td><td class="col-fin lose">Fin's proprietary model</td><td class="col-oss win">Any: Claude, Qwen, Llama, DeepSeek</td></tr>
+        <tr><td>🛒 Shopify Integration</td><td class="col-fin neutral">Built-in (locked to Intercom)</td><td class="col-oss win">Shopify MCP + Enthusiast (OSS)</td></tr>
+        <tr><td>🤖 Multi-Agent</td><td class="col-fin lose">Single agent, no routing</td><td class="col-oss win">LangGraph specialist agents + HITL</td></tr>
+        <tr><td>🎙️ Voice Support</td><td class="col-fin neutral">Add-on ($$$)</td><td class="col-oss win">LiveKit WebRTC, open source</td></tr>
+        <tr><td>📡 Proactive Triggers</td><td class="col-fin neutral">Limited (cart abandonment only)</td><td class="col-oss win">Sentiment + abandonment + custom rules</td></tr>
+        <tr><td>📊 Observability</td><td class="col-fin neutral">Intercom dashboard (walled)</td><td class="col-oss win">LangFuse + Grafana + RAGAS evals</td></tr>
+        <tr><td>🌍 Languages</td><td class="col-fin neutral">~40 languages</td><td class="col-oss win">100+ via Qwen3 multilingual</td></tr>
+        <tr><td>🔧 Customization</td><td class="col-fin lose">Prompt templates only</td><td class="col-oss win">Full code — tools, agents, routing</td></tr>
+        <tr><td>📦 RAG / Knowledge</td><td class="col-fin neutral">Basic document upload</td><td class="col-oss win">RAGFlow deep-parse + pgvector</td></tr>
+        <tr><td>🔁 Automations</td><td class="col-fin neutral">Intercom workflows</td><td class="col-oss win">n8n: 350+ integrations, visual builder</td></tr>
+        <tr><td>📈 Evals</td><td class="col-fin lose">Not exposed to user</td><td class="col-oss win">RAGAS: faithfulness, relevancy, recall</td></tr>
+        <tr><td>🏠 Hosting</td><td class="col-fin lose">Intercom cloud only</td><td class="col-oss win">Any: Docker, Render, Railway, Fly</td></tr>
+        <tr><td>👥 Human Handoff</td><td class="col-fin neutral">Intercom inbox</td><td class="col-oss win">Chatwoot inbox + LangGraph HITL</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="cost-calc" role="region" aria-label="Monthly cost comparison">
+    <h3>📉 Monthly Cost at 10,000 Resolutions</h3>
+    <div class="cost-row"><span class="label">Intercom Fin (avg $1.50/resolution)</span><span class="lose">$15,000 / mo</span></div>
+    <div class="cost-row"><span class="label">This Stack — LLM API (Claude / Groq)</span><span class="neutral">~$80–$200</span></div>
+    <div class="cost-row"><span class="label">Hosting (Render/Railway/Supabase)</span><span class="neutral">~$20–$50</span></div>
+    <div class="cost-row"><span class="label">n8n + LangFuse self-hosted</span><span class="col-oss">$0</span></div>
+    <div class="cost-total">
+      <span class="label">Your OSS Stack Total</span>
+      <span class="amount">~$100–$250 / mo</span>
+    </div>
+  </div>
+
+</main>
+
+<footer class="footer">
+  Built with open-source AI tools · 2026 stack · <a href="https://shop.artistrystore.com" target="_blank" rel="noopener">shop.artistrystore.com</a>
+</footer>
+
+<script>
+// Tab switching
+function showTab(tab, btn){
+  document.querySelectorAll('[role="tabpanel"]').forEach(p=>p.style.display='none');
+  document.querySelectorAll('.tab-btn').forEach(b=>{b.classList.remove('active');b.setAttribute('aria-selected','false')});
+  document.getElementById('panel-'+tab).style.display='block';
+  btn.classList.add('active');
+  btn.setAttribute('aria-selected','true');
+}
+
+// Collapse/expand layers
+const openState = {brain:true,memory:true,actions:true,ui:true,obs:true};
+function toggleLayer(id){
+  openState[id]=!openState[id];
+  const el=document.getElementById(id+'-tools');
+  const arrow=document.getElementById(id+'-arrow');
+  const header=el.previousElementSibling;
+  if(openState[id]){
+    el.style.display='block';
+    arrow.classList.add('open');
+    header.setAttribute('aria-expanded','true');
+  } else {
+    el.style.display='none';
+    arrow.classList.remove('open');
+    header.setAttribute('aria-expanded','false');
+  }
+}
+
+// Keyboard support for collapsible headers
+document.querySelectorAll('.layer-header').forEach(h=>{
+  h.addEventListener('keydown',e=>{
+    if(e.key==='Enter'||e.key===' '){e.preventDefault();h.click();}
+  });
+});
+</script>
+</body>
+</html>
