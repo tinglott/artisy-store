@@ -3,515 +3,654 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgentForge Workflows v3 - Enterprise Multi-Agent System</title>
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.0/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <title>AgentForge v4: Training Command Center</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; }
-        html, body { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-        
-        .sidebar { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #fff; overflow-y: auto; }
-        .sidebar-tab { padding: 12px 16px; cursor: pointer; border-left: 3px solid transparent; transition: all 0.2s; }
-        .sidebar-tab:hover { background: rgba(255,255,255,0.05); border-left-color: #fbbf24; }
-        .sidebar-tab.active { background: rgba(251,191,36,0.1); border-left-color: #fbbf24; color: #fbbf24; }
-        
-        .canvas { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); position: relative; overflow: auto; }
-        .agent-node { 
-            background: white; border: 2px solid #2d5016; border-radius: 8px; padding: 12px; 
-            width: 180px; cursor: move; user-select: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: all 0.2s;
-        }
-        .agent-node:hover { box-shadow: 0 8px 12px rgba(0,0,0,0.2); transform: scale(1.02); }
-        .agent-node.core { border-color: #dc2626; }
-        .agent-node.finance { border-color: #2563eb; }
-        .agent-node.operations { border-color: #059669; }
-        .agent-node.support { border-color: #7c3aed; }
-        
-        .agent-label { font-weight: 600; font-size: 12px; margin-bottom: 8px; }
-        .agent-name { font-size: 13px; margin-bottom: 6px; }
-        .agent-status { font-size: 11px; color: #666; }
-        
-        .connection-line { stroke: #999; stroke-width: 2; stroke-dasharray: 5,5; }
-        .connection-line.active { stroke: #fbbf24; stroke-width: 3; stroke-dasharray: none; }
-        
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
-        .modal.show { display: flex; }
-        .modal-content { background: white; border-radius: 12px; padding: 24px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; }
-        
-        .upload-zone { border: 2px dashed #999; border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s; }
-        .upload-zone:hover { border-color: #fbbf24; background: rgba(251,191,36,0.05); }
-        .upload-zone.dragover { border-color: #fbbf24; background: rgba(251,191,36,0.1); }
-        
-        .kb-item { background: #f3f4f6; border-left: 3px solid #fbbf24; padding: 12px; margin: 8px 0; border-radius: 4px; }
-        .kb-item-name { font-weight: 600; font-size: 13px; }
-        .kb-item-meta { font-size: 11px; color: #666; margin-top: 4px; }
-        
-        .workflow-preset { 
-            background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 8px; padding: 12px; 
-            margin: 8px 0; cursor: pointer; transition: all 0.2s;
-        }
-        .workflow-preset:hover { border-color: #fbbf24; background: #fef3c7; }
-        
-        .toast { position: fixed; bottom: 20px; right: 20px; background: #1f2937; color: white; padding: 12px 16px; border-radius: 6px; z-index: 2000; animation: slideIn 0.3s ease; }
-        @keyframes slideIn { from { transform: translateX(400px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        
-        .execution-log { font-family: 'Courier New', monospace; font-size: 11px; line-height: 1.4; }
-        .log-entry { padding: 4px 0; border-bottom: 1px solid #e5e7eb; }
-        .log-time { color: #999; }
-        .log-success { color: #059669; }
-        .log-error { color: #dc2626; }
-        .log-info { color: #2563eb; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #e2e8f0; }
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(148, 163, 184, 0.1); }
+        .gold-accent { color: #fbbf24; }
+        .gradient-text { background: linear-gradient(135deg, #fbbf24, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .agent-card { transition: all 0.3s ease; }
+        .agent-card:hover { transform: translateY(-2px); border-color: #fbbf24; }
+        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .status-active { background: rgba(34, 197, 94, 0.2); color: #86efac; }
+        .status-pending { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+        .dept-section { margin-bottom: 2rem; }
+        input, textarea, select { background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(148, 163, 184, 0.2); color: #e2e8f0; padding: 10px; border-radius: 6px; }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: #fbbf24; box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.1); }
+        .btn { padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.3s; border: none; }
+        .btn-primary { background: #fbbf24; color: #0f172a; }
+        .btn-primary:hover { background: #f59e0b; transform: translateY(-2px); }
+        .btn-secondary { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3); }
+        .btn-secondary:hover { background: rgba(148, 163, 184, 0.3); }
+        .tab-active { border-bottom: 2px solid #fbbf24; color: #fbbf24; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: #1e293b; border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 12px; padding: 30px; max-width: 600px; width: 90%; }
     </style>
 </head>
-<body class="bg-gray-100">
-    <div class="flex h-screen">
-        <!-- Sidebar -->
-        <div class="sidebar w-64 flex flex-col">
-            <div class="p-6 border-b border-gray-700">
-                <h1 class="text-2xl font-bold text-yellow-400">AgentForge</h1>
-                <p class="text-sm text-gray-400 mt-1">Multi-Agent System v3</p>
+<body>
+    <div class="min-h-screen p-4 md:p-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center gap-3 mb-2">
+                <i class="fas fa-graduation-cap text-3xl gold-accent"></i>
+                <h1 class="text-4xl font-bold gradient-text">AgentForge v4</h1>
             </div>
-            
-            <div class="flex-1 overflow-y-auto">
-                <div class="p-4">
-                    <p class="text-xs text-gray-400 uppercase font-bold mb-4">Dashboard</p>
-                    <div class="sidebar-tab active" onclick="showTab('workspace')">📊 Workflow Canvas</div>
-                    <div class="sidebar-tab" onclick="showTab('agents')">🤖 Agent Management</div>
-                    <div class="sidebar-tab" onclick="showTab('knowledge')">📚 Knowledge Base</div>
-                    <div class="sidebar-tab" onclick="showTab('execution')">⚙️ Execution Log</div>
-                    
-                    <p class="text-xs text-gray-400 uppercase font-bold mt-6 mb-4">Departments</p>
-                    <div class="sidebar-tab" onclick="filterDept('core')">🎯 Core Operations</div>
-                    <div class="sidebar-tab" onclick="filterDept('finance')">💰 Finance & Analytics</div>
-                    <div class="sidebar-tab" onclick="filterDept('operations')">📦 Operations</div>
-                    <div class="sidebar-tab" onclick="filterDept('support')">⭐ Support & Growth</div>
-                    
-                    <p class="text-xs text-gray-400 uppercase font-bold mt-6 mb-4">Company Protocols</p>
-                    <div class="sidebar-tab" onclick="showTab('upload')">📤 Upload Docs</div>
-                    <div class="sidebar-tab" onclick="showTab('templates')">📋 SOP Templates</div>
+            <p class="text-slate-400 text-lg">Training Command Center + 15-Agent Franchise Operations</p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="flex gap-8 border-b border-slate-700 mb-8 overflow-x-auto pb-4">
+            <button class="tab-btn pb-2 border-b-2 border-transparent gold-accent font-600 whitespace-nowrap transition" data-tab="training">
+                <i class="fas fa-graduation-cap mr-2"></i>Training Hub
+            </button>
+            <button class="tab-btn pb-2 border-b-2 border-transparent text-slate-400 font-600 whitespace-nowrap transition" data-tab="departments">
+                <i class="fas fa-sitemap mr-2"></i>15 Agents
+            </button>
+            <button class="tab-btn pb-2 border-b-2 border-transparent text-slate-400 font-600 whitespace-nowrap transition" data-tab="workflows">
+                <i class="fas fa-project-diagram mr-2"></i>Workflows
+            </button>
+            <button class="tab-btn pb-2 border-b-2 border-transparent text-slate-400 font-600 whitespace-nowrap transition" data-tab="knowledge">
+                <i class="fas fa-book mr-2"></i>Knowledge Base
+            </button>
+        </div>
+
+        <!-- TAB 1: TRAINING HUB (NEW) -->
+        <div id="training" class="tab-content active">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <!-- Training Request Generator -->
+                <div class="lg:col-span-2 glass p-6 rounded-xl border border-slate-700">
+                    <h2 class="text-2xl font-bold mb-6"><i class="fas fa-sparkles gold-accent mr-2"></i>AI Training Generator</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-600 mb-2">Training Topic</label>
+                            <input type="text" id="trainingTopic" placeholder="e.g., Customer Service 101, Compliance Update" class="w-full">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-600 mb-2">Role</label>
+                                <select id="trainingRole" class="w-full">
+                                    <option>Franchisee Owner</option>
+                                    <option>Store Manager</option>
+                                    <option>Customer Service</option>
+                                    <option>Sales Rep</option>
+                                    <option>Operations</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-600 mb-2">Level</label>
+                                <select id="trainingLevel" class="w-full">
+                                    <option>Level 1: Beginner</option>
+                                    <option>Level 2: Intermediate</option>
+                                    <option>Level 3: Advanced</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-600 mb-2">Deadline</label>
+                            <input type="date" id="trainingDeadline" class="w-full">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-600 mb-2">Grok API Key</label>
+                            <input type="password" id="grokKey" placeholder="Paste your Grok API key (browser-only, not stored)" class="w-full">
+                        </div>
+                        <button class="btn btn-primary w-full" onclick="generateTraining()">
+                            <i class="fas fa-magic-wand mr-2"></i>Generate Training Module (12 min)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Training Status -->
+                <div class="glass p-6 rounded-xl border border-slate-700">
+                    <h3 class="text-lg font-bold mb-4"><i class="fas fa-zap gold-accent mr-2"></i>Generation Pipeline</h3>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center text-xs font-bold">✓</div>
+                            <div>
+                                <div class="font-600">Script Generation</div>
+                                <div class="text-xs text-slate-500">Grok AI → 500-800 words</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-bold">2</div>
+                            <div>
+                                <div class="font-600">PowerPoint Deck</div>
+                                <div class="text-xs text-slate-500">12 slides + speaker notes</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center text-xs font-bold">3</div>
+                            <div>
+                                <div class="font-600">TTS Voice Narration</div>
+                                <div class="text-xs text-slate-500">Natural, professional tone</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs font-bold">4</div>
+                            <div>
+                                <div class="font-600">Video Module</div>
+                                <div class="text-xs text-slate-500">1080p MP4, 8-12 minutes</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center text-xs font-bold">5</div>
+                            <div>
+                                <div class="font-600">Training Library</div>
+                                <div class="text-xs text-slate-500">Indexed + QR code</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-6 p-3 bg-green-500/10 border border-green-500/30 rounded text-xs">
+                        <div class="font-600 text-green-400">⚡ Estimated Cost: $1.50–$2.00</div>
+                        <div class="text-green-300 text-xs mt-1">Per complete training module</div>
+                    </div>
                 </div>
             </div>
-            
-            <div class="p-4 border-t border-gray-700 text-sm">
-                <div class="bg-green-900 bg-opacity-30 p-3 rounded mb-2">
-                    <p class="text-green-400 font-bold">✓ System Ready</p>
-                    <p class="text-xs text-gray-300 mt-1">15 agents • 4 departments</p>
+
+            <!-- Slack Integration -->
+            <div class="glass p-6 rounded-xl border border-slate-700 mb-8">
+                <h2 class="text-2xl font-bold mb-6"><i class="fab fa-slack gold-accent mr-2"></i>Slack Integration</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-4 bg-slate-900/50 rounded border border-slate-700">
+                        <div class="font-600 mb-2">Connect Slack</div>
+                        <input type="text" placeholder="Slack Bot Token (xoxb-...)" class="w-full mb-2 text-xs">
+                        <button class="btn btn-secondary w-full text-sm">Connect Workspace</button>
+                    </div>
+                    <div class="p-4 bg-slate-900/50 rounded border border-slate-700">
+                        <div class="font-600 mb-2">Slack Commands Ready</div>
+                        <div class="text-xs text-slate-400 space-y-1">
+                            <div><code>/training-request</code> - New training</div>
+                            <div><code>/trainer-assign</code> - Assign trainer</div>
+                            <div><code>/certification-check</code> - Verify status</div>
+                            <div><code>/coaching-feedback</code> - Send notes</div>
+                        </div>
+                    </div>
                 </div>
-                <button onclick="saveConfig()" class="w-full bg-yellow-500 text-black py-2 px-3 rounded font-bold text-sm hover:bg-yellow-400 transition">
-                    💾 Save Config
-                </button>
+            </div>
+
+            <!-- Trainer Marketplace -->
+            <div class="glass p-6 rounded-xl border border-slate-700 mb-8">
+                <h2 class="text-2xl font-bold mb-6"><i class="fas fa-people-group gold-accent mr-2"></i>Trainer Marketplace</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="p-4 bg-slate-900/50 rounded border border-slate-700">
+                        <div class="flex items-start justify-between mb-3">
+                            <div>
+                                <div class="font-600">John Smith</div>
+                                <div class="text-xs text-amber-400">Customer Service Expert</div>
+                            </div>
+                            <span class="status-badge status-active">Available</span>
+                        </div>
+                        <div class="text-sm mb-3 text-slate-400">
+                            <div>⭐ 4.8/5 (127 reviews)</div>
+                            <div>💰 $75/hour</div>
+                            <div>📅 2:00 PM–5:00 PM ET</div>
+                        </div>
+                        <button class="btn btn-secondary w-full text-sm">Book Now</button>
+                    </div>
+                    <div class="p-4 bg-slate-900/50 rounded border border-slate-700">
+                        <div class="flex items-start justify-between mb-3">
+                            <div>
+                                <div class="font-600">Sarah Johnson</div>
+                                <div class="text-xs text-amber-400">Compliance Specialist</div>
+                            </div>
+                            <span class="status-badge status-active">Available</span>
+                        </div>
+                        <div class="text-sm mb-3 text-slate-400">
+                            <div>⭐ 4.9/5 (189 reviews)</div>
+                            <div>💰 $95/hour</div>
+                            <div>📅 1:00 PM–6:00 PM ET</div>
+                        </div>
+                        <button class="btn btn-secondary w-full text-sm">Book Now</button>
+                    </div>
+                    <div class="p-4 bg-slate-900/50 rounded border border-slate-700">
+                        <div class="flex items-start justify-between mb-3">
+                            <div>
+                                <div class="font-600">Mike Chen</div>
+                                <div class="text-xs text-amber-400">Operations Director</div>
+                            </div>
+                            <span class="status-badge status-pending">Busy</span>
+                        </div>
+                        <div class="text-sm mb-3 text-slate-400">
+                            <div>⭐ 4.7/5 (95 reviews)</div>
+                            <div>💰 $120/hour</div>
+                            <div>📅 Next available: Jun 30</div>
+                        </div>
+                        <button class="btn btn-secondary w-full text-sm">Request</button>
+                    </div>
+                </div>
+                <button class="btn btn-secondary mt-4 w-full">+ Add Trainer to Marketplace</button>
+            </div>
+
+            <!-- Certification Tracking -->
+            <div class="glass p-6 rounded-xl border border-slate-700">
+                <h2 class="text-2xl font-bold mb-6"><i class="fas fa-certificate gold-accent mr-2"></i>Certification Tracker</h2>
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-700">
+                            <th class="text-left py-3 px-4">Franchisee</th>
+                            <th class="text-left py-3 px-4">Certification</th>
+                            <th class="text-left py-3 px-4">Trainer</th>
+                            <th class="text-left py-3 px-4">Expiration</th>
+                            <th class="text-left py-3 px-4">Status</th>
+                            <th class="text-left py-3 px-4">Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b border-slate-800 hover:bg-slate-800/50">
+                            <td class="py-3 px-4">John Doe (NYC)</td>
+                            <td class="py-3 px-4">Level 1: Customer Service</td>
+                            <td class="py-3 px-4">John Smith</td>
+                            <td class="py-3 px-4">2026-07-15</td>
+                            <td class="py-3 px-4"><span class="status-badge status-active">Certified</span></td>
+                            <td class="py-3 px-4 font-bold text-green-400">92%</td>
+                        </tr>
+                        <tr class="border-b border-slate-800 hover:bg-slate-800/50">
+                            <td class="py-3 px-4">Maria Garcia (LA)</td>
+                            <td class="py-3 px-4">Level 2: Store Manager</td>
+                            <td class="py-3 px-4">Sarah Johnson</td>
+                            <td class="py-3 px-4">2026-07-08 <span class="text-red-400 font-bold">⚠ In 9 days</span></td>
+                            <td class="py-3 px-4"><span class="status-badge status-pending">Pending Renewal</span></td>
+                            <td class="py-3 px-4 font-bold text-yellow-400">88%</td>
+                        </tr>
+                        <tr class="border-b border-slate-800 hover:bg-slate-800/50">
+                            <td class="py-3 px-4">Alex Kim (Chicago)</td>
+                            <td class="py-3 px-4">Level 3: Operations Lead</td>
+                            <td class="py-3 px-4">Mike Chen</td>
+                            <td class="py-3 px-4">2026-09-20</td>
+                            <td class="py-3 px-4"><span class="status-badge status-active">Certified</span></td>
+                            <td class="py-3 px-4 font-bold text-green-400">95%</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
-        
-        <!-- Main Content -->
-        <div class="flex-1 flex flex-col">
-            <!-- Top Bar -->
-            <div class="bg-white border-b border-gray-200 p-4 flex justify-between items-center">
-                <div>
-                    <h2 class="text-xl font-bold text-gray-800" id="pageTitle">Workflow Canvas</h2>
-                    <p class="text-sm text-gray-500">Design and manage your multi-agent workflows</p>
+
+        <!-- TAB 2: 15 AGENTS OVERVIEW -->
+        <div id="departments" class="tab-content hidden">
+            <div class="space-y-8">
+                <!-- Core Operations -->
+                <div class="dept-section">
+                    <h2 class="text-2xl font-bold mb-4 flex items-center gap-2"><i class="fas fa-rocket gold-accent"></i>Core Operations (6 Agents)</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="agent-card glass p-6 rounded-xl border border-slate-700">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="font-bold">📝 Content Creator</h3>
+                                <span class="status-badge status-active">Active</span>
+                            </div>
+                            <p class="text-sm text-slate-400 mb-4">Generates blogs, social posts, emails, video scripts</p>
+                            <div class="text-xs space-y-1 text-slate-500">
+                                <div>✓ Grok AI integration</div>
+                                <div>✓ Multi-format output</div>
+                                <div>✓ Brand voice consistency</div>
+                            </div>
+                        </div>
+                        <div class="agent-card glass p-6 rounded-xl border border-slate-700">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="font-bold">📊 Data Analyzer</h3>
+                                <span class="status-badge status-active">Active</span>
+                            </div>
+                            <p class="text-sm text-slate-400 mb-4">Sales trends, customer insights, ROI analysis</p>
+                            <div class="text-xs space-y-1 text-slate-500">
+                                <div>✓ Real-time analytics</div>
+                                <div>✓ Predictive forecasting</div>
+                                <div>✓ Trend reporting</div>
+                            </div>
+                        </div>
+                        <div class="agent-card glass p-6 rounded-xl border border-slate-700">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="font-bold">📧 Email Sender</h3>
+                                <span class="status-badge status-active">Active</span>
+                            </div>
+                            <p class="text-sm text-slate-400 mb-4">Emailit integration, campaigns, sequences, analytics</p>
+                            <div class="text-xs space-y-1 text-slate-500">
+                                <div>✓ Automated sequences</div>
+                                <div>✓ Personalization</div>
+                                <div>✓ Deliverability optimization</div>
+                            </div>
+                        </div>
+                        <div class="agent-card glass p-6 rounded-xl border border-slate-700">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="font-bold">📱 Social Poster</h3>
+                                <span class="status-badge status-active">Active</span>
+                            </div>
+                            <p class="text-sm text-slate-400 mb-4">Multi-platform posting, engagement, analytics</p>
+                            <div class="text-xs space-y-1 text-slate-500">
+                                <div>✓ Bluesky, TikTok, Instagram</div>
+                                <div>✓ Optimal posting times</div>
+                                <div>✓ Performance tracking</div>
+                            </div>
+                        </div>
+                        <div class="agent-card glass p-6 rounded-xl border border-slate-700">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="font-bold">🎯 Lead Nurture</h3>
+                                <span class="status-badge status-active">Active</span>
+                            </div>
+                            <p class="text-sm text-slate-400 mb-4">Scoring, sequencing, follow-ups, conversions</p>
+                            <div class="text-xs space-y-1 text-slate-500">
+                                <div>✓ Behavioral scoring</div>
+                                <div>✓ Auto-sequences</div>
+                                <div>✓ Conversion optimization</div>
+                            </div>
+                        </div>
+                        <div class="agent-card glass p-6 rounded-xl border border-slate-700">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="font-bold">🏗️ Product Builder</h3>
+                                <span class="status-badge status-active">Active</span>
+                            </div>
+                            <p class="text-sm text-slate-400 mb-4">Catalog, inventory, fulfillment, SKU management</p>
+                            <div class="text-xs space-y-1 text-slate-500">
+                                <div>✓ Real-time inventory</div>
+                                <div>✓ Order automation</div>
+                                <div>✓ Multi-location sync</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="flex gap-3">
-                    <button onclick="runWorkflow()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 font-bold text-sm">
-                        ▶️ Run Workflow
-                    </button>
-                    <button onclick="showModal('help')" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-bold text-sm">
-                        ❓ Help
-                    </button>
+
+                <!-- Finance & Analytics -->
+                <div class="dept-section">
+                    <h2 class="text-2xl font-bold mb-4 flex items-center gap-2"><i class="fas fa-chart-line gold-accent"></i>Finance & Analytics (3 Agents)</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="agent-card glass p-6 rounded-xl border border-slate-700">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="font-bold">💰 Financial Analytics</h3>
+                                <span class="status-badge status-active">Active</span>
+                            </div>
+                            <p class="text-sm text-slate-400 mb-4">Forecasting, budgeting, cash flow, expense tracking</p>
+                            <div class="text-xs space-y-1 text-slate-500">
+                                <div>✓ Revenue forecasting</div>
+                                <div>✓ Budget optimization</div>
+                                <div>✓ ROI tracking</div>
+                            </div>
+                        </div>
+                        <div class="agent-card glass p-6 rounded-xl border border-slate-700">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="font-bold">📈 Dashboard Agent</h3>
+                                <span class="status-badge status-active">Active</span>
+                            </div>
+                            <p class="text-sm text-slate-400 mb-4">Real-time KPIs, metrics, alerts, health checks</p>
+                            <div class="text-xs space-y-1 text-slate-500">
+                                <div>✓ Live KPI tracking</div>
+                                <div>✓ Anomaly detection</div>
+                                <div>✓ Executive summaries</div>
+                            </div>
+                        </div>
+                        <div class="agent-card glass p-6 rounded-xl border border-slate-700">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="font-bold">📋 Reporting Agent</h3>
+                                <span class="status-badge status-active">Active</span>
+                            </div>
+                            <p class="text-sm text-slate-400 mb-4">Compliance reports, audit trails, governance</p>
+                            <div class="text-xs space-y-1 text-slate-500">
+                                <div>✓ Automated reports</div>
+                                <div>✓ Compliance docs</div>
+                                <div>✓ Audit trails</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Operations -->
+                <div class="dept-section">
+                    <h2 class="text-2xl font-bold mb-4 flex items-center gap-2"><i class="fas fa-cogs gold-accent"></i>Operations (3 Agents)</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="agent-card glass p-6 rounded-xl border border-slate-700">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="font-bold">📦 Inventory Manager</h3>
+                                <span class="status-badge status-active">Active</span>
+                            </div>
+                            <p class="text-sm text-slate-400 mb-4">Stock levels, reorder automation, supply chain</p>
+                            <div class="text-xs space-y-1 text-slate-500">
+                                <div>✓ Auto-replenishment</div>
+                                <div>✓ Stock alerts</div>
+                                <div>✓ Supplier optimization</div>
+                            </div>
+                        </div>
+                        <div class="agent-card glass p-6 rounded-xl border border-slate-700">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="font-bold">🤝 Vendor Management</h3>
+                                <span class="status-badge status-active">Active</span>
+                            </div>
+                            <p class="text-sm text-slate-400 mb-4">Supplier relationships, contracts, quality assurance</p>
+                            <div class="text-xs space-y-1 text-slate-500">
+                                <div>✓ Vendor scoring</div>
+                                <div>✓ Contract tracking</div>
+                                <div>✓ Performance monitoring</div>
+                            </div>
+                        </div>
+                        <div class="agent-card glass p-6 rounded-xl border border-slate-700">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="font-bold">🌐 Multi-Location</h3>
+                                <span class="status-badge status-active">Active</span>
+                            </div>
+                            <p class="text-sm text-slate-400 mb-4">Cross-location sync, franchisee coordination</p>
+                            <div class="text-xs space-y-1 text-slate-500">
+                                <div>✓ Unified operations</div>
+                                <div>✓ Brand consistency</div>
+                                <div>✓ Location analytics</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Support & Growth -->
+                <div class="dept-section">
+                    <h2 class="text-2xl font-bold mb-4 flex items-center gap-2"><i class="fas fa-star gold-accent"></i>Support & Growth (3 Agents)</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="agent-card glass p-6 rounded-xl border border-slate-700">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="font-bold">⭐ Customer Feedback</h3>
+                                <span class="status-badge status-active">Active</span>
+                            </div>
+                            <p class="text-sm text-slate-400 mb-4">Reviews, sentiment analysis, NPS tracking</p>
+                            <div class="text-xs space-y-1 text-slate-500">
+                                <div>✓ Sentiment analysis</div>
+                                <div>✓ Trend detection</div>
+                                <div>✓ Issue escalation</div>
+                            </div>
+                        </div>
+                        <div class="agent-card glass p-6 rounded-xl border border-slate-700">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="font-bold">⚖️ Compliance & Legal</h3>
+                                <span class="status-badge status-active">Active</span>
+                            </div>
+                            <p class="text-sm text-slate-400 mb-4">Audits, regulatory tracking, agreement management</p>
+                            <div class="text-xs space-y-1 text-slate-500">
+                                <div>✓ Compliance docs</div>
+                                <div>✓ Audit trails</div>
+                                <div>✓ Risk alerts</div>
+                            </div>
+                        </div>
+                        <div class="agent-card glass p-6 rounded-xl border border-slate-700">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="font-bold">🎓 Training & HR</h3>
+                                <span class="status-badge status-active">Active</span>
+                            </div>
+                            <p class="text-sm text-slate-400 mb-4">Onboarding, certifications, coaching, development</p>
+                            <div class="text-xs space-y-1 text-slate-500">
+                                <div>✓ Automated training</div>
+                                <div>✓ Cert tracking</div>
+                                <div>✓ Coach assignments</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            
-            <!-- Tabs Content -->
-            <div class="flex-1 overflow-auto bg-gray-50 p-6">
-                <!-- Workspace Tab -->
-                <div id="workspace-tab" class="tab-content">
-                    <div class="bg-white rounded-lg shadow-sm p-6 mb-4">
-                        <h3 class="font-bold mb-4">Your Workflow Templates</h3>
-                        <div class="workflow-preset" onclick="loadTemplate('daily_standup')">
-                            <p class="font-bold">📅 Daily Standup</p>
-                            <p class="text-sm text-gray-600">6 AM: Revenue check → KPI sync → Operations briefing</p>
-                        </div>
-                        <div class="workflow-preset" onclick="loadTemplate('lead_gen')">
-                            <p class="font-bold">🎯 Lead Generation Pipeline</p>
-                            <p class="text-sm text-gray-600">Content → Social → Email → Lead Nurture → Sales</p>
-                        </div>
-                        <div class="workflow-preset" onclick="loadTemplate('customer_retention')">
-                            <p class="font-bold">⭐ Customer Retention</p>
-                            <p class="text-sm text-gray-600">Feedback → Sentiment → Product Fixes → Re-engagement</p>
-                        </div>
-                        <div class="workflow-preset" onclick="loadTemplate('inventory_sync')">
-                            <p class="font-bold">📦 Inventory Reorder Automation</p>
-                            <p class="text-sm text-gray-600">Stock Check → Reorder → Vendor Mgmt → Delivery Tracking</p>
-                        </div>
-                        <div class="workflow-preset" onclick="loadTemplate('revenue_reporting')">
-                            <p class="font-bold">💹 Revenue & Reporting</p>
-                            <p class="text-sm text-gray-600">Sales Data → Analytics → Forecast → Executive Report</p>
-                        </div>
-                        <div class="workflow-preset" onclick="loadTemplate('compliance_audit')">
-                            <p class="font-bold">✅ Compliance & Audit Trail</p>
-                            <p class="text-sm text-gray-600">Log All Actions → Verify Regulations → Generate Report</p>
-                        </div>
+        </div>
+
+        <!-- TAB 3: WORKFLOWS -->
+        <div id="workflows" class="tab-content hidden">
+            <div class="glass p-8 rounded-xl border border-slate-700">
+                <h2 class="text-2xl font-bold mb-6">Pre-Built Workflow Templates</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="p-6 bg-slate-900/50 rounded border border-slate-700 hover:border-gold-accent transition cursor-pointer">
+                        <div class="text-xl font-bold mb-2">🌅 Daily Standup</div>
+                        <p class="text-sm text-slate-400 mb-4">Morning briefing: KPIs, alerts, priorities</p>
+                        <div class="flex gap-2"><span class="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded">Data Analyzer</span><span class="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded">Reporting</span></div>
                     </div>
-                    
-                    <div class="bg-white rounded-lg shadow-sm p-6">
-                        <h3 class="font-bold mb-4">Agent Network Graph</h3>
-                        <svg id="canvas" class="canvas w-full border border-gray-200 rounded" style="height: 500px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);"></svg>
+                    <div class="p-6 bg-slate-900/50 rounded border border-slate-700 hover:border-gold-accent transition cursor-pointer">
+                        <div class="text-xl font-bold mb-2">🎯 Lead Gen Pipeline</div>
+                        <p class="text-sm text-slate-400 mb-4">Auto: attract → score → nurture → convert</p>
+                        <div class="flex gap-2 flex-wrap"><span class="text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded">Social Poster</span><span class="text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded">Lead Nurture</span><span class="text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded">Email</span></div>
                     </div>
-                </div>
-                
-                <!-- Agent Management -->
-                <div id="agents-tab" class="tab-content hidden">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div id="agents-list"></div>
+                    <div class="p-6 bg-slate-900/50 rounded border border-slate-700 hover:border-gold-accent transition cursor-pointer">
+                        <div class="text-xl font-bold mb-2">💰 Revenue Reporting</div>
+                        <p class="text-sm text-slate-400 mb-4">Weekly financials, forecasts, ROI breakdown</p>
+                        <div class="flex gap-2"><span class="text-xs bg-purple-500/20 text-purple-300 px-2 py-1 rounded">Financials</span><span class="text-xs bg-purple-500/20 text-purple-300 px-2 py-1 rounded">Dashboard</span></div>
+                    </div>
+                    <div class="p-6 bg-slate-900/50 rounded border border-slate-700 hover:border-gold-accent transition cursor-pointer">
+                        <div class="text-xl font-bold mb-2">📦 Inventory Alerts</div>
+                        <p class="text-sm text-slate-400 mb-4">Stock low → auto reorder → supplier sync</p>
+                        <div class="flex gap-2"><span class="text-xs bg-orange-500/20 text-orange-300 px-2 py-1 rounded">Inventory</span><span class="text-xs bg-orange-500/20 text-orange-300 px-2 py-1 rounded">Vendor Mgmt</span></div>
+                    </div>
+                    <div class="p-6 bg-slate-900/50 rounded border border-slate-700 hover:border-gold-accent transition cursor-pointer">
+                        <div class="text-xl font-bold mb-2">✅ Compliance Audits</div>
+                        <p class="text-sm text-slate-400 mb-4">Monthly checks, audit trails, fixes</p>
+                        <div class="flex gap-2"><span class="text-xs bg-red-500/20 text-red-300 px-2 py-1 rounded">Compliance</span><span class="text-xs bg-red-500/20 text-red-300 px-2 py-1 rounded">Reporting</span></div>
+                    </div>
+                    <div class="p-6 bg-slate-900/50 rounded border border-slate-700 hover:border-gold-accent transition cursor-pointer">
+                        <div class="text-xl font-bold mb-2">🎓 Training Cycle</div>
+                        <p class="text-sm text-slate-400 mb-4">New hire → training → certification → tracking</p>
+                        <div class="flex gap-2"><span class="text-xs bg-amber-500/20 text-amber-300 px-2 py-1 rounded">Training</span><span class="text-xs bg-amber-500/20 text-amber-300 px-2 py-1 rounded">Certification</span></div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: KNOWLEDGE BASE -->
+        <div id="knowledge" class="tab-content hidden">
+            <div class="glass p-8 rounded-xl border border-slate-700 mb-8">
+                <h2 class="text-2xl font-bold mb-6"><i class="fas fa-book gold-accent mr-2"></i>Company Knowledge Base</h2>
+                <p class="text-slate-400 mb-6">Upload your company's SOPs, protocols, training docs. Agents learn your exact way of doing business.</p>
                 
-                <!-- Knowledge Base -->
-                <div id="knowledge-tab" class="tab-content hidden">
-                    <div class="grid grid-cols-1 gap-4">
-                        <div class="bg-white rounded-lg shadow-sm p-6">
-                            <h3 class="font-bold mb-4">📚 Company Knowledge Base</h3>
-                            <p class="text-sm text-gray-600 mb-4">Upload your company's SOPs, policies, and protocols. Agents will reference these when making decisions.</p>
-                            <div id="kb-list"></div>
-                        </div>
+                <div class="space-y-4">
+                    <div class="p-6 border-2 border-dashed border-slate-600 rounded-lg text-center">
+                        <i class="fas fa-cloud-upload text-4xl gold-accent mb-4"></i>
+                        <h3 class="text-lg font-bold mb-2">Upload Company Documents</h3>
+                        <p class="text-sm text-slate-400 mb-4">PDF, Word, PowerPoint - Agents will read and learn from your docs</p>
+                        <input type="file" id="fileUpload" multiple accept=".pdf,.docx,.pptx,.txt" style="display: none;">
+                        <button class="btn btn-primary" onclick="document.getElementById('fileUpload').click()">
+                            <i class="fas fa-upload mr-2"></i>Choose Files
+                        </button>
                     </div>
-                </div>
-                
-                <!-- Upload Documents -->
-                <div id="upload-tab" class="tab-content hidden">
-                    <div class="bg-white rounded-lg shadow-sm p-6">
-                        <h3 class="font-bold mb-4">📤 Upload Company Protocols</h3>
-                        <p class="text-sm text-gray-600 mb-6">Upload PDFs, Word docs, or markdown files containing your company's specific SOPs, process docs, and policies. Agents will learn from these and apply them to all workflows.</p>
-                        
-                        <div class="grid grid-cols-1 gap-6">
-                            <div>
-                                <label class="block font-bold mb-3">Core Operations SOP</label>
-                                <div class="upload-zone" id="core-zone" ondrop="handleDrop(event,'core')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
-                                    📄 Drop files or click to upload
+
+                    <div class="space-y-3">
+                        <h3 class="font-bold text-lg">Your Uploaded Documents</h3>
+                        <div class="p-4 bg-slate-900/50 rounded border border-slate-700 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-file-pdf text-red-400 text-2xl"></i>
+                                <div>
+                                    <div class="font-600">Customer_Service_SOP.pdf</div>
+                                    <div class="text-xs text-slate-500">Uploaded 2 hours ago • 2.3 MB</div>
                                 </div>
-                                <div id="core-files" class="mt-2"></div>
                             </div>
-                            
-                            <div>
-                                <label class="block font-bold mb-3">Finance & Analytics SOP</label>
-                                <div class="upload-zone" id="finance-zone" ondrop="handleDrop(event,'finance')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
-                                    📄 Drop files or click to upload
+                            <button class="text-slate-400 hover:text-red-400"><i class="fas fa-trash"></i></button>
+                        </div>
+                        <div class="p-4 bg-slate-900/50 rounded border border-slate-700 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-file-word text-blue-400 text-2xl"></i>
+                                <div>
+                                    <div class="font-600">Compliance_Checklist.docx</div>
+                                    <div class="text-xs text-slate-500">Uploaded yesterday • 1.1 MB</div>
                                 </div>
-                                <div id="finance-files" class="mt-2"></div>
                             </div>
-                            
-                            <div>
-                                <label class="block font-bold mb-3">Operations SOP</label>
-                                <div class="upload-zone" id="operations-zone" ondrop="handleDrop(event,'operations')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
-                                    📄 Drop files or click to upload
+                            <button class="text-slate-400 hover:text-red-400"><i class="fas fa-trash"></i></button>
+                        </div>
+                        <div class="p-4 bg-slate-900/50 rounded border border-slate-700 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-file-powerpoint text-orange-400 text-2xl"></i>
+                                <div>
+                                    <div class="font-600">Brand_Guidelines.pptx</div>
+                                    <div class="text-xs text-slate-500">Uploaded 3 days ago • 4.2 MB</div>
                                 </div>
-                                <div id="operations-files" class="mt-2"></div>
                             </div>
-                            
-                            <div>
-                                <label class="block font-bold mb-3">Support & Growth SOP</label>
-                                <div class="upload-zone" id="support-zone" ondrop="handleDrop(event,'support')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
-                                    📄 Drop files or click to upload
-                                </div>
-                                <div id="support-files" class="mt-2"></div>
-                            </div>
+                            <button class="text-slate-400 hover:text-red-400"><i class="fas fa-trash"></i></button>
                         </div>
                     </div>
                 </div>
-                
-                <!-- SOP Templates -->
-                <div id="templates-tab" class="tab-content hidden">
-                    <div class="bg-white rounded-lg shadow-sm p-6">
-                        <h3 class="font-bold mb-4">📋 Standard SOP Templates</h3>
-                        <p class="text-sm text-gray-600 mb-6">Start with these pre-built SOPs for each department. Customize them with your company's specific processes.</p>
-                        
-                        <div class="space-y-4">
-                            <div class="border border-gray-200 rounded p-4">
-                                <div class="flex justify-between items-start">
-                                    <div>
-                                        <h4 class="font-bold">Core Operations Standard SOP</h4>
-                                        <p class="text-sm text-gray-600">Content Creator, Data Analyzer, Email Sender, Social Poster, Lead Nurture, Product Builder</p>
-                                    </div>
-                                    <button onclick="downloadTemplate('core')" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
-                                        ⬇️ Download
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="border border-gray-200 rounded p-4">
-                                <div class="flex justify-between items-start">
-                                    <div>
-                                        <h4 class="font-bold">Finance & Analytics Standard SOP</h4>
-                                        <p class="text-sm text-gray-600">Financial Analytics, Performance Dashboard, Reporting</p>
-                                    </div>
-                                    <button onclick="downloadTemplate('finance')" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
-                                        ⬇️ Download
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="border border-gray-200 rounded p-4">
-                                <div class="flex justify-between items-start">
-                                    <div>
-                                        <h4 class="font-bold">Operations Standard SOP</h4>
-                                        <p class="text-sm text-gray-600">Inventory Manager, Vendor Management, Multi-Location Coordinator</p>
-                                    </div>
-                                    <button onclick="downloadTemplate('operations')" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
-                                        ⬇️ Download
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="border border-gray-200 rounded p-4">
-                                <div class="flex justify-between items-start">
-                                    <div>
-                                        <h4 class="font-bold">Support & Growth Standard SOP</h4>
-                                        <p class="text-sm text-gray-600">Customer Feedback, Compliance & Legal, Training & Onboarding</p>
-                                    </div>
-                                    <button onclick="downloadTemplate('support')" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
-                                        ⬇️ Download
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+            </div>
+
+            <!-- Departments & Their KB -->
+            <div>
+                <h3 class="text-xl font-bold mb-4">Knowledge Base by Department</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="glass p-6 rounded-xl border border-slate-700">
+                        <h4 class="font-bold mb-3">🎓 Training & HR</h4>
+                        <ul class="text-sm space-y-2 text-slate-400">
+                            <li>✓ Onboarding procedures</li>
+                            <li>✓ Certification requirements</li>
+                            <li>✓ Trainer guidelines</li>
+                            <li>✓ Development plans</li>
+                        </ul>
                     </div>
-                </div>
-                
-                <!-- Execution Log -->
-                <div id="execution-tab" class="tab-content hidden">
-                    <div class="bg-white rounded-lg shadow-sm p-6">
-                        <h3 class="font-bold mb-4">⚙️ Real-Time Execution Log</h3>
-                        <div class="execution-log bg-gray-900 text-green-400 p-4 rounded font-mono text-xs overflow-y-auto" style="height: 400px;" id="execution-log">
-                            <div class="log-entry"><span class="log-time">[09:00:15]</span> <span class="log-success">✓ READY</span> AgentForge system initialized</div>
-                            <div class="log-entry"><span class="log-time">[09:00:16]</span> <span class="log-info">→ LOAD</span> Standard SOP loaded into Knowledge Base</div>
-                            <div class="log-entry"><span class="log-time">[09:00:17]</span> <span class="log-success">✓ READY</span> All 15 agents online</div>
-                            <div class="log-entry"><span class="log-time">[09:00:18]</span> <span class="log-success">✓ READY</span> Workflow templates cached</div>
-                            <div class="log-entry"><span class="log-time">[09:00:19]</span> <span class="log-info">→ WAIT</span> Waiting for workflow selection...</div>
-                        </div>
-                        <button onclick="clearLog()" class="mt-4 bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 text-sm">🗑️ Clear Log</button>
+                    <div class="glass p-6 rounded-xl border border-slate-700">
+                        <h4 class="font-bold mb-3">📝 Content & Marketing</h4>
+                        <ul class="text-sm space-y-2 text-slate-400">
+                            <li>✓ Brand voice guide</li>
+                            <li>✓ Content templates</li>
+                            <li>✓ Marketing calendar</li>
+                            <li>✓ Messaging framework</li>
+                        </ul>
+                    </div>
+                    <div class="glass p-6 rounded-xl border border-slate-700">
+                        <h4 class="font-bold mb-3">⚖️ Compliance & Legal</h4>
+                        <ul class="text-sm space-y-2 text-slate-400">
+                            <li>✓ Audit procedures</li>
+                            <li>✓ Risk frameworks</li>
+                            <li>✓ Legal templates</li>
+                            <li>✓ Compliance checklists</li>
+                        </ul>
+                    </div>
+                    <div class="glass p-6 rounded-xl border border-slate-700">
+                        <h4 class="font-bold mb-3">📦 Operations</h4>
+                        <ul class="text-sm space-y-2 text-slate-400">
+                            <li>✓ Inventory procedures</li>
+                            <li>✓ Supply chain rules</li>
+                            <li>✓ Vendor standards</li>
+                            <li>✓ Quality assurance</li>
+                        </ul>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Help Modal -->
-    <div id="help-modal" class="modal">
-        <div class="modal-content">
-            <h2 class="text-xl font-bold mb-4">How to Use AgentForge</h2>
-            <div class="space-y-4">
-                <div>
-                    <h3 class="font-bold text-green-600">Step 1: Load Standard SOP</h3>
-                    <p class="text-sm">Your company starts with our standard SOP templates. These cover all 15 agents and 4 departments.</p>
-                </div>
-                <div>
-                    <h3 class="font-bold text-blue-600">Step 2: Upload Your Protocols</h3>
-                    <p class="text-sm">Upload your company's specific SOPs, policies, and docs for each department. Agents will learn from these.</p>
-                </div>
-                <div>
-                    <h3 class="font-bold text-purple-600">Step 3: Choose a Workflow Template</h3>
-                    <p class="text-sm">Select a pre-built workflow (Daily Standup, Lead Gen, Customer Retention, etc.) or design your own.</p>
-                </div>
-                <div>
-                    <h3 class="font-bold text-orange-600">Step 4: Run the Workflow</h3>
-                    <p class="text-sm">Click "Run Workflow" to execute. Agents follow your SOP and coordinate with each other automatically.</p>
-                </div>
-                <div>
-                    <h3 class="font-bold text-red-600">Step 5: Monitor Execution</h3>
-                    <p class="text-sm">Watch the execution log in real-time. All agent actions are logged with timestamps and rationales.</p>
-                </div>
-            </div>
-            <button onclick="hideModal('help')" class="mt-6 bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">Close</button>
-        </div>
-    </div>
-    
+
     <script>
-        // Starter SOP data
-        const starterSOP = {
-            company: "Your Company Name",
-            departments: [
-                { name: "Core Operations", color: "#dc2626", agents: ["Content Creator", "Data Analyzer", "Email Sender", "Social Poster", "Lead Nurture", "Product Builder"] },
-                { name: "Finance & Analytics", color: "#2563eb", agents: ["Financial Analytics", "Performance Dashboard", "Reporting"] },
-                { name: "Operations", color: "#059669", agents: ["Inventory Manager", "Vendor Management", "Multi-Location Coordinator"] },
-                { name: "Support & Growth", color: "#7c3aed", agents: ["Customer Feedback", "Compliance & Legal", "Training & Onboarding"] }
-            ]
-        };
-        
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            loadStandardSOP();
-            renderAgents();
-            drawWorkflow();
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tabName = this.dataset.tab;
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+                document.querySelectorAll('.tab-btn').forEach(b => {
+                    b.classList.remove('gold-accent', 'tab-active');
+                    b.classList.add('text-slate-400');
+                });
+                document.getElementById(tabName).classList.remove('hidden');
+                this.classList.remove('text-slate-400');
+                this.classList.add('gold-accent', 'tab-active');
+            });
         });
-        
-        function loadStandardSOP() {
-            const stored = localStorage.getItem('agentforge_sop');
-            if (!stored) {
-                localStorage.setItem('agentforge_sop', JSON.stringify(starterSOP));
-                showToast('✅ Standard SOP loaded. Upload your company protocols in the Knowledge Base tab.');
+
+        function generateTraining() {
+            const topic = document.getElementById('trainingTopic').value;
+            const role = document.getElementById('trainingRole').value;
+            const level = document.getElementById('trainingLevel').value;
+            const deadline = document.getElementById('trainingDeadline').value;
+            
+            if (!topic || !deadline) {
+                alert('Please fill in topic and deadline');
+                return;
             }
-        }
-        
-        function showTab(tab) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-            document.getElementById(tab + '-tab').classList.remove('hidden');
             
-            const titles = { workspace: '📊 Workflow Canvas', agents: '🤖 Agent Management', knowledge: '📚 Knowledge Base', upload: '📤 Upload Protocols', templates: '📋 SOP Templates', execution: '⚙️ Execution Log' };
-            document.getElementById('pageTitle').textContent = titles[tab] || 'AgentForge';
-            
-            document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
+            alert(`Training generation initiated:\n\n${topic}\nRole: ${role}\nLevel: ${level}\nDeadline: ${deadline}\n\nThis will create:\n✓ Training script\n✓ PowerPoint deck\n✓ TTS narration\n✓ Video module (12 min process)\n✓ Store in library with QR code`);
         }
-        
-        function renderAgents() {
-            const agents = starterSOP.departments.flatMap(d => d.agents);
-            const list = document.getElementById('agents-list');
-            list.innerHTML = agents.map(a => `
-                <div class="bg-white rounded shadow p-4 border-l-4" style="border-color: ${starterSOP.departments.find(d => d.agents.includes(a)).color}">
-                    <p class="font-bold">${a}</p>
-                    <p class="text-sm text-gray-600">Status: <span class="text-green-600">● Online</span></p>
-                    <p class="text-xs text-gray-500 mt-2">Awaiting workflow assignment</p>
-                </div>
-            `).join('');
-        }
-        
-        function drawWorkflow() {
-            const svg = document.getElementById('canvas');
-            svg.innerHTML = '';
-            
-            const agents = starterSOP.departments.flatMap(d => d.agents);
-            const nodeWidth = 180, nodeHeight = 80;
-            const cols = 4, rows = Math.ceil(agents.length / cols);
-            
-            agents.forEach((agent, i) => {
-                const x = (i % cols) * (nodeWidth + 80) + 40;
-                const y = Math.floor(i / cols) * (nodeHeight + 60) + 40;
-                
-                const dept = starterSOP.departments.find(d => d.agents.includes(agent));
-                
-                const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-                rect.setAttribute('x', x);
-                rect.setAttribute('y', y);
-                rect.setAttribute('width', nodeWidth);
-                rect.setAttribute('height', nodeHeight);
-                rect.setAttribute('rx', '8');
-                rect.setAttribute('fill', 'white');
-                rect.setAttribute('stroke', dept.color);
-                rect.setAttribute('stroke-width', '2');
-                svg.appendChild(rect);
-                
-                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                text.setAttribute('x', x + nodeWidth / 2);
-                text.setAttribute('y', y + 30);
-                text.setAttribute('text-anchor', 'middle');
-                text.setAttribute('font-weight', 'bold');
-                text.setAttribute('font-size', '12');
-                text.textContent = agent;
-                svg.appendChild(text);
-                
-                const status = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                status.setAttribute('x', x + nodeWidth / 2);
-                status.setAttribute('y', y + 60);
-                status.setAttribute('text-anchor', 'middle');
-                status.setAttribute('font-size', '10');
-                status.setAttribute('fill', '#666');
-                status.textContent = '● Online';
-                svg.appendChild(status);
-            });
-        }
-        
-        function loadTemplate(template) {
-            showToast(`📋 Workflow template "${template.replace(/_/g, ' ')}" loaded`);
-            logExecution(`LOAD workflow template: ${template}`);
-        }
-        
-        function runWorkflow() {
-            logExecution('START workflow execution');
-            showToast('▶️ Running workflow... check execution log for details');
-            setTimeout(() => {
-                logExecution('✓ All agents synchronized');
-                logExecution('✓ Data exchanged between departments');
-                logExecution('✓ Workflow completed successfully');
-            }, 2000);
-        }
-        
-        function handleDragOver(e) {
-            e.preventDefault();
-            e.target.closest('.upload-zone').classList.add('dragover');
-        }
-        
-        function handleDragLeave(e) {
-            e.target.closest('.upload-zone').classList.remove('dragover');
-        }
-        
-        function handleDrop(e, dept) {
-            e.preventDefault();
-            e.target.closest('.upload-zone').classList.remove('dragover');
-            const files = e.dataTransfer.files;
-            
-            Array.from(files).forEach(file => {
-                const container = document.getElementById(`${dept}-files`);
-                const item = document.createElement('div');
-                item.className = 'kb-item';
-                item.innerHTML = `
-                    <p class="kb-item-name">📄 ${file.name}</p>
-                    <p class="kb-item-meta">${(file.size / 1024).toFixed(1)} KB • Uploaded now</p>
-                `;
-                container.appendChild(item);
-                logExecution(`UPLOAD document: ${file.name} to ${dept} department`);
-                showToast(`📤 Uploaded: ${file.name}`);
-            });
-        }
-        
-        function downloadTemplate(dept) {
-            const templates = {
-                core: 'Core_Operations_SOP.md',
-                finance: 'Finance_Analytics_SOP.md',
-                operations: 'Operations_SOP.md',
-                support: 'Support_Growth_SOP.md'
-            };
-            showToast(`⬇️ Downloaded: ${templates[dept]}`);
-        }
-        
-        function saveConfig() {
-            localStorage.setItem('agentforge_config', JSON.stringify({ saved: new Date().toISOString() }));
-            showToast('✅ Configuration saved');
-        }
-        
-        function filterDept(dept) {
-            showToast(`🔍 Filtering: ${dept.replace(/_/g, ' ')}`);
-        }
-        
-        function logExecution(msg) {
-            const log = document.getElementById('execution-log');
-            const time = new Date().toLocaleTimeString();
-            const entry = document.createElement('div');
-            entry.className = 'log-entry';
-            entry.innerHTML = `<span class="log-time">[${time}]</span> <span class="log-success">→</span> ${msg}`;
-            log.appendChild(entry);
-            log.scrollTop = log.scrollHeight;
-        }
-        
-        function clearLog() {
-            document.getElementById('execution-log').innerHTML = '';
-            showToast('🗑️ Log cleared');
-        }
-        
-        function showModal(modal) {
-            document.getElementById(modal + '-modal').classList.add('show');
-        }
-        
-        function hideModal(modal) {
-            document.getElementById(modal + '-modal').classList.remove('show');
-        }
-        
-        function showToast(msg) {
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.textContent = msg;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
-        }
+
+        // Default to Training tab on load
+        document.querySelector('[data-tab="training"]').click();
     </script>
 </body>
 </html>
