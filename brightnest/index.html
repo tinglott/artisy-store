@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BrightNest — AI Daycare Hub</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+:root{--sky:#E8F4FD;--deep:#0C3547;--teal:#1A7FA0;--gold:#F5A623;--mint:#4ECDC4;--coral:#FF6B6B;--cream:#FEFAF5;--muted:#6B8A99;--card:#FFFFFF;--border:rgba(12,53,71,0.1);--shadow:0 4px 24px rgba(12,53,71,0.08);--shadow-lg:0 12px 48px rgba(12,53,71,0.15);}
+body.dark{--sky:#1a2a35;--deep:#e8f4fd;--cream:#0d1f2d;--card:#112233;--border:rgba(255,255,255,0.1);--muted:#8aacbf;--shadow:0 4px 24px rgba(0,0,0,0.3);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--deep);min-height:100vh;transition:background .3s,color .3s;}
+
+/* SIDEBAR */
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:240px;background:#0C3547;display:flex;flex-direction:column;z-index:100;transition:transform .3s;}
+.sidebar.collapsed{transform:translateX(-240px);}
+.logo-wrap{padding:28px 24px 20px;border-bottom:1px solid rgba(255,255,255,0.08);}
+.logo{font-family:'Sora',sans-serif;font-size:1.3rem;font-weight:700;color:#fff;}
+.logo span{color:#4ECDC4;}
+.logo-sub{font-size:.72rem;color:rgba(255,255,255,0.4);margin-top:2px;letter-spacing:.08em;text-transform:uppercase;}
+.nav{flex:1;padding:16px 0;overflow-y:auto;}
+.nav-section{padding:12px 20px 4px;font-size:.65rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.1em;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;color:rgba(255,255,255,0.6);font-size:.88rem;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{color:#fff;background:rgba(255,255,255,0.05);}
+.nav-item.active{color:#fff;background:rgba(78,205,196,0.15);border-left-color:#4ECDC4;}
+.nav-item .icon{font-size:1rem;width:20px;text-align:center;}
+.nav-badge{margin-left:auto;background:#FF6B6B;color:#fff;font-size:.6rem;padding:2px 6px;border-radius:99px;font-weight:600;}
+.sidebar-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,0.08);font-size:.78rem;color:rgba(255,255,255,0.4);}
+
+/* MAIN */
+.main{margin-left:240px;min-height:100vh;transition:margin .3s;}
+.main.full{margin-left:0;}
+.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:14px 32px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:50;}
+.topbar-title{font-family:'Sora',sans-serif;font-size:1.1rem;font-weight:600;flex:1;}
+.topbar-date{font-size:.8rem;color:var(--muted);}
+.topbar-actions{display:flex;align-items:center;gap:10px;}
+.icon-btn{width:36px;height:36px;border:1px solid var(--border);border-radius:8px;cursor:pointer;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:1rem;transition:.2s;color:var(--deep);}
+.icon-btn:hover{background:var(--sky);}
+.menu-btn{display:none;}
+.content{padding:28px 32px;}
+@media(max-width:768px){.sidebar{transform:translateX(-240px);}.sidebar.open{transform:translateX(0);}.main{margin-left:0;}.menu-btn{display:flex;}.content{padding:16px;}}
+
+/* SECTIONS */
+.section{display:none;}.section.active{display:block;}
+
+/* STAT CARDS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+@media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:500px){.stats-row{grid-template-columns:1fr;}}
+.stat-card{background:var(--card);border-radius:16px;padding:20px 22px;border:1px solid var(--border);box-shadow:var(--shadow);display:flex;align-items:center;gap:14px;}
+.stat-icon{font-size:1.6rem;width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.stat-icon.blue{background:rgba(26,127,160,0.12);}
+.stat-icon.gold{background:rgba(245,166,35,0.12);}
+.stat-icon.mint{background:rgba(78,205,196,0.12);}
+.stat-icon.coral{background:rgba(255,107,107,0.12);}
+.stat-num{font-family:'Sora',sans-serif;font-size:1.6rem;font-weight:700;line-height:1;}
+.stat-label{font-size:.75rem;color:var(--muted);margin-top:4px;}
+.stat-delta{font-size:.7rem;color:#34A853;font-weight:600;}
+
+/* LAYOUT */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+@media(max-width:768px){.two-col,.three-col{grid-template-columns:1fr;}}
+
+/* CARDS */
+.card{background:var(--card);border-radius:16px;padding:22px;border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:20px;}
+.card-title{font-family:'Sora',sans-serif;font-size:.95rem;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.card-title .pill{font-size:.65rem;background:var(--sky);color:var(--teal);padding:2px 8px;border-radius:99px;font-weight:500;}
+
+/* AI CHAT */
+.ai-panel{background:linear-gradient(135deg,#0C3547 0%,#1A5A73 100%);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-lg);display:flex;flex-direction:column;height:560px;}
+.ai-header{padding:16px 20px;background:rgba(255,255,255,0.05);display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,0.08);}
+.ai-avatar{width:36px;height:36px;background:linear-gradient(135deg,#1A7FA0,#4ECDC4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;}
+.ai-name{font-size:.9rem;font-weight:600;color:#fff;}
+.ai-status{font-size:.72rem;color:#4ECDC4;}
+.ai-online-dot{width:7px;height:7px;background:#4ECDC4;border-radius:50%;display:inline-block;margin-right:4px;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.ai-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.1) transparent;}
+.msg{max-width:82%;}
+.msg.bot{align-self:flex-start;}
+.msg.user{align-self:flex-end;}
+.msg-bubble{padding:10px 14px;border-radius:12px;font-size:.83rem;line-height:1.55;}
+.msg.bot .msg-bubble{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.9);border-bottom-left-radius:3px;}
+.msg.user .msg-bubble{background:#4ECDC4;color:#0C3547;font-weight:500;border-bottom-right-radius:3px;}
+.msg-time{font-size:.65rem;color:rgba(255,255,255,0.3);margin-top:4px;padding:0 4px;}
+.msg.user .msg-time{text-align:right;}
+.ai-quick-btns{padding:8px 16px;display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,0.06);}
+.quick-btn{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.75);font-size:.72rem;padding:5px 10px;border-radius:20px;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.quick-btn:hover{background:rgba(78,205,196,0.25);color:#fff;border-color:#4ECDC4;}
+.ai-input-row{padding:12px 16px;border-top:1px solid rgba(255,255,255,0.08);display:flex;gap:8px;}
+.ai-input{flex:1;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:24px;padding:10px 16px;color:#fff;font-size:.83rem;font-family:'DM Sans',sans-serif;outline:none;}
+.ai-input::placeholder{color:rgba(255,255,255,0.3);}
+.ai-input:focus{border-color:#4ECDC4;background:rgba(255,255,255,0.12);}
+.ai-send{width:38px;height:38px;background:linear-gradient(135deg,#1A7FA0,#4ECDC4);border:none;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:opacity .2s;flex-shrink:0;color:#fff;}
+.ai-send:hover{opacity:.85;}
+.ai-thinking{display:none;align-items:center;gap:6px;padding:8px 16px;}
+.ai-thinking.show{display:flex;}
+.dot-anim span{display:inline-block;width:6px;height:6px;background:#4ECDC4;border-radius:50%;animation:bounce .8s infinite;}
+.dot-anim span:nth-child(2){animation-delay:.15s;}
+.dot-anim span:nth-child(3){animation-delay:.3s;}
+@keyframes bounce{0%,80%,100%{transform:translateY(0);}40%{transform:translateY(-6px);}}
+
+/* CHILDREN */
+.children-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;}
+.child-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 16px;text-align:center;cursor:pointer;transition:.2s;position:relative;}
+.child-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px);}
+.child-avatar{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin:0 auto 10px;}
+.child-name{font-size:.88rem;font-weight:600;margin-bottom:3px;}
+.child-age{font-size:.75rem;color:var(--muted);}
+.child-room{font-size:.72rem;color:var(--teal);margin:4px 0;}
+.child-status{display:flex;align-items:center;justify-content:center;gap:5px;margin-top:6px;}
+.status-dot{width:7px;height:7px;border-radius:50%;}
+.status-dot.present{background:#34A853;}
+.status-dot.absent{background:#EA4335;}
+.status-dot.pickup{background:#F5A623;}
+.child-actions{position:absolute;top:8px;right:8px;display:flex;gap:4px;opacity:0;transition:.2s;}
+.child-card:hover .child-actions{opacity:1;}
+.child-act-btn{width:24px;height:24px;border-radius:6px;border:none;cursor:pointer;font-size:.7rem;display:flex;align-items:center;justify-content:center;}
+
+/* FORMS */
+.form-input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:.85rem;color:var(--deep);font-family:'DM Sans',sans-serif;outline:none;transition:.2s;}
+.form-input:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(26,127,160,0.12);}
+.form-label{font-size:.78rem;font-weight:600;color:var(--muted);margin-bottom:5px;display:block;}
+.form-row{margin-bottom:14px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+select.form-input{cursor:pointer;}
+
+/* BUTTONS */
+.btn{padding:9px 20px;border-radius:10px;font-size:.85rem;font-weight:600;cursor:pointer;border:none;transition:.2s;font-family:'DM Sans',sans-serif;}
+.btn-primary{background:linear-gradient(135deg,#1A7FA0,#4ECDC4);color:#fff;}
+.btn-primary:hover{opacity:.88;}
+.btn-outline{background:transparent;border:1.5px solid var(--teal);color:var(--teal);}
+.btn-outline:hover{background:var(--sky);}
+.btn-coral{background:#FF6B6B;color:#fff;}
+.btn-gold{background:#F5A623;color:#fff;}
+.btn-mint{background:#4ECDC4;color:#0C3547;}
+.btn-sm{padding:5px 12px;font-size:.75rem;}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.btn-ghost:hover{background:var(--sky);}
+
+/* TABLE */
+.table{width:100%;border-collapse:collapse;font-size:.82rem;}
+.table th{padding:10px 14px;text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-bottom:2px solid var(--border);}
+.table td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.table tr:last-child td{border-bottom:none;}
+.table tr:hover td{background:rgba(26,127,160,0.03);}
+.avatar-sm{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;font-size:.7rem;font-weight:700;color:#fff;margin-right:8px;}
+
+/* BADGES */
+.badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:.7rem;font-weight:600;}
+.badge.paid{background:rgba(52,168,83,0.12);color:#34A853;}
+.badge.due{background:rgba(245,166,35,0.12);color:#F5A623;}
+.badge.overdue{background:rgba(234,67,53,0.12);color:#EA4335;}
+.badge.present{background:rgba(52,168,83,0.12);color:#34A853;}
+.badge.absent{background:rgba(234,67,53,0.12);color:#EA4335;}
+.badge.info{background:rgba(26,127,160,0.12);color:#1A7FA0;}
+
+/* ALERTS */
+.alert{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:10px;font-size:.82rem;margin-bottom:10px;}
+.alert.warn{background:rgba(245,166,35,0.1);border-left:3px solid #F5A623;}
+.alert.info{background:rgba(26,127,160,0.1);border-left:3px solid #1A7FA0;}
+.alert.success{background:rgba(52,168,83,0.1);border-left:3px solid #34A853;}
+.alert.danger{background:rgba(234,67,53,0.1);border-left:3px solid #EA4335;}
+
+/* PROGRESS */
+.progress-wrap{margin-bottom:14px;}
+.progress-label{display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:5px;color:var(--muted);}
+.progress-bar{height:8px;background:var(--sky);border-radius:99px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:99px;transition:width .4s;}
+
+/* TABS */
+.tabs{display:flex;gap:4px;margin-bottom:18px;background:var(--sky);border-radius:10px;padding:4px;}
+.tab{padding:7px 16px;border-radius:8px;cursor:pointer;font-size:.82rem;font-weight:500;color:var(--muted);transition:.2s;}
+.tab.active{background:var(--card);color:var(--teal);box-shadow:0 1px 4px rgba(0,0,0,0.08);}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.show{display:flex;}
+.modal{background:var(--card);border-radius:20px;padding:28px;max-width:540px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);}
+.modal-title{font-family:'Sora',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;}
+.modal-close{width:30px;height:30px;border-radius:8px;border:none;cursor:pointer;background:var(--sky);color:var(--muted);font-size:1rem;}
+
+/* CHECKLIST */
+.checklist-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.checklist-item:last-child{border-bottom:none;}
+.chk-box{width:20px;height:20px;border-radius:6px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:.2s;}
+.chk-box.done{background:var(--teal);border-color:var(--teal);color:#fff;}
+.chk-text{font-size:.84rem;flex:1;}
+.chk-text.done{text-decoration:line-through;color:var(--muted);}
+.chk-pri{font-size:.65rem;padding:2px 7px;border-radius:99px;margin-left:auto;flex-shrink:0;}
+.chk-pri.high{background:rgba(234,67,53,0.1);color:#EA4335;}
+.chk-pri.med{background:rgba(245,166,35,0.1);color:#F5A623;}
+.chk-pri.low{background:rgba(52,168,83,0.1);color:#34A853;}
+
+/* RATIO CALC */
+.ratio-calc{background:var(--sky);border-radius:12px;padding:18px;}
+.ratio-result{font-family:'Sora',sans-serif;font-size:1.4rem;font-weight:700;color:var(--teal);}
+
+/* TOAST */
+.toast-wrap{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:999;}
+.toast{background:#0C3547;color:#fff;padding:12px 18px;border-radius:12px;font-size:.82rem;max-width:300px;animation:slide-in .3s ease;box-shadow:var(--shadow-lg);}
+.toast.success{border-left:4px solid #34A853;}
+.toast.error{border-left:4px solid #EA4335;}
+.toast.info{border-left:4px solid #4ECDC4;}
+@keyframes slide-in{from{transform:translateX(40px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+
+/* DARK MODE */
+body.dark .sidebar{background:#071520;}
+body.dark .form-input{background:#1a2d3d;color:#e8f4fd;}
+body.dark .topbar{background:#112233;}
+body.dark select.form-input option{background:#1a2d3d;}
+
+/* RESOURCE CARD */
+.resource-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;transition:.2s;cursor:pointer;}
+.resource-card:hover{box-shadow:var(--shadow-lg);border-color:var(--teal);}
+.resource-icon{font-size:1.8rem;margin-bottom:10px;}
+.resource-title{font-size:.9rem;font-weight:600;margin-bottom:5px;}
+.resource-desc{font-size:.78rem;color:var(--muted);}
+
+/* INCIDENT */
+.incident-log-item{padding:12px;background:var(--sky);border-radius:10px;margin-bottom:8px;font-size:.82rem;}
+.incident-log-item .inc-head{font-weight:600;margin-bottom:4px;}
+.incident-log-item .inc-meta{color:var(--muted);font-size:.73rem;}
+
+/* SETTINGS PANEL */
+.settings-section{margin-bottom:24px;}
+.settings-title{font-family:'Sora',sans-serif;font-size:.85rem;font-weight:700;margin-bottom:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+
+/* BILLING */
+.billing-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);font-size:.84rem;}
+.billing-row:last-child{border-bottom:none;}
+</style>
+</head>
+<body>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+  <div class="logo-wrap">
+    <div class="logo">Bright<span>Nest</span></div>
+    <div class="logo-sub">AI Daycare Hub v2.0</div>
+  </div>
+  <div class="nav">
+    <div class="nav-section">Overview</div>
+    <div class="nav-item active" onclick="showSection('dashboard',this)"><span class="icon">🏠</span>Dashboard</div>
+    <div class="nav-item" onclick="showSection('ai-assistant',this)"><span class="icon">🤖</span>NestAI Assistant</div>
+    <div class="nav-section">Operations</div>
+    <div class="nav-item" onclick="showSection('children',this)"><span class="icon">👧</span>Children <span class="nav-badge" id="children-count">8</span></div>
+    <div class="nav-item" onclick="showSection('attendance',this)"><span class="icon">📋</span>Attendance</div>
+    <div class="nav-item" onclick="showSection('staff',this)"><span class="icon">👩‍🏫</span>Staff <span class="nav-badge" id="staff-badge" style="background:#F5A623">1</span></div>
+    <div class="nav-item" onclick="showSection('billing',this)"><span class="icon">💵</span>Billing</div>
+    <div class="nav-section">Tools</div>
+    <div class="nav-item" onclick="showSection('incidents',this)"><span class="icon">⚠️</span>Incident Reports</div>
+    <div class="nav-item" onclick="showSection('launch-checklist',this)"><span class="icon">🚀</span>Launch Checklist</div>
+    <div class="nav-item" onclick="showSection('compliance',this)"><span class="icon">⚖️</span>Compliance</div>
+    <div class="nav-item" onclick="showSection('resources',this)"><span class="icon">📚</span>Resources</div>
+    <div class="nav-item" onclick="showSection('settings',this)"><span class="icon">⚙️</span>Settings</div>
+  </div>
+  <div class="sidebar-footer">BrightNest v2.0 · by Ting Lott<br><span style="color:rgba(255,255,255,0.2)">shop.artistrystore.com</span></div>
+</nav>
+
+<!-- MAIN -->
+<div class="main" id="main">
+  <div class="topbar">
+    <button class="icon-btn menu-btn" onclick="toggleSidebar()">☰</button>
+    <div class="topbar-title" id="page-title">Dashboard</div>
+    <div class="topbar-date" id="topbar-date"></div>
+    <div class="topbar-actions">
+      <button class="icon-btn" onclick="toggleDark()" title="Toggle dark mode" id="dark-btn">🌙</button>
+      <button class="icon-btn" onclick="showSection('settings',null)" title="Settings">⚙️</button>
+      <button class="btn btn-primary btn-sm" onclick="showSection('ai-assistant',null)">🤖 Ask NestAI</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ═══ DASHBOARD ═══ -->
+    <div class="section active" id="section-dashboard">
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-icon blue">👧</div><div><div class="stat-num" id="stat-children">28</div><div class="stat-label">Enrolled Children</div><div class="stat-delta">▲ 2 this month</div></div></div>
+        <div class="stat-card"><div class="stat-icon gold">✅</div><div><div class="stat-num" id="stat-present">24</div><div class="stat-label">Present Today</div><div class="stat-delta">86% attendance</div></div></div>
+        <div class="stat-card"><div class="stat-icon mint">👩‍🏫</div><div><div class="stat-num" id="stat-staff">5</div><div class="stat-label">Active Staff</div><div class="stat-delta">All rooms covered</div></div></div>
+        <div class="stat-card"><div class="stat-icon coral">💰</div><div><div class="stat-num">$8,420</div><div class="stat-label">Monthly Revenue</div><div class="stat-delta">▲ 12% vs last mo.</div></div></div>
+      </div>
+      <div class="two-col">
+        <div>
+          <div class="card">
+            <div class="card-title">🔔 Alerts <span class="pill">3 new</span></div>
+            <div class="alert warn">⚠️ <div><strong>David Chen</strong> — CPR certification expired. Renewal required within 30 days.</div></div>
+            <div class="alert info">📋 <div><strong>State Inspection</strong> scheduled for July 12. Run compliance check to prepare.</div></div>
+            <div class="alert success">✅ <div><strong>Staff-to-child ratios</strong> are fully met in all 4 rooms.</div></div>
+          </div>
+          <div class="card">
+            <div class="card-title">📊 Capacity Overview</div>
+            <div class="progress-wrap"><div class="progress-label"><span>🌻 Sunflower (Infants)</span><span>4/6</span></div><div class="progress-bar"><div class="progress-fill" style="width:67%;background:#1A7FA0"></div></div></div>
+            <div class="progress-wrap"><div class="progress-label"><span>🦋 Butterfly (Toddlers)</span><span>8/10</span></div><div class="progress-bar"><div class="progress-fill" style="width:80%;background:#4ECDC4"></div></div></div>
+            <div class="progress-wrap"><div class="progress-label"><span>🌈 Rainbow (Preschool)</span><span>10/12</span></div><div class="progress-bar"><div class="progress-fill" style="width:83%;background:#F5A623"></div></div></div>
+            <div class="progress-wrap"><div class="progress-label"><span>⭐ Stars (Pre-K)</span><span>6/8</span></div><div class="progress-bar"><div class="progress-fill" style="width:75%;background:#FF6B6B"></div></div></div>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="card-title">📅 Today's Quick Attendance</div>
+            <div id="dash-attendance"></div>
+            <button class="btn btn-outline btn-sm" style="margin-top:12px" onclick="showSection('attendance',null)">View Full Attendance →</button>
+          </div>
+          <div class="card">
+            <div class="card-title">⏱️ Activity Feed</div>
+            <div id="activity-feed" style="display:flex;flex-direction:column;gap:8px;font-size:.81rem;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ AI ASSISTANT ═══ -->
+    <div class="section" id="section-ai-assistant">
+      <div class="two-col">
+        <div>
+          <div class="ai-panel">
+            <div class="ai-header">
+              <div class="ai-avatar">🤖</div>
+              <div>
+                <div class="ai-name">NestAI — Your Daycare Assistant</div>
+                <div class="ai-status"><span class="ai-online-dot"></span>Powered by Grok AI</div>
+              </div>
+              <button class="btn btn-ghost btn-sm" style="margin-left:auto;color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.1)" onclick="clearChat()">Clear</button>
+            </div>
+            <div class="ai-messages" id="ai-messages">
+              <div class="msg bot"><div class="msg-bubble">👋 Hello! I'm NestAI, your AI-powered daycare assistant. I can help with compliance questions, parent communications, activity planning, staff schedules, incident reports, and more.<br><br>💡 <em>Tip: Add your xAI API key in Settings to enable full AI responses.</em></div><div class="msg-time">Just now</div></div>
+            </div>
+            <div class="ai-thinking" id="ai-thinking"><div class="dot-anim"><span></span><span></span><span></span></div><span style="color:rgba(255,255,255,0.4);font-size:.75rem;margin-left:6px">NestAI is thinking…</span></div>
+            <div class="ai-quick-btns">
+              <button class="quick-btn" onclick="sendQuick('What are the staff-to-child ratio requirements for infants in most US states?')">📐 Ratio rules</button>
+              <button class="quick-btn" onclick="sendQuick('Draft a parent newsletter for summer program starting July 1st')">📝 Newsletter</button>
+              <button class="quick-btn" onclick="sendQuick('Create a 5-day activity plan for toddlers aged 2-3 years old')">🎨 Activity plan</button>
+              <button class="quick-btn" onclick="sendQuick('What licenses and permits do I need to open a daycare center?')">📋 Licensing</button>
+              <button class="quick-btn" onclick="sendQuick('Write a professional incident report template for a minor playground scrape')">⚠️ Incident</button>
+            </div>
+            <div class="ai-input-row">
+              <input class="ai-input" id="ai-input" placeholder="Ask anything about your daycare…" onkeydown="if(event.key==='Enter')sendMessage()"/>
+              <button class="ai-send" onclick="sendMessage()">➤</button>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="card-title">💡 What NestAI Can Do</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div class="alert info">📋 <div><strong>Licensing & Compliance</strong> — Answer state-specific regs, draft checklists, inspection prep</div></div>
+              <div class="alert success">👨‍👩‍👧 <div><strong>Parent Communication</strong> — Newsletters, incident reports, policy updates</div></div>
+              <div class="alert warn">🎨 <div><strong>Activity Planning</strong> — Age-appropriate curriculum, lesson plans, meal ideas</div></div>
+              <div class="alert info">👩‍🏫 <div><strong>Staff Management</strong> — Schedules, job descriptions, training plans</div></div>
+              <div class="alert success">💰 <div><strong>Business Guidance</strong> — Pricing strategy, subsidy programs, budget templates</div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">📚 Quick Prompts</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div onclick="sendQuick('Help me write a parent handbook section on sick child policy')" class="resource-card" style="padding:10px 14px"><div style="font-size:.82rem">📖 Write a sick-child policy for parent handbook</div></div>
+              <div onclick="sendQuick('What CACFP food program requirements do I need to meet for my daycare?')" class="resource-card" style="padding:10px 14px"><div style="font-size:.82rem">🍽️ Explain CACFP food program requirements</div></div>
+              <div onclick="sendQuick('Create a complete fire drill procedure and documentation template for a daycare center')" class="resource-card" style="padding:10px 14px"><div style="font-size:.82rem">🔥 Generate a fire drill procedure template</div></div>
+              <div onclick="sendQuick('How do I set up a subsidy payment system for government-assisted families in my daycare?')" class="resource-card" style="padding:10px 14px"><div style="font-size:.82rem">💳 How to accept subsidy payments</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ CHILDREN ═══ -->
+    <div class="section" id="section-children">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <input class="form-input" style="width:220px;" placeholder="🔍 Search children…" oninput="filterChildren(this.value)"/>
+          <select class="form-input" style="width:160px;" onchange="filterByRoom(this.value)">
+            <option value="">All Rooms</option>
+            <option>🌻 Sunflower</option>
+            <option>🦋 Butterfly</option>
+            <option>🌈 Rainbow</option>
+            <option>⭐ Stars</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-outline btn-sm" onclick="exportChildrenCSV()">⬇ Export CSV</button>
+          <button class="btn btn-primary" onclick="openEnrollModal()">+ Enroll Child</button>
+        </div>
+      </div>
+      <div class="children-grid" id="children-grid"></div>
+    </div>
+
+    <!-- ═══ ATTENDANCE ═══ -->
+    <div class="section" id="section-attendance">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+        <div style="font-size:.9rem;color:var(--muted)">📅 <strong id="att-date"></strong></div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-outline btn-sm" onclick="exportAttendanceCSV()">⬇ Export CSV</button>
+          <button class="btn btn-primary btn-sm" onclick="checkInAll()">✅ Check In All Present</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="tabs">
+          <div class="tab active" onclick="switchTab(this,'att-all')">All Rooms</div>
+          <div class="tab" onclick="switchTab(this,'att-sun')">🌻 Sunflower</div>
+          <div class="tab" onclick="switchTab(this,'att-butt')">🦋 Butterfly</div>
+          <div class="tab" onclick="switchTab(this,'att-rain')">🌈 Rainbow</div>
+          <div class="tab" onclick="switchTab(this,'att-stars')">⭐ Stars</div>
+        </div>
+        <div class="tab-content active" id="att-all">
+          <table class="table"><thead><tr><th>Child</th><th>Room</th><th>Check-In</th><th>Check-Out</th><th>Status</th><th>Action</th></tr></thead><tbody id="att-tbody"></tbody></table>
+        </div>
+        <div class="tab-content" id="att-sun"><div id="att-sun-content"></div></div>
+        <div class="tab-content" id="att-butt"><div id="att-butt-content"></div></div>
+        <div class="tab-content" id="att-rain"><div id="att-rain-content"></div></div>
+        <div class="tab-content" id="att-stars"><div id="att-stars-content"></div></div>
+      </div>
+    </div>
+
+    <!-- ═══ STAFF ═══ -->
+    <div class="section" id="section-staff">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:16px;gap:8px;">
+        <button class="btn btn-outline btn-sm" onclick="exportStaffCSV()">⬇ Export CSV</button>
+        <button class="btn btn-primary" onclick="openAddStaffModal()">+ Add Staff Member</button>
+      </div>
+      <div class="card">
+        <div class="card-title">👩‍🏫 Staff Roster</div>
+        <table class="table"><thead><tr><th>Name</th><th>Role</th><th>Room</th><th>Ratio</th><th>CPR Cert.</th><th>Status</th><th></th></tr></thead><tbody id="staff-tbody"></tbody></table>
+      </div>
+      <div class="card">
+        <div class="card-title">📅 Weekly Schedule</div>
+        <div style="overflow-x:auto;"><table class="table"><thead><tr><th>Staff</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Total Hrs</th></tr></thead><tbody id="schedule-tbody"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- ═══ BILLING ═══ -->
+    <div class="section" id="section-billing">
+      <div class="stats-row" style="grid-template-columns:repeat(3,1fr);">
+        <div class="stat-card"><div class="stat-icon mint">💵</div><div><div class="stat-num">$8,420</div><div class="stat-label">This Month's Revenue</div></div></div>
+        <div class="stat-card"><div class="stat-icon gold">⏳</div><div><div class="stat-num">$1,240</div><div class="stat-label">Outstanding Balances</div></div></div>
+        <div class="stat-card"><div class="stat-icon coral">❌</div><div><div class="stat-num">$320</div><div class="stat-label">Overdue (30+ days)</div></div></div>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-title">📋 Family Billing Status</div>
+          <div id="billing-list"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">💳 Add / Record Payment</div>
+          <div class="form-row"><label class="form-label">Family Name</label><input class="form-input" id="pay-family" placeholder="e.g. Rodriguez Family"/></div>
+          <div class="form-row"><label class="form-label">Amount ($)</label><input class="form-input" id="pay-amount" type="number" placeholder="0.00"/></div>
+          <div class="form-row"><label class="form-label">Payment Method</label><select class="form-input" id="pay-method"><option>Cash</option><option>Check</option><option>Zelle</option><option>ACH/Bank Transfer</option><option>Credit Card</option><option>Subsidy</option></select></div>
+          <div class="form-row"><label class="form-label">Notes</label><input class="form-input" id="pay-notes" placeholder="Optional note…"/></div>
+          <button class="btn btn-primary" onclick="recordPayment()">Record Payment</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ INCIDENTS ═══ -->
+    <div class="section" id="section-incidents">
+      <div class="two-col">
+        <div class="card">
+          <div class="card-title">⚠️ Log New Incident</div>
+          <div class="form-row"><label class="form-label">Child Name</label><input class="form-input" id="inc-child" placeholder="Full name"/></div>
+          <div class="form-row"><label class="form-label">Date & Time</label><input class="form-input" id="inc-date" type="datetime-local"/></div>
+          <div class="form-row"><label class="form-label">Location</label><input class="form-input" id="inc-location" placeholder="e.g. Outdoor playground"/></div>
+          <div class="form-row"><label class="form-label">Type</label><select class="form-input" id="inc-type"><option>Minor Injury</option><option>Allergic Reaction</option><option>Behavioral Incident</option><option>Illness</option><option>Accident</option><option>Property Damage</option><option>Other</option></select></div>
+          <div class="form-row"><label class="form-label">Description</label><textarea class="form-input" id="inc-desc" rows="3" placeholder="Describe what happened…"></textarea></div>
+          <div class="form-row"><label class="form-label">Action Taken</label><textarea class="form-input" id="inc-action" rows="2" placeholder="First aid, parent notified, etc."></textarea></div>
+          <div class="form-row"><label class="form-label">Reported By</label><input class="form-input" id="inc-reporter" placeholder="Staff name"/></div>
+          <div style="display:flex;gap:8px;margin-top:4px;">
+            <button class="btn btn-primary" onclick="saveIncident()">Save Report</button>
+            <button class="btn btn-outline" onclick="generateIncidentWithAI()">🤖 Draft with NestAI</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">📄 Incident Log <span class="pill" id="inc-count">0</span></div>
+          <div id="incident-log"></div>
+          <button class="btn btn-outline btn-sm" style="margin-top:12px" onclick="exportIncidentCSV()">⬇ Export CSV</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ LAUNCH CHECKLIST ═══ -->
+    <div class="section" id="section-launch-checklist">
+      <div class="card" style="margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+          <div style="flex:1"><div style="font-size:.82rem;color:var(--muted);margin-bottom:6px">Overall Completion</div><div class="progress-bar" style="height:12px;"><div class="progress-fill" id="checklist-progress" style="background:linear-gradient(90deg,#1A7FA0,#4ECDC4)"></div></div></div>
+          <div style="font-family:'Sora',sans-serif;font-size:1.5rem;font-weight:700;color:var(--teal)" id="checklist-pct">0%</div>
+        </div>
+      </div>
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab(this,'cl-p1')">Phase 1: Foundation</div>
+        <div class="tab" onclick="switchTab(this,'cl-p2')">Phase 2: Licensing</div>
+        <div class="tab" onclick="switchTab(this,'cl-p3')">Phase 3: Setup</div>
+        <div class="tab" onclick="switchTab(this,'cl-p4')">Phase 4: Launch</div>
+      </div>
+      <div class="tab-content active" id="cl-p1"><div class="card"><div id="checklist-p1"></div></div></div>
+      <div class="tab-content" id="cl-p2"><div class="card"><div id="checklist-p2"></div></div></div>
+      <div class="tab-content" id="cl-p3"><div class="card"><div id="checklist-p3"></div></div></div>
+      <div class="tab-content" id="cl-p4"><div class="card"><div id="checklist-p4"></div></div></div>
+    </div>
+
+    <!-- ═══ COMPLIANCE ═══ -->
+    <div class="section" id="section-compliance">
+      <div class="two-col">
+        <div>
+          <div class="card">
+            <div class="card-title">📐 Staff-to-Child Ratio Calculator</div>
+            <div class="ratio-calc">
+              <div class="form-grid" style="margin-bottom:14px;">
+                <div><label class="form-label">Age Group</label><select class="form-input" id="ratio-age" onchange="calcRatio()"><option value="infant">Infants (0–12 mo)</option><option value="toddler">Toddlers (1–2 yr)</option><option value="preschool">Preschool (3–4 yr)</option><option value="prek">Pre-K (4–5 yr)</option></select></div>
+                <div><label class="form-label">Number of Children</label><input class="form-input" id="ratio-children" type="number" value="8" oninput="calcRatio()"/></div>
+              </div>
+              <div style="font-size:.8rem;color:var(--muted);margin-bottom:8px">Recommended staff needed:</div>
+              <div class="ratio-result" id="ratio-result">2 staff members</div>
+              <div style="font-size:.75rem;color:var(--muted);margin-top:6px" id="ratio-detail">Based on 1:4 ratio for infants</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">📅 Compliance Deadlines</div>
+            <div id="compliance-deadlines"></div>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="card-title">✅ Compliance Checklist</div>
+            <div id="compliance-checklist"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ RESOURCES ═══ -->
+    <div class="section" id="section-resources">
+      <div class="card" style="background:linear-gradient(135deg,#0C3547,#1A5A73);color:#fff;border:none;">
+        <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+          <div style="font-size:3rem;">📖</div>
+          <div>
+            <div style="font-family:'Sora',sans-serif;font-size:1.2rem;font-weight:700;margin-bottom:4px;">Trust by Design</div>
+            <div style="font-size:.85rem;opacity:.8;margin-bottom:12px;">Building a Childcare Brand That Families Believe In · by Ting Lott</div>
+            <div style="font-size:.8rem;opacity:.65;max-width:500px;">Your bonus guide to building authentic trust with families — from branding psychology to transparent communication strategies for childcare providers.</div>
+          </div>
+        </div>
+      </div>
+      <div class="three-col" style="margin-top:20px;">
+        <div class="resource-card" onclick="openResource('handbook')"><div class="resource-icon">📋</div><div class="resource-title">Parent Handbook Template</div><div class="resource-desc">Complete editable handbook with policies, procedures, and health protocols.</div></div>
+        <div class="resource-card" onclick="openResource('enrollment')"><div class="resource-icon">📝</div><div class="resource-title">Enrollment Forms Bundle</div><div class="resource-desc">Child enrollment, emergency contacts, media release, and allergy forms.</div></div>
+        <div class="resource-card" onclick="openResource('checklist-pdf')"><div class="resource-icon">✅</div><div class="resource-title">State Licensing Checklist</div><div class="resource-desc">General checklist for pre-licensing requirements across most US states.</div></div>
+        <div class="resource-card" onclick="openResource('ratios')"><div class="resource-icon">📐</div><div class="resource-title">Ratio Reference Card</div><div class="resource-desc">Quick reference for staff-to-child ratios by age group and room type.</div></div>
+        <div class="resource-card" onclick="openResource('newsletter')"><div class="resource-icon">📰</div><div class="resource-title">Monthly Newsletter Template</div><div class="resource-desc">Professional newsletter template to keep families informed and engaged.</div></div>
+        <div class="resource-card" onclick="openResource('emergency')"><div class="resource-icon">🚨</div><div class="resource-title">Emergency Procedures Manual</div><div class="resource-desc">Fire drill, lockdown, medical emergency, and evacuation procedures.</div></div>
+        <div class="resource-card" onclick="openResource('cacfp')"><div class="resource-icon">🍽️</div><div class="resource-title">CACFP Food Program Guide</div><div class="resource-desc">How to apply, meal pattern requirements, and reimbursement overview.</div></div>
+        <div class="resource-card" onclick="openResource('subsidy')"><div class="resource-icon">💳</div><div class="resource-title">Subsidy Payment Guide</div><div class="resource-desc">Accepting CCAP, CCDF, and government subsidy payments for families.</div></div>
+        <div class="resource-card" onclick="openResource('branding')"><div class="resource-icon">✨</div><div class="resource-title">Branding Starter Kit</div><div class="resource-desc">Based on "Trust by Design" — logo checklist, brand voice, family comms tips.</div></div>
+      </div>
+    </div>
+
+    <!-- ═══ SETTINGS ═══ -->
+    <div class="section" id="section-settings">
+      <div style="max-width:600px;">
+        <div class="card">
+          <div class="settings-title">🤖 AI Configuration</div>
+          <div class="form-row">
+            <label class="form-label">xAI API Key (for NestAI)</label>
+            <input class="form-input" id="settings-apikey" type="password" placeholder="xai-xxxxxxxxxxxxxxxx"/>
+            <div style="font-size:.73rem;color:var(--muted);margin-top:5px;">Get your free key at <strong>x.ai</strong> → API. Your key is stored locally only — never sent to any server except xAI.</div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="saveApiKey()">Save Key</button>
+        </div>
+        <div class="card">
+          <div class="settings-title">🏫 Daycare Info</div>
+          <div class="form-row"><label class="form-label">Daycare Name</label><input class="form-input" id="s-name" placeholder="My BrightNest Center"/></div>
+          <div class="form-row"><label class="form-label">Director Name</label><input class="form-input" id="s-director" placeholder="Your name"/></div>
+          <div class="form-row"><label class="form-label">State</label><select class="form-input" id="s-state"><option>Select State</option><option>Alabama</option><option>Alaska</option><option>Arizona</option><option>Arkansas</option><option>California</option><option>Colorado</option><option>Connecticut</option><option>Florida</option><option>Georgia</option><option>Illinois</option><option>Michigan</option><option>New York</option><option>North Carolina</option><option>Ohio</option><option>Pennsylvania</option><option>Tennessee</option><option>Texas</option><option>Virginia</option><option>Washington</option></select></div>
+          <div class="form-row"><label class="form-label">License Number</label><input class="form-input" id="s-license" placeholder="Optional"/></div>
+          <button class="btn btn-primary btn-sm" onclick="saveDaycareInfo()">Save Info</button>
+        </div>
+        <div class="card">
+          <div class="settings-title">🎨 Appearance</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;">
+            <div><div style="font-size:.85rem;font-weight:600">Dark Mode</div><div style="font-size:.75rem;color:var(--muted)">Easier on the eyes during late-night planning</div></div>
+            <button class="btn btn-outline btn-sm" onclick="toggleDark()" id="dark-toggle-btn">Enable</button>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--border);">
+            <div><div style="font-size:.85rem;font-weight:600">Clear All Data</div><div style="font-size:.75rem;color:var(--muted)">Reset app to factory defaults</div></div>
+            <button class="btn btn-coral btn-sm" onclick="clearAllData()">Reset</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="settings-title">ℹ️ About BrightNest</div>
+          <div style="font-size:.83rem;color:var(--muted);line-height:1.7;">
+            <strong style="color:var(--deep)">BrightNest AI Daycare Hub v2.0</strong><br>
+            Built for childcare providers who want to run smarter operations with the power of AI.<br><br>
+            Created by <strong>Ting Lott</strong> · <a href="https://shop.artistrystore.com" target="_blank" style="color:var(--teal)">shop.artistrystore.com</a><br>
+            Includes <em>Trust by Design</em> bonus guide.<br><br>
+            All data is stored locally in your browser — nothing is sent to any server except xAI when using NestAI.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- MODALS -->
+<div class="modal-overlay" id="enroll-modal">
+  <div class="modal">
+    <div class="modal-title">👧 Enroll New Child <button class="modal-close" onclick="closeModal('enroll-modal')">✕</button></div>
+    <div class="form-grid">
+      <div class="form-row"><label class="form-label">First Name*</label><input class="form-input" id="e-fname" placeholder="First name"/></div>
+      <div class="form-row"><label class="form-label">Last Name*</label><input class="form-input" id="e-lname" placeholder="Last name"/></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-row"><label class="form-label">Age</label><input class="form-input" id="e-age" placeholder="e.g. 2y 4m"/></div>
+      <div class="form-row"><label class="form-label">Room</label><select class="form-input" id="e-room"><option>🌻 Sunflower</option><option>🦋 Butterfly</option><option>🌈 Rainbow</option><option>⭐ Stars</option></select></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-row"><label class="form-label">Parent/Guardian</label><input class="form-input" id="e-parent" placeholder="Parent name"/></div>
+      <div class="form-row"><label class="form-label">Phone</label><input class="form-input" id="e-phone" placeholder="(555) 000-0000"/></div>
+    </div>
+    <div class="form-row"><label class="form-label">Allergies / Medical Notes</label><input class="form-input" id="e-allergy" placeholder="None or list allergies"/></div>
+    <div class="form-row"><label class="form-label">Monthly Tuition ($)</label><input class="form-input" id="e-tuition" type="number" placeholder="0"/></div>
+    <div style="display:flex;gap:10px;margin-top:8px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="closeModal('enroll-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="enrollChild()">Enroll Child ✓</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="child-detail-modal">
+  <div class="modal">
+    <div class="modal-title"><span id="cd-title">Child Details</span> <button class="modal-close" onclick="closeModal('child-detail-modal')">✕</button></div>
+    <div id="child-detail-body"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="staff-modal">
+  <div class="modal">
+    <div class="modal-title">👩‍🏫 Add Staff Member <button class="modal-close" onclick="closeModal('staff-modal')">✕</button></div>
+    <div class="form-grid">
+      <div class="form-row"><label class="form-label">First Name*</label><input class="form-input" id="sf-fname" placeholder="First name"/></div>
+      <div class="form-row"><label class="form-label">Last Name*</label><input class="form-input" id="sf-lname" placeholder="Last name"/></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-row"><label class="form-label">Role</label><select class="form-input" id="sf-role"><option>Lead Teacher</option><option>Assistant Teacher</option><option>Aide</option><option>Director</option><option>Cook</option><option>Admin</option></select></div>
+      <div class="form-row"><label class="form-label">Room</label><select class="form-input" id="sf-room"><option>🌻 Sunflower</option><option>🦋 Butterfly</option><option>🌈 Rainbow</option><option>⭐ Stars</option><option>Admin</option></select></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-row"><label class="form-label">CPR Expiry Date</label><input class="form-input" id="sf-cpr" type="date"/></div>
+      <div class="form-row"><label class="form-label">Phone</label><input class="form-input" id="sf-phone" placeholder="(555) 000-0000"/></div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
+      <button class="btn btn-ghost" onclick="closeModal('staff-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addStaff()">Add Staff ✓</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="resource-modal">
+  <div class="modal" style="max-width:680px;">
+    <div class="modal-title"><span id="res-title">Resource</span> <button class="modal-close" onclick="closeModal('resource-modal')">✕</button></div>
+    <div id="res-body" style="font-size:.84rem;line-height:1.75;color:var(--muted);max-height:65vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<script>
+// ─── DATA ───
+const DEFAULTS = {
+  children: [
+    {id:1,fname:'Emma',lname:'Rodriguez',age:'2y 4m',room:'🦋 Butterfly',status:'present',emoji:'👧',color:'#1A7FA0',parent:'Maria Rodriguez',phone:'(555)123-4567',allergies:'None',tuition:850},
+    {id:2,fname:'Liam',lname:'Thompson',age:'1y 8m',room:'🌻 Sunflower',status:'present',emoji:'👦',color:'#4ECDC4',parent:'James Thompson',phone:'(555)234-5678',allergies:'Peanuts',tuition:900},
+    {id:3,fname:'Sofia',lname:'Nguyen',age:'3y 1m',room:'🌈 Rainbow',status:'present',emoji:'👧',color:'#F5A623',parent:'Lily Nguyen',phone:'(555)345-6789',allergies:'None',tuition:800},
+    {id:4,fname:'Marcus',lname:'Patel',age:'4y 2m',room:'⭐ Stars',status:'pickup',emoji:'👦',color:'#FF6B6B',parent:'Priya Patel',phone:'(555)456-7890',allergies:'Dairy',tuition:780},
+    {id:5,fname:'Ava',lname:'Kim',age:'2y 9m',room:'🦋 Butterfly',status:'present',emoji:'👧',color:'#9C27B0',parent:'Sue Kim',phone:'(555)567-8901',allergies:'None',tuition:850},
+    {id:6,fname:'Noah',lname:'Williams',age:'3y 5m',room:'🌈 Rainbow',status:'absent',emoji:'👦',color:'#795548',parent:'Dale Williams',phone:'(555)678-9012',allergies:'None',tuition:800},
+    {id:7,fname:'Isabella',lname:'Davis',age:'1y 2m',room:'🌻 Sunflower',status:'present',emoji:'👧',color:'#E91E63',parent:'Tara Davis',phone:'(555)789-0123',allergies:'Eggs',tuition:900},
+    {id:8,fname:'Ethan',lname:'Brown',age:'4y 0m',room:'⭐ Stars',status:'present',emoji:'👦',color:'#607D8B',parent:'Greg Brown',phone:'(555)890-1234',allergies:'None',tuition:780}
+  ],
+  staff: [
+    {id:1,fname:'Maria',lname:'Johnson',role:'Lead Teacher',room:'🌈 Rainbow',cpr:'2025-12-01',phone:'(555)111-2222',status:'active'},
+    {id:2,fname:'Tanya',lname:'Peters',role:'Assistant Teacher',room:'🦋 Butterfly',cpr:'2026-03-15',phone:'(555)222-3333',status:'active'},
+    {id:3,fname:'David',lname:'Chen',role:'Lead Teacher',room:'🌻 Sunflower',cpr:'2023-08-01',phone:'(555)333-4444',status:'renewal'},
+    {id:4,fname:'Sandra',lname:'Rivera',role:'Director',room:'Admin',cpr:'2026-09-01',phone:'(555)444-5555',status:'active'},
+    {id:5,fname:'Amara',lname:'King',role:'Aide',room:'⭐ Stars',cpr:'2026-06-01',phone:'(555)555-6666',status:'active'}
+  ],
+  incidents: [],
+  checklist: {
+    p1: [
+      {text:'Define daycare type (home-based, center, franchise)',done:true,pri:'high'},
+      {text:'Write a business plan with projected revenue and costs',done:true,pri:'high'},
+      {text:'Research your state licensing agency requirements',done:true,pri:'high'},
+      {text:'Choose a legal structure (LLC recommended)',done:false,pri:'high'},
+      {text:'Register your business name with the state',done:false,pri:'high'},
+      {text:'Open a dedicated business bank account',done:false,pri:'med'},
+      {text:'Get liability and property insurance quotes',done:false,pri:'high'},
+      {text:'Create a fee schedule and enrollment policies',done:false,pri:'med'}
+    ],
+    p2: [
+      {text:'Complete state pre-licensing orientation/training',done:true,pri:'high'},
+      {text:'Submit licensing application and pay fees',done:false,pri:'high'},
+      {text:'Pass criminal background checks (all adults in home/center)',done:true,pri:'high'},
+      {text:'Complete pediatric First Aid & CPR certification',done:false,pri:'high'},
+      {text:'Obtain health screenings and TB test',done:false,pri:'high'},
+      {text:'Register for EIN (Federal Tax ID)',done:false,pri:'high'},
+      {text:'Apply for Child & Adult Care Food Program (CACFP)',done:false,pri:'med'},
+      {text:'Secure required square footage per child',done:false,pri:'high'}
+    ],
+    p3: [
+      {text:'Purchase age-appropriate furniture and equipment',done:false,pri:'high'},
+      {text:'Set up outdoor play area with safety surfacing',done:false,pri:'high'},
+      {text:'Install emergency exits and fire suppression',done:false,pri:'high'},
+      {text:'Create daily schedule and curriculum framework',done:false,pri:'med'},
+      {text:'Set up childcare management software',done:true,pri:'med'},
+      {text:'Draft staff handbook and employment contracts',done:false,pri:'high'},
+      {text:'Purchase supplies: art, sensory, books, blocks',done:false,pri:'med'},
+      {text:'Create parent communication system',done:false,pri:'med'}
+    ],
+    p4: [
+      {text:'Host a center open house for prospective families',done:false,pri:'high'},
+      {text:'Launch Google Business Profile and website',done:false,pri:'med'},
+      {text:'Announce on local community Facebook groups',done:false,pri:'med'},
+      {text:'Distribute flyers at pediatricians and OB offices',done:false,pri:'med'},
+      {text:'Enroll first cohort of children (aim for 50% capacity)',done:false,pri:'high'},
+      {text:'Pass initial state licensing inspection',done:false,pri:'high'},
+      {text:'Set up accounting system (QuickBooks or Wave)',done:false,pri:'med'},
+      {text:'Schedule first staff training day',done:false,pri:'med'}
+    ]
+  },
+  payments: [
+    {family:'Rodriguez Family',child:'Emma',amount:850,method:'ACH',date:'2026-06-01',status:'paid'},
+    {family:'Thompson Family',child:'Liam',amount:900,method:'Check',date:'2026-06-01',status:'paid'},
+    {family:'Nguyen Family',child:'Sofia',amount:800,method:'Zelle',date:'2026-06-03',status:'paid'},
+    {family:'Patel Family',child:'Marcus',amount:780,method:'Cash',date:'',status:'due'},
+    {family:'Kim Family',child:'Ava',amount:850,method:'ACH',date:'2026-06-01',status:'paid'},
+    {family:'Williams Family',child:'Noah',amount:800,method:'',date:'',status:'overdue'},
+    {family:'Davis Family',child:'Isabella',amount:900,method:'Zelle',date:'2026-06-02',status:'paid'},
+    {family:'Brown Family',child:'Ethan',amount:780,method:'Check',date:'',status:'due'}
+  ],
+  compliance: [
+    {item:'Smoke detectors tested monthly',done:true},
+    {item:'Fire extinguisher inspected (annual)',done:true},
+    {item:'Emergency evacuation plan posted',done:true},
+    {item:'First aid kit fully stocked',done:false},
+    {item:'All staff CPR certifications current',done:false},
+    {item:'Medication authorization forms on file',done:true},
+    {item:'Child immunization records current',done:false},
+    {item:'Daily health checks documented',done:true},
+    {item:'Ratios maintained in all rooms',done:true},
+    {item:'Incident log up to date',done:true}
+  ]
+};
+
+// ─── STATE ───
+let children, staff, incidents, checklist, payments, compliance;
+let activityFeed = [];
+
+function loadData() {
+  children = JSON.parse(localStorage.getItem('bn_children')) || JSON.parse(JSON.stringify(DEFAULTS.children));
+  staff = JSON.parse(localStorage.getItem('bn_staff')) || JSON.parse(JSON.stringify(DEFAULTS.staff));
+  incidents = JSON.parse(localStorage.getItem('bn_incidents')) || [];
+  checklist = JSON.parse(localStorage.getItem('bn_checklist')) || JSON.parse(JSON.stringify(DEFAULTS.checklist));
+  payments = JSON.parse(localStorage.getItem('bn_payments')) || JSON.parse(JSON.stringify(DEFAULTS.payments));
+  compliance = JSON.parse(localStorage.getItem('bn_compliance')) || JSON.parse(JSON.stringify(DEFAULTS.compliance));
+}
+
+function saveData() {
+  localStorage.setItem('bn_children', JSON.stringify(children));
+  localStorage.setItem('bn_staff', JSON.stringify(staff));
+  localStorage.setItem('bn_incidents', JSON.stringify(incidents));
+  localStorage.setItem('bn_checklist', JSON.stringify(checklist));
+  localStorage.setItem('bn_payments', JSON.stringify(payments));
+  localStorage.setItem('bn_compliance', JSON.stringify(compliance));
+}
+
+// ─── TOAST ───
+function toast(msg, type='info') {
+  const w = document.getElementById('toast-wrap');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  w.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+// ─── NAV ───
+function showSection(id, navEl) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('section-' + id).classList.add('active');
+  if (navEl) navEl.classList.add('active');
+  else {
+    document.querySelectorAll('.nav-item').forEach(n => {
+      if (n.getAttribute('onclick') && n.getAttribute('onclick').includes("'" + id + "'")) n.classList.add('active');
+    });
+  }
+  const titles = {dashboard:'Dashboard','ai-assistant':'NestAI Assistant',children:'Children',attendance:'Attendance',staff:'Staff',billing:'Billing',incidents:'Incident Reports','launch-checklist':'Launch Checklist',compliance:'Compliance',resources:'Resources',settings:'Settings'};
+  document.getElementById('page-title').textContent = titles[id] || id;
+  if (id === 'attendance') renderAttendance();
+  if (id === 'children') renderChildren(children);
+  if (id === 'staff') renderStaff();
+  if (id === 'billing') renderBilling();
+  if (id === 'launch-checklist') renderChecklist();
+  if (id === 'compliance') renderCompliance();
+  if (id === 'incidents') renderIncidents();
+}
+
+function toggleSidebar() {
+  const s = document.getElementById('sidebar');
+  s.classList.toggle('open');
+}
+
+// ─── DARK MODE ───
+function toggleDark() {
+  document.body.classList.toggle('dark');
+  const on = document.body.classList.contains('dark');
+  localStorage.setItem('bn_dark', on ? '1' : '0');
+  document.getElementById('dark-btn').textContent = on ? '☀️' : '🌙';
+  const btn = document.getElementById('dark-toggle-btn');
+  if (btn) btn.textContent = on ? 'Disable' : 'Enable';
+}
+
+// ─── DATE ───
+const now = new Date();
+document.getElementById('topbar-date').textContent = now.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+document.getElementById('att-date').textContent = now.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+
+// ─── TABS ───
+function switchTab(el, contentId) {
+  const container = el.closest('.card, .section');
+  container.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  container.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById(contentId).classList.add('active');
+}
+
+// ─── MODALS ───
+function openEnrollModal() {
+  ['e-fname','e-lname','e-age','e-parent','e-phone','e-allergy'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('e-tuition').value = '';
+  document.getElementById('enroll-modal').classList.add('show');
+}
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+// ─── CHILDREN ───
+const statusLabels = {present:'Present',absent:'Absent',pickup:'Pickup Soon'};
+const statusColors = {present:'present',absent:'absent',pickup:'pickup'};
+
+function renderChildren(data) {
+  const grid = document.getElementById('children-grid');
+  document.getElementById('children-count').textContent = children.length;
+  grid.innerHTML = data.map(c => `
+    <div class="child-card" onclick="viewChild(${c.id})">
+      <div class="child-actions">
+        <button class="child-act-btn" style="background:var(--sky);color:var(--teal)" onclick="event.stopPropagation();editChildStatus(${c.id})" title="Change status">🔄</button>
+        <button class="child-act-btn" style="background:#fff0f0;color:#EA4335" onclick="event.stopPropagation();removeChild(${c.id})" title="Remove">✕</button>
+      </div>
+      <div class="child-avatar" style="background:${c.color}">${c.emoji}</div>
+      <div class="child-name">${c.fname} ${c.lname}</div>
+      <div class="child-age">${c.age}</div>
+      <div class="child-room">${c.room}</div>
+      <div class="child-status"><div class="status-dot ${statusColors[c.status]}"></div><span style="font-size:.72rem;color:var(--muted)">${statusLabels[c.status]}</span></div>
+    </div>`).join('');
+  // dash attendance
+  const da = document.getElementById('dash-attendance');
+  if (da) da.innerHTML = data.slice(0,6).map(c => `
+    <div class="billing-row">
+      <span>${c.emoji} ${c.fname} ${c.lname}</span>
+      <span class="badge ${statusColors[c.status]}">${statusLabels[c.status]}</span>
+    </div>`).join('');
+}
+
+function filterChildren(q) {
+  renderChildren(children.filter(c => (c.fname+' '+c.lname).toLowerCase().includes(q.toLowerCase()) || c.room.toLowerCase().includes(q.toLowerCase())));
+}
+function filterByRoom(r) {
+  renderChildren(r ? children.filter(c => c.room === r) : children);
+}
+
+function viewChild(id) {
+  const c = children.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('cd-title').textContent = c.emoji + ' ' + c.fname + ' ' + c.lname;
+  document.getElementById('child-detail-body').innerHTML = `
+    <div class="form-grid" style="margin-bottom:12px;">
+      <div><div class="form-label">Room</div><div style="font-size:.88rem">${c.room}</div></div>
+      <div><div class="form-label">Age</div><div style="font-size:.88rem">${c.age}</div></div>
+      <div><div class="form-label">Status</div><span class="badge ${statusColors[c.status]}">${statusLabels[c.status]}</span></div>
+      <div><div class="form-label">Tuition/mo</div><div style="font-size:.88rem">$${c.tuition||'—'}</div></div>
+      <div><div class="form-label">Parent/Guardian</div><div style="font-size:.88rem">${c.parent||'—'}</div></div>
+      <div><div class="form-label">Phone</div><div style="font-size:.88rem">${c.phone||'—'}</div></div>
+    </div>
+    <div class="form-row"><div class="form-label">Allergies / Medical</div><div class="alert ${c.allergies==='None'||!c.allergies?'success':'danger'}">${c.allergies==='None'||!c.allergies?'✅ No known allergies':'⚠️ '+c.allergies}</div></div>
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <select class="form-input" id="cd-status-sel" style="flex:1">
+        <option value="present" ${c.status==='present'?'selected':''}>Present</option>
+        <option value="absent" ${c.status==='absent'?'selected':''}>Absent</option>
+        <option value="pickup" ${c.status==='pickup'?'selected':''}>Pickup Soon</option>
+      </select>
+      <button class="btn btn-primary btn-sm" onclick="updateChildStatus(${c.id})">Update Status</button>
+    </div>`;
+  document.getElementById('child-detail-modal').classList.add('show');
+}
+
+function updateChildStatus(id) {
+  const c = children.find(x => x.id === id);
+  if (!c) return;
+  c.status = document.getElementById('cd-status-sel').value;
+  saveData();
+  renderChildren(children);
+  closeModal('child-detail-modal');
+  addActivity(`Status updated: ${c.fname} ${c.lname} → ${statusLabels[c.status]}`);
+  toast(`${c.fname}'s status updated ✓`, 'success');
+}
+
+function editChildStatus(id) {
+  const c = children.find(x => x.id === id);
+  if (!c) return;
+  const statuses = ['present','absent','pickup'];
+  const cur = statuses.indexOf(c.status);
+  c.status = statuses[(cur+1) % statuses.length];
+  saveData();
+  renderChildren(children);
+  toast(`${c.fname}: ${statusLabels[c.status]}`, 'info');
+}
+
+function removeChild(id) {
+  const c = children.find(x => x.id === id);
+  if (!c || !confirm(`Remove ${c.fname} ${c.lname} from enrollment?`)) return;
+  children = children.filter(x => x.id !== id);
+  saveData();
+  renderChildren(children);
+  toast(`${c.fname} removed`, 'info');
+}
+
+function enrollChild() {
+  const fname = document.getElementById('e-fname').value.trim();
+  const lname = document.getElementById('e-lname').value.trim();
+  if (!fname || !lname) { toast('Please enter first and last name', 'error'); return; }
+  const colors = ['#1A7FA0','#4ECDC4','#F5A623','#FF6B6B','#9C27B0','#E91E63','#34A853'];
+  const emojis = ['👧','👦'];
+  const newChild = {
+    id: Date.now(),
+    fname, lname,
+    age: document.getElementById('e-age').value || '—',
+    room: document.getElementById('e-room').value,
+    status: 'present',
+    emoji: emojis[Math.floor(Math.random()*2)],
+    color: colors[Math.floor(Math.random()*colors.length)],
+    parent: document.getElementById('e-parent').value,
+    phone: document.getElementById('e-phone').value,
+    allergies: document.getElementById('e-allergy').value || 'None',
+    tuition: parseFloat(document.getElementById('e-tuition').value) || 0
+  };
+  children.push(newChild);
+  saveData();
+  renderChildren(children);
+  closeModal('enroll-modal');
+  addActivity(`New enrollment: ${fname} ${lname}`);
+  toast(`${fname} enrolled successfully! 🎉`, 'success');
+}
+
+// ─── ATTENDANCE ───
+function renderAttendance() {
+  const tbody = document.getElementById('att-tbody');
+  tbody.innerHTML = children.map(c => {
+    const ci = c.status !== 'absent' ? `7:${String(Math.floor(Math.random()*50)+10).padStart(2,'0')} AM` : '—';
+    return `<tr>
+      <td><strong>${c.fname} ${c.lname}</strong></td>
+      <td>${c.room}</td>
+      <td>${ci}</td>
+      <td>—</td>
+      <td><span class="badge ${statusColors[c.status]}">${statusLabels[c.status]}</span></td>
+      <td><button class="btn btn-outline btn-sm" onclick="toggleAttendance(${c.id})">${c.status==='present'?'Check Out':c.status==='absent'?'Check In':'Confirm'}</button></td>
+    </tr>`;
+  }).join('');
+  // Room tabs
+  ['sun','butt','rain','stars'].forEach((key,i) => {
+    const roomMap = {sun:'🌻 Sunflower',butt:'🦋 Butterfly',rain:'🌈 Rainbow',stars:'⭐ Stars'};
+    const room = roomMap[key];
+    const roomKids = children.filter(c => c.room === room);
+    const present = roomKids.filter(c => c.status === 'present').length;
+    document.getElementById(`att-${key}-content`).innerHTML = `<p style="color:var(--muted);font-size:.85rem;padding:8px 0;">${room}: <strong>${roomKids.length}</strong> enrolled · <strong>${present}</strong> present today</p>
+      <table class="table"><thead><tr><th>Child</th><th>Status</th><th>Action</th></tr></thead><tbody>${roomKids.map(c=>`<tr><td>${c.emoji} ${c.fname} ${c.lname}</td><td><span class="badge ${statusColors[c.status]}">${statusLabels[c.status]}</span></td><td><button class="btn btn-outline btn-sm" onclick="toggleAttendance(${c.id})">Toggle</button></td></tr>`).join('')}</tbody></table>`;
+  });
+}
+
+function toggleAttendance(id) {
+  const c = children.find(x => x.id === id);
+  if (!c) return;
+  c.status = c.status === 'absent' ? 'present' : 'absent';
+  saveData();
+  renderAttendance();
+  renderChildren(children);
+  toast(`${c.fname}: ${statusLabels[c.status]}`, 'info');
+}
+
+function checkInAll() {
+  children.forEach(c => { if (c.status === 'absent') c.status = 'present'; });
+  saveData();
+  renderAttendance();
+  renderChildren(children);
+  toast('All children marked present ✅', 'success');
+}
+
+// ─── STAFF ───
+function renderStaff() {
+  const tbody = document.getElementById('staff-tbody');
+  tbody.innerHTML = staff.map(s => {
+    const cprDate = s.cpr ? new Date(s.cpr) : null;
+    const expired = cprDate && cprDate < new Date();
+    return `<tr>
+      <td><span class="avatar-sm" style="background:${s.status==='active'?'#1A7FA0':'#F5A623'}">${s.fname[0]}${s.lname[0]}</span>${s.fname} ${s.lname}</td>
+      <td>${s.role}</td>
+      <td>${s.room}</td>
+      <td>✅</td>
+      <td>${expired?'<span style="color:#EA4335">Expired ⚠️</span>':s.cpr||'—'}</td>
+      <td><span class="badge ${s.status==='active'?'paid':'due'}">${s.status==='active'?'Active':'Renewal Due'}</span></td>
+      <td><button class="btn btn-ghost btn-sm" onclick="removeStaff(${s.id})">✕</button></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('staff-badge').textContent = staff.filter(s=>s.status==='renewal').length||'';
+  // schedule
+  document.getElementById('schedule-tbody').innerHTML = staff.slice(0,4).map(s => {
+    const days = ['7a–3p','9a–5p','7a–3p','9a–5p','7a–3p'];
+    const off = Math.floor(Math.random()*5);
+    const sched = days.map((d,i) => i===off?'OFF':d);
+    return `<tr><td>${s.fname} ${s.lname[0]}.</td>${sched.map(d=>`<td>${d}</td>`).join('')}<td>${sched.filter(d=>d!=='OFF').length*8}h</td></tr>`;
+  }).join('');
+}
+
+function openAddStaffModal() { document.getElementById('staff-modal').classList.add('show'); }
+
+function addStaff() {
+  const fname = document.getElementById('sf-fname').value.trim();
+  const lname = document.getElementById('sf-lname').value.trim();
+  if (!fname || !lname) { toast('Please enter first and last name', 'error'); return; }
+  const cpr = document.getElementById('sf-cpr').value;
+  const expired = cpr && new Date(cpr) < new Date();
+  staff.push({
+    id: Date.now(),
+    fname, lname,
+    role: document.getElementById('sf-role').value,
+    room: document.getElementById('sf-room').value,
+    cpr: cpr || '',
+    phone: document.getElementById('sf-phone').value,
+    status: expired ? 'renewal' : 'active'
+  });
+  saveData();
+  renderStaff();
+  closeModal('staff-modal');
+  addActivity(`New staff added: ${fname} ${lname}`);
+  toast(`${fname} added to staff ✓`, 'success');
+}
+
+function removeStaff(id) {
+  const s = staff.find(x => x.id === id);
+  if (!s || !confirm(`Remove ${s.fname} ${s.lname}?`)) return;
+  staff = staff.filter(x => x.id !== id);
+  saveData();
+  renderStaff();
+  toast(`${s.fname} removed`, 'info');
+}
+
+// ─── BILLING ───
+function renderBilling() {
+  document.getElementById('billing-list').innerHTML = payments.map((p,i) => `
+    <div class="billing-row">
+      <div>
+        <div style="font-weight:600">${p.family}</div>
+        <div style="font-size:.73rem;color:var(--muted)">${p.child} · ${p.method||'—'} · ${p.date||'Not paid'}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <strong>$${p.amount}</strong>
+        <span class="badge ${p.status}">${p.status.charAt(0).toUpperCase()+p.status.slice(1)}</span>
+      </div>
+    </div>`).join('');
+}
+
+function recordPayment() {
+  const family = document.getElementById('pay-family').value.trim();
+  const amount = parseFloat(document.getElementById('pay-amount').value);
+  if (!family || !amount) { toast('Please enter family name and amount', 'error'); return; }
+  payments.push({
+    family,
+    child: '',
+    amount,
+    method: document.getElementById('pay-method').value,
+    date: new Date().toISOString().split('T')[0],
+    status: 'paid'
+  });
+  saveData();
+  renderBilling();
+  ['pay-family','pay-amount','pay-notes'].forEach(id => document.getElementById(id).value = '');
+  addActivity(`Payment recorded: ${family} — $${amount}`);
+  toast(`Payment of $${amount} recorded ✓`, 'success');
+}
+
+// ─── INCIDENTS ───
+function saveIncident() {
+  const child = document.getElementById('inc-child').value.trim();
+  const desc = document.getElementById('inc-desc').value.trim();
+  if (!child || !desc) { toast('Child name and description required', 'error'); return; }
+  const inc = {
+    id: Date.now(),
+    child,
+    date: document.getElementById('inc-date').value || new Date().toISOString(),
+    location: document.getElementById('inc-location').value,
+    type: document.getElementById('inc-type').value,
+    desc,
+    action: document.getElementById('inc-action').value,
+    reporter: document.getElementById('inc-reporter').value,
+    logged: new Date().toLocaleString()
+  };
+  incidents.unshift(inc);
+  saveData();
+  renderIncidents();
+  ['inc-child','inc-location','inc-desc','inc-action','inc-reporter'].forEach(id => document.getElementById(id).value = '');
+  addActivity(`Incident logged: ${child} — ${inc.type}`);
+  toast('Incident report saved ✓', 'success');
+}
+
+function renderIncidents() {
+  document.getElementById('inc-count').textContent = incidents.length;
+  const log = document.getElementById('incident-log');
+  if (!incidents.length) { log.innerHTML = '<p style="color:var(--muted);font-size:.82rem">No incidents logged yet.</p>'; return; }
+  log.innerHTML = incidents.slice(0,10).map(i => `
+    <div class="incident-log-item">
+      <div class="inc-head">${i.type} — ${i.child}</div>
+      <div style="font-size:.8rem;margin:3px 0;">${i.desc}</div>
+      <div class="inc-meta">${i.location||''} · ${i.logged} · By: ${i.reporter||'—'}</div>
+    </div>`).join('');
+}
+
+async function generateIncidentWithAI() {
+  const child = document.getElementById('inc-child').value || 'a child';
+  const type = document.getElementById('inc-type').value;
+  const loc = document.getElementById('inc-location').value || 'the center';
+  await sendQuick(`Write a professional incident report for a daycare center. Child: ${child}. Incident type: ${type}. Location: ${loc}. Include: description of what happened, action taken, parent notification steps, and follow-up notes.`);
+  showSection('ai-assistant', null);
+}
+
+// ─── CHECKLIST ───
+function renderChecklist() {
+  ['p1','p2','p3','p4'].forEach(phase => {
+    const items = checklist[phase];
+    document.getElementById('checklist-'+phase).innerHTML = items.map((item,i) => `
+      <div class="checklist-item" onclick="toggleCheck('${phase}',${i})">
+        <div class="chk-box ${item.done?'done'}">${item.done?'✓':''}</div>
+        <div class="chk-text ${item.done?'done'}">${item.text}</div>
+        <span class="chk-pri ${item.pri}">${item.pri.toUpperCase()}</span>
+      </div>`).join('');
+  });
+  // Progress
+  const all = [...checklist.p1,...checklist.p2,...checklist.p3,...checklist.p4];
+  const pct = Math.round(all.filter(i=>i.done).length / all.length * 100);
+  document.getElementById('checklist-progress').style.width = pct + '%';
+  document.getElementById('checklist-pct').textContent = pct + '%';
+}
+
+function toggleCheck(phase, idx) {
+  checklist[phase][idx].done = !checklist[phase][idx].done;
+  saveData();
+  renderChecklist();
+  toast(checklist[phase][idx].done ? '✅ Item completed!' : 'Item unchecked', checklist[phase][idx].done ? 'success' : 'info');
+}
+
+// ─── COMPLIANCE ───
+const ratioMap = {infant:{ratio:4,label:'1:4 for infants'},toddler:{ratio:6,label:'1:6 for toddlers'},preschool:{ratio:10,label:'1:10 for preschoolers'},prek:{ratio:12,label:'1:12 for Pre-K'}};
+function calcRatio() {
+  const age = document.getElementById('ratio-age').value;
+  const n = parseInt(document.getElementById('ratio-children').value) || 0;
+  const r = ratioMap[age];
+  const needed = Math.ceil(n / r.ratio);
+  document.getElementById('ratio-result').textContent = needed + ' staff member' + (needed !== 1 ? 's' : '');
+  document.getElementById('ratio-detail').textContent = 'Based on ' + r.label;
+}
+
+function renderCompliance() {
+  document.getElementById('compliance-checklist').innerHTML = compliance.map((item,i) => `
+    <div class="checklist-item" onclick="toggleCompliance(${i})">
+      <div class="chk-box ${item.done?'done'}">${item.done?'✓':''}</div>
+      <div class="chk-text ${item.done?'done'}">${item.item}</div>
+    </div>`).join('');
+  document.getElementById('compliance-deadlines').innerHTML = [
+    {label:'State Licensing Renewal',date:'Sep 30, 2026',status:'info'},
+    {label:'CPR Certification (David Chen)',date:'OVERDUE',status:'danger'},
+    {label:'Annual Fire Inspection',date:'Jul 12, 2026',status:'warn'},
+    {label:'Child Immunization Audit',date:'Aug 1, 2026',status:'info'},
+    {label:'CACFP Annual Renewal',date:'Oct 15, 2026',status:'success'}
+  ].map(d => `<div class="alert ${d.status}" style="margin-bottom:8px">📅 <div><strong>${d.label}</strong> — ${d.date}</div></div>`).join('');
+  calcRatio();
+}
+
+function toggleCompliance(i) {
+  compliance[i].done = !compliance[i].done;
+  saveData();
+  renderCompliance();
+  toast(compliance[i].done ? '✅ Compliance item checked!' : 'Item unchecked', 'success');
+}
+
+// ─── ACTIVITY FEED ───
+function addActivity(msg) {
+  activityFeed.unshift({msg, time: new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})});
+  if (activityFeed.length > 8) activityFeed.pop();
+  const el = document.getElementById('activity-feed');
+  if (el) el.innerHTML = activityFeed.map(a => `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)"><span>${a.msg}</span><span style="color:var(--muted);font-size:.72rem">${a.time}</span></div>`).join('');
+}
+
+// ─── STATS ───
+function updateStats() {
+  document.getElementById('stat-children').textContent = children.length;
+  document.getElementById('stat-present').textContent = children.filter(c=>c.status==='present').length;
+  document.getElementById('stat-staff').textContent = staff.length;
+}
+
+// ─── CSV EXPORTS ───
+function downloadCSV(rows, filename) {
+  const csv = rows.map(r => r.map(c => '"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = filename;
+  a.click();
+  toast(`${filename} downloaded ✓`, 'success');
+}
+
+function exportChildrenCSV() {
+  const rows = [['Name','Age','Room','Status','Parent','Phone','Allergies','Tuition']];
+  children.forEach(c => rows.push([c.fname+' '+c.lname,c.age,c.room,c.status,c.parent||'',c.phone||'',c.allergies||'',c.tuition||'']));
+  downloadCSV(rows, 'children.csv');
+}
+function exportAttendanceCSV() {
+  const rows = [['Child','Room','Status','Date']];
+  children.forEach(c => rows.push([c.fname+' '+c.lname,c.room,c.status,now.toLocaleDateString()]));
+  downloadCSV(rows, 'attendance_'+now.toISOString().split('T')[0]+'.csv');
+}
+function exportStaffCSV() {
+  const rows = [['Name','Role','Room','CPR Expiry','Status']];
+  staff.forEach(s => rows.push([s.fname+' '+s.lname,s.role,s.room,s.cpr||'',s.status]));
+  downloadCSV(rows, 'staff.csv');
+}
+function exportIncidentCSV() {
+  const rows = [['Child','Date','Type','Location','Description','Action','Reporter']];
+  incidents.forEach(i => rows.push([i.child,i.date,i.type,i.location||'',i.desc,i.action||'',i.reporter||'']));
+  downloadCSV(rows, 'incidents.csv');
+}
+
+// ─── SETTINGS ───
+function saveApiKey() {
+  const key = document.getElementById('settings-apikey').value.trim();
+  if (!key) { toast('Please enter your xAI API key', 'error'); return; }
+  localStorage.setItem('bn_apikey', key);
+  toast('API key saved ✓', 'success');
+}
+
+function saveDaycareInfo() {
+  const info = {
+    name: document.getElementById('s-name').value,
+    director: document.getElementById('s-director').value,
+    state: document.getElementById('s-state').value,
+    license: document.getElementById('s-license').value
+  };
+  localStorage.setItem('bn_info', JSON.stringify(info));
+  toast('Daycare info saved ✓', 'success');
+}
+
+function clearAllData() {
+  if (!confirm('Reset all data to defaults? This cannot be undone.')) return;
+  ['bn_children','bn_staff','bn_incidents','bn_checklist','bn_payments','bn_compliance','bn_apikey','bn_info'].forEach(k => localStorage.removeItem(k));
+  location.reload();
+}
+
+// ─── RESOURCES ───
+const resourceContent = {
+  handbook: {title:'📋 Parent Handbook Template', body:`<h3 style="margin-bottom:12px">Parent Handbook — Key Sections</h3>
+<p><strong>1. Welcome & Mission Statement</strong><br>Our mission is to provide a safe, nurturing, and stimulating environment where each child is valued as an individual...</p>
+<p style="margin-top:12px"><strong>2. Hours of Operation</strong><br>Center hours: Monday–Friday, 6:30 AM – 6:00 PM. Holidays observed: New Year's Day, Memorial Day, Independence Day, Labor Day, Thanksgiving (2 days), Christmas (2 days).</p>
+<p style="margin-top:12px"><strong>3. Sick Child Policy</strong><br>Children must be fever-free (below 100.4°F) for 24 hours without medication before returning. Children with vomiting, diarrhea, or contagious illness must remain home.</p>
+<p style="margin-top:12px"><strong>4. Medication Policy</strong><br>Staff may administer medication only with a signed Authorization to Administer Medication form. All medications must be in original packaging with child's name.</p>
+<p style="margin-top:12px"><strong>5. Drop-Off & Pick-Up</strong><br>Only authorized individuals listed on the enrollment form may pick up children. Photo ID required for unfamiliar adults. Late pick-up fee: $1/minute after 6:00 PM.</p>
+<p style="margin-top:12px"><strong>6. Tuition & Payment</strong><br>Tuition is due on the 1st of each month. A $25 late fee applies after the 5th. Two weeks notice required for withdrawal.</p>
+<p style="margin-top:12px;color:#1A7FA0;font-style:italic">Use NestAI (⚙️ Settings → add API key) to generate a full customized handbook for your center.</p>`},
+  enrollment: {title:'📝 Enrollment Forms Bundle', body:`<h3 style="margin-bottom:12px">Enrollment Forms Checklist</h3>
+<ul style="list-style:disc;padding-left:20px;line-height:2">
+<li>Child Enrollment Application</li><li>Emergency Contact Form (min. 3 contacts)</li><li>Immunization Record Release</li><li>Allergy & Medical Needs Form</li><li>Media Release & Photo Permission</li><li>Tuition Agreement & Financial Policy</li><li>Authorized Pick-Up List</li><li>Field Trip Permission (annual)</li><li>Health Assessment (required in most states)</li><li>Custody Documentation (if applicable)</li></ul>
+<p style="margin-top:12px;color:#1A7FA0;font-style:italic">Ask NestAI to draft any of these forms for your state.</p>`},
+  ratios: {title:'📐 Staff-to-Child Ratio Reference', body:`<h3 style="margin-bottom:12px">US Ratio Guidelines (Federal Recommendations)</h3>
+<table style="width:100%;border-collapse:collapse;font-size:.85rem">
+<tr style="background:#E8F4FD"><th style="padding:8px;text-align:left">Age Group</th><th style="padding:8px">Max Children per Staff</th><th style="padding:8px">Max Group Size</th></tr>
+<tr><td style="padding:8px">Infants (0–12 mo)</td><td style="padding:8px;text-align:center">1:4</td><td style="padding:8px;text-align:center">8</td></tr>
+<tr style="background:#f9f9f9"><td style="padding:8px">Toddlers (1–2 yr)</td><td style="padding:8px;text-align:center">1:6</td><td style="padding:8px;text-align:center">12</td></tr>
+<tr><td style="padding:8px">Preschool (3–4 yr)</td><td style="padding:8px;text-align:center">1:10</td><td style="padding:8px;text-align:center">20</td></tr>
+<tr style="background:#f9f9f9"><td style="padding:8px">Pre-K (4–5 yr)</td><td style="padding:8px;text-align:center">1:12</td><td style="padding:8px;text-align:center">24</td></tr>
+<tr><td style="padding:8px">School Age (6+ yr)</td><td style="padding:8px;text-align:center">1:15</td><td style="padding:8px;text-align:center">30</td></tr>
+</table>
+<p style="margin-top:12px;font-size:.78rem;color:var(--muted)">⚠️ State requirements vary. Always verify with your state licensing agency. Use the Ratio Calculator in Compliance for real-time calculations.</p>`},
+  emergency: {title:'🚨 Emergency Procedures Manual', body:`<h3 style="margin-bottom:12px">Core Emergency Procedures</h3>
+<p><strong>🔥 Fire Drill</strong><br>1. Announce "Fire Drill" calmly. 2. Lead children to nearest exit — never use elevators. 3. Take attendance roster. 4. Proceed to designated meeting point. 5. Take roll call. 6. Do not re-enter until all-clear from fire department. Conduct monthly. Document date, time, duration, issues.</p>
+<p style="margin-top:12px"><strong>🔒 Lockdown</strong><br>1. Lock all doors and windows. 2. Move children away from doors/windows to interior wall. 3. Turn off lights, stay quiet. 4. Do not open door until law enforcement gives all-clear. Call 911 when safe.</p>
+<p style="margin-top:12px"><strong>🏥 Medical Emergency</strong><br>1. Call 911 immediately for life-threatening situations. 2. Administer first aid/CPR as trained. 3. Stay with child — send another staff member to meet EMS. 4. Notify parents immediately. 5. Complete incident report within 24 hours.</p>
+<p style="margin-top:12px;color:#1A7FA0;font-style:italic">Ask NestAI to generate state-specific emergency procedures for your center.</p>`},
+  cacfp: {title:'🍽️ CACFP Food Program Guide', body:`<h3 style="margin-bottom:12px">Child & Adult Care Food Program (CACFP)</h3>
+<p><strong>What is CACFP?</strong><br>A federal program that reimburses childcare centers for nutritious meals served to enrolled children. Can offset $1–$4+ per child per meal depending on family income eligibility.</p>
+<p style="margin-top:12px"><strong>How to Apply:</strong><br>1. Contact your State Agency (USDA-approved) — usually the state Dept. of Education or Agriculture. 2. Complete sponsor application. 3. Attend mandatory training. 4. Implement meal patterns. 5. Document daily meal counts.</p>
+<p style="margin-top:12px"><strong>Meal Pattern Requirements (Ages 3–5):</strong></p>
+<ul style="list-style:disc;padding-left:20px;margin-top:6px;line-height:1.8;font-size:.83rem">
+<li>Breakfast: Milk, fruit/vegetable, grain</li><li>AM Snack: Two of: milk, fruit/veg, grain, meat/alt</li><li>Lunch: Milk, two fruits/vegs, grain, meat/meat alt</li><li>PM Snack: Two of: milk, fruit/veg, grain, meat/alt</li></ul>`},
+  subsidy: {title:'💳 Subsidy Payment Guide', body:`<h3 style="margin-bottom:12px">Accepting Government Subsidy Payments</h3>
+<p><strong>Common Programs:</strong></p>
+<ul style="list-style:disc;padding-left:20px;margin-top:8px;line-height:2">
+<li><strong>CCDF (Child Care Development Fund)</strong> — Federal block grant administered by states</li>
+<li><strong>Head Start</strong> — Federal program for income-eligible families</li>
+<li><strong>State Pre-K subsidies</strong> — Varies by state</li>
+<li><strong>TANF childcare assistance</strong> — For families receiving public assistance</li></ul>
+<p style="margin-top:12px"><strong>How to Become a Subsidy Provider:</strong><br>1. Contact your local Child Care Resource & Referral (CCR&R) agency. 2. Complete provider enrollment. 3. Pass additional inspections if required. 4. Sign provider agreement. 5. Receive vouchers/certificates from families; submit for reimbursement.</p>`},
+  newsletter: {title:'📰 Monthly Newsletter Template', body:`<h3 style="margin-bottom:12px">Monthly Parent Newsletter Template</h3>
+<p style="background:#E8F4FD;padding:14px;border-radius:8px;margin-bottom:12px"><strong>[CENTER NAME] Family Newsletter</strong><br>[Month] [Year] · Volume [X] Issue [X]</p>
+<p><strong>📣 Director's Message</strong><br>[Personal warm note from the director — mention a milestone, express gratitude, highlight something happening this month]</p>
+<p style="margin-top:12px"><strong>🗓️ This Month's Schedule</strong><br>[List important dates, closures, events, picture day, etc.]</p>
+<p style="margin-top:12px"><strong>🎨 What We're Learning</strong><br>[Describe the month's curriculum theme, activities, and learning goals by room]</p>
+<p style="margin-top:12px"><strong>🌟 Spotlight</strong><br>[Highlight a child milestone, staff feature, or family contribution — always get written permission]</p>
+<p style="margin-top:12px"><strong>📢 Reminders</strong><br>[Policies, upcoming events, supply requests, etc.]</p>
+<p style="margin-top:12px;color:#1A7FA0;font-style:italic">Ask NestAI to write a full newsletter for your center with a specific theme!</p>`},
+  branding: {title:'✨ Branding Starter Kit', body:`<h3 style="margin-bottom:12px">Trust by Design — Branding Starter Kit</h3>
+<p>Based on Ting Lott's book <em>Trust by Design: Building a Childcare Brand That Families Believe In</em></p>
+<p style="margin-top:12px"><strong>🎨 Visual Identity Checklist</strong></p>
+<ul style="list-style:disc;padding-left:20px;margin-top:6px;line-height:1.8">
+<li>Logo that conveys warmth, safety, and professionalism</li><li>2–3 brand colors (recommend: one calm, one warm, one accent)</li><li>Consistent fonts (1 heading + 1 body font)</li><li>Professional photos of your space (no stock photos of children)</li></ul>
+<p style="margin-top:12px"><strong>🗣️ Brand Voice</strong></p>
+<ul style="list-style:disc;padding-left:20px;margin-top:6px;line-height:1.8">
+<li>Warm but professional — speak like a trusted neighbor, not a corporation</li><li>Lead with child outcomes, not your credentials</li><li>Use "we" and "your child" — make it personal</li><li>Address fears directly: safety, nutrition, communication, ratios</li></ul>
+<p style="margin-top:12px"><strong>💬 Parent Communication Principles</strong></p>
+<ul style="list-style:disc;padding-left:20px;margin-top:6px;line-height:1.8">
+<li>Same-day communication for incidents, illness, or behavior concerns</li><li>Monthly newsletter minimum</li><li>Celebrate small wins — share milestones, photos (with permission), firsts</li><li>Open-door policy — physically and digitally</li></ul>`},
+  'checklist-pdf': {title:'✅ State Licensing Checklist', body:`<h3 style="margin-bottom:12px">General Pre-Licensing Requirements</h3>
+<p>Requirements vary by state — this is a general framework. Always verify with your state licensing agency.</p>
+<ul style="list-style:none;padding:0;margin-top:12px;">
+${['Criminal background check (all adults on premises)','Child abuse/neglect registry clearance','Tuberculosis (TB) test','Pre-service training (hours vary by state)','CPR & First Aid certification','Health assessment / physical exam','Proof of education (CDA, AA, or BA depending on role)','Fire safety inspection','Building/zoning permits','Liability insurance','Safe sleep training (for infant rooms)','Medication administration training','Mandated reporter training'].map(i=>`<li style="padding:7px 0;border-bottom:1px solid var(--border);font-size:.83rem">☐ ${i}</li>`).join('')}
+</ul>`}
+};
+
+function openResource(key) {
+  const r = resourceContent[key];
+  if (!r) return;
+  document.getElementById('res-title').textContent = r.title;
+  document.getElementById('res-body').innerHTML = r.body;
+  document.getElementById('resource-modal').classList.add('show');
+}
+
+// ─── AI CHAT ───
+function addMsg(role, text) {
+  const msgs = document.getElementById('ai-messages');
+  const t = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  div.innerHTML = `<div class="msg-bubble">${text.replace(/\n/g,'<br>')}</div><div class="msg-time">${t}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+async function sendMessage() {
+  const input = document.getElementById('ai-input');
+  const q = input.value.trim();
+  if (!q) return;
+  input.value = '';
+  addMsg('user', q);
+  await callNestAI(q);
+}
+
+async function sendQuick(q) {
+  showSection('ai-assistant', null);
+  addMsg('user', q);
+  await callNestAI(q);
+}
+
+function clearChat() {
+  document.getElementById('ai-messages').innerHTML = '<div class="msg bot"><div class="msg-bubble">Chat cleared. How can I help you today?</div><div class="msg-time">Now</div></div>';
+}
+
+async function callNestAI(q) {
+  const key = localStorage.getItem('bn_apikey');
+  const thinking = document.getElementById('ai-thinking');
+  thinking.classList.add('show');
+  if (!key) {
+    thinking.classList.remove('show');
+    addMsg('bot', '⚙️ Please add your xAI API key in **Settings** to enable NestAI responses. Go to Settings → xAI API Key → save your key from x.ai');
+    return;
+  }
+  try {
+    const res = await fetch('https://api.x.ai/v1/chat/completions', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Authorization':'Bearer '+key},
+      body: JSON.stringify({
+        model: 'grok-3-latest',
+        messages: [
+          {role:'system', content:'You are NestAI, an expert AI assistant for childcare providers and daycare directors. You specialize in: childcare licensing and compliance, staff management, child development (ages 0-5), parent communication, curriculum planning, health and safety protocols, billing, food programs (CACFP), and daycare business operations. Give clear, practical, actionable advice. Use headers and bullet points to organize longer responses. Always be warm, professional, and supportive.'},
+          {role:'user', content:q}
+        ],
+        max_tokens: 1200,
+        temperature: 0.7
+      })
+    });
+    thinking.classList.remove('show');
+    if (!res.ok) {
+      const err = await res.json().catch(()=>({}));
+      addMsg('bot', '⚠️ API error: ' + (err.error?.message || res.status + ' — Check your API key in Settings.'));
+      return;
+    }
+    const data = await res.json();
+    addMsg('bot', data.choices[0].message.content);
+  } catch(e) {
+    thinking.classList.remove('show');
+    addMsg('bot', '⚠️ Connection error. Please check your internet connection and try again.');
+  }
+}
+
+// ─── INIT ───
+loadData();
+renderChildren(children);
+renderStaff();
+renderBilling();
+renderIncidents();
+updateStats();
+
+// Restore settings
+const savedKey = localStorage.getItem('bn_apikey');
+if (savedKey) document.getElementById('settings-apikey').value = savedKey;
+const savedInfo = localStorage.getItem('bn_info');
+if (savedInfo) {
+  try {
+    const info = JSON.parse(savedInfo);
+    if (info.name) document.getElementById('s-name').value = info.name;
+    if (info.director) document.getElementById('s-director').value = info.director;
+    if (info.state) document.getElementById('s-state').value = info.state;
+    if (info.license) document.getElementById('s-license').value = info.license;
+  } catch(e) {}
+}
+if (localStorage.getItem('bn_dark') === '1') {
+  document.body.classList.add('dark');
+  document.getElementById('dark-btn').textContent = '☀️';
+}
+
+// Incident date default
+document.getElementById('inc-date').value = now.toISOString().slice(0,16);
+
+// Seed activity feed
+addActivity('Dashboard loaded');
+addActivity(`${children.filter(c=>c.status==='present').length} children present today`);
+addActivity(`${staff.length} staff members active`);
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('show'); });
+});
+</script>
+</body>
+</html>
