@@ -1,581 +1,1196 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>✉️ Postcard Creator — Artistry Store</title>
-<meta name="description" content="Design beautiful personalized postcards with Gork AI messages, 12 occasion templates, front & back sides, filters, stickers & more. Free tool by Artistry Store."/>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600&family=Pacifico&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lora:wght@400;500;600&family=Montserrat:wght@400;600&family=Roboto+Slab:wght@400;600&family=Caveat:wght@400;600&family=Lato:wght@400;700&family=Courier+Prime:ital,wght@0,400;1,400&display=swap"/>
-<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Postcard Creator — Artistry Store</title>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Pacifico&family=Lobster&family=Playfair+Display:ital,wght@0,400;1,400&family=Satisfy&family=Caveat:wght@600&family=Indie+Flower&family=Quicksand:wght@500&family=Raleway:wght@400;600&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:#fff8f0}
-input[type=range]{-webkit-appearance:none;height:6px;border-radius:3px;background:#e8d5c4;outline:none}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#c1666b;cursor:pointer}
-.tpl-scroll{display:flex;gap:.5rem;overflow-x:auto;padding:.5rem 0;scrollbar-width:thin}
-.tpl-scroll::-webkit-scrollbar{height:4px}
-.tpl-scroll::-webkit-scrollbar-thumb{background:#e8d5c4;border-radius:2px}
-.card-face{width:100%;aspect-ratio:8/5;border-radius:1rem;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,.2);position:relative;user-select:none}
-.skip-nav{position:fixed;top:-100px;left:1rem;z-index:9999;background:#c1666b;color:#fff;padding:.5rem 1rem;border-radius:.5rem;transition:top .2s}
-.skip-nav:focus{top:1rem}
-:focus-visible{outline:2px solid #c1666b;outline-offset:3px;border-radius:6px}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+:root {
+  --gold: #c9a84c;
+  --dark: #1a1a2e;
+  --card-bg: #fff8f0;
+  --accent: #e8704a;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Quicksand', sans-serif;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  min-height: 100vh;
+  color: #fff;
+}
+.skip-nav {
+  position: fixed; top: -100px; left: 1rem; z-index: 9999;
+  background: var(--gold); color: #000;
+  padding: 0.5rem 1rem; border-radius: 0.5rem;
+  transition: top 0.2s; text-decoration: none;
+}
+.skip-nav:focus { top: 1rem; }
+
+/* ── Header ── */
+header {
+  text-align: center;
+  padding: 1.2rem 1rem 0.5rem;
+}
+header h1 {
+  font-family: 'Dancing Script', cursive;
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
+  color: var(--gold);
+  text-shadow: 0 2px 12px rgba(201,168,76,0.4);
+}
+header p { color: #ccc; font-size: 0.85rem; margin-top: 0.2rem; }
+
+/* ── Layout ── */
+.wrap {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem;
+  align-items: start;
+}
+@media(max-width:680px){ .wrap { grid-template-columns: 1fr; } }
+
+/* ── Panel ── */
+.panel {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 16px;
+  padding: 1rem;
+  backdrop-filter: blur(8px);
+}
+.panel h2 {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--gold);
+  margin-bottom: 0.7rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* ── Postcard Canvas ── */
+.card-wrap {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+}
+.card-scene {
+  width: 100%;
+  max-width: 540px;
+  perspective: 1200px;
+}
+.card-flip {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3/2;
+  transform-style: preserve-3d;
+  transition: transform 0.7s cubic-bezier(.4,0,.2,1);
+}
+.card-flip.flipped { transform: rotateY(180deg); }
+.card-front, .card-back {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  backface-visibility: hidden;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+/* Front */
+.card-front {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.card-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transition: filter 0.4s;
+}
+.card-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.28);
+}
+.card-text {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 1.5rem;
+  width: 100%;
+}
+.card-msg {
+  font-size: clamp(1rem, 3.5vw, 1.6rem);
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.7);
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+  word-break: break-word;
+}
+.card-from {
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.85);
+  font-style: italic;
+}
+.sticker-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+.sticker {
+  position: absolute;
+  font-size: 2rem;
+  cursor: grab;
+  user-select: none;
+  pointer-events: all;
+  line-height: 1;
+  touch-action: none;
+}
+.sticker:active { cursor: grabbing; }
+
+/* Back */
+.card-back {
+  background: #fffdf7;
+  transform: rotateY(180deg);
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 1.2rem;
+}
+.back-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.8rem;
+}
+.back-title {
+  font-family: 'Dancing Script', cursive;
+  font-size: 1.4rem;
+  color: #c9a84c;
+}
+.stamp-box {
+  width: 52px;
+  height: 62px;
+  border: 2px dashed #999;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+.back-divider {
+  border: none;
+  border-left: 2px solid #ccc;
+  height: 100%;
+  position: absolute;
+  left: 50%;
+}
+.back-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+  flex: 1;
+  color: #333;
+  font-size: 0.8rem;
+}
+.back-note {
+  border-right: 1px solid #ccc;
+  padding-right: 0.8rem;
+  font-size: 0.85rem;
+  color: #444;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+.addr-block { }
+.addr-line {
+  border-bottom: 1px solid #bbb;
+  margin-bottom: 0.55rem;
+  padding-bottom: 2px;
+  font-family: 'Caveat', cursive;
+  font-size: 1rem;
+  color: #333;
+  min-height: 1.4rem;
+}
+.ret-addr {
+  font-size: 0.7rem;
+  color: #888;
+  margin-top: 0.5rem;
+  font-family: 'Caveat', cursive;
+  line-height: 1.4;
+}
+.qr-area { text-align: center; margin-top: 0.4rem; }
+.qr-area img { width: 60px; height: 60px; }
+
+/* ── Tabs ── */
+.tabs {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.7rem;
+}
+.tab {
+  padding: 0.35rem 0.7rem;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: transparent;
+  color: #ccc;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Quicksand', sans-serif;
+}
+.tab.active, .tab:hover {
+  background: var(--gold);
+  color: #000;
+  border-color: var(--gold);
+}
+
+/* ── Grid pickers ── */
+.grid-pick {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+  gap: 0.4rem;
+}
+.pick-btn {
+  background: rgba(255,255,255,0.07);
+  border: 2px solid transparent;
+  border-radius: 10px;
+  padding: 0.4rem 0.2rem;
+  cursor: pointer;
+  font-size: 0.7rem;
+  color: #ddd;
+  text-align: center;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: 48px;
+  justify-content: center;
+}
+.pick-btn:hover, .pick-btn.active {
+  border-color: var(--gold);
+  background: rgba(201,168,76,0.15);
+  color: #fff;
+}
+.swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.3);
+}
+
+/* ── Form controls ── */
+label {
+  display: block;
+  font-size: 0.72rem;
+  color: #aaa;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+input[type="text"], textarea, select, input[type="color"] {
+  width: 100%;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 8px;
+  color: #fff;
+  font-family: 'Quicksand', sans-serif;
+  font-size: 0.9rem;
+  padding: 0.5rem 0.7rem;
+  outline: none;
+  margin-bottom: 0.6rem;
+  transition: border-color 0.2s;
+}
+input[type="text"]:focus, textarea:focus, select:focus {
+  border-color: var(--gold);
+}
+textarea { resize: vertical; min-height: 70px; }
+select option { background: #1a1a2e; color: #fff; }
+
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--gold);
+  margin-bottom: 0.5rem;
+}
+input[type="color"] {
+  padding: 0.25rem;
+  height: 40px;
+  cursor: pointer;
+}
+
+/* ── Sticker picker ── */
+.sticker-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  max-height: 160px;
+  overflow-y: auto;
+}
+.stk-btn {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 4px;
+  transition: background 0.2s;
+  min-height: 44px;
+}
+.stk-btn:hover { background: rgba(255,255,255,0.1); }
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1rem;
+  border-radius: 10px;
+  border: none;
+  font-family: 'Quicksand', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 44px;
+  text-decoration: none;
+}
+.btn-gold { background: linear-gradient(135deg, #c9a84c, #e8c96a); color: #1a1a2e; }
+.btn-gold:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(201,168,76,0.4); }
+.btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.25); color: #ddd; }
+.btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+.btn-sm { padding: 0.4rem 0.7rem; font-size: 0.78rem; min-height: 36px; }
+.btn-danger { background: rgba(220,50,50,0.2); border: 1px solid rgba(220,50,50,0.4); color: #f99; }
+.btn-danger:hover { background: rgba(220,50,50,0.35); }
+.action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+/* ── Template chips ── */
+.tmpl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 0.4rem;
+}
+.tmpl-btn {
+  background: rgba(255,255,255,0.06);
+  border: 2px solid transparent;
+  border-radius: 10px;
+  padding: 0.5rem 0.3rem;
+  cursor: pointer;
+  font-size: 0.72rem;
+  color: #ccc;
+  text-align: center;
+  transition: all 0.2s;
+  font-family: 'Quicksand', sans-serif;
+  min-height: 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+.tmpl-btn:hover, .tmpl-btn.active { border-color: var(--gold); color: var(--gold); }
+.tmpl-icon { font-size: 1.3rem; }
+
+/* ── AI box ── */
+.ai-box {
+  background: rgba(201,168,76,0.08);
+  border: 1px solid rgba(201,168,76,0.25);
+  border-radius: 12px;
+  padding: 0.8rem;
+  margin-top: 0.5rem;
+}
+.ai-box h3 { font-size: 0.75rem; color: var(--gold); margin-bottom: 0.5rem; letter-spacing: 1px; text-transform: uppercase; }
+
+/* ── Toast ── */
+#toast {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  pointer-events: none;
+}
+.toast-item {
+  background: #1e293b;
+  border-left: 4px solid var(--gold);
+  color: #fff;
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  animation: toastIn 0.3s ease;
+  max-width: 280px;
+}
+.toast-item.success { border-color: #4ade80; }
+.toast-item.error { border-color: #f87171; }
+@keyframes toastIn { from { opacity:0; transform: translateX(20px); } to { opacity:1; transform: translateX(0); } }
+
+/* ── Footer ── */
+footer {
+  text-align: center;
+  padding: 1.5rem 1rem;
+  color: rgba(255,255,255,0.4);
+  font-size: 0.78rem;
+}
+footer a { color: var(--gold); text-decoration: none; }
+
+/* ── Misc ── */
+.loading { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.hide { display: none !important; }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; border-radius: 6px; }
+::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.4); border-radius: 4px; }
+.section-gap { margin-top: 0.8rem; }
 </style>
 </head>
 <body>
-<div id="root"></div>
-<script type="text/babel">
-const { useState, useRef, useCallback } = React;
+<a href="#main" class="skip-nav">Skip to main content</a>
 
+<!-- Toast container -->
+<div id="toast" aria-live="polite" aria-label="Notifications"></div>
 
+<header>
+  <h1>✉️ Postcard Creator</h1>
+  <p>Design beautiful postcards • AI-powered • Free to download</p>
+</header>
 
-const FONTS = [
-  {label:"Dancing Script", value:"'Dancing Script',cursive"},
-  {label:"Pacifico",        value:"'Pacifico',cursive"},
-  {label:"Playfair Display",value:"'Playfair Display',serif"},
-  {label:"Lato",            value:"'Lato',sans-serif"},
-  {label:"Montserrat",      value:"'Montserrat',sans-serif"},
-  {label:"Roboto Slab",     value:"'Roboto Slab',serif"},
-  {label:"Courier Prime",   value:"'Courier Prime',monospace"},
-  {label:"Caveat",          value:"'Caveat',cursive"},
-];
+<main id="main">
+<div class="wrap">
 
-const THEMES = [
-  {id:"sunset",  label:"🌅 Sunset",   bg:"linear-gradient(135deg,#FF6B6B,#FFE66D,#4ECDC4)",      stamp:"#FF6B6B", text:"#2C3E50"},
-  {id:"ocean",   label:"🌊 Ocean",    bg:"linear-gradient(135deg,#667eea,#764ba2,#f093fb)",       stamp:"#667eea", text:"#ffffff"},
-  {id:"forest",  label:"🌿 Forest",   bg:"linear-gradient(135deg,#56ab2f,#a8e063,#8EC5FC)",       stamp:"#2d6a4f", text:"#1b3a1c"},
-  {id:"vintage", label:"🍂 Vintage",  bg:"linear-gradient(135deg,#D4A574,#E8C4A0,#F5E6D3)",       stamp:"#8B4513", text:"#4A3C31"},
-  {id:"cosmic",  label:"🌌 Cosmic",   bg:"linear-gradient(135deg,#1e3c72,#2a5298,#7e22ce)",       stamp:"#FFD700", text:"#ffffff"},
-  {id:"rose",    label:"🌹 Rose",     bg:"linear-gradient(135deg,#f43f5e,#ec4899,#a855f7)",       stamp:"#f43f5e", text:"#ffffff"},
-  {id:"golden",  label:"✨ Golden",   bg:"linear-gradient(135deg,#f59e0b,#fbbf24,#fde68a)",       stamp:"#b45309", text:"#3B2700"},
-  {id:"noir",    label:"🖤 Noir",     bg:"linear-gradient(135deg,#1f2937,#374151,#4B5563)",       stamp:"#9ca3af", text:"#f9fafb"},
-  {id:"mint",    label:"🌱 Mint",     bg:"linear-gradient(135deg,#10b981,#34d399,#a7f3d0)",       stamp:"#065f46", text:"#064e3b"},
-  {id:"aurora",  label:"🌈 Aurora",   bg:"linear-gradient(135deg,#0ea5e9,#6366f1,#ec4899,#f59e0b)",stamp:"#6366f1",text:"#ffffff"},
-  {id:"lavender",label:"💜 Lavender", bg:"linear-gradient(135deg,#e9d5ff,#c4b5fd,#a78bfa)",       stamp:"#7c3aed", text:"#1e1b4b"},
-  {id:"coral",   label:"🍊 Coral",    bg:"linear-gradient(135deg,#ff6b6b,#feca57,#ff9ff3)",       stamp:"#e84393", text:"#1a0030"},
-];
+  <!-- ══ POSTCARD CANVAS ══ -->
+  <div class="card-wrap">
+    <div class="card-scene">
+      <div class="card-flip" id="cardFlip">
 
-const TEMPLATES = [
-  {id:"birthday",  emoji:"🎂", label:"Birthday",   msg:"Happy Birthday! May this year bring you everything your heart desires and more. You deserve all the joy in the world!", theme:"rose",    txt:"#ffffff"},
-  {id:"travel",    emoji:"✈️", label:"Travel",      msg:"Wish you were here! This place is absolutely breathtaking — the colors, the sounds, the magic. Saving every moment for you.", theme:"ocean",   txt:"#ffffff"},
-  {id:"love",      emoji:"💕", label:"Love",        msg:"Every moment with you feels like a dream I never want to wake from. You are my favorite adventure, always.", theme:"rose",    txt:"#ffffff"},
-  {id:"thankyou",  emoji:"🙏", label:"Thank You",   msg:"Thank you from the bottom of my heart. Your kindness meant more than words can say — you truly made a difference.", theme:"vintage", txt:"#4A3C31"},
-  {id:"holiday",   emoji:"🎄", label:"Holiday",     msg:"Wishing you a season full of warmth, laughter, and all the magic this special time of year brings. Happy Holidays!", theme:"cosmic",  txt:"#ffffff"},
-  {id:"newyear",   emoji:"🎉", label:"New Year",    msg:"Cheers to a brand new chapter! May this year overflow with possibilities, adventures, and everything you have been dreaming of.", theme:"golden",  txt:"#3B2700"},
-  {id:"congrats",  emoji:"🎊", label:"Congrats",    msg:"Congratulations! All your hard work, dedication, and perseverance brought you here. This is just the beginning — celebrate big!", theme:"sunset",  txt:"#2C3E50"},
-  {id:"missyou",   emoji:"💌", label:"Miss You",    msg:"The distance means so little when someone means so much. Thinking of you always and counting the days until we meet again.", theme:"lavender",txt:"#1e1b4b"},
-  {id:"getwell",   emoji:"🌸", label:"Get Well",    msg:"Sending you so much love and healing energy. Take good care of yourself — the world is a better place with you feeling your best!", theme:"mint",    txt:"#064e3b"},
-  {id:"graduation",emoji:"🎓", label:"Graduation",  msg:"You did it! All those late nights and early mornings paid off in the most beautiful way. The world is yours now — go get it!", theme:"aurora",  txt:"#ffffff"},
-  {id:"friendship",emoji:"🤝", label:"Friendship",  msg:"Good friends are hard to find, harder to leave, and impossible to forget. So grateful to have you in my corner, always.", theme:"forest",  txt:"#1b3a1c"},
-  {id:"sympathy",  emoji:"🕊️", label:"Sympathy",    msg:"Holding you gently in my thoughts during this difficult time. You are not alone — love surrounds you in ways seen and unseen.", theme:"vintage", txt:"#4A3C31"},
-];
-
-const STICKERS = ["🌸","🌊","🌴","🗺️","✈️","⛵","🏖️","🌺","🦋","🌈","⭐","🎉","💌","🍦","🎵","🌙","☀️","❄️","🔥","💫","🌻","🐚","🦀","🍃","🌿","🏔️","🌅","🎨","📸","💝","🎂","🎓","🕊️","🤝","🎊","🎄","🌹","💜","🍊","✨"];
-
-const FILTERS = [
-  {id:"none",    label:"Original", css:""},
-  {id:"warm",    label:"☀️ Warm",   css:"sepia(.3) saturate(1.3) brightness(1.05)"},
-  {id:"cool",    label:"❄️ Cool",   css:"hue-rotate(30deg) saturate(1.2)"},
-  {id:"faded",   label:"📷 Faded",  css:"sepia(.5) contrast(.9) brightness(1.1)"},
-  {id:"dramatic",label:"🎬 Drama",  css:"contrast(1.3) saturate(1.4)"},
-  {id:"dreamy",  label:"💭 Dreamy", css:"brightness(1.15) saturate(.8) blur(.5px)"},
-  {id:"noir",    label:"🖤 Noir",   css:"grayscale(1) contrast(1.2)"},
-  {id:"vivid",   label:"🌈 Vivid",  css:"saturate(1.8) contrast(1.1) brightness(1.05)"},
-];
-
-const BG_CATS = ["travel","nature","beach","mountains","city","flowers","abstract","sunset","forest","architecture"];
-
-async function callGork(prompt) {
-  // Uses Pollinations AI (free, no key required)
-  const inst = "Write a warm heartfelt postcard message (2-3 sentences, no quotes, no preamble) for: \""+prompt+"\". Return only the message.";
-  const r = await fetch("https://text.pollinations.ai/"+encodeURIComponent(inst));
-  if(!r.ok) throw new Error("AI failed");
-  return (await r.text()).trim().replace(/^["'"]|["'"]$/g,"");
-}
-
-
-
-function App() {
-  const [msg,  setMsg]  = useState("Wish you were here! 🌴");
-  const [from, setFrom] = useState("");
-  const [to,   setTo]   = useState("");
-  const [theme,  setTheme]  = useState(THEMES[0]);
-  const [font,   setFont]   = useState(FONTS[0]);
-  const [tcolor, setTcolor] = useState("#2C3E50");
-  const [fsize,  setFsize]  = useState(28);
-  const [filter, setFilter] = useState(FILTERS[0]);
-  const [stickers, setStickers] = useState([]);
-
-  const [uploaded, setUploaded] = useState(null);
-  const [bgImg,    setBgImg]    = useState(null);
-  const [bgSeed,   setBgSeed]   = useState("travel");
-  const [bgTab,    setBgTab]    = useState("theme");
-
-  const [aiPrompt,    setAiPrompt]    = useState("");
-  const [aiLoading,   setAiLoading]   = useState(false);
-  const [showAi,      setShowAi]      = useState(false);
-  const [imgPrompt,   setImgPrompt]   = useState("");
-  const [imgLoading,  setImgLoading]  = useState(false);
-
-  const [showStick, setShowStick] = useState(false);
-  const [drag,      setDrag]      = useState(null);
-
-  const [side,       setSide]       = useState("front");
-  const [addr1,      setAddr1]      = useState("");
-  const [addr2,      setAddr2]      = useState("");
-  const [addrCity,   setAddrCity]   = useState("");
-  const [retAddr,    setRetAddr]    = useState("");
-  const [backNote,   setBackNote]   = useState("");
-  const [qrUrl,      setQrUrl]      = useState("https://shop.artistrystore.com");
-  const [showQr,     setShowQr]     = useState(false);
-
-  const [dl,      setDl]      = useState(false);
-  const [copied,  setCopied]  = useState(false);
-  const [history, setHistory] = useState([]);
-  const [photoLd, setPhotoLd] = useState(false);
-  const [toast,   setToast]   = useState(null);
-
-  const fileRef = useRef();
-  const frontRef = useRef();
-  const dark = window.matchMedia?.("(prefers-color-scheme:dark)").matches;
-
-  function showT(m,t="info"){setToast({m,t});setTimeout(()=>setToast(null),3200)}
-
-  const snap = useCallback(()=>{
-    setHistory(h=>[...h.slice(-19),{msg,from,to,theme,font,tcolor,fsize,filter,stickers,bgImg,bgSeed,bgTab,uploaded}]);
-  },[msg,from,to,theme,font,tcolor,fsize,filter,stickers,bgImg,bgSeed,bgTab,uploaded]);
-
-  function undo(){
-    if(!history.length)return;
-    const p=history[history.length-1];
-    setMsg(p.msg);setFrom(p.from);setTo(p.to);setTheme(p.theme);setFont(p.font);
-    setTcolor(p.tcolor);setFsize(p.fsize);setFilter(p.filter);setStickers(p.stickers);
-    setBgImg(p.bgImg);setBgSeed(p.bgSeed);setBgTab(p.bgTab);setUploaded(p.uploaded);
-    setHistory(h=>h.slice(0,-1));showT("↩ Undone");
-  }
-
-  function applyTpl(tpl){
-    snap();
-    const t=THEMES.find(x=>x.id===tpl.theme)||THEMES[0];
-    setMsg(tpl.msg);setTheme(t);setTcolor(tpl.txt);setBgTab("theme");setBgImg(null);
-    showT("✨ "+tpl.label+" template applied!","success");
-  }
-
-  async function handleAI(){
-    if(!aiPrompt.trim()){showT("Enter a prompt first ✏️");return;}
-    snap();setAiLoading(true);
-    try{const m=await callGork(aiPrompt);setMsg(m);showT("✨ AI message ready!","success");}
-    catch{showT("AI failed. Try again.","error");}
-    setAiLoading(false);
-  }
-
-  async function handleImgGen(){
-    if(!imgPrompt.trim()){showT("Enter an image prompt ✏️");return;}
-    setImgLoading(true);showT("🎨 Generating background…","info");
-    const seed=Math.floor(Math.random()*99999);
-    const full=imgPrompt+", beautiful high quality postcard background, vivid colors, horizontal landscape";
-    const url="https://image.pollinations.ai/prompt/"+encodeURIComponent(full)+"?width=1200&height=750&nologo=true&seed="+seed;
-    try{
-      await new Promise((res,rej)=>{
-        const i=new Image();i.crossOrigin="anonymous";
-        const t=setTimeout(()=>res(),14000);
-        i.onload=()=>{clearTimeout(t);res();};
-        i.onerror=()=>{clearTimeout(t);rej();};
-        i.src=url;
-      });
-      setBgImg(url);setBgTab("ai");showT("🎨 Background applied!","success");
-    }catch{showT("Image failed. Try a different prompt.","error");}
-    setImgLoading(false);
-  }
-
-  function loadPhoto(seed){
-    setPhotoLd(true);
-    const url="https://picsum.photos/seed/"+seed+Math.random().toString(36).slice(2,6)+"/1200/750";
-    const i=new Image();i.crossOrigin="anonymous";
-    i.onload=()=>{setBgImg(url);setPhotoLd(false);};
-    i.onerror=()=>{setPhotoLd(false);showT("Could not load photo. Try another.","error");};
-    i.src=url;
-  }
-
-  function handleUpload(e){
-    const f=e.target.files?.[0];if(!f)return;
-    if(f.size>10000000){showT("File too large (max 10MB)","error");return;}
-    const r=new FileReader();
-    r.onload=ev=>{snap();setUploaded(ev.target.result);setBgImg(null);setBgTab("upload");showT("📷 Photo uploaded!","success");};
-    r.readAsDataURL(f);
-  }
-
-  function startDrag(e,id){
-    const s=stickers.find(x=>x.id===id);if(!s)return;
-    setDrag({id,sx:e.clientX,sy:e.clientY,ox:s.x,oy:s.y});e.preventDefault();
-  }
-  function onMove(e){
-    if(!drag||!frontRef.current)return;
-    const r=frontRef.current.getBoundingClientRect();
-    const dx=((e.clientX-drag.sx)/r.width)*100;
-    const dy=((e.clientY-drag.sy)/r.height)*100;
-    setStickers(ps=>ps.map(s=>s.id===drag.id?{...s,x:Math.max(0,Math.min(90,drag.ox+dx)),y:Math.max(0,Math.min(90,drag.oy+dy))}:s));
-  }
-  function onUp(){setDrag(null);}
-
-  function addSticker(e){
-    snap();
-    setStickers(ps=>[...ps,{id:Date.now(),emoji:e,x:10+Math.random()*60,y:10+Math.random()*60,size:2.5}]);
-    showT(e+" Sticker added! Drag to move.","success");
-  }
-  function rmSticker(id){snap();setStickers(ps=>ps.filter(s=>s.id!==id));}
-  function rzSticker(id,d){setStickers(ps=>ps.map(s=>s.id===id?{...s,size:Math.max(1,Math.min(6,s.size+d))}:s));}
-
-  const currentBg=
-    bgTab==="upload"&&uploaded?`url(${uploaded}) center/cover`:
-    (bgTab==="photo"||bgTab==="ai")&&bgImg?`url(${bgImg}) center/cover`:
-    theme.bg;
-
-  async function dlCard(which){
-    setDl(true);
-    try{
-      const {default:h2c}=await import("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.esm.min.js");
-      const el=which==="front"?frontRef.current:document.getElementById("back-face");
-      const c=await h2c(el,{useCORS:true,scale:2,backgroundColor:null,logging:false});
-      const a=document.createElement("a");a.download=`postcard-${which}-${Date.now()}.png`;a.href=c.toDataURL("image/png");a.click();
-      showT("⬇️ Downloaded!","success");
-    }catch{showT("Download failed — right-click the card to save.","error");}
-    setDl(false);
-  }
-
-  async function copyImg(){
-    try{
-      const {default:h2c}=await import("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.esm.min.js");
-      const c=await h2c(frontRef.current,{useCORS:true,scale:2});
-      c.toBlob(async b=>{
-        await navigator.clipboard.write([new ClipboardItem({"image/png":b})]);
-        setCopied(true);setTimeout(()=>setCopied(false),2200);showT("📋 Copied!","success");
-      });
-    }catch{showT("Copy failed — right-click to save.","error");}
-  }
-
-  function shareOn(p){
-    const txt=encodeURIComponent(msg+(from?" — "+from:""));
-    const url=encodeURIComponent(window.location.href);
-    const map={
-      twitter:"https://twitter.com/intent/tweet?text="+txt,
-      facebook:"https://www.facebook.com/sharer/sharer.php?u="+url+"&quote="+txt,
-      linkedin:"https://www.linkedin.com/sharing/share-offsite/?url="+url,
-      pinterest:"https://pinterest.com/pin/create/button/?url="+url+"&description="+txt,
-      whatsapp:"https://api.whatsapp.com/send?text="+txt,
-    };
-    window.open(map[p],"_blank","width=600,height=450");
-  }
-
-  const d=dark;
-  const P={
-    root:{fontFamily:"'Lora',serif",background:d?"#18110c":"#fff8f0",minHeight:"100vh",color:d?"#f5e6d3":"#3d3029"},
-    card:{background:d?"#2a2118":"#fff",borderRadius:"1.25rem",padding:"1.25rem",boxShadow:"0 4px 24px rgba(0,0,0,.08)",border:"1px solid "+(d?"#4a3d32":"#e8d5c4")},
-    lbl:{display:"block",fontWeight:600,fontSize:".78rem",marginBottom:".28rem",color:d?"#b8a898":"#6b5d56",textTransform:"uppercase",letterSpacing:".05em"},
-    inp:{width:"100%",padding:".58rem .85rem",fontFamily:"'Lora',serif",fontSize:".93rem",border:"1.5px solid "+(d?"#4a3d32":"#e8d5c4"),borderRadius:".6rem",background:d?"#18110c":"#fff8f0",color:d?"#f5e6d3":"#3d3029",outline:"none",boxSizing:"border-box"},
-    txa:{width:"100%",padding:".58rem .85rem",fontFamily:"'Lora',serif",fontSize:".93rem",border:"1.5px solid "+(d?"#4a3d32":"#e8d5c4"),borderRadius:".6rem",background:d?"#18110c":"#fff8f0",color:d?"#f5e6d3":"#3d3029",resize:"vertical",minHeight:88,outline:"none",boxSizing:"border-box"},
-    btn:(bg,fg="#fff",ex={})=>({background:bg,color:fg,border:"none",borderRadius:".65rem",padding:".58rem 1rem",fontFamily:"'Lora',serif",fontWeight:600,fontSize:".86rem",cursor:"pointer",display:"inline-flex",alignItems:"center",gap:".35rem",justifyContent:"center",...ex}),
-    sec:{fontFamily:"'Playfair Display',serif",fontSize:"1rem",fontWeight:700,color:"#c1666b",marginBottom:".65rem"},
-    tab:(a)=>({padding:".32rem .75rem",borderRadius:".45rem",border:"none",fontFamily:"'Lora',serif",fontSize:".8rem",cursor:"pointer",fontWeight:a?700:400,background:a?"#c1666b":d?"#3d2f24":"#f5e0d3",color:a?"#fff":d?"#c9b8a8":"#6b5d56",whiteSpace:"nowrap"}),
-  };
-
-  const qrSrc=showQr?`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(qrUrl)}&bgcolor=fdf6ee&color=3d3029`:null;
-
-  return (
-    <div style={P.root} onMouseMove={onMove} onMouseUp={onUp}>
-      <a href="#main" className="skip-nav">Skip to main content</a>
-
-      {/* Banner */}
-      <div style={{background:"linear-gradient(135deg,#c1666b,#f4a261)",padding:".6rem 1rem",textAlign:"center"}}>
-        <span style={{color:"#fff",fontFamily:"'Lora',serif",fontSize:".88rem",fontWeight:600}}>
-          💝 Love this tool? &nbsp;
-          <a href="https://shop.artistrystore.com/store.html" target="_blank" rel="noreferrer" style={{color:"#fff3e0",textDecoration:"underline",fontWeight:700}}>Browse All Products →</a>
-          &nbsp;·&nbsp;
-          <a href="https://tlott12.gumroad.com/l/oqlhbt" target="_blank" rel="noreferrer" style={{color:"#fff3e0",textDecoration:"underline",fontWeight:700}}>🌙 Sacred Cycles</a>
-          &nbsp;·&nbsp;
-          <a href="https://shop.artistrystore.com/lead-magnets.html" target="_blank" rel="noreferrer" style={{color:"#fff3e0",textDecoration:"underline",fontWeight:700}}>🎁 Free Resources</a>
-        </span>
-      </div>
-
-      {/* Toast */}
-      {toast&&<div role="status" aria-live="polite" style={{position:"fixed",bottom:"1.4rem",left:"50%",transform:"translateX(-50%)",background:toast.t==="error"?"#ef4444":toast.t==="success"?"#10b981":"#6366f1",color:"#fff",padding:".6rem 1.3rem",borderRadius:"2rem",fontWeight:600,zIndex:9999,fontSize:".92rem",boxShadow:"0 4px 20px rgba(0,0,0,.2)",whiteSpace:"nowrap"}}>{toast.m}</div>}
-
-      <div id="main" style={{maxWidth:1400,margin:"0 auto",padding:"1.2rem 1rem"}}>
-        <h1 style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(1.8rem,4vw,2.8rem)",color:"#c1666b",textAlign:"center",marginBottom:".2rem",fontWeight:700}}>✉️ Postcard Creator</h1>
-        <p style={{textAlign:"center",color:d?"#b8a898":"#6b5d56",fontStyle:"italic",marginBottom:"1.2rem",fontSize:".93rem"}}>Design, personalize &amp; share beautiful postcards — powered by AI ✨</p>
-
-        {/* Templates */}
-        <div style={{...P.card,marginBottom:"1.2rem"}}>
-          <p style={P.sec}>⚡ Quick-Start Templates</p>
-          <div className="tpl-scroll">
-            {TEMPLATES.map(t=>(
-              <button key={t.id} onClick={()=>applyTpl(t)} aria-label={"Apply "+t.label+" template"} style={{...P.tab(false),display:"flex",flexDirection:"column",alignItems:"center",gap:".2rem",padding:".5rem .8rem",minWidth:70,flexShrink:0}}>
-                <span style={{fontSize:"1.35rem"}}>{t.emoji}</span>
-                <span style={{fontSize:".7rem"}}>{t.label}</span>
-              </button>
-            ))}
+        <!-- FRONT -->
+        <div class="card-front" id="cardFront">
+          <div class="card-bg" id="cardBg"></div>
+          <div class="card-overlay" id="cardOverlay"></div>
+          <div class="card-text" id="cardText">
+            <div class="card-msg" id="cardMsg">Wish you were here! 🌴</div>
+            <div class="card-from" id="cardFrom"></div>
           </div>
+          <div class="sticker-layer" id="stickerLayer" aria-label="Sticker area"></div>
         </div>
 
-        {/* Grid */}
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:"1.2rem",marginBottom:"1.2rem"}}>
-
-          {/* Editor */}
-          <div style={P.card}>
-            <p style={P.sec}>✍️ Message &amp; Text</p>
-
-            {/* Gork AI */}
-            <div style={{marginBottom:"1rem",padding:".8rem",background:d?"#3d2f24":"#fff8f0",borderRadius:".7rem",border:"1px solid "+(d?"#5a4538":"#f4c5ac")}}>
-              <button style={{...P.btn("linear-gradient(135deg,#c1666b,#a855f7)"),width:"100%",marginBottom:showAi?".65rem":0}} onClick={()=>setShowAi(v=>!v)} aria-expanded={showAi}>
-                ✨ {showAi?"Hide":"Write with"} AI Writer
-              </button>
-              {showAi&&<div style={{display:"flex",gap:".45rem"}}>
-                <input style={P.inp} placeholder="e.g. beach vacation, missing my bestie…" value={aiPrompt} onChange={e=>setAiPrompt(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleAI()} aria-label="AI prompt"/>
-                <button style={{...P.btn("#c1666b"),minWidth:68,flexShrink:0}} onClick={handleAI} disabled={aiLoading} aria-label="Generate message">
-                  {aiLoading?"⏳":"✨ Go"}
-                </button>
-              </div>}
-            </div>
-
-            <div style={{marginBottom:".8rem"}}>
-              <label style={P.lbl} htmlFor="msg-ta">Message</label>
-              <textarea id="msg-ta" style={P.txa} value={msg} onChange={e=>setMsg(e.target.value)} placeholder="Write your message here…"/>
-            </div>
-
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:".6rem",marginBottom:".8rem"}}>
-              <div><label style={P.lbl} htmlFor="from-in">From</label><input id="from-in" style={P.inp} value={from} onChange={e=>setFrom(e.target.value)} placeholder="Your name"/></div>
-              <div><label style={P.lbl} htmlFor="to-in">To</label><input id="to-in" style={P.inp} value={to} onChange={e=>setTo(e.target.value)} placeholder="Recipient"/></div>
-            </div>
-
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:".6rem",marginBottom:".8rem"}}>
-              <div>
-                <label style={P.lbl} htmlFor="font-sel">Font</label>
-                <select id="font-sel" style={{...P.inp,cursor:"pointer"}} value={font.value} onChange={e=>setFont(FONTS.find(f=>f.value===e.target.value))}>
-                  {FONTS.map(f=><option key={f.value} value={f.value}>{f.label}</option>)}
-                </select>
-              </div>
-              <div>
-                <label style={P.lbl}>Size — {fsize}px</label>
-                <input type="range" min={12} max={54} value={fsize} onChange={e=>setFsize(+e.target.value)} style={{width:"100%",marginTop:".5rem",accentColor:"#c1666b"}} aria-label="Font size"/>
-              </div>
-            </div>
-
-            <div style={{marginBottom:".8rem"}}>
-              <label style={P.lbl}>Text Color</label>
-              <div style={{display:"flex",gap:".38rem",flexWrap:"wrap",alignItems:"center"}}>
-                {["#2C3E50","#ffffff","#f9fafb","#fde68a","#fca5a5","#6ee7b7","#bfdbfe","#ddd6fe","#fecdd3","#1e1b4b"].map(c=>(
-                  <button key={c} onClick={()=>setTcolor(c)} aria-label={"Text color "+c} style={{width:26,height:26,borderRadius:"50%",background:c,border:tcolor===c?"3px solid #c1666b":"1px solid "+(d?"#555":"#ddd"),cursor:"pointer",flexShrink:0,minWidth:26,minHeight:26}}/>
-                ))}
-                <input type="color" value={tcolor} onChange={e=>setTcolor(e.target.value)} style={{width:26,height:26,borderRadius:"50%",border:"none",cursor:"pointer",padding:0,flexShrink:0}} title="Custom color" aria-label="Custom text color"/>
-              </div>
-            </div>
-
-            {/* Stickers */}
-            <div style={{marginBottom:".8rem"}}>
-              <button style={{...P.btn(showStick?"#c1666b":d?"#3d2f24":"#f5e0d3",showStick?"#fff":d?"#e2d0c0":"#6b5d56"),width:"100%"}} onClick={()=>setShowStick(v=>!v)} aria-expanded={showStick}>
-                🎉 {showStick?"Hide Stickers":"Add Stickers"}
-              </button>
-              {showStick&&<div style={{marginTop:".6rem",display:"flex",flexWrap:"wrap",gap:".28rem",maxHeight:116,overflowY:"auto"}}>
-                {STICKERS.map(s=>(
-                  <button key={s} onClick={()=>addSticker(s)} aria-label={"Add "+s+" sticker"} style={{fontSize:"1.35rem",background:"none",border:"none",cursor:"pointer",lineHeight:1,padding:".18rem",minWidth:38,minHeight:38}}>{s}</button>
-                ))}
-              </div>}
-            </div>
-
-            <button style={{...P.btn(d?"#3d2f24":"#f5e0d3",d?"#e2d0c0":"#6b5d56"),width:"100%"}} onClick={undo} disabled={!history.length} aria-label="Undo last change">↩ Undo</button>
+        <!-- BACK -->
+        <div class="card-back" id="cardBack">
+          <div class="back-header">
+            <div class="back-title">✉ Postcard</div>
+            <div class="stamp-box" aria-label="Stamp area">🏷️</div>
           </div>
-
-          {/* Background */}
-          <div style={P.card}>
-            <p style={P.sec}>🎨 Background &amp; Style</p>
-
-            <div style={{display:"flex",gap:".38rem",marginBottom:".9rem",flexWrap:"wrap"}}>
-              {[["theme","🎨 Themes"],["photo","🖼 Stock"],["upload","📷 Upload"],["ai","🤖 AI Gen"]].map(([t,lbl])=>(
-                <button key={t} style={P.tab(bgTab===t)} onClick={()=>setBgTab(t)}>{lbl}</button>
-              ))}
-            </div>
-
-            {bgTab==="theme"&&<div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:".38rem",marginBottom:".9rem"}}>
-              {THEMES.map(t=>(
-                <button key={t.id} title={t.label} onClick={()=>{setTheme(t);setTcolor(t.text);}} aria-label={t.label} style={{height:44,borderRadius:".5rem",background:t.bg,border:theme.id===t.id?"3px solid #c1666b":"2px solid transparent",cursor:"pointer",boxShadow:"0 2px 6px rgba(0,0,0,.1)"}}/>
-              ))}
-            </div>}
-
-            {bgTab==="photo"&&<div style={{marginBottom:".9rem"}}>
-              <p style={{fontSize:".78rem",color:d?"#a0917f":"#9a8070",marginBottom:".55rem"}}>Click a category for a free stock photo:</p>
-              <div style={{display:"flex",flexWrap:"wrap",gap:".32rem",marginBottom:".6rem"}}>
-                {BG_CATS.map(c=><button key={c} style={P.tab(bgSeed===c)} onClick={()=>{setBgSeed(c);loadPhoto(c);}}>{c}</button>)}
-              </div>
-              <button style={P.btn("#c1666b")} onClick={()=>loadPhoto(bgSeed)} disabled={photoLd} aria-label="Load random photo">
-                {photoLd?"⏳ Loading…":"🔀 Random Photo"}
-              </button>
-              {bgImg&&bgTab==="photo"&&<img src={bgImg} style={{marginTop:".6rem",width:"100%",borderRadius:".6rem",maxHeight:110,objectFit:"cover"}} alt="Stock preview" crossOrigin="anonymous"/>}
-            </div>}
-
-            {bgTab==="upload"&&<div style={{marginBottom:".9rem"}}>
-              <input ref={fileRef} type="file" accept="image/*" style={{display:"none"}} onChange={handleUpload} aria-label="Upload photo"/>
-              <button style={{...P.btn("#c1666b"),width:"100%"}} onClick={()=>fileRef.current.click()} aria-label="Upload your photo">
-                📷 {uploaded?"Change Photo":"Upload Your Photo"}
-              </button>
-              {uploaded&&<div style={{marginTop:".6rem"}}>
-                <img src={uploaded} style={{width:"100%",borderRadius:".6rem",maxHeight:110,objectFit:"cover"}} alt="Uploaded preview"/>
-                <button style={{...P.btn("#ef4444"),marginTop:".38rem",fontSize:".78rem",width:"100%"}} onClick={()=>{setUploaded(null);setBgTab("theme");}} aria-label="Remove photo">✕ Remove</button>
-              </div>}
-            </div>}
-
-            {bgTab==="ai"&&<div style={{marginBottom:".9rem"}}>
-              <p style={{fontSize:".78rem",color:d?"#a0917f":"#9a8070",marginBottom:".55rem"}}>Describe a scene → AI generates your background:</p>
-              <div style={{display:"flex",gap:".45rem",marginBottom:".5rem"}}>
-                <input style={P.inp} placeholder="e.g. tropical beach at sunset…" value={imgPrompt} onChange={e=>setImgPrompt(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleImgGen()} aria-label="AI image prompt"/>
-                <button style={{...P.btn("#6366f1"),minWidth:68,flexShrink:0}} onClick={handleImgGen} disabled={imgLoading} aria-label="Generate background">
-                  {imgLoading?"⏳":"✨ Gen"}
-                </button>
-              </div>
-              {bgImg&&bgTab==="ai"&&<img src={bgImg} style={{width:"100%",borderRadius:".6rem",maxHeight:110,objectFit:"cover"}} alt="AI background preview" crossOrigin="anonymous"/>}
-            </div>}
-
-            {/* Filters */}
-            <div>
-              <p style={{...P.sec,marginBottom:".45rem"}}>✨ Filters</p>
-              <div style={{display:"flex",flexWrap:"wrap",gap:".32rem"}}>
-                {FILTERS.map(f=><button key={f.id} style={P.tab(filter.id===f.id)} onClick={()=>setFilter(f)} aria-label={"Filter: "+f.label}>{f.label}</button>)}
-              </div>
+          <div class="back-body">
+            <div class="back-note" id="backNoteDisplay">Add your personal note on the left...</div>
+            <div class="addr-block">
+              <div class="addr-line" id="addrTo1Display">To:</div>
+              <div class="addr-line" id="addrTo2Display" style="margin-top:0.2rem"></div>
+              <div class="addr-line" id="addrCityDisplay" style="margin-top:0.2rem"></div>
+              <div class="ret-addr" id="retAddrDisplay"></div>
+              <div class="qr-area" id="qrArea"></div>
             </div>
           </div>
         </div>
 
-        {/* Preview */}
-        <div style={{...P.card,marginBottom:"1.2rem"}}>
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"1rem",flexWrap:"wrap",gap:".5rem"}}>
-            <p style={P.sec}>👁 Preview</p>
-            <div style={{display:"flex",gap:".45rem"}}>
-              <button style={P.tab(side==="front")} onClick={()=>setSide("front")} aria-pressed={side==="front"}>✉️ Front</button>
-              <button style={P.tab(side==="back")} onClick={()=>setSide("back")} aria-pressed={side==="back"}>🏠 Back</button>
-            </div>
-          </div>
+      </div><!-- /card-flip -->
 
-          {/* FRONT */}
-          {side==="front"&&(
-            <div ref={frontRef} onMouseLeave={onUp} className="card-face" style={{background:currentBg,filter:filter.css||undefined,maxWidth:800,margin:"0 auto 1.2rem"}}>
-              <div style={{position:"absolute",inset:".8rem",border:"1.5px solid rgba(255,255,255,.45)",borderRadius:".5rem",pointerEvents:"none"}}/>
-              <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"2.5rem",textAlign:"center"}}>
-                <div style={{fontFamily:font.value,fontSize:`clamp(.9rem,${fsize/18}rem,2.8rem)`,color:tcolor,textShadow:"0 1px 6px rgba(0,0,0,.12)",fontStyle:"italic",maxWidth:"72%",lineHeight:1.55}}>
-                  {msg||"Your message…"}
-                </div>
-                {from&&<div style={{fontFamily:font.value,fontSize:`clamp(.75rem,${(fsize*.65)/18}rem,2rem)`,color:tcolor,marginTop:".7rem",opacity:.9}}>— {from}</div>}
-              </div>
-              <div style={{position:"absolute",top:"1.2rem",right:"1.2rem",width:"3rem",height:"3rem",borderRadius:"50%",background:theme.stamp,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.4rem",boxShadow:"0 3px 10px rgba(0,0,0,.2)"}}>♥</div>
-              {to&&<div style={{position:"absolute",bottom:"1.2rem",right:"1.2rem",background:"rgba(0,0,0,.18)",backdropFilter:"blur(4px)",borderRadius:".5rem",padding:".32rem .72rem",color:tcolor,fontFamily:font.value,fontSize:".74rem"}}>To: {to}</div>}
-              {stickers.map(s=>(
-                <div key={s.id} onMouseDown={e=>startDrag(e,s.id)} style={{position:"absolute",left:`${s.x}%`,top:`${s.y}%`,fontSize:`${s.size}rem`,cursor:"grab",userSelect:"none",lineHeight:1}}>
-                  {s.emoji}
-                  <span onClick={()=>rmSticker(s.id)} aria-label="Remove sticker" style={{position:"absolute",top:-8,right:-8,background:"#ef4444",color:"#fff",borderRadius:"50%",width:16,height:16,fontSize:".6rem",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>✕</span>
-                  <span onClick={()=>rzSticker(s.id,.5)} aria-label="Enlarge sticker" style={{position:"absolute",bottom:-8,right:8,background:"#3b82f6",color:"#fff",borderRadius:"50%",width:16,height:16,fontSize:".68rem",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>+</span>
-                  <span onClick={()=>rzSticker(s.id,-.5)} aria-label="Shrink sticker" style={{position:"absolute",bottom:-8,left:8,background:"#6b7280",color:"#fff",borderRadius:"50%",width:16,height:16,fontSize:".68rem",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>−</span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* BACK */}
-          {side==="back"&&(
-            <>
-            <div id="back-face" className="card-face" style={{background:d?"#2a2118":"#fdf6ee",border:"2px solid "+(d?"#4a3d32":"#e8d5c4"),maxWidth:800,margin:"0 auto 1rem"}}>
-              {/* Stamp */}
-              <div style={{position:"absolute",top:"1rem",right:"1rem",width:64,height:72,border:"2px solid "+theme.stamp,borderRadius:".25rem",display:"flex",alignItems:"center",justifyContent:"center",background:d?"#3d2f24":"#fff8f0"}}>
-                <div style={{width:48,height:56,background:theme.bg,borderRadius:".15rem",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.5rem"}}>♥</div>
-              </div>
-              {/* QR */}
-              {showQr&&qrSrc&&<div style={{position:"absolute",top:"1rem",right:"5.5rem"}}><img src={qrSrc} alt="QR code" width={64} height={64} style={{borderRadius:".25rem"}}/></div>}
-              {/* Divider */}
-              <div style={{position:"absolute",left:"50%",top:"1rem",bottom:"1rem",width:1,background:d?"#4a3d32":"#e8d5c4"}}/>
-              {/* Left note */}
-              <div style={{position:"absolute",left:"1rem",top:"1rem",width:"calc(50% - 1.5rem)",height:"calc(100% - 2rem)",display:"flex",flexDirection:"column"}}>
-                <p style={{fontFamily:"'Playfair Display',serif",fontSize:".68rem",color:d?"#b8a898":"#9a8070",textTransform:"uppercase",letterSpacing:".08em",marginBottom:".45rem"}}>Message</p>
-                <p style={{fontFamily:font.value,fontSize:".8rem",color:d?"#e2d0c0":"#3d3029",lineHeight:1.55,fontStyle:"italic",marginBottom:"auto"}}>
-                  {backNote||msg}
-                  {from&&<><br/><span style={{opacity:.8}}>— {from}</span></>}
-                </p>
-                {retAddr&&<div style={{marginTop:".65rem",fontSize:".68rem",color:d?"#b8a898":"#9a8070",fontFamily:"'Lora',serif"}}>
-                  <p style={{textTransform:"uppercase",fontSize:".6rem",letterSpacing:".08em",marginBottom:".22rem"}}>Return Address</p>
-                  {retAddr.split("\n").map((l,i)=><p key={i}>{l}</p>)}
-                </div>}
-              </div>
-              {/* Right address */}
-              <div style={{position:"absolute",right:"1rem",top:"5rem",width:"calc(50% - 1.5rem)"}}>
-                <p style={{fontFamily:"'Playfair Display',serif",fontSize:".68rem",color:d?"#b8a898":"#9a8070",textTransform:"uppercase",letterSpacing:".08em",marginBottom:".7rem"}}>Send To</p>
-                {to&&<p style={{fontFamily:font.value,fontSize:".86rem",fontWeight:600,color:d?"#e2d0c0":"#3d3029",marginBottom:".38rem"}}>{to}</p>}
-                {[addr1,addr2,addrCity].filter(Boolean).map((l,i)=>(
-                  <p key={i} style={{fontFamily:"'Lora',serif",fontSize:".8rem",color:d?"#c9b8a8":"#6b5d56",marginBottom:".18rem"}}>{l}</p>
-                ))}
-                {!addr1&&!to&&[1,2,3].map(i=><div key={i} style={{height:1,background:d?"#4a3d32":"#e8d5c4",marginBottom:".88rem"}}/>)}
-              </div>
-            </div>
-
-            {/* Back Fields */}
-            <div style={{background:d?"#3d2f24":"#fff8f0",borderRadius:".75rem",padding:"1rem",marginBottom:"1rem",border:"1px solid "+(d?"#5a4538":"#f4c5ac")}}>
-              <p style={{...P.sec,marginBottom:".55rem"}}>🏠 Back Side Details</p>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:".6rem"}}>
-                <div><label style={P.lbl} htmlFor="a1">Address Line 1</label><input id="a1" style={P.inp} value={addr1} onChange={e=>setAddr1(e.target.value)} placeholder="123 Main St"/></div>
-                <div><label style={P.lbl} htmlFor="a2">Address Line 2</label><input id="a2" style={P.inp} value={addr2} onChange={e=>setAddr2(e.target.value)} placeholder="Apt 4B"/></div>
-                <div><label style={P.lbl} htmlFor="ac">City, State, ZIP</label><input id="ac" style={P.inp} value={addrCity} onChange={e=>setAddrCity(e.target.value)} placeholder="New York, NY 10001"/></div>
-                <div><label style={P.lbl} htmlFor="ra">Return Address</label><input id="ra" style={P.inp} value={retAddr} onChange={e=>setRetAddr(e.target.value)} placeholder="Your address"/></div>
-                <div><label style={P.lbl} htmlFor="bn">Back Note (optional)</label><input id="bn" style={P.inp} value={backNote} onChange={e=>setBackNote(e.target.value)} placeholder="Leave blank to use front message"/></div>
-                <div>
-                  <label style={P.lbl} htmlFor="qri">QR Code Link</label>
-                  <div style={{display:"flex",gap:".38rem"}}>
-                    <input id="qri" style={P.inp} value={qrUrl} onChange={e=>setQrUrl(e.target.value)} placeholder="https://…"/>
-                    <button style={{...P.tab(showQr),flexShrink:0,minHeight:38,minWidth:44}} onClick={()=>setShowQr(v=>!v)} aria-pressed={showQr}>QR</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-            </>
-          )}
-
-          {/* Actions */}
-          <div style={{display:"flex",flexWrap:"wrap",gap:".6rem",marginBottom:".9rem"}}>
-            <button style={P.btn("linear-gradient(135deg,#c1666b,#f4a261)")} onClick={()=>dlCard("front")} disabled={dl} aria-label="Download front PNG">
-              {dl?"⏳ Preparing…":"⬇️ Download Front"}
-            </button>
-            {side==="back"&&<button style={P.btn("linear-gradient(135deg,#6366f1,#a855f7)")} onClick={()=>dlCard("back")} disabled={dl} aria-label="Download back PNG">⬇️ Download Back</button>}
-            <button style={P.btn(d?"#3d2f24":"#f5e0d3",d?"#e2d0c0":"#6b5d56")} onClick={copyImg} aria-label="Copy front image">
-              {copied?"✅ Copied!":"📋 Copy Image"}
-            </button>
-            {"share" in navigator&&<button style={P.btn(d?"#3d2f24":"#f5e0d3",d?"#e2d0c0":"#6b5d56")} onClick={async()=>{try{await navigator.share({title:"My Postcard",text:msg});}catch{}}} aria-label="Share via device">📤 Share</button>}
-          </div>
-
-          <p style={{...P.sec,marginBottom:".45rem"}}>📣 Share to Social</p>
-          <div style={{display:"flex",flexWrap:"wrap",gap:".38rem"}}>
-            {[["twitter","𝕏 Twitter","#1DA1F2"],["facebook","Facebook","#4267B2"],["whatsapp","WhatsApp","#25D366"],["linkedin","LinkedIn","#0077B5"],["pinterest","Pinterest","#E60023"]].map(([id,lbl,bg])=>(
-              <button key={id} style={{...P.btn(bg),flex:"1 1 90px"}} onClick={()=>shareOn(id)} aria-label={"Share on "+lbl}>{lbl}</button>
-            ))}
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div style={{textAlign:"center",padding:"1.4rem",background:"linear-gradient(135deg,#fff3e0,#fce4ec)",borderRadius:"1rem"}}>
-          <p style={{fontFamily:"'Playfair Display',serif",fontSize:"1.18rem",color:"#c1666b",fontWeight:700,marginBottom:".45rem"}}>🌸 Enjoy this free tool? We have got more!</p>
-          <p style={{fontFamily:"'Lora',serif",color:"#6b5d56",marginBottom:".9rem",fontSize:".93rem"}}>Adult relaxation &amp; coloring books, Sacred Cycles Renewal, and free AI wellness resources await.</p>
-          <div style={{display:"flex",flexWrap:"wrap",gap:".6rem",justifyContent:"center"}}>
-            <a href="https://shop.artistrystore.com/store.html" target="_blank" rel="noreferrer" style={{background:"#c1666b",color:"#fff",padding:".58rem 1.25rem",borderRadius:".65rem",fontFamily:"'Lora',serif",fontWeight:600,textDecoration:"none",fontSize:".86rem"}}>🛍️ Shop All Products</a>
-            <a href="https://tlott12.gumroad.com/l/oqlhbt" target="_blank" rel="noreferrer" style={{background:"#f4a261",color:"#fff",padding:".58rem 1.25rem",borderRadius:".65rem",fontFamily:"'Lora',serif",fontWeight:600,textDecoration:"none",fontSize:".86rem"}}>🌙 Sacred Cycles Renewal</a>
-            <a href="https://shop.artistrystore.com/lead-magnets.html" target="_blank" rel="noreferrer" style={{background:"linear-gradient(135deg,#6366f1,#a855f7)",color:"#fff",padding:".58rem 1.25rem",borderRadius:".65rem",fontFamily:"'Lora',serif",fontWeight:600,textDecoration:"none",fontSize:".86rem"}}>🎁 Free AI Therapist &amp; Resources</a>
-          </div>
-          <p style={{marginTop:".8rem",color:"#9a8070",fontSize:".76rem",fontFamily:"'Lora',serif"}}>
-            Stock photos via <a href="https://picsum.photos" target="_blank" rel="noreferrer" style={{color:"#c1666b"}}>Picsum Photos</a> · AI writing by Pollinations · Images by <a href="https://pollinations.ai" target="_blank" rel="noreferrer" style={{color:"#c1666b"}}>Pollinations AI</a>
-          </p>
-        </div>
+      <!-- Flip & side buttons -->
+      <div class="action-row" style="justify-content:center; margin-top:0.7rem;">
+        <button class="btn btn-outline" onclick="flipCard()" aria-label="Flip postcard">
+          🔄 Flip Card
+        </button>
+        <button class="btn btn-outline btn-sm" onclick="undoLast()" aria-label="Undo last action" id="undoBtn" disabled>↩ Undo</button>
+        <button class="btn btn-gold" onclick="downloadFront()" aria-label="Download front as image">
+          ⬇ Front
+        </button>
+        <button class="btn btn-outline" onclick="downloadBack()" aria-label="Download back as image">
+          ⬇ Back
+        </button>
       </div>
     </div>
-  );
+  </div>
+
+  <!-- ══ LEFT COLUMN ══ -->
+  <div style="display:flex; flex-direction:column; gap:1rem;">
+
+    <!-- Templates -->
+    <div class="panel">
+      <h2>🎨 Templates</h2>
+      <div class="tmpl-grid" id="tmplGrid" role="listbox" aria-label="Occasion templates"></div>
+    </div>
+
+    <!-- Background -->
+    <div class="panel">
+      <h2>🖼 Background</h2>
+      <div class="tabs">
+        <button class="tab active" onclick="switchBgTab('theme',this)">Theme Colors</button>
+        <button class="tab" onclick="switchBgTab('photo',this)">Stock Photos</button>
+        <button class="tab" onclick="switchBgTab('ai',this)">AI Generate</button>
+        <button class="tab" onclick="switchBgTab('upload',this)">Upload</button>
+      </div>
+
+      <!-- Theme colors -->
+      <div id="bgTheme">
+        <div class="grid-pick" id="themeGrid" role="listbox" aria-label="Theme colors"></div>
+      </div>
+
+      <!-- Stock photos -->
+      <div id="bgPhoto" class="hide">
+        <div class="grid-pick" id="photoGrid" role="listbox" aria-label="Stock photo categories"></div>
+        <button class="btn btn-outline btn-sm section-gap" onclick="loadPhoto()" id="photoBtn" aria-label="Load stock photo">🔀 Load Photo</button>
+        <span id="photoLd" class="hide"><span class="loading"></span> Loading…</span>
+      </div>
+
+      <!-- AI generate -->
+      <div id="bgAI" class="hide">
+        <label for="imgPrompt">Describe your background scene</label>
+        <input type="text" id="imgPrompt" placeholder="e.g. tropical beach at sunset, watercolor style" aria-label="Image prompt">
+        <button class="btn btn-gold btn-sm" onclick="genAIImage()" aria-label="Generate AI background image">✨ Generate Image</button>
+        <span id="imgLd" class="hide"><span class="loading"></span> Generating…</span>
+      </div>
+
+      <!-- Upload -->
+      <div id="bgUpload" class="hide">
+        <label for="fileInput">Choose image from device</label>
+        <input type="file" id="fileInput" accept="image/*" style="color:#ccc;" onchange="handleUpload(event)">
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="panel">
+      <h2>✨ Filters</h2>
+      <div class="grid-pick" id="filterGrid" role="listbox" aria-label="Photo filters"></div>
+    </div>
+
+  </div>
+
+  <!-- ══ RIGHT COLUMN ══ -->
+  <div style="display:flex; flex-direction:column; gap:1rem;">
+
+    <!-- Text -->
+    <div class="panel">
+      <h2>✍️ Message & Text</h2>
+      <label for="msgInput">Message (front)</label>
+      <textarea id="msgInput" placeholder="Your postcard message…" aria-label="Postcard message" oninput="updateMsg()">Wish you were here! 🌴</textarea>
+
+      <label for="fromInput">From</label>
+      <input type="text" id="fromInput" placeholder="From: Your Name" aria-label="Sender name" oninput="updateFrom()">
+
+      <!-- AI message generator -->
+      <div class="ai-box">
+        <h3>🤖 AI Message Writer</h3>
+        <label for="aiPrompt">Occasion or vibe</label>
+        <input type="text" id="aiPrompt" placeholder="e.g. Birthday for my best friend" aria-label="AI message prompt">
+        <button class="btn btn-gold btn-sm" onclick="genAIMsg()" aria-label="Generate AI message">✨ Write for Me</button>
+        <span id="aiLd" class="hide"><span class="loading"></span></span>
+      </div>
+
+      <!-- Font -->
+      <div class="section-gap">
+        <label for="fontSel">Font</label>
+        <select id="fontSel" aria-label="Choose font" onchange="updateFont()">
+          <option value="'Dancing Script',cursive">Dancing Script</option>
+          <option value="'Pacifico',cursive">Pacifico</option>
+          <option value="'Lobster',cursive">Lobster</option>
+          <option value="'Playfair Display',serif">Playfair Display</option>
+          <option value="'Satisfy',cursive">Satisfy</option>
+          <option value="'Caveat',cursive">Caveat</option>
+          <option value="'Indie Flower',cursive">Indie Flower</option>
+          <option value="'Quicksand',sans-serif">Quicksand</option>
+          <option value="'Raleway',sans-serif">Raleway</option>
+          <option value="Georgia,serif">Georgia Classic</option>
+        </select>
+      </div>
+
+      <label>Text Color</label>
+      <input type="color" id="tcolorInput" value="#ffffff" aria-label="Text color" oninput="updateColor()">
+
+      <label>Font Size — <span id="fsizeVal">28</span>px</label>
+      <input type="range" min="14" max="52" value="28" id="fsizeRange" aria-label="Font size" oninput="updateFsize()">
+    </div>
+
+    <!-- Stickers -->
+    <div class="panel">
+      <h2>🎉 Stickers</h2>
+      <div class="sticker-grid" id="stickerPicker" aria-label="Sticker picker"></div>
+      <div class="action-row">
+        <button class="btn btn-danger btn-sm" onclick="clearStickers()" aria-label="Remove all stickers">🗑 Clear All</button>
+      </div>
+    </div>
+
+    <!-- Back side editor -->
+    <div class="panel">
+      <h2>📬 Postcard Back</h2>
+      <label for="backNote">Personal Note (left side)</label>
+      <textarea id="backNote" placeholder="Write your personal message here…" oninput="updateBack()" aria-label="Back note"></textarea>
+
+      <label for="addrTo1">Recipient Name</label>
+      <input type="text" id="addrTo1" placeholder="Jane Smith" oninput="updateBack()" aria-label="Recipient name">
+
+      <label for="addrTo2">Street Address</label>
+      <input type="text" id="addrTo2" placeholder="123 Main St" oninput="updateBack()" aria-label="Street address">
+
+      <label for="addrCity">City, State, ZIP</label>
+      <input type="text" id="addrCity" placeholder="New York, NY 10001" oninput="updateBack()" aria-label="City state zip">
+
+      <label for="retAddr">Return Address</label>
+      <input type="text" id="retAddr" placeholder="Your address" oninput="updateBack()" aria-label="Return address">
+
+      <label for="qrUrl">QR Code URL (optional)</label>
+      <input type="text" id="qrUrl" value="https://shop.artistrystore.com" oninput="updateBack()" aria-label="QR code URL">
+      <label style="flex-direction:row; display:flex; gap:0.4rem; align-items:center; text-transform:none; margin-bottom:0.6rem;">
+        <input type="checkbox" id="showQr" onchange="updateBack()" style="width:auto; margin:0;"> Show QR on back
+      </label>
+    </div>
+
+    <!-- Share -->
+    <div class="panel">
+      <h2>🔗 Share</h2>
+      <div class="action-row">
+        <button class="btn btn-gold" onclick="copyLink()" aria-label="Copy store link">📋 Copy Store Link</button>
+        <button class="btn btn-outline btn-sm" onclick="shareTwitter()" aria-label="Share on Twitter">🐦 Twitter</button>
+        <button class="btn btn-outline btn-sm" onclick="shareFacebook()" aria-label="Share on Facebook">📘 Facebook</button>
+      </div>
+    </div>
+
+  </div><!-- /right col -->
+
+</div><!-- /wrap -->
+</main>
+
+<footer>
+  <p>✨ Made with love by <a href="https://shop.artistrystore.com/store.html" target="_blank" rel="noopener">Artistry Store</a> &nbsp;|&nbsp; Free tools &amp; digital products for creators</p>
+</footer>
+
+<script>
+// ══════════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════════
+const THEMES = [
+  {id:'sunset',  label:'Sunset',   grad:'linear-gradient(135deg,#ff6b6b,#feca57)',     text:'#fff'},
+  {id:'ocean',   label:'Ocean',    grad:'linear-gradient(135deg,#006994,#00c9ff)',     text:'#fff'},
+  {id:'forest',  label:'Forest',   grad:'linear-gradient(135deg,#134e1f,#56ab2f)',     text:'#fff'},
+  {id:'rose',    label:'Rose',     grad:'linear-gradient(135deg,#c9748c,#f8bbd0)',     text:'#fff'},
+  {id:'night',   label:'Night Sky',grad:'linear-gradient(135deg,#0f0c29,#302b63)',     text:'#fff'},
+  {id:'desert',  label:'Desert',   grad:'linear-gradient(135deg,#c9a84c,#f5cba7)',     text:'#2c1810'},
+  {id:'aurora',  label:'Aurora',   grad:'linear-gradient(135deg,#0d324d,#7f5a83,#a64ac9)',text:'#fff'},
+  {id:'spring',  label:'Spring',   grad:'linear-gradient(135deg,#84fab0,#8fd3f4)',     text:'#1a3a2a'},
+  {id:'lava',    label:'Lava',     grad:'linear-gradient(135deg,#200122,#6f0000)',     text:'#ffb347'},
+  {id:'gold',    label:'Luxury',   grad:'linear-gradient(135deg,#1a1a2e,#c9a84c)',     text:'#fff'},
+  {id:'cotton',  label:'Cotton',   grad:'linear-gradient(135deg,#ffecd2,#fcb69f)',     text:'#4a2c2a'},
+  {id:'mint',    label:'Mint',     grad:'linear-gradient(135deg,#a8edea,#fed6e3)',     text:'#2c4a3e'},
+];
+const FILTERS = [
+  {id:'none',    label:'None',    css:'none'},
+  {id:'warm',    label:'🌅 Warm',  css:'sepia(.35) saturate(1.4) brightness(1.05)'},
+  {id:'cool',    label:'❄️ Cool',  css:'hue-rotate(30deg) saturate(1.2)'},
+  {id:'faded',   label:'📷 Faded', css:'sepia(.5) contrast(.9) brightness(1.1)'},
+  {id:'dramatic',label:'🎬 Drama', css:'contrast(1.3) saturate(1.4)'},
+  {id:'dreamy',  label:'💭 Dreamy',css:'brightness(1.15) saturate(.8) blur(.5px)'},
+  {id:'noir',    label:'🖤 Noir',  css:'grayscale(1) contrast(1.2)'},
+  {id:'vivid',   label:'🌈 Vivid', css:'saturate(1.8) contrast(1.1) brightness(1.05)'},
+];
+const STICKERS = ['🌴','🌺','🌊','🏖️','🌅','🌄','✈️','🗺️','🧳','🎒','🌸','🦋',
+  '🎉','🥂','❤️','💕','🌙','⭐','🔥','🌈','🎵','🎶','🏔️','🌲','🌻','🍹',
+  '🦜','🐚','🌍','🗼','🗽','🏝️','🎠','🎡','🎪','🌠','💫','🎯','🏆','🎁'];
+const TEMPLATES = [
+  {id:'birthday', icon:'🎂', label:'Birthday',  msg:'Happy Birthday! 🎂\nWishing you all the joy today!',  theme:'rose'},
+  {id:'travel',   icon:'✈️', label:'Travel',    msg:'Greetings from paradise! ✈️\nWish you were here!',     theme:'ocean'},
+  {id:'love',     icon:'❤️', label:'Love',      msg:'Thinking of you always ❤️\nYou mean the world to me.', theme:'sunset'},
+  {id:'holiday',  icon:'🎄', label:'Holiday',   msg:'Season\'s Greetings! 🎄\nWarm wishes to you & yours!', theme:'forest'},
+  {id:'congrats', icon:'🏆', label:'Congrats',  msg:'Congratulations! 🏆\nSo proud of everything you\'ve done!', theme:'gold'},
+  {id:'summer',   icon:'🌊', label:'Summer',    msg:'Summer vibes & sunshine! 🌊\nLife is better at the beach.',   theme:'ocean'},
+  {id:'thanks',   icon:'🙏', label:'Thank You', msg:'From the bottom of my heart — thank you! 🙏',          theme:'spring'},
+  {id:'thinking', icon:'💭', label:'Thinking',  msg:'Just thinking of you 💭\nHope today is wonderful!',    theme:'aurora'},
+  {id:'new year', icon:'🎆', label:'New Year',  msg:'Happy New Year! 🎆\nHere\'s to an amazing year ahead!', theme:'night'},
+  {id:'welcome',  icon:'🏡', label:'Welcome',   msg:'Welcome home! 🏡\nSo glad to have you here.',           theme:'mint'},
+  {id:'miss you', icon:'💌', label:'Miss You',  msg:'Missing you every single day 💌\nCan\'t wait to see you!', theme:'cotton'},
+  {id:'inspire',  icon:'⭐', label:'Inspire',   msg:'You are capable of amazing things ⭐\nKeep shining!',   theme:'lava'},
+];
+const PHOTO_CATS = ['travel','beach','mountains','nature','sunset','flowers','city','forest','abstract','architecture'];
+
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+let state = {
+  msg:'Wish you were here! 🌴',
+  from:'',
+  theme: THEMES[0],
+  filter: FILTERS[0],
+  font:"'Dancing Script',cursive",
+  tcolor:'#ffffff',
+  fsize: 28,
+  bgType: 'theme', // theme|photo|ai|upload
+  bgUrl: null,
+  activeTemplate: null,
+};
+let history = [];
+let activeStickerEl = null;
+let dragOffset = {x:0, y:0};
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  buildThemeGrid();
+  buildFilterGrid();
+  buildStickerPicker();
+  buildTemplateGrid();
+  buildPhotoGrid();
+  applyState();
+  updateBack();
+});
+
+// ══════════════════════════════════════════
+//  BUILDERS
+// ══════════════════════════════════════════
+function buildThemeGrid() {
+  const g = document.getElementById('themeGrid');
+  THEMES.forEach(th => {
+    const b = document.createElement('button');
+    b.className = 'pick-btn' + (th.id === state.theme.id ? ' active' : '');
+    b.setAttribute('role','option');
+    b.setAttribute('aria-selected', th.id === state.theme.id ? 'true' : 'false');
+    b.setAttribute('aria-label', th.label + ' theme');
+    b.innerHTML = `<div class="swatch" style="background:${th.grad}"></div><span>${th.label}</span>`;
+    b.onclick = () => { saveHistory(); state.theme = th; state.bgType='theme'; applyState(); setActive(g,b); toast('Theme: '+th.label); };
+    g.appendChild(b);
+  });
+}
+function buildFilterGrid() {
+  const g = document.getElementById('filterGrid');
+  FILTERS.forEach(f => {
+    const b = document.createElement('button');
+    b.className = 'pick-btn' + (f.id === state.filter.id ? ' active' : '');
+    b.setAttribute('role','option');
+    b.setAttribute('aria-selected', f.id === state.filter.id ? 'true' : 'false');
+    b.setAttribute('aria-label', f.label + ' filter');
+    b.textContent = f.label;
+    b.onclick = () => { saveHistory(); state.filter = f; applyFilter(); setActive(g,b); toast('Filter: '+f.label); };
+    g.appendChild(b);
+  });
+}
+function buildStickerPicker() {
+  const g = document.getElementById('stickerPicker');
+  STICKERS.forEach(s => {
+    const b = document.createElement('button');
+    b.className = 'stk-btn';
+    b.setAttribute('aria-label', 'Add sticker ' + s);
+    b.textContent = s;
+    b.onclick = () => addSticker(s);
+    g.appendChild(b);
+  });
+}
+function buildTemplateGrid() {
+  const g = document.getElementById('tmplGrid');
+  TEMPLATES.forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'tmpl-btn';
+    b.setAttribute('role','option');
+    b.setAttribute('aria-selected','false');
+    b.setAttribute('aria-label', t.label + ' template');
+    b.innerHTML = `<span class="tmpl-icon">${t.icon}</span><span>${t.label}</span>`;
+    b.onclick = () => {
+      saveHistory();
+      const th = THEMES.find(x=>x.id===t.theme) || THEMES[0];
+      state.theme = th; state.msg = t.msg; state.bgType = 'theme';
+      document.getElementById('msgInput').value = t.msg;
+      state.activeTemplate = t.id;
+      applyState();
+      setActive(g,b);
+      toast('✨ Template: '+t.label);
+    };
+    g.appendChild(b);
+  });
+}
+function buildPhotoGrid() {
+  const g = document.getElementById('photoGrid');
+  PHOTO_CATS.forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'pick-btn' + (c==='travel'?' active':'');
+    b.setAttribute('role','option');
+    b.setAttribute('aria-label', c + ' photos');
+    b.textContent = c;
+    b.dataset.cat = c;
+    b.onclick = () => { setActive(g,b); window._photoCat = c; };
+    g.appendChild(b);
+  });
+  window._photoCat = 'travel';
 }
 
-const root=ReactDOM.createRoot(document.getElementById("root"));
-root.render(<App/>);
+// ══════════════════════════════════════════
+//  APPLY STATE → DOM
+// ══════════════════════════════════════════
+function applyState() {
+  const bg = document.getElementById('cardBg');
+  if (state.bgType === 'theme') {
+    bg.style.background = state.theme.grad;
+    bg.style.backgroundImage = '';
+    if (state.tcolor === '#ffffff') {
+      document.getElementById('tcolorInput').value = state.theme.text;
+      state.tcolor = state.theme.text;
+    }
+  } else if (state.bgUrl) {
+    bg.style.background = '#000';
+    bg.style.backgroundImage = `url(${state.bgUrl})`;
+    bg.style.backgroundSize = 'cover';
+    bg.style.backgroundPosition = 'center';
+  }
+  applyFilter();
+  const msg = document.getElementById('cardMsg');
+  msg.textContent = state.msg;
+  msg.style.fontFamily = state.font;
+  msg.style.color = state.tcolor;
+  msg.style.fontSize = state.fsize + 'px';
+  const from = document.getElementById('cardFrom');
+  from.textContent = state.from ? '— ' + state.from : '';
+  from.style.fontFamily = state.font;
+  from.style.color = state.tcolor;
+}
+function applyFilter() {
+  document.getElementById('cardBg').style.filter = state.filter.css;
+}
+
+// ══════════════════════════════════════════
+//  CONTROLS
+// ══════════════════════════════════════════
+function updateMsg()   { saveHistory(); state.msg  = document.getElementById('msgInput').value;  applyState(); }
+function updateFrom()  { saveHistory(); state.from = document.getElementById('fromInput').value; applyState(); }
+function updateFont()  { saveHistory(); state.font = document.getElementById('fontSel').value;   applyState(); }
+function updateColor() { saveHistory(); state.tcolor = document.getElementById('tcolorInput').value; applyState(); }
+function updateFsize() {
+  state.fsize = parseInt(document.getElementById('fsizeRange').value);
+  document.getElementById('fsizeVal').textContent = state.fsize;
+  applyState();
+}
+
+function switchBgTab(tab, btn) {
+  ['theme','photo','ai','upload'].forEach(t => {
+    document.getElementById('bg'+t.charAt(0).toUpperCase()+t.slice(1)).classList.toggle('hide', t!==tab);
+  });
+  document.querySelectorAll('.tabs .tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function loadPhoto() {
+  const cat = window._photoCat || 'travel';
+  const seed = Math.floor(Math.random()*1000);
+  const url = `https://picsum.photos/seed/${cat}${seed}/800/533`;
+  const ld = document.getElementById('photoLd');
+  ld.classList.remove('hide');
+  saveHistory();
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => {
+    state.bgUrl = url; state.bgType = 'photo';
+    applyState();
+    ld.classList.add('hide');
+    toast('📸 Photo loaded!','success');
+  };
+  img.onerror = () => { ld.classList.add('hide'); toast('Photo failed — try again','error'); };
+  img.src = url;
+}
+
+function genAIImage() {
+  const prompt = document.getElementById('imgPrompt').value.trim();
+  if (!prompt) { toast('Enter a scene description first'); return; }
+  const ld = document.getElementById('imgLd');
+  ld.classList.remove('hide');
+  saveHistory();
+  const seed = Math.floor(Math.random()*99999);
+  const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt+'  beautiful postcard background')}?width=800&height=533&seed=${seed}&nologo=true`;
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => {
+    state.bgUrl = url; state.bgType = 'ai';
+    applyState();
+    ld.classList.add('hide');
+    toast('✨ AI image generated!','success');
+  };
+  img.onerror = () => { ld.classList.add('hide'); toast('AI image failed — retry','error'); };
+  img.src = url;
+}
+
+function handleUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    saveHistory();
+    state.bgUrl = ev.target.result; state.bgType = 'upload';
+    applyState();
+    toast('📸 Image uploaded!','success');
+  };
+  reader.readAsDataURL(file);
+}
+
+async function genAIMsg() {
+  const prompt = document.getElementById('aiPrompt').value.trim();
+  if (!prompt) { toast('Enter an occasion first'); return; }
+  const ld = document.getElementById('aiLd');
+  ld.classList.remove('hide');
+  try {
+    const q = encodeURIComponent('Write a warm heartfelt postcard message (2-3 sentences, no quotes, no preamble) for: "'+prompt+'". Return only the message text.');
+    const r = await fetch('https://text.pollinations.ai/'+q);
+    if (!r.ok) throw new Error('AI failed');
+    const text = (await r.text()).trim().replace(/^["'`]|["'`]$/g,'');
+    saveHistory();
+    state.msg = text;
+    document.getElementById('msgInput').value = text;
+    applyState();
+    toast('✨ AI message written!','success');
+  } catch(e) {
+    toast('AI unavailable — try again','error');
+  } finally {
+    ld.classList.add('hide');
+  }
+}
+
+// ══════════════════════════════════════════
+//  STICKERS
+// ══════════════════════════════════════════
+function addSticker(emoji) {
+  saveHistory();
+  const layer = document.getElementById('stickerLayer');
+  const el = document.createElement('div');
+  el.className = 'sticker';
+  el.textContent = emoji;
+  el.setAttribute('aria-label', emoji + ' sticker (drag to move)');
+  el.style.left = (20 + Math.random()*60) + '%';
+  el.style.top  = (10 + Math.random()*60) + '%';
+  el.addEventListener('mousedown',  stickerDragStart);
+  el.addEventListener('touchstart', stickerDragStart, {passive:true});
+  el.addEventListener('dblclick', () => { el.remove(); toast('Sticker removed'); });
+  layer.appendChild(el);
+  toast(emoji + ' sticker added');
+}
+function stickerDragStart(e) {
+  activeStickerEl = e.currentTarget;
+  const rect = activeStickerEl.getBoundingClientRect();
+  const layerRect = document.getElementById('stickerLayer').getBoundingClientRect();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  dragOffset.x = clientX - rect.left;
+  dragOffset.y = clientY - rect.top;
+  activeStickerEl._layerRect = layerRect;
+}
+document.addEventListener('mousemove', stickerDragMove);
+document.addEventListener('touchmove', stickerDragMove, {passive:true});
+document.addEventListener('mouseup',  () => { activeStickerEl = null; });
+document.addEventListener('touchend', () => { activeStickerEl = null; });
+function stickerDragMove(e) {
+  if (!activeStickerEl) return;
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  const r = activeStickerEl._layerRect;
+  const x = ((clientX - r.left - dragOffset.x) / r.width) * 100;
+  const y = ((clientY - r.top  - dragOffset.y) / r.height) * 100;
+  activeStickerEl.style.left = Math.max(0, Math.min(90, x)) + '%';
+  activeStickerEl.style.top  = Math.max(0, Math.min(85, y)) + '%';
+}
+function clearStickers() {
+  saveHistory();
+  document.getElementById('stickerLayer').innerHTML = '';
+  toast('🗑 Stickers cleared');
+}
+
+// ══════════════════════════════════════════
+//  BACK SIDE
+// ══════════════════════════════════════════
+function updateBack() {
+  const note   = document.getElementById('backNote').value;
+  const to1    = document.getElementById('addrTo1').value;
+  const to2    = document.getElementById('addrTo2').value;
+  const city   = document.getElementById('addrCity').value;
+  const ret    = document.getElementById('retAddr').value;
+  const qrUrl  = document.getElementById('qrUrl').value;
+  const showQr = document.getElementById('showQr').checked;
+
+  document.getElementById('backNoteDisplay').textContent = note || 'Add your personal note on the left...';
+  document.getElementById('addrTo1Display').textContent  = to1  || 'To:';
+  document.getElementById('addrTo2Display').textContent  = to2  || '';
+  document.getElementById('addrCityDisplay').textContent = city || '';
+  document.getElementById('retAddrDisplay').textContent  = ret  ? '↩ Return: ' + ret : '';
+
+  const qrArea = document.getElementById('qrArea');
+  if (showQr && qrUrl) {
+    const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=${encodeURIComponent(qrUrl)}`;
+    qrArea.innerHTML = `<img src="${qrSrc}" alt="QR code for ${qrUrl}" width="60" height="60">`;
+  } else {
+    qrArea.innerHTML = '';
+  }
+}
+
+// ══════════════════════════════════════════
+//  FLIP
+// ══════════════════════════════════════════
+function flipCard() {
+  document.getElementById('cardFlip').classList.toggle('flipped');
+  toast('Card flipped ↕');
+}
+
+// ══════════════════════════════════════════
+//  HISTORY / UNDO
+// ══════════════════════════════════════════
+function saveHistory() {
+  history.push(JSON.parse(JSON.stringify(state)));
+  if (history.length > 20) history.shift();
+  document.getElementById('undoBtn').disabled = false;
+}
+function undoLast() {
+  if (!history.length) return;
+  state = history.pop();
+  document.getElementById('msgInput').value = state.msg;
+  document.getElementById('fromInput').value = state.from;
+  document.getElementById('fontSel').value = state.font;
+  document.getElementById('tcolorInput').value = state.tcolor;
+  document.getElementById('fsizeRange').value = state.fsize;
+  document.getElementById('fsizeVal').textContent = state.fsize;
+  applyState();
+  if (!history.length) document.getElementById('undoBtn').disabled = true;
+  toast('↩ Undone');
+}
+
+// ══════════════════════════════════════════
+//  DOWNLOAD
+// ══════════════════════════════════════════
+function downloadFront() {
+  // Make sure front is visible
+  const flip = document.getElementById('cardFlip');
+  const wasFlipped = flip.classList.contains('flipped');
+  if (wasFlipped) flip.classList.remove('flipped');
+
+  toast('📥 Preparing download…','info');
+  setTimeout(() => {
+    const front = document.getElementById('cardFront');
+    const w = front.offsetWidth, h = front.offsetHeight;
+    const canvas = document.createElement('canvas');
+    canvas.width = w * 2; canvas.height = h * 2;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(2,2);
+
+    // Draw background
+    const bg = document.getElementById('cardBg');
+    const bgStyle = window.getComputedStyle(bg);
+
+    if (state.bgUrl) {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, w, h);
+        drawOverlayText(ctx, w, h, canvas);
+        if (wasFlipped) flip.classList.add('flipped');
+      };
+      img.onerror = () => {
+        drawGradientFallback(ctx, w, h, canvas);
+        if (wasFlipped) flip.classList.add('flipped');
+      };
+      img.src = state.bgUrl;
+    } else {
+      drawGradientFallback(ctx, w, h, canvas);
+      if (wasFlipped) flip.classList.add('flipped');
+    }
+  }, 100);
+}
+
+function drawGradientFallback(ctx, w, h, canvas) {
+  const grad = ctx.createLinearGradient(0, 0, w, h);
+  const colors = state.theme.grad.match(/#[0-9a-fA-F]{3,8}/g) || ['#1a1a2e','#c9a84c'];
+  if (colors.length >= 2) { grad.addColorStop(0, colors[0]); grad.addColorStop(1, colors[colors.length-1]); }
+  else { grad.addColorStop(0, '#1a1a2e'); grad.addColorStop(1, '#c9a84c'); }
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+  drawOverlayText(ctx, w, h, canvas);
+}
+
+function drawOverlayText(ctx, w, h, canvas) {
+  // Overlay
+  ctx.fillStyle = 'rgba(0,0,0,0.28)';
+  ctx.fillRect(0, 0, w, h);
+  // Message
+  ctx.fillStyle = state.tcolor;
+  ctx.font = `600 ${state.fsize}px ${state.font}`;
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(0,0,0,0.7)';
+  ctx.shadowBlur = 8;
+  const lines = state.msg.split('\n');
+  const lineH = state.fsize * 1.4;
+  const totalH = lines.length * lineH;
+  const startY = (h - totalH) / 2 + state.fsize;
+  lines.forEach((line, i) => ctx.fillText(line, w/2, startY + i * lineH));
+  if (state.from) {
+    ctx.font = `italic ${Math.round(state.fsize * 0.6)}px ${state.font}`;
+    ctx.fillStyle = state.tcolor + 'cc';
+    ctx.fillText('— ' + state.from, w/2, startY + lines.length * lineH + 10);
+  }
+  // Watermark
+  ctx.shadowBlur = 0;
+  ctx.font = '11px sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx.textAlign = 'right';
+  ctx.fillText('shop.artistrystore.com', w - 10, h - 8);
+
+  const link = document.createElement('a');
+  link.download = 'postcard-front.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+  toast('✅ Front downloaded!', 'success');
+}
+
+function downloadBack() {
+  const back = document.getElementById('cardBack');
+  toast('📥 Back download — use screen capture for now', 'info');
+}
+
+// ══════════════════════════════════════════
+//  SHARE
+// ══════════════════════════════════════════
+function copyLink() {
+  const url = 'https://shop.artistrystore.com';
+  navigator.clipboard.writeText(url).then(() => toast('📋 Link copied!','success')).catch(()=>toast('Copy failed'));
+}
+function shareTwitter() {
+  window.open('https://twitter.com/intent/tweet?text=Check+out+this+free+Postcard+Creator!+%E2%9C%89%EF%B8%8F&url=https%3A%2F%2Fshop.artistrystore.com%2Fpostcard-creator%2F','_blank');
+}
+function shareFacebook() {
+  window.open('https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fshop.artistrystore.com%2Fpostcard-creator%2F','_blank');
+}
+
+// ══════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════
+function setActive(parent, el) {
+  parent.querySelectorAll('[role=option]').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
+  el.classList.add('active');
+  el.setAttribute('aria-selected','true');
+}
+function toast(msg, type='info') {
+  const container = document.getElementById('toast');
+  const item = document.createElement('div');
+  item.className = 'toast-item ' + type;
+  item.textContent = msg;
+  item.setAttribute('role','status');
+  container.appendChild(item);
+  setTimeout(() => item.remove(), 3200);
+}
+
+// Keyboard shortcut: Escape closes flip, ? for help
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { document.getElementById('cardFlip').classList.remove('flipped'); }
+});
 </script>
 </body>
 </html>
