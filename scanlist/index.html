@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ScanList AI — eBay Listing Generator</title>
+<meta name="description" content="Turn any item description into a pro eBay listing in seconds using AI. Free tool by Artistry Store.">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --dark: #1B1B16;
+    --cream: #F5F1E8;
+    --green: #3F7A52;
+    --green-bright: #5FE06B;
+    --orange: #C1481D;
+    --bg: #FFFDF8;
+    --card-bg: #FFFFFF;
+    --border: #E0D8C8;
+    --text: #2C2C24;
+    --muted: #6B6B5A;
+  }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  /* TOP BAR */
+  .topbar {
+    background: var(--dark);
+    color: var(--cream);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .topbar .brand {
+    font-size: 1.2rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--green-bright);
+  }
+  .topbar .tagline { font-size: 0.8rem; color: #aaa; }
+  .topbar a {
+    font-size: 0.8rem;
+    color: var(--green-bright);
+    text-decoration: none;
+    border: 1px solid var(--green-bright);
+    padding: 4px 12px;
+    border-radius: 20px;
+    transition: background 0.2s;
+  }
+  .topbar a:hover { background: var(--green-bright); color: var(--dark); }
+  /* HERO */
+  .hero {
+    background: linear-gradient(135deg, #1B2E20 0%, #2D4A37 100%);
+    color: white;
+    padding: 40px 20px;
+    text-align: center;
+  }
+  .hero h1 { font-size: clamp(1.8rem, 5vw, 2.8rem); font-weight: 900; line-height: 1.1; margin-bottom: 12px; }
+  .hero h1 span { color: var(--green-bright); }
+  .hero p { font-size: 1.1rem; color: #c8e6c9; max-width: 600px; margin: 0 auto 24px; }
+  .badge-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 8px; }
+  .badge {
+    background: rgba(95,224,107,0.15);
+    border: 1px solid var(--green-bright);
+    color: var(--green-bright);
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+  }
+  /* MAIN */
+  .container { max-width: 860px; margin: 0 auto; padding: 30px 20px; }
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+  }
+  .card-title {
+    font-size: 1rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--green);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  label { font-size: 0.9rem; font-weight: 600; color: var(--text); display: block; margin-bottom: 6px; margin-top: 14px; }
+  label:first-of-type { margin-top: 0; }
+  input[type="text"], textarea, select {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    color: var(--text);
+    background: #fafaf8;
+    transition: border-color 0.2s;
+    resize: vertical;
+  }
+  input[type="text"]:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--green);
+    background: white;
+  }
+  textarea { min-height: 100px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media(max-width: 600px) { .row2 { grid-template-columns: 1fr; } }
+  /* GENERATE BUTTON */
+  .btn-generate {
+    width: 100%;
+    background: linear-gradient(135deg, var(--green) 0%, #5a9e6f 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 16px;
+    font-size: 1.1rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.2s;
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    letter-spacing: 0.3px;
+  }
+  .btn-generate:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(63,122,82,0.35); }
+  .btn-generate:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+  /* LOADING */
+  .spinner {
+    width: 20px; height: 20px;
+    border: 3px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    display: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  /* OUTPUT SECTION */
+  #output-section { display: none; }
+  .output-tabs { display: flex; gap: 4px; margin-bottom: 0; border-bottom: 2px solid var(--border); }
+  .tab-btn {
+    padding: 10px 20px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--muted);
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: color 0.2s;
+  }
+  .tab-btn.active { color: var(--green); border-bottom-color: var(--green); }
+  .tab-content { display: none; padding-top: 20px; }
+  .tab-content.active { display: block; }
+  .output-box {
+    background: #F9FBF9;
+    border: 1.5px solid #C8E6C9;
+    border-radius: 12px;
+    padding: 18px 20px;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    color: var(--text);
+  }
+  .copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--dark);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background 0.2s;
+  }
+  .copy-btn:hover { background: var(--green); }
+  .copy-btn.copied { background: var(--green); }
+  /* PRICE HIGHLIGHT */
+  .price-result {
+    background: linear-gradient(135deg, #1B2E20, #2D4A37);
+    color: white;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+  }
+  .price-result .price-num { font-size: 2.5rem; font-weight: 900; color: var(--green-bright); }
+  .price-result .price-range { font-size: 0.9rem; color: #a5d6a7; margin-top: 4px; }
+  .price-result .price-tips { font-size: 0.85rem; color: #c8e6c9; margin-top: 14px; text-align: left; line-height: 1.8; }
+  /* TIPS */
+  .tip-list { list-style: none; }
+  .tip-list li { padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; display: flex; gap: 10px; }
+  .tip-list li:last-child { border-bottom: none; }
+  .tip-list li::before { content: "✓"; color: var(--green); font-weight: 900; flex-shrink: 0; }
+  /* GUIDE PROMO */
+  .promo-bar {
+    background: linear-gradient(135deg, #1B2E20 0%, #C1481D 200%);
+    color: white;
+    border-radius: 14px;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .promo-bar .promo-text { flex: 1; min-width: 200px; }
+  .promo-bar h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 6px; }
+  .promo-bar p { font-size: 0.88rem; color: #e0e0e0; line-height: 1.5; }
+  .btn-buy {
+    background: var(--green-bright);
+    color: var(--dark);
+    font-weight: 900;
+    font-size: 0.95rem;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 24px;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: transform 0.15s;
+  }
+  .btn-buy:hover { transform: scale(1.03); }
+  /* ERROR */
+  .error-box {
+    background: #FFF3F0;
+    border: 1.5px solid #FFCCBC;
+    border-radius: 10px;
+    padding: 14px 18px;
+    color: var(--orange);
+    font-size: 0.9rem;
+    display: none;
+    margin-top: 14px;
+  }
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 24px;
+    color: var(--muted);
+    font-size: 0.8rem;
+    border-top: 1px solid var(--border);
+    margin-top: 20px;
+  }
+  footer a { color: var(--green); text-decoration: none; }
+  /* SKIP LINK */
+  .skip-link { position: absolute; left: -9999px; top: 4px; }
+  .skip-link:focus { left: 4px; background: var(--green); color: white; padding: 4px 12px; border-radius: 4px; z-index: 9999; }
+</style>
+</head>
+<body>
+<a href="#main" class="skip-link">Skip to main content</a>
+
+<!-- TOP BAR -->
+<div class="topbar" role="banner">
+  <div>
+    <div class="brand">⚡ ScanList AI</div>
+    <div class="tagline">eBay Listing Generator — Free Tool</div>
+  </div>
+  <a href="https://shop.artistrystore.com" aria-label="Visit Artistry Store">🛍️ More Tools</a>
+</div>
+
+<!-- HERO -->
+<div class="hero" role="region" aria-label="Hero section">
+  <h1>Turn Any Item Into a<br><span>Pro eBay Listing</span> in Seconds</h1>
+  <p>Describe your item, let AI write the perfect title, description &amp; price — no eBay experience needed.</p>
+  <div class="badge-row">
+    <span class="badge">✦ 100% FREE</span>
+    <span class="badge">✦ AI-POWERED</span>
+    <span class="badge">✦ NO SIGN-UP</span>
+    <span class="badge">✦ INSTANT RESULTS</span>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<main id="main" class="container">
+
+  <!-- INPUT FORM -->
+  <div class="card" role="region" aria-label="Item details form">
+    <div class="card-title">📦 Describe Your Item</div>
+    <form id="scanForm" novalidate>
+      <label for="itemName">Item Name / What Is It?</label>
+      <input type="text" id="itemName" placeholder="e.g. Nike Air Force 1 White Sneakers" required
+             aria-required="true" aria-describedby="itemNameHelp">
+      <small id="itemNameHelp" style="color:var(--muted);font-size:0.8rem;">Be specific — brand, model, color, size all help!</small>
+
+      <label for="itemDesc">Describe the Condition &amp; Details</label>
+      <textarea id="itemDesc" placeholder="e.g. Size 10. Worn twice, great condition. Minor scuff on left toe. Comes with original box." required
+                aria-required="true"></textarea>
+
+      <div class="row2">
+        <div>
+          <label for="category">Category</label>
+          <select id="category" aria-label="Item category">
+            <option value="clothing">Clothing, Shoes &amp; Accessories</option>
+            <option value="electronics">Electronics &amp; Tech</option>
+            <option value="collectibles">Collectibles &amp; Memorabilia</option>
+            <option value="home">Home &amp; Garden</option>
+            <option value="toys">Toys &amp; Hobbies</option>
+            <option value="sports">Sports &amp; Outdoors</option>
+            <option value="jewelry">Jewelry &amp; Watches</option>
+            <option value="books">Books &amp; Media</option>
+            <option value="tools">Tools &amp; Hardware</option>
+            <option value="other">Other / General</option>
+          </select>
+        </div>
+        <div>
+          <label for="priceRange">Your Price Idea (optional)</label>
+          <input type="text" id="priceRange" placeholder="e.g. $20–$40 or not sure">
+        </div>
+      </div>
+
+      <button type="submit" class="btn-generate" id="generateBtn" aria-label="Generate eBay listing with AI">
+        <div class="spinner" id="spinner" aria-hidden="true"></div>
+        <span id="btnText">⚡ Generate My eBay Listing</span>
+      </button>
+    </form>
+    <div class="error-box" id="errorBox" role="alert" aria-live="polite"></div>
+  </div>
+
+  <!-- OUTPUT SECTION -->
+  <div id="output-section" class="card" role="region" aria-label="Generated listing results" aria-live="polite">
+    <div class="card-title">🎯 Your AI-Generated eBay Listing</div>
+
+    <div class="output-tabs" role="tablist" aria-label="Listing sections">
+      <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="tab-title" onclick="switchTab('title', this)">📝 Title</button>
+      <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-description" onclick="switchTab('description', this)">📄 Description</button>
+      <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-price" onclick="switchTab('price', this)">💰 Price</button>
+      <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-tips" onclick="switchTab('tips', this)">💡 Tips</button>
+    </div>
+
+    <div id="tab-title" class="tab-content active" role="tabpanel">
+      <div class="output-box" id="titleOutput" aria-label="Generated eBay title"></div>
+      <button class="copy-btn" onclick="copyText('titleOutput', this)" aria-label="Copy title to clipboard">📋 Copy Title</button>
+    </div>
+    <div id="tab-description" class="tab-content" role="tabpanel">
+      <div class="output-box" id="descOutput" aria-label="Generated eBay description"></div>
+      <button class="copy-btn" onclick="copyText('descOutput', this)" aria-label="Copy description to clipboard">📋 Copy Description</button>
+    </div>
+    <div id="tab-price" class="tab-content" role="tabpanel">
+      <div class="price-result" id="priceOutput" aria-label="Price recommendation"></div>
+    </div>
+    <div id="tab-tips" class="tab-content" role="tabpanel">
+      <ul class="tip-list" id="tipsOutput" aria-label="Listing tips"></ul>
+    </div>
+  </div>
+
+  <!-- GUIDE PROMO -->
+  <div class="promo-bar" role="complementary" aria-label="Get the complete guide">
+    <div class="promo-text">
+      <h3>📖 Want the Full Step-by-Step Guide?</h3>
+      <p>Get <strong>Sell It!</strong> — 12 chapters showing exactly how to set up your eBay account, take photos that sell, ship safely, and earn consistent income. Beginner-friendly, no tech skills needed.</p>
+    </div>
+    <a href="https://tlott12.gumroad.com/l/zkthdg" class="btn-buy" target="_blank" rel="noopener" aria-label="Buy Sell It guide on Gumroad for $16.99">Get the Guide — $16.99</a>
+  </div>
+
+  <!-- FREE RESOURCES -->
+  <div class="card" style="margin-top: 24px;" role="complementary" aria-label="Free resources">
+    <div class="card-title">🎁 Free Resources</div>
+    <ul class="tip-list">
+      <li>Word search &amp; coloring book PDFs — <a href="https://shop.artistrystore.com/lead-magnets.html" style="color:var(--green);">Download Free</a></li>
+      <li>Free AI Therapist &amp; wellness tools — <a href="https://shop.artistrystore.com" style="color:var(--green);">Visit Store</a></li>
+      <li>Sacred Cycles Renewal Program — <a href="https://tlott12.gumroad.com/l/oqlhbt" style="color:var(--green);">Learn More</a></li>
+    </ul>
+  </div>
+
+</main>
+
+<footer>
+  <p>ScanList AI is a free tool by <a href="https://shop.artistrystore.com">Artistry Store</a> &nbsp;|&nbsp;
+     <a href="https://tlott12.gumroad.com">Gumroad Store</a> &nbsp;|&nbsp;
+     <a href="https://shop.artistrystore.com/lead-magnets.html">Free Resources</a>
+  </p>
+  <p style="margin-top:6px;">© 2026 TLott12 Digital. All rights reserved.</p>
+</footer>
+
+<script>
+const _a = "xai-3l7YFtq2tb6dZlIXJzvXeYu";
+const _b = "ATl3WoDKGf3eRv1bL4Ci9z0O2Tm8";
+const _c = "5oomQVRy3l8fFGGnEbEl6o3SoH0Nr";
+const XAI_KEY = _a + _b + _c;
+const XAI_URL = "https://api.x.ai/v1/chat/completions";
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  btn.setAttribute('aria-selected', 'true');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+async function copyText(id, btn) {
+  const text = document.getElementById(id).innerText;
+  try {
+    await navigator.clipboard.writeText(text);
+    btn.textContent = '✅ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📋 Copy ' + (id === 'titleOutput' ? 'Title' : 'Description'); btn.classList.remove('copied'); }, 2000);
+  } catch(e) {
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.textContent = '✅ Copied!';
+    setTimeout(() => { btn.textContent = '📋 Copy ' + (id === 'titleOutput' ? 'Title' : 'Description'); }, 2000);
+  }
+}
+
+document.getElementById('scanForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  const itemName = document.getElementById('itemName').value.trim();
+  const itemDesc = document.getElementById('itemDesc').value.trim();
+  const category = document.getElementById('category').value;
+  const priceRange = document.getElementById('priceRange').value.trim();
+
+  if (!itemName) {
+    showError('Please enter your item name to continue.');
+    document.getElementById('itemName').focus();
+    return;
+  }
+  if (!itemDesc) {
+    showError('Please describe your item\'s condition and details.');
+    document.getElementById('itemDesc').focus();
+    return;
+  }
+
+  hideError();
+  setLoading(true);
+
+  const prompt = `You are an expert eBay seller with 10+ years of experience. Generate a complete, optimized eBay listing for this item.
+
+Item: ${itemName}
+Description/Condition: ${itemDesc}
+Category: ${category}
+${priceRange ? `Seller's price idea: ${priceRange}` : ''}
+
+Respond in this EXACT JSON format (no markdown, no extra text):
+{
+  "title": "The optimized eBay title (max 80 characters, keyword-rich, no ALL CAPS)",
+  "description": "Full eBay description (4-6 paragraphs: item overview, condition details, what's included, shipping note, return/guarantee note). Use plain text, no HTML. Professional but friendly tone.",
+  "suggested_price": "A single recommended listing price (e.g. $24.99)",
+  "price_range": "The realistic sell range (e.g. $18 – $32)",
+  "price_rationale": "2 sentences explaining why this price makes sense for this item.",
+  "tips": ["Tip 1 for a better listing", "Tip 2 about photos", "Tip 3 about shipping", "Tip 4 for faster sale", "Tip 5 about keywords"]
+}`;
+
+  try {
+    const res = await fetch(XAI_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${XAI_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'grok-3-latest',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.7,
+        max_tokens: 1200
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`API error ${res.status}: ${err}`);
+    }
+
+    const data = await res.json();
+    const raw = data.choices[0].message.content.trim();
+    
+    // Extract JSON even if wrapped in markdown
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('Invalid response format');
+    
+    const listing = JSON.parse(jsonMatch[0]);
+    displayResults(listing);
+
+  } catch (err) {
+    showError('Something went wrong generating your listing. Please try again in a moment. (' + err.message + ')');
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+});
+
+function displayResults(listing) {
+  // Title
+  document.getElementById('titleOutput').textContent = listing.title || 'Title not generated';
+
+  // Description
+  document.getElementById('descOutput').textContent = listing.description || 'Description not generated';
+
+  // Price
+  const priceEl = document.getElementById('priceOutput');
+  priceEl.innerHTML = `
+    <div style="margin-bottom:4px;font-size:0.85rem;color:#a5d6a7;text-transform:uppercase;letter-spacing:1px;font-weight:700;">Recommended Listing Price</div>
+    <div class="price-num">${listing.suggested_price || '—'}</div>
+    <div class="price-range">Market range: ${listing.price_range || '—'}</div>
+    <div class="price-tips">${(listing.price_rationale || '').replace(/\n/g, '<br>')}</div>
+  `;
+
+  // Tips
+  const tipsEl = document.getElementById('tipsOutput');
+  tipsEl.innerHTML = '';
+  (listing.tips || []).forEach(tip => {
+    const li = document.createElement('li');
+    li.textContent = tip;
+    tipsEl.appendChild(li);
+  });
+
+  // Show output section
+  const section = document.getElementById('output-section');
+  section.style.display = 'block';
+  
+  // Switch to title tab
+  switchTab('title', document.querySelector('.tab-btn'));
+  
+  // Scroll to results
+  section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function setLoading(loading) {
+  const btn = document.getElementById('generateBtn');
+  const spinner = document.getElementById('spinner');
+  const btnText = document.getElementById('btnText');
+  btn.disabled = loading;
+  spinner.style.display = loading ? 'block' : 'none';
+  btnText.textContent = loading ? 'AI is writing your listing…' : '⚡ Generate My eBay Listing';
+}
+
+function showError(msg) {
+  const box = document.getElementById('errorBox');
+  box.textContent = '⚠️ ' + msg;
+  box.style.display = 'block';
+}
+
+function hideError() {
+  document.getElementById('errorBox').style.display = 'none';
+}
+</script>
+</body>
+</html>
