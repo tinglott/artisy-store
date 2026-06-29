@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SlideForge AI — Free PowerPoint Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+<style>
+:root {
+  --bg: #0C0E1A;
+  --surface: #141726;
+  --card: #1A1F36;
+  --input: #212848;
+  --border: rgba(180,160,255,0.13);
+  --gold: #C9A84C;
+  --gold-lit: #F0CF7A;
+  --gold-dim: rgba(201,168,76,0.14);
+  --violet: #7C6EF5;
+  --violet-dim: rgba(124,110,245,0.12);
+  --green: #4ADE80;
+  --red: #F87171;
+  --blue: #60A5FA;
+  --text: #EDE9FF;
+  --text-2: #8B86AA;
+  --text-3: #4D4870;
+  --shadow: 0 12px 40px rgba(0,0,0,0.55);
+  --r: 16px;
+  --r-sm: 10px;
+  --transition: 0.22s cubic-bezier(.4,0,.2,1);
+}
+*,*::before,*::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body {
+  font-family:'DM Sans',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  background:
+    radial-gradient(ellipse 700px 500px at 15% 20%, rgba(124,110,245,0.06) 0%, transparent 100%),
+    radial-gradient(ellipse 600px 600px at 85% 80%, rgba(201,168,76,0.05) 0%, transparent 100%),
+    radial-gradient(ellipse 400px 300px at 50% 50%, rgba(74,222,128,0.02) 0%, transparent 100%);
+  pointer-events:none; z-index:0;
+}
+/* SKIP NAV */
+.skip-nav {
+  position:fixed; top:-100px; left:1rem; z-index:9999;
+  background:var(--gold); color:#0C0E1A;
+  padding:0.5rem 1rem; border-radius:0.5rem;
+  transition:top 0.2s; font-weight:700;
+}
+.skip-nav:focus { top:1rem; }
+:focus { outline:none; }
+:focus-visible { outline:2px solid var(--gold); outline-offset:3px; border-radius:6px; }
+@media (prefers-reduced-motion: reduce) {
+  *,*::before,*::after { animation-duration:0.01ms !important; transition-duration:0.01ms !important; }
+}
+/* LAYOUT */
+.wrap { position:relative; z-index:1; max-width:900px; margin:0 auto; padding:24px 16px 120px; }
+/* HEADER */
+.header { text-align:center; padding:36px 0 20px; animation:fadeDown .7s ease both; }
+.brand { display:inline-flex; align-items:center; gap:16px; margin-bottom:6px; }
+.brand-icon {
+  width:60px; height:60px;
+  background:linear-gradient(135deg, var(--gold) 0%, #8B6914 100%);
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:28px;
+  box-shadow:0 0 0 4px var(--gold-dim), 0 8px 24px rgba(201,168,76,.3);
+  animation:pulseRing 3s ease-in-out infinite;
+}
+.brand-name {
+  font-family:'Playfair Display',serif;
+  font-size:2.4rem; font-weight:700;
+  background:linear-gradient(135deg, var(--gold) 20%, var(--gold-lit) 80%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+}
+.brand-sub { font-size:.8rem; color:var(--text-3); letter-spacing:3px; text-transform:uppercase; font-weight:500; }
+/* STORE BANNER */
+.store-banner {
+  background:linear-gradient(135deg, var(--gold-dim), var(--violet-dim));
+  border:1px solid var(--gold);
+  border-radius:var(--r-sm);
+  padding:12px 18px;
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  margin-bottom:20px; flex-wrap:wrap;
+  animation:fadeUp .5s both;
+}
+.store-banner-text { font-size:.82rem; color:var(--text); line-height:1.5; }
+.store-banner-text strong { color:var(--gold); }
+.store-banner-btn {
+  display:inline-flex; align-items:center; gap:6px;
+  background:var(--gold); color:#0C0E1A;
+  padding:8px 14px; border-radius:20px;
+  font-size:.78rem; font-weight:700; text-decoration:none;
+  white-space:nowrap; transition:transform var(--transition);
+}
+.store-banner-btn:hover { transform:translateY(-1px); }
+/* CARDS */
+.card {
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:28px;
+  margin-bottom:20px;
+  box-shadow:var(--shadow);
+}
+.card-head {
+  font-family:'Playfair Display',serif;
+  font-size:1.1rem; font-weight:600;
+  color:var(--gold);
+  margin-bottom:20px;
+  display:flex; align-items:center; gap:10px;
+}
+/* SPEECH BUBBLE */
+.bubble {
+  display:flex; gap:14px; align-items:flex-start;
+  padding:16px; margin-bottom:22px;
+  background:var(--gold-dim);
+  border-radius:var(--r-sm);
+  border-left:3px solid var(--gold);
+  animation:fadeUp .5s .25s both;
+}
+.bubble-av {
+  width:38px; height:38px; flex-shrink:0;
+  background:linear-gradient(135deg, var(--gold), #8B6914);
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:17px;
+}
+.bubble-text { font-size:.9rem; line-height:1.6; color:var(--text); }
+/* FORM */
+.row { display:grid; gap:14px; margin-bottom:14px; }
+.row.c2 { grid-template-columns:1fr 1fr; }
+.row.c3 { grid-template-columns:1fr 1fr 1fr; }
+.fgroup { display:flex; flex-direction:column; gap:5px; }
+.fgroup label { font-size:.72rem; font-weight:600; color:var(--text-2); text-transform:uppercase; letter-spacing:1px; }
+.fgroup input, .fgroup textarea, .fgroup select {
+  background:var(--input);
+  border:1px solid var(--border);
+  border-radius:var(--r-sm);
+  padding:13px 15px;
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  font-size:15px;
+  transition:border-color var(--transition), box-shadow var(--transition);
+  outline:none;
+  -webkit-appearance:none; appearance:none;
+  min-height:44px;
+}
+.fgroup input:focus, .fgroup textarea:focus, .fgroup select:focus {
+  border-color:var(--violet);
+  box-shadow:0 0 0 3px var(--violet-dim);
+}
+.fgroup textarea { resize:vertical; min-height:80px; }
+.char-counter { font-size:.68rem; color:var(--text-3); text-align:right; margin-top:2px; }
+/* THEME GRID */
+.theme-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; }
+.swatch-wrap { text-align:center; }
+.swatch {
+  aspect-ratio:1.6;
+  border-radius:8px;
+  cursor:pointer;
+  border:2px solid transparent;
+  transition:all var(--transition);
+  position:relative; overflow:hidden;
+  min-height:44px;
+}
+.swatch:hover { transform:scale(1.08); }
+.swatch.on { border-color:var(--gold); box-shadow:0 0 14px rgba(201,168,76,.4); }
+.swatch::after {
+  content:'\f00c';
+  font-family:'Font Awesome 6 Free'; font-weight:900;
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  color:#fff; font-size:1rem; opacity:0;
+  transition:opacity var(--transition);
+  text-shadow:0 1px 4px rgba(0,0,0,.6);
+}
+.swatch.on::after { opacity:1; }
+.swatch-lbl { font-size:.58rem; color:var(--text-3); margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+/* SLIDE TYPE PILLS */
+.slide-types { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:6px; }
+.type-pill {
+  padding:10px 13px; border-radius:20px;
+  font-size:.72rem; font-weight:600;
+  border:1px solid var(--border);
+  background:var(--input); color:var(--text-2);
+  cursor:pointer; transition:all var(--transition);
+  user-select:none; min-height:44px; display:flex; align-items:center;
+}
+.type-pill.on { background:var(--violet); color:#fff; border-color:var(--violet); box-shadow:0 0 10px rgba(124,110,245,.3); }
+/* TOGGLE */
+.toggle-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; gap:8px; }
+.toggle-label { font-size:.8rem; color:var(--text-2); display:flex; align-items:center; gap:7px; }
+.toggle-wrap { display:flex; align-items:center; gap:6px; cursor:pointer; min-height:44px; }
+.toggle-track {
+  width:38px; height:20px;
+  background:var(--input); border-radius:10px;
+  position:relative; transition:background var(--transition);
+  border:1px solid var(--border);
+}
+.toggle-track.on { background:var(--gold); border-color:var(--gold); }
+.toggle-thumb {
+  width:14px; height:14px; background:#fff;
+  border-radius:50%; position:absolute; top:2px; left:2px;
+  transition:transform var(--transition);
+  box-shadow:0 1px 3px rgba(0,0,0,.3);
+}
+.toggle-track.on .toggle-thumb { transform:translateX(18px); }
+/* BUTTONS */
+.btn {
+  display:flex; align-items:center; justify-content:center; gap:9px;
+  width:100%; padding:15px 24px;
+  border:none; border-radius:var(--r-sm);
+  font-family:'DM Sans',sans-serif; font-size:1rem; font-weight:700;
+  cursor:pointer; transition:transform var(--transition), box-shadow var(--transition);
+  letter-spacing:.3px; min-height:44px;
+}
+.btn:active:not(:disabled) { transform:scale(.98); }
+.btn:disabled { opacity:.45; cursor:not-allowed; }
+.btn-gold { background:linear-gradient(135deg, var(--gold) 0%, #8B6914 100%); color:#0C0E1A; }
+.btn-gold:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 8px 24px rgba(201,168,76,.35); }
+.btn-green { background:linear-gradient(135deg, var(--green), #22c55e); color:#0C0E1A; }
+.btn-green:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(74,222,128,.28); }
+.btn-ghost { background:var(--input); color:var(--text-2); border:1px solid var(--border); }
+.btn-ghost:hover { background:var(--surface); color:var(--text); }
+.btn-sm { padding:10px 18px; font-size:.85rem; width:auto; }
+/* PROGRESS */
+.progress-section { display:none; }
+.progress-section.vis { display:block; animation:fadeUp .4s both; }
+.prog-status { display:flex; align-items:center; gap:10px; color:var(--text-2); font-size:.88rem; }
+.spinner { width:18px; height:18px; flex-shrink:0; border:2px solid var(--border); border-top-color:var(--gold); border-radius:50%; animation:spin .8s linear infinite; }
+.prog-bar-track { width:100%; height:5px; background:var(--input); border-radius:3px; overflow:hidden; margin:14px 0; }
+.prog-bar-fill { height:100%; background:linear-gradient(90deg,var(--violet) 0%,var(--gold) 100%); border-radius:3px; transition:width .6s ease-out; width:0%; }
+.prog-stage { font-size:.72rem; color:var(--text-3); margin-bottom:10px; }
+.console {
+  background:#080A12;
+  border:1px solid rgba(74,222,128,.12);
+  border-radius:var(--r-sm);
+  padding:14px;
+  font-family:'Courier New',monospace;
+  font-size:.74rem; color:var(--green);
+  max-height:190px; overflow-y:auto;
+  line-height:1.75; margin-top:14px;
+}
+.log { opacity:0; animation:logSlide .35s ease forwards; }
+.log-w { color:var(--gold); }
+.log-e { color:var(--red); }
+.log-i { color:var(--blue); }
+.log-s { color:var(--green); }
+/* PREVIEWS */
+.result-section { display:none; }
+.result-section.vis { display:block; animation:fadeUp .5s both; }
+.preview-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:12px; margin:16px 0; }
+.preview-card {
+  aspect-ratio:16/9; border-radius:8px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:10px; font-size:.6rem; text-align:center;
+  border:1px solid var(--border); overflow:hidden; position:relative;
+  cursor:pointer; transition:transform var(--transition), box-shadow var(--transition);
+}
+.preview-card:hover { transform:scale(1.04); box-shadow:0 6px 20px rgba(0,0,0,.4); }
+.preview-num { position:absolute; top:4px; left:6px; font-size:.52rem; font-weight:700; opacity:.55; }
+.preview-title { font-weight:700; font-size:.65rem; margin-bottom:3px; line-height:1.2; }
+.preview-badge { font-size:.48rem; opacity:.45; text-transform:uppercase; letter-spacing:.8px; }
+/* STATS BAR */
+.stats-bar {
+  display:flex; gap:16px; flex-wrap:wrap;
+  padding:14px 16px;
+  background:var(--surface); border-radius:var(--r-sm);
+  margin-bottom:16px; border:1px solid var(--border);
+}
+.stat { text-align:center; flex:1; min-width:60px; }
+.stat-val { font-size:1.3rem; font-weight:700; color:var(--gold); font-family:'Playfair Display',serif; }
+.stat-lbl { font-size:.65rem; color:var(--text-3); text-transform:uppercase; letter-spacing:.8px; }
+/* HISTORY */
+.history-panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-sm); padding:14px; margin-bottom:14px; display:none; }
+.history-panel.vis { display:block; animation:fadeUp .3s both; }
+.hist-item { display:flex; align-items:center; justify-content:space-between; padding:8px 10px; border-radius:6px; cursor:pointer; transition:background var(--transition); margin-bottom:4px; }
+.hist-item:hover { background:var(--card); }
+.hist-topic { font-size:.82rem; font-weight:500; color:var(--text); }
+.hist-meta { font-size:.68rem; color:var(--text-3); }
+.hist-del { color:var(--text-3); cursor:pointer; padding:6px 8px; border-radius:4px; font-size:.75rem; min-width:44px; min-height:44px; display:flex; align-items:center; justify-content:center; }
+.hist-del:hover { color:var(--red); background:rgba(248,113,113,.1); }
+/* TOAST */
+.toast {
+  position:fixed; bottom:24px; right:24px; z-index:999;
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--r-sm); padding:14px 18px;
+  display:flex; align-items:center; gap:10px;
+  box-shadow:var(--shadow); font-size:.88rem;
+  transform:translateY(100px); opacity:0;
+  transition:all .35s cubic-bezier(.4,0,.2,1);
+  max-width:320px;
+}
+.toast.show { transform:translateY(0); opacity:1; }
+.toast i { font-size:1rem; }
+.toast.ok i { color:var(--green); }
+.toast.err i { color:var(--red); }
+.toast.inf i { color:var(--blue); }
+/* FOOTER CTA */
+.footer-cta {
+  text-align:center;
+  padding:28px 20px;
+  background:linear-gradient(135deg, var(--card), var(--surface));
+  border:1px solid var(--gold);
+  border-radius:var(--r);
+  margin-top:24px;
+}
+.footer-cta h3 { font-family:'Playfair Display',serif; color:var(--gold); font-size:1.3rem; margin-bottom:8px; }
+.footer-cta p { color:var(--text-2); font-size:.88rem; margin-bottom:16px; line-height:1.6; }
+.footer-links { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+.footer-link {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:10px 18px; border-radius:20px;
+  font-size:.82rem; font-weight:700; text-decoration:none;
+  min-height:44px; transition:transform var(--transition);
+}
+.footer-link.primary { background:var(--gold); color:#0C0E1A; }
+.footer-link.ghost { background:var(--input); color:var(--text-2); border:1px solid var(--border); }
+.footer-link:hover { transform:translateY(-2px); }
+/* ANIMATIONS */
+@keyframes fadeDown { from{opacity:0;transform:translateY(-18px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+@keyframes spin { to{transform:rotate(360deg)} }
+@keyframes logSlide { from{opacity:0;transform:translateX(-6px)} to{opacity:1;transform:translateX(0)} }
+@keyframes pulseRing {
+  0%,100%{ box-shadow:0 0 0 4px var(--gold-dim),0 8px 24px rgba(201,168,76,.3); }
+  50%{ box-shadow:0 0 0 8px var(--gold-dim),0 8px 32px rgba(201,168,76,.5); }
+}
+/* RESPONSIVE */
+@media(max-width:600px){
+  .wrap { padding:14px 10px 100px; }
+  .card { padding:18px; }
+  .row.c2,.row.c3 { grid-template-columns:1fr; }
+  .theme-grid { grid-template-columns:repeat(5,1fr); gap:6px; }
+  .brand-name { font-size:1.8rem; }
+  .brand-icon { width:46px; height:46px; font-size:22px; }
+  .preview-grid { grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); }
+  .stats-bar { gap:10px; }
+  .store-banner { flex-direction:column; text-align:center; }
+}
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-nav">Skip to main content</a>
+
+<div class="wrap" id="main-content">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="brand">
+      <div class="brand-icon" aria-hidden="true">🪄</div>
+      <h1 class="brand-name">SlideForge AI</h1>
+    </div>
+    <p class="brand-sub">Free AI-Powered PowerPoint Builder</p>
+  </header>
+
+  <!-- STORE BANNER -->
+  <div class="store-banner" role="complementary" aria-label="Store promotion">
+    <div class="store-banner-text">
+      ✨ <strong>Free tool by Artistry Store</strong> — Explore our AI apps, coloring books, wellness guides & more!
+    </div>
+    <a href="https://shop.artistrystore.com/store.html" target="_blank" class="store-banner-btn" aria-label="Visit Artistry Store">
+      <i class="fas fa-store" aria-hidden="true"></i> Visit Our Store
+    </a>
+  </div>
+
+  <!-- SPEECH BUBBLE -->
+  <div class="bubble" id="bubble" role="status" aria-live="polite">
+    <div class="bubble-av" aria-hidden="true">🤖</div>
+    <div class="bubble-text" id="bubble-text">
+      Welcome! I'm SlideForge — your free AI presentation builder. Enter any topic and I'll craft a stunning, downloadable PowerPoint deck in seconds.
+    </div>
+  </div>
+
+  <!-- FORM CARD -->
+  <div class="card">
+    <div class="card-head"><i class="fas fa-feather-pointed" aria-hidden="true"></i> Presentation Brief</div>
+
+    <div class="toggle-row">
+      <span class="toggle-label"><i class="fas fa-clock-rotate-left" aria-hidden="true"></i> Recent presentations</span>
+      <div style="display:flex;gap:12px;align-items:center;">
+        <label class="toggle-wrap" id="voiceWrap" title="Toggle voice narration" aria-label="Toggle voice narration">
+          <span style="font-size:.75rem;color:var(--text-2);margin-right:4px;">🔊 Voice</span>
+          <div class="toggle-track" id="voiceTrack" role="switch" aria-checked="true">
+            <div class="toggle-thumb"></div>
+          </div>
+        </label>
+        <button class="btn btn-ghost btn-sm" id="historyToggle" onclick="toggleHistory()" aria-label="Show recent presentations" aria-expanded="false">
+          <i class="fas fa-history" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- HISTORY PANEL -->
+    <div class="history-panel" id="historyPanel" role="region" aria-label="Recent presentations">
+      <div style="font-size:.72rem;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Recent Topics</div>
+      <div id="historyList"><em style="font-size:.8rem;color:var(--text-3);">No history yet.</em></div>
+    </div>
+
+    <form id="form" autocomplete="off" onsubmit="handleGenerate(event)">
+      <div class="row">
+        <div class="fgroup">
+          <label for="topic">Topic <span style="color:var(--red)" aria-hidden="true">*</span></label>
+          <input type="text" id="topic" placeholder="e.g., The Future of Remote Work, Social Media Marketing Tips" maxlength="200" oninput="updateCharCount(this,'topicCount',200)" required aria-required="true">
+          <div class="char-counter" id="topicCount" aria-live="polite">0 / 200</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="fgroup">
+          <label for="desc">Additional Context</label>
+          <textarea id="desc" placeholder="Audience, key angles, specific data points, what you want covered…" maxlength="800" oninput="updateCharCount(this,'descCount',800)"></textarea>
+          <div class="char-counter" id="descCount" aria-live="polite">0 / 800</div>
+        </div>
+      </div>
+
+      <div class="row c3">
+        <div class="fgroup">
+          <label for="slides">Number of Slides</label>
+          <select id="slides" aria-label="Number of slides">
+            <option value="5">5 slides</option>
+            <option value="8" selected>8 slides</option>
+            <option value="10">10 slides</option>
+            <option value="12">12 slides</option>
+            <option value="15">15 slides</option>
+          </select>
+        </div>
+        <div class="fgroup">
+          <label for="tone">Tone</label>
+          <select id="tone" aria-label="Presentation tone">
+            <option value="professional" selected>Professional</option>
+            <option value="casual">Casual & Friendly</option>
+            <option value="academic">Academic</option>
+            <option value="creative">Creative</option>
+            <option value="sales">Sales Pitch</option>
+            <option value="inspirational">Inspirational</option>
+          </select>
+        </div>
+        <div class="fgroup">
+          <label for="verbosity">Content Density</label>
+          <select id="verbosity" aria-label="Content density">
+            <option value="concise">Concise (3 bullets)</option>
+            <option value="standard" selected>Standard (4–5 bullets)</option>
+            <option value="detailed">Detailed (6–7 bullets)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row c2">
+        <div class="fgroup">
+          <label for="lang">Language</label>
+          <select id="lang" aria-label="Language">
+            <option value="English" selected>English</option>
+            <option value="Spanish">Spanish</option>
+            <option value="French">French</option>
+            <option value="German">German</option>
+            <option value="Portuguese">Portuguese</option>
+            <option value="Italian">Italian</option>
+            <option value="Chinese">Chinese</option>
+            <option value="Japanese">Japanese</option>
+            <option value="Arabic">Arabic</option>
+          </select>
+        </div>
+        <div class="fgroup">
+          <label for="author">Author / Presenter Name</label>
+          <input type="text" id="author" placeholder="Your name (optional)" maxlength="80" aria-label="Author or presenter name">
+        </div>
+      </div>
+
+      <!-- SLIDE TYPE PILLS -->
+      <div class="fgroup" style="margin-bottom:16px;">
+        <label>Include Slide Types</label>
+        <div class="slide-types" id="slideTypes" role="group" aria-label="Slide types to include">
+          <div class="type-pill on" data-t="content" role="checkbox" aria-checked="true" tabindex="0"> Content</div>
+          <div class="type-pill on" data-t="two-column" role="checkbox" aria-checked="true" tabindex="0">⚖️ Two-Column</div>
+          <div class="type-pill on" data-t="stats" role="checkbox" aria-checked="true" tabindex="0">📊 Stats</div>
+          <div class="type-pill on" data-t="quote" role="checkbox" aria-checked="true" tabindex="0">💬 Quote</div>
+          <div class="type-pill on" data-t="timeline" role="checkbox" aria-checked="true" tabindex="0">🗓 Timeline</div>
+          <div class="type-pill on" data-t="conclusion" role="checkbox" aria-checked="true" tabindex="0">✅ Conclusion</div>
+        </div>
+      </div>
+
+      <!-- COLOR THEME -->
+      <div class="fgroup" style="margin-bottom:20px;">
+        <label>Color Theme</label>
+        <div class="theme-grid" id="themeGrid" role="radiogroup" aria-label="Color theme"></div>
+      </div>
+
+      <button type="submit" class="btn btn-gold" id="genBtn" aria-label="Generate presentation">
+        <i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i> Generate Presentation
+      </button>
+    </form>
+  </div>
+
+  <!-- PROGRESS CARD -->
+  <div class="card progress-section" id="progressCard" role="status" aria-live="polite" aria-label="Generation progress">
+    <div class="card-head"><i class="fas fa-microchip" aria-hidden="true"></i> SlideForge Workshop</div>
+    <div class="prog-status">
+      <div class="spinner" aria-hidden="true"></div>
+      <span id="progLabel">Initializing…</span>
+    </div>
+    <div class="prog-bar-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div class="prog-bar-fill" id="progBar"></div>
+    </div>
+    <div class="prog-stage" id="progStage"></div>
+    <div class="console" id="console" aria-label="Generation log"></div>
+  </div>
+
+  <!-- RESULT CARD -->
+  <div class="card result-section" id="resultCard">
+    <div class="card-head"><i class="fas fa-check-circle" style="color:var(--green)" aria-hidden="true"></i> Presentation Ready</div>
+    <div class="bubble" style="margin-bottom:16px;">
+      <div class="bubble-av" aria-hidden="true">🤖</div>
+      <div class="bubble-text" id="resultText">Your presentation is ready to download!</div>
+    </div>
+    <div class="stats-bar" id="statsBar" role="region" aria-label="Presentation statistics"></div>
+    <div class="preview-grid" id="previewGrid" role="list" aria-label="Slide previews"></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-green" id="dlBtn" style="flex:2;min-width:180px;" aria-label="Download PowerPoint file">
+        <i class="fas fa-download" aria-hidden="true"></i> Download .pptx
+      </button>
+      <button class="btn btn-ghost btn-sm" id="regenBtn" style="flex:1;min-width:120px;" aria-label="Regenerate presentation">
+        <i class="fas fa-rotate-right" aria-hidden="true"></i> Regenerate
+      </button>
+    </div>
+    <div style="margin-top:10px;">
+      <button class="btn btn-ghost" id="newBtn" aria-label="Start new presentation">
+        <i class="fas fa-plus" aria-hidden="true"></i> New Presentation
+      </button>
+    </div>
+  </div>
+
+  <!-- FOOTER CTA -->
+  <div class="footer-cta" role="complementary" aria-label="More from Artistry Store">
+    <h3>🌟 Love this free tool?</h3>
+    <p>Check out our full collection of AI apps, wellness guides, adult coloring books & digital resources at the Artistry Store. Try our free AI therapist, coloring pages, and more!</p>
+    <div class="footer-links">
+      <a href="https://shop.artistrystore.com/store.html" target="_blank" class="footer-link primary">
+        <i class="fas fa-store" aria-hidden="true"></i> Browse All Products
+      </a>
+      <a href="https://shop.artistrystore.com/lead-magnets.html" target="_blank" class="footer-link ghost">
+        <i class="fas fa-gift" aria-hidden="true"></i> Free Resources
+      </a>
+      <a href="https://shop.artistrystore.com/postcard-creator/" target="_blank" class="footer-link ghost">
+        <i class="fas fa-envelope" aria-hidden="true"></i> Postcard Creator
+      </a>
+    </div>
+  </div>
+
+</div><!-- end wrap -->
+
+<!-- TOAST -->
+<div class="toast" id="toast" role="status" aria-live="polite"><i class="fas fa-circle-check" aria-hidden="true"></i><span id="toastMsg"></span></div>
+
+<script>
+/* ============================================================
+   SLIDEFORGE AI — Pure Vanilla JS PowerPoint Builder
+   AI: Pollinations Text API (free, no key)
+   PPTX: PptxGenJS 3.12
+============================================================ */
+
+const THEMES = {
+  Midnight:   { name:"Midnight Executive", bg:"1E2761", accent:"CADCFC", txt:"E8EEFF", bar:"7B8CDE", grad:["#1E2761","#7B8CDE"] },
+  Forest:     { name:"Forest & Moss",      bg:"2C5F2D", accent:"C5E8A0", txt:"F5FFF0", bar:"97BC62", grad:["#2C5F2D","#97BC62"] },
+  Coral:      { name:"Coral Energy",       bg:"C0392B", accent:"FADBD8", txt:"FFF5F5", bar:"E74C3C", grad:["#C0392B","#E74C3C"] },
+  Ocean:      { name:"Ocean Depth",        bg:"0A3D62", accent:"82C4E8", txt:"F0F8FF", bar:"1E8BC3", grad:["#0A3D62","#1E8BC3"] },
+  Charcoal:   { name:"Charcoal Minimal",   bg:"2D3436", accent:"DFE6E9", txt:"FFFFFF", bar:"636E72", grad:["#2D3436","#636E72"] },
+  Teal:       { name:"Teal Trust",         bg:"006064", accent:"B2EBF2", txt:"F0FDFD", bar:"00838F", grad:["#006064","#00838F"] },
+  Berry:      { name:"Berry & Cream",      bg:"6A1B4D", accent:"F8C8E8", txt:"FFF0FA", bar:"AD1457", grad:["#6A1B4D","#AD1457"] },
+  Sage:       { name:"Sage Calm",          bg:"3D6B4F", accent:"C8E6C9", txt:"F5FFF7", bar:"66BB6A", grad:["#3D6B4F","#66BB6A"] },
+  Slate:      { name:"Slate Pro",          bg:"263238", accent:"CFD8DC", txt:"FFFFFF", bar:"546E7A", grad:["#263238","#546E7A"] },
+  Gold:       { name:"Gold Luxury",        bg:"1A1200", accent:"F0CF7A", txt:"FFF8E0", bar:"C9A84C", grad:["#1A1200","#C9A84C"] },
+};
+
+let selectedTheme = 'Midnight';
+let generatedPptx = null;
+let generatedTitle = '';
+let currentData = null;
+let voiceOn = true;
+let history = [];
+let selectedTypes = new Set(['content','two-column','stats','quote','timeline','conclusion']);
+
+try { history = JSON.parse(localStorage.getItem('sf_history') || '[]'); } catch(e) { history = []; }
+
+// ===== INIT =====
+function init() {
+  buildThemeGrid();
+  buildSlideTypePills();
+  loadHistory();
+  document.getElementById('voiceTrack').classList.add('on');
+  setTimeout(() => monicaSay('Ready to build! Enter your topic above and I\'ll generate a professional PowerPoint deck for you — completely free.'), 800);
+}
+
+// ===== THEME GRID =====
+function buildThemeGrid() {
+  const grid = document.getElementById('themeGrid');
+  grid.innerHTML = '';
+  Object.entries(THEMES).forEach(([k, t]) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'swatch-wrap';
+    const sw = document.createElement('div');
+    sw.className = 'swatch' + (k === selectedTheme ? ' on' : '');
+    sw.style.background = `linear-gradient(135deg,${t.grad[0]} 0%,${t.grad[1]} 100%)`;
+    sw.title = t.name;
+    sw.setAttribute('role','radio');
+    sw.setAttribute('aria-checked', k === selectedTheme ? 'true' : 'false');
+    sw.setAttribute('tabindex','0');
+    sw.setAttribute('aria-label', t.name);
+    sw.onclick = () => selectTheme(k);
+    sw.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectTheme(k); } };
+    const lbl = document.createElement('div');
+    lbl.className = 'swatch-lbl';
+    lbl.textContent = t.name;
+    wrap.append(sw, lbl);
+    grid.appendChild(wrap);
+  });
+}
+
+function selectTheme(k) {
+  document.querySelectorAll('.swatch').forEach((s,i) => {
+    const key = Object.keys(THEMES)[i];
+    s.classList.toggle('on', key === k);
+    s.setAttribute('aria-checked', key === k ? 'true' : 'false');
+  });
+  selectedTheme = k;
+}
+
+// ===== SLIDE TYPE PILLS =====
+function buildSlideTypePills() {
+  document.querySelectorAll('.type-pill').forEach(pill => {
+    pill.onclick = () => togglePill(pill);
+    pill.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); togglePill(pill); } };
+  });
+}
+
+function togglePill(pill) {
+  const t = pill.dataset.t;
+  if (pill.classList.contains('on')) {
+    if (selectedTypes.size <= 2) { showToast('Keep at least 2 slide types.','err'); return; }
+    selectedTypes.delete(t);
+    pill.classList.remove('on');
+    pill.setAttribute('aria-checked','false');
+  } else {
+    selectedTypes.add(t);
+    pill.classList.add('on');
+    pill.setAttribute('aria-checked','true');
+  }
+}
+
+// ===== VOICE =====
+document.getElementById('voiceWrap').onclick = () => {
+  voiceOn = !voiceOn;
+  const track = document.getElementById('voiceTrack');
+  track.classList.toggle('on', voiceOn);
+  track.setAttribute('aria-checked', String(voiceOn));
+  if (!voiceOn && window.speechSynthesis) window.speechSynthesis.cancel();
+};
+
+function monicaSay(text) {
+  document.getElementById('bubble-text').textContent = text;
+  if (!voiceOn || !window.speechSynthesis) return;
+  try {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.pitch = 1.05; u.rate = 1.0;
+    const vs = window.speechSynthesis.getVoices();
+    const preferred = vs.find(v =>
+      v.name.includes('Google US English') || v.name.includes('Samantha') ||
+      v.name.includes('Karen') || (v.lang.startsWith('en') && v.name.toLowerCase().includes('female'))
+    );
+    if (preferred) u.voice = preferred;
+    window.speechSynthesis.speak(u);
+  } catch(e) {}
+}
+
+// ===== CHAR COUNTER =====
+function updateCharCount(el, id, max) {
+  document.getElementById(id).textContent = `${el.value.length} / ${max}`;
+}
+
+// ===== HISTORY =====
+function toggleHistory() {
+  const p = document.getElementById('historyPanel');
+  const btn = document.getElementById('historyToggle');
+  const open = p.classList.toggle('vis');
+  btn.setAttribute('aria-expanded', String(open));
+}
+
+function loadHistory() {
+  const list = document.getElementById('historyList');
+  if (!history.length) { list.innerHTML = '<em style="font-size:.8rem;color:var(--text-3);">No history yet.</em>'; return; }
+  list.innerHTML = '';
+  history.slice(-8).reverse().forEach((h, i) => {
+    const item = document.createElement('div');
+    item.className = 'hist-item';
+    item.setAttribute('role','button');
+    item.setAttribute('tabindex','0');
+    item.innerHTML = `<div><div class="hist-topic">${escHtml(h.topic)}</div><div class="hist-meta">${h.slides} slides · ${h.theme} · ${h.date}</div></div><button class="hist-del" onclick="deleteHistory(${history.length-1-i},event)" aria-label="Delete ${escHtml(h.topic)}"><i class="fas fa-xmark" aria-hidden="true"></i></button>`;
+    item.onclick = (e) => { if (e.target.closest('.hist-del')) return; document.getElementById('topic').value = h.topic; };
+    item.onkeydown = (e) => { if (e.key === 'Enter') item.click(); };
+    list.appendChild(item);
+  });
+}
+
+function deleteHistory(idx, e) {
+  e.stopPropagation();
+  history.splice(idx, 1);
+  try { localStorage.setItem('sf_history', JSON.stringify(history)); } catch(e) {}
+  loadHistory();
+}
+
+function saveHistory(topic, numSlides, theme) {
+  history.push({ topic, slides: numSlides, theme, date: new Date().toLocaleDateString() });
+  if (history.length > 20) history.shift();
+  try { localStorage.setItem('sf_history', JSON.stringify(history)); } catch(e) {}
+  loadHistory();
+}
+
+// ===== TOAST =====
+let toastTimer;
+function showToast(msg, type='ok') {
+  const t = document.getElementById('toast');
+  const icon = t.querySelector('i');
+  document.getElementById('toastMsg').textContent = msg;
+  t.className = `toast ${type} show`;
+  icon.className = type === 'ok' ? 'fas fa-circle-check' : type === 'err' ? 'fas fa-circle-xmark' : 'fas fa-circle-info';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ===== CONSOLE =====
+function clog(text, type) {
+  const c = document.getElementById('console');
+  const d = document.createElement('div');
+  d.className = `log log-${type || 's'}`;
+  d.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+  c.appendChild(d);
+  c.scrollTop = c.scrollHeight;
+}
+function clearLog() { document.getElementById('console').innerHTML = ''; }
+
+// ===== PROGRESS =====
+function setProgress(pct, label, stage) {
+  const bar = document.getElementById('progBar');
+  bar.style.width = pct + '%';
+  bar.parentElement.setAttribute('aria-valuenow', pct);
+  if (label) document.getElementById('progLabel').textContent = label;
+  if (stage) document.getElementById('progStage').textContent = stage;
+}
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+// ===== AI GENERATION via Pollinations =====
+async function callAI(prompt) {
+  const response = await fetch('https://text.pollinations.ai/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      messages: [
+        { role: 'system', content: 'You are an expert presentation architect. Return ONLY valid JSON — no markdown fences, no preamble, no explanation outside the JSON.' },
+        { role: 'user', content: prompt }
+      ],
+      model: 'openai',
+      seed: Math.floor(Math.random() * 9999)
+    })
+  });
+  if (!response.ok) throw new Error(`AI error ${response.status}`);
+  return await response.text();
+}
+
+// ===== BUILD PROMPT =====
+function buildPrompt(topic, desc, numSlides, tone, lang, verbosity, author, types) {
+  const typeList = Array.from(types).join(', ');
+  const bulletCount = verbosity === 'concise' ? '3' : verbosity === 'detailed' ? '6-7' : '4-5';
+  return `Generate a ${lang} PowerPoint presentation about: "${topic}"
+${desc ? `Additional context: ${desc}` : ''}
+
+Requirements:
+- Tone: ${tone}
+- Total content slides: ${numSlides} (plus title slide)
+- Bullets per content slide: ${bulletCount}
+- Available slide types (use variety): ${typeList}
+- Author: ${author || 'SlideForge AI'}
+- Include specific facts, statistics, and insights
+- Each bullet should be substantive (1-2 sentences)
+- For "stats" slides: include 3-4 specific numeric datapoints
+- For "quote" slides: use a real relevant quote with attribution
+- For "timeline" slides: list 4-6 chronological events with years
+- Last slide MUST be type "conclusion"
+
+Return ONLY this exact JSON structure (no markdown, no extra text):
+{
+  "title": "Presentation Title Here",
+  "subtitle": "Subtitle or tagline here",
+  "date": "${new Date().toLocaleDateString()}",
+  "author": "${author || 'SlideForge AI'}",
+  "slides": [
+    { "type": "content", "title": "Slide Title", "content": ["Bullet 1", "Bullet 2", "Bullet 3"] },
+    { "type": "two-column", "title": "Slide Title", "left_title": "Left Heading", "left_content": ["L1","L2"], "right_title": "Right Heading", "right_content": ["R1","R2"] },
+    { "type": "stats", "title": "Slide Title", "stats": [{"value":"85%","label":"Label","detail":"Source note"}] },
+    { "type": "quote", "title": "Slide Title", "quote": "The quote text here", "speaker": "Name, Title" },
+    { "type": "timeline", "title": "Slide Title", "events": [{"year":"2020","text":"Event description"}] },
+    { "type": "conclusion", "title": "Key Takeaways", "content": ["Takeaway 1", "Takeaway 2"] }
+  ]
+}`;
+}
+
+// ===== PARSE JSON =====
+function parseJson(text) {
+  // Try direct
+  try { return JSON.parse(text.trim()); } catch(e) {}
+  // Code block
+  const cb = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (cb) { try { return JSON.parse(cb[1].trim()); } catch(e) {} }
+  // Find JSON object
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start !== -1 && end !== -1) { try { return JSON.parse(text.slice(start, end+1)); } catch(e) {} }
+  return null;
+}
+
+// ===== BUILD PPTX =====
+function buildPptx(data, themeKey) {
+  const T = THEMES[themeKey] || THEMES.Midnight;
+  const pptx = new PptxGenJS();
+  pptx.layout = 'LAYOUT_WIDE';
+  pptx.author = data.author || 'SlideForge AI';
+  pptx.title = data.title || 'Presentation';
+  pptx.company = 'SlideForge AI by Artistry Store';
+
+  const BG = T.bg, ACC = T.accent, BAR = T.bar, TXT = T.txt;
+  const WHITE = 'FFFFFF', DARK = '1A1A2E';
+  const total = 1 + (data.slides ? data.slides.length : 0);
+
+  function addBar(slide) {
+    slide.addShape(pptx.shapes.RECTANGLE, { x:0, y:0, w:13.33, h:0.09, fill:{ color: BAR } });
+  }
+  function addSlideNum(slide, num) {
+    slide.addText(`${num} / ${total}`, { x:11.8, y:6.9, w:1.3, h:0.3, fontSize:9, color:'AAAAAA', align:'right', fontFace:'Calibri' });
+  }
+
+  // Title slide
+  const ts = pptx.addSlide();
+  ts.background = { color: BG };
+  ts.addShape(pptx.shapes.RECTANGLE, { x:0, y:5.5, w:13.33, h:2.0, fill:{ color: BAR }, line:{ color: BAR } });
+  ts.addText(data.title || 'Untitled', {
+    x:0.6, y:1.4, w:12.1, h:1.4,
+    fontSize:44, bold:true, color:ACC, align:'center', fontFace:'Calibri',
+    shadow:{ type:'outer', color:'000000', blur:8, offset:3, angle:45 }
+  });
+  if (data.subtitle) {
+    ts.addText(data.subtitle, { x:0.6, y:3.1, w:12.1, h:0.8, fontSize:20, color:TXT, align:'center', fontFace:'Calibri', italic:true });
+  }
+  const meta = [data.author, data.date].filter(Boolean).join(' · ');
+  if (meta) ts.addText(meta, { x:0.6, y:5.8, w:12.1, h:0.5, fontSize:14, color:ACC, align:'center', fontFace:'Calibri' });
+  ts.addText('slideforge.ai | shop.artistrystore.com', { x:0.6, y:6.5, w:12.1, h:0.3, fontSize:9, color:'888888', align:'center', fontFace:'Calibri' });
+
+  // Content slides
+  (data.slides || []).forEach((s, idx) => {
+    const slide = pptx.addSlide();
+    const sType = s.type || 'content';
+    const slideNum = idx + 2;
+
+    if (sType === 'two-column') {
+      slide.background = { color: WHITE };
+      addBar(slide);
+      slide.addText(s.title || '', { x:0.5, y:0.25, w:12.3, h:0.75, fontSize:28, bold:true, color:DARK, fontFace:'Calibri' });
+      if (s.left_title) slide.addText(s.left_title, { x:0.5, y:1.2, w:5.8, h:0.5, fontSize:16, bold:true, color:BG, fontFace:'Calibri' });
+      const leftItems = (s.left_content || []).map(t => ({ text:t, options:{ fontSize:14, color:'3C3C3C', bullet:{type:'bullet'}, paraSpaceAfter:7, fontFace:'Calibri' } }));
+      if (leftItems.length) slide.addText(leftItems, { x:0.5, y:1.8, w:5.8, h:5.0, valign:'top' });
+      slide.addShape(pptx.shapes.LINE, { x:6.55, y:1.1, w:0, h:5.3, line:{ color:'DDDDDD', width:1 } });
+      if (s.right_title) slide.addText(s.right_title, { x:6.8, y:1.2, w:5.8, h:0.5, fontSize:16, bold:true, color:BG, fontFace:'Calibri' });
+      const rightItems = (s.right_content || []).map(t => ({ text:t, options:{ fontSize:14, color:'3C3C3C', bullet:{type:'bullet'}, paraSpaceAfter:7, fontFace:'Calibri' } }));
+      if (rightItems.length) slide.addText(rightItems, { x:6.8, y:1.8, w:5.8, h:5.0, valign:'top' });
+      addSlideNum(slide, slideNum);
+
+    } else if (sType === 'stats') {
+      slide.background = { color: WHITE };
+      addBar(slide);
+      slide.addText(s.title || '', { x:0.5, y:0.25, w:12.3, h:0.75, fontSize:28, bold:true, color:DARK, fontFace:'Calibri' });
+      const stats = s.stats || [];
+      const colW = 13.33 / Math.max(stats.length, 1);
+      stats.forEach((st, i) => {
+        const x = i * colW + 0.4;
+        const w = colW - 0.8;
+        slide.addShape(pptx.shapes.ROUNDED_RECTANGLE, { x, y:1.4, w, h:4.5, fill:{ color:BG }, line:{ color:BAR, pt:1 }, rectRadius:0.15 });
+        slide.addText(st.value || '', { x, y:1.8, w, h:1.4, fontSize:40, bold:true, color:ACC, align:'center', fontFace:'Calibri' });
+        slide.addText(st.label || '', { x, y:3.3, w, h:0.6, fontSize:16, bold:true, color:TXT, align:'center', fontFace:'Calibri' });
+        if (st.detail) slide.addText(st.detail, { x, y:4.1, w, h:0.9, fontSize:11, color:'AAAAAA', align:'center', fontFace:'Calibri', italic:true });
+      });
+      addSlideNum(slide, slideNum);
+
+    } else if (sType === 'quote') {
+      slide.background = { color: BG };
+      slide.addShape(pptx.shapes.RECTANGLE, { x:0, y:0, w:0.12, h:7.5, fill:{ color: BAR } });
+      slide.addText('\u201C', { x:0.4, y:0.4, w:2, h:2, fontSize:120, color:BAR, fontFace:'Georgia', bold:true });
+      slide.addText(s.quote || '', {
+        x:0.8, y:1.6, w:11.7, h:3.5,
+        fontSize:24, color:ACC, align:'center', italic:true, fontFace:'Georgia',
+        shadow:{ type:'outer', color:'000000', blur:6, offset:2, angle:45 }
+      });
+      if (s.speaker) slide.addText(`\u2014 ${s.speaker}`, { x:0.8, y:5.2, w:11.7, h:0.6, fontSize:16, color:TXT, align:'center', fontFace:'Calibri' });
+
+    } else if (sType === 'timeline') {
+      slide.background = { color: WHITE };
+      addBar(slide);
+      slide.addText(s.title || '', { x:0.5, y:0.25, w:12.3, h:0.75, fontSize:28, bold:true, color:DARK, fontFace:'Calibri' });
+      const events = (s.events || []).slice(0, 6);
+      const lineY = 3.5;
+      slide.addShape(pptx.shapes.LINE, { x:0.7, y:lineY, w:11.9, h:0, line:{ color:BAR, width:3 } });
+      events.forEach((ev, i) => {
+        const x = events.length > 1 ? 0.7 + i * (11.9 / (events.length - 1)) : 6.65;
+        const clampX = Math.min(Math.max(x, 0.7), 12.3);
+        slide.addShape(pptx.shapes.ELLIPSE, { x:clampX-0.15, y:lineY-0.15, w:0.3, h:0.3, fill:{ color:BAR } });
+        slide.addText(ev.year || '', { x:clampX-0.7, y:lineY-0.9, w:1.4, h:0.45, fontSize:13, bold:true, color:DARK, align:'center', fontFace:'Calibri' });
+        slide.addText(ev.text || '', { x:clampX-0.9, y:lineY+0.3, w:1.8, h:1.5, fontSize:11, color:'444444', align:'center', fontFace:'Calibri' });
+      });
+      addSlideNum(slide, slideNum);
+
+    } else if (sType === 'conclusion') {
+      slide.background = { color: BG };
+      slide.addShape(pptx.shapes.RECTANGLE, { x:0, y:5.8, w:13.33, h:1.7, fill:{ color: BAR } });
+      slide.addText(s.title || 'Key Takeaways', { x:0.5, y:0.3, w:12.3, h:0.85, fontSize:34, bold:true, color:ACC, align:'center', fontFace:'Calibri' });
+      const items = (s.content || []).map(t => ({ text:t, options:{ fontSize:18, color:TXT, bullet:{type:'bullet'}, paraSpaceAfter:12, fontFace:'Calibri' } }));
+      if (items.length) slide.addText(items, { x:1.5, y:1.4, w:10.3, h:4.2, valign:'top' });
+      slide.addText('shop.artistrystore.com', { x:0.5, y:6.1, w:12.3, h:0.4, fontSize:11, color:ACC, align:'center', fontFace:'Calibri' });
+      addSlideNum(slide, slideNum);
+
+    } else {
+      // Default content
+      slide.background = { color: WHITE };
+      addBar(slide);
+      slide.addText(s.title || '', { x:0.5, y:0.25, w:12.3, h:0.75, fontSize:28, bold:true, color:DARK, fontFace:'Calibri' });
+      const items = (s.content || []).map(t => ({ text:t, options:{ fontSize:16, color:'3C3C3C', bullet:{type:'bullet'}, paraSpaceAfter:9, fontFace:'Calibri' } }));
+      if (items.length) slide.addText(items, { x:0.7, y:1.3, w:11.6, h:5.5, valign:'top' });
+      addSlideNum(slide, slideNum);
+    }
+  });
+
+  return pptx;
+}
+
+// ===== RENDER PREVIEWS =====
+function renderPreviews(data, themeKey) {
+  const T = THEMES[themeKey];
+  const grid = document.getElementById('previewGrid');
+  grid.innerHTML = '';
+  const allSlides = [{ type:'title-cover', title: data.title }, ...(data.slides || [])];
+  allSlides.forEach((s, i) => {
+    const card = document.createElement('div');
+    card.className = 'preview-card';
+    card.setAttribute('role','listitem');
+    if (s.type === 'title-cover' || s.type === 'conclusion' || s.type === 'quote') {
+      card.style.background = `linear-gradient(135deg,#${T.bg} 0%,#${T.bar} 100%)`;
+      card.style.color = `#${T.accent}`;
+    } else {
+      card.style.background = '#f8f8f8';
+      card.style.borderTop = `3px solid #${T.bar}`;
+      card.style.color = '#1a1a2e';
+    }
+    card.innerHTML = `<span class="preview-num">${i+1}</span><span class="preview-title">${escHtml(s.title || '')}</span><span class="preview-badge">${s.type || 'content'}</span>`;
+    grid.appendChild(card);
+  });
+}
+
+// ===== STATS BAR =====
+function renderStats(data) {
+  const total = 1 + (data.slides ? data.slides.length : 0);
+  const wc = data.slides ? data.slides.reduce((acc, s) => {
+    const content = [...(s.content||[]), ...(s.left_content||[]), ...(s.right_content||[])];
+    return acc + content.join(' ').split(/\s+/).length;
+  }, 0) : 0;
+  const types = [...new Set((data.slides||[]).map(s => s.type))].length;
+  const sb = document.getElementById('statsBar');
+  sb.innerHTML = `
+    <div class="stat"><div class="stat-val">${total}</div><div class="stat-lbl">Slides</div></div>
+    <div class="stat"><div class="stat-val">${wc.toLocaleString()}</div><div class="stat-lbl">Words</div></div>
+    <div class="stat"><div class="stat-val">${types}</div><div class="stat-lbl">Layouts</div></div>
+    <div class="stat"><div class="stat-val">${selectedTheme}</div><div class="stat-lbl">Theme</div></div>
+  `;
+}
+
+// ===== MAIN GENERATE =====
+async function handleGenerate(e) {
+  e.preventDefault();
+  const topic = document.getElementById('topic').value.trim();
+  if (!topic) { showToast('Please enter a topic first.','err'); return; }
+
+  const numSlides = parseInt(document.getElementById('slides').value);
+  const tone = document.getElementById('tone').value;
+  const lang = document.getElementById('lang').value;
+  const verbosity = document.getElementById('verbosity').value;
+  const author = document.getElementById('author').value.trim();
+  const desc = document.getElementById('desc').value.trim();
+
+  // Show progress
+  document.getElementById('genBtn').disabled = true;
+  document.getElementById('progressCard').classList.add('vis');
+  document.getElementById('resultCard').classList.remove('vis');
+  clearLog();
+  setProgress(5, 'Starting up…', 'Initializing AI engine');
+  monicaSay(`Building your presentation on "${topic}" — this will take about 15 seconds!`);
+
+  clog('SlideForge AI initialized', 'i');
+  clog(`Topic: ${topic}`, 'i');
+  clog(`Slides: ${numSlides} | Tone: ${tone} | Theme: ${selectedTheme}`, 'i');
+
+  await delay(600);
+  setProgress(20, 'Crafting slide structure…', 'AI is writing your content');
+  clog('Sending to AI engine…', 'w');
+
+  try {
+    const prompt = buildPrompt(topic, desc, numSlides, tone, lang, verbosity, author, selectedTypes);
+    await delay(400);
+    setProgress(35, 'AI writing slides…', 'Generating content and structure');
+    clog('AI generating slide content…', 'w');
+
+    const rawText = await callAI(prompt);
+    clog('AI response received', 's');
+    setProgress(60, 'Parsing slide data…', 'Processing AI output');
+
+    const data = parseJson(rawText);
+    if (!data || !data.slides || !data.slides.length) {
+      throw new Error('AI returned invalid slide data. Please try again.');
+    }
+
+    clog(`Parsed ${data.slides.length} slides successfully`, 's');
+    setProgress(75, 'Building PowerPoint…', 'Assembling slides with PptxGenJS');
+    clog('Assembling .pptx file…', 'i');
+    await delay(400);
+
+    const pptx = buildPptx(data, selectedTheme);
+    generatedPptx = pptx;
+    generatedTitle = data.title || topic;
+    currentData = data;
+
+    setProgress(90, 'Finalizing…', 'Adding final touches');
+    clog('Slide formatting complete', 's');
+    await delay(500);
+
+    setProgress(100, 'Done! 🎉', 'Your presentation is ready');
+    clog(`✅ "${data.title}" — ${1 + data.slides.length} slides ready`, 's');
+
+    saveHistory(topic, 1 + data.slides.length, selectedTheme);
+    renderPreviews(data, selectedTheme);
+    renderStats(data);
+
+    document.getElementById('resultText').textContent = `"${data.title}" is ready — ${1 + data.slides.length} slides, ${selectedTheme} theme. Click download to save your .pptx file!`;
+    document.getElementById('resultCard').classList.add('vis');
+    document.getElementById('progressCard').classList.remove('vis');
+    monicaSay(`Your presentation "${data.title}" is ready! Click download to save it.`);
+    showToast('Presentation ready! 🎉','ok');
+
+    // Wire up buttons
+    document.getElementById('dlBtn').onclick = () => downloadPptx();
+    document.getElementById('regenBtn').onclick = () => handleGenerate({ preventDefault: () => {} });
+    document.getElementById('newBtn').onclick = () => resetForm();
+
+  } catch(err) {
+    clog(`Error: ${err.message}`, 'e');
+    setProgress(0, 'Error — please try again', err.message);
+    showToast(err.message, 'err');
+    monicaSay('Something went wrong. Please check your topic and try again!');
+    document.getElementById('genBtn').disabled = false;
+    console.error('SlideForge error:', err);
+  }
+}
+
+// ===== DOWNLOAD =====
+async function downloadPptx() {
+  if (!generatedPptx) return;
+  const btn = document.getElementById('dlBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Preparing download…';
+  try {
+    const safeName = (generatedTitle || 'presentation').replace(/[^a-z0-9]/gi,'_').toLowerCase();
+    await generatedPptx.writeFile({ fileName: `${safeName}.pptx` });
+    showToast('Downloaded successfully! ✅','ok');
+    monicaSay('Downloaded! Your presentation is in your downloads folder.');
+  } catch(e) {
+    showToast('Download failed — try again.','err');
+    console.error('Download error:', e);
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fas fa-download"></i> Download .pptx';
+}
+
+// ===== RESET =====
+function resetForm() {
+  document.getElementById('resultCard').classList.remove('vis');
+  document.getElementById('progressCard').classList.remove('vis');
+  document.getElementById('form').reset();
+  document.getElementById('topicCount').textContent = '0 / 200';
+  document.getElementById('descCount').textContent = '0 / 800';
+  document.getElementById('genBtn').disabled = false;
+  generatedPptx = null; currentData = null;
+  monicaSay('Ready for your next presentation! Enter a topic above.');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ===== KEYBOARD SHORTCUTS =====
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    document.getElementById('historyPanel').classList.remove('vis');
+    document.getElementById('historyToggle').setAttribute('aria-expanded','false');
+  }
+});
+
+// ===== START =====
+window.addEventListener('load', init);
+</script>
+</body>
+</html>
