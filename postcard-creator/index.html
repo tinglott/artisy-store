@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Free Postcard Creator — Artistry Store</title>
+<meta name="description" content="Design beautiful personalized postcards with AI-generated messages, themes, filters & stickers. Free tool by Artistry Store."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600&family=Pacifico&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lora:wght@400;500;600&family=Montserrat:wght@400;600&family=Roboto+Slab:wght@400;600&family=Caveat:wght@400;600&family=Lato:wght@400;700&family=Courier+Prime:ital,wght@0,400;1,400&display=swap"/>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#fff8f0}
+  input[type=range]{-webkit-appearance:none;height:6px;border-radius:3px;background:#e8d5c4;outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#c1666b;cursor:pointer}
+  .store-banner a:hover{opacity:.85}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useRef, useCallback } = React;
+
+
+const FONTS = [
+  { label:"Dancing Script", value:"'Dancing Script', cursive" },
+  { label:"Pacifico",        value:"'Pacifico', cursive" },
+  { label:"Playfair Display",value:"'Playfair Display', serif" },
+  { label:"Lato",            value:"'Lato', sans-serif" },
+  { label:"Montserrat",      value:"'Montserrat', sans-serif" },
+  { label:"Roboto Slab",     value:"'Roboto Slab', serif" },
+  { label:"Courier Prime",   value:"'Courier Prime', monospace" },
+  { label:"Caveat",          value:"'Caveat', cursive" },
+];
+
+const THEMES = [
+  { id:"sunset",  label:"Sunset",  bg:"linear-gradient(135deg,#FF6B6B 0%,#FFE66D 50%,#4ECDC4 100%)",     stamp:"#FF6B6B", text:"#2C3E50" },
+  { id:"ocean",   label:"Ocean",   bg:"linear-gradient(135deg,#667eea 0%,#764ba2 50%,#f093fb 100%)",     stamp:"#667eea", text:"#ffffff" },
+  { id:"forest",  label:"Forest",  bg:"linear-gradient(135deg,#56ab2f 0%,#a8e063 50%,#8EC5FC 100%)",     stamp:"#2d6a4f", text:"#1b3a1c" },
+  { id:"vintage", label:"Vintage", bg:"linear-gradient(135deg,#D4A574 0%,#E8C4A0 50%,#F5E6D3 100%)",     stamp:"#8B4513", text:"#4A3C31" },
+  { id:"cosmic",  label:"Cosmic",  bg:"linear-gradient(135deg,#1e3c72 0%,#2a5298 50%,#7e22ce 100%)",     stamp:"#FFD700", text:"#ffffff" },
+  { id:"rose",    label:"Rose",    bg:"linear-gradient(135deg,#f43f5e 0%,#ec4899 50%,#a855f7 100%)",     stamp:"#f43f5e", text:"#ffffff" },
+  { id:"golden",  label:"Golden",  bg:"linear-gradient(135deg,#f59e0b 0%,#fbbf24 50%,#fde68a 100%)",     stamp:"#b45309", text:"#3B2700" },
+  { id:"noir",    label:"Noir",    bg:"linear-gradient(135deg,#1f2937 0%,#374151 50%,#4B5563 100%)",     stamp:"#9ca3af", text:"#f9fafb" },
+  { id:"mint",    label:"Mint",    bg:"linear-gradient(135deg,#10b981 0%,#34d399 50%,#a7f3d0 100%)",     stamp:"#065f46", text:"#064e3b" },
+  { id:"aurora",  label:"Aurora",  bg:"linear-gradient(135deg,#0ea5e9 0%,#6366f1 33%,#ec4899 66%,#f59e0b 100%)", stamp:"#6366f1", text:"#ffffff" },
+];
+
+const STICKERS = ["🌸","🌊","🌴","🗺️","✈️","⛵","🏖️","🌺","🦋","🌈","⭐","🎉","💌","🍦","🎵","🌙","☀️","❄️","🔥","💫","🌻","🐚","🦀","🍃","🌿","🏔️","🌅","🎨","📸","💝"];
+
+const FILTERS = [
+  { id:"none",     label:"None",    css:"" },
+  { id:"warm",     label:"Warm",    css:"sepia(0.3) saturate(1.3) brightness(1.05)" },
+  { id:"cool",     label:"Cool",    css:"hue-rotate(30deg) saturate(1.2)" },
+  { id:"faded",    label:"Faded",   css:"sepia(0.5) contrast(0.9) brightness(1.1)" },
+  { id:"dramatic", label:"Drama",   css:"contrast(1.3) saturate(1.4)" },
+  { id:"dreamy",   label:"Dreamy",  css:"brightness(1.15) saturate(0.8) blur(0.5px)" },
+  { id:"noir",     label:"Noir",    css:"grayscale(1) contrast(1.2)" },
+];
+
+const BG_CATEGORIES = ["travel","nature","beach","mountains","city","flowers","abstract","sunset","forest","architecture"];
+
+async function generateAIMessage(prompt) {
+  const instruction = `Write a warm, heartfelt postcard message (2-3 sentences max, no quotes, no preamble) for this occasion or vibe: "${prompt}". Make it feel personal and genuine. Avoid clichés. Return only the message text.`;
+  const encoded = encodeURIComponent(instruction);
+  const res = await fetch(`https://text.pollinations.ai/${encoded}`, {
+    method: "GET",
+    headers: { "Accept": "text/plain" }
+  });
+  if (!res.ok) throw new Error("AI failed");
+  const text = await res.text();
+  return text.trim().replace(/^["']|["']$/g, "") || "Wish you were here! 🌴";
+}
+
+function getPicsumUrl(seed, w=1200, h=750) {
+  return `https://picsum.photos/seed/${seed}/${w}/${h}`;
+}
+
+function wrapText(ctx, text, maxW) {
+  const words = text.split(" ");
+  const lines = []; let cur = "";
+  for (const w of words) {
+    const test = cur ? `${cur} ${w}` : w;
+    if (ctx.measureText(test).width > maxW && cur) { lines.push(cur); cur = w; }
+    else cur = test;
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+
+export default function PostcardCreator() {
+  const [message, setMessage]           = useState("Wish you were here! 🌴");
+  const [sender, setSender]             = useState("");
+  const [recipient, setRecipient]       = useState("");
+  const [theme, setTheme]               = useState(THEMES[0]);
+  const [font, setFont]                 = useState(FONTS[0]);
+  const [textColor, setTextColor]       = useState("#2C3E50");
+  const [fontSize, setFontSize]         = useState(28);
+  const [filter, setFilter]             = useState(FILTERS[0]);
+  const [placedStickers, setPlacedStickers] = useState([]);
+  const [uploadedImage, setUploadedImage]   = useState(null);
+  const [bgImage, setBgImage]           = useState(null);
+  const [bgSeed, setBgSeed]             = useState("travel");
+  const [bgTab, setBgTab]               = useState("theme");
+  const [aiPrompt, setAiPrompt]         = useState("");
+  const [aiLoading, setAiLoading]       = useState(false);
+  const [showAi, setShowAi]             = useState(false);
+  const [showStickers, setShowStickers] = useState(false);
+  const [downloading, setDownloading]   = useState(false);
+  const [copied, setCopied]             = useState(false);
+  const [history, setHistory]           = useState([]);
+  const [photoLoading, setPhotoLoading] = useState(false);
+  const [toast, setToast]               = useState(null);
+  const [dragSticker, setDragSticker]   = useState(null);
+
+  const fileRef = useRef();
+  const cardRef = useRef();
+
+  const dark = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
+
+  const saveHistory = useCallback(() => {
+    setHistory(h => [...h.slice(-19), { message, sender, recipient, theme, font, textColor, fontSize, filter, placedStickers, bgImage, bgSeed, bgTab }]);
+  }, [message, sender, recipient, theme, font, textColor, fontSize, filter, placedStickers, bgImage, bgSeed, bgTab]);
+
+  function undo() {
+    if (!history.length) return;
+    const prev = history[history.length - 1];
+    setMessage(prev.message); setSender(prev.sender); setRecipient(prev.recipient);
+    setTheme(prev.theme); setFont(prev.font); setTextColor(prev.textColor);
+    setFontSize(prev.fontSize); setFilter(prev.filter); setPlacedStickers(prev.placedStickers);
+    setBgImage(prev.bgImage); setBgSeed(prev.bgSeed); setBgTab(prev.bgTab);
+    setHistory(h => h.slice(0, -1));
+  }
+
+  function showToast(msg, type="info") {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  }
+
+  function loadPhoto(seed) {
+    setPhotoLoading(true);
+    const url = getPicsumUrl(seed + Math.random().toString(36).slice(2, 6));
+    const img = new Image(); img.crossOrigin = "anonymous";
+    img.onload  = () => { setBgImage(url); setPhotoLoading(false); };
+    img.onerror = () => { setPhotoLoading(false); showToast("Could not load photo, try another.", "error"); };
+    img.src = url;
+  }
+
+  async function handleAI() {
+    if (!aiPrompt.trim()) { showToast("Enter a prompt first"); return; }
+    saveHistory(); setAiLoading(true);
+    try {
+      const msg = await generateAIMessage(aiPrompt);
+      setMessage(msg); showToast("✨ Message generated!", "success");
+    } catch { showToast("AI generation failed. Try again.", "error"); }
+    setAiLoading(false);
+  }
+
+  function handleUpload(e) {
+    const file = e.target.files?.[0]; if (!file) return;
+    if (file.size > 10_000_000) { showToast("File too large (max 10MB)", "error"); return; }
+    const reader = new FileReader();
+    reader.onload = ev => { saveHistory(); setUploadedImage(ev.target.result); setBgImage(null); setBgTab("upload"); };
+    reader.readAsDataURL(file);
+  }
+
+  function startStickerDrag(e, id) {
+    const s = placedStickers.find(s => s.id === id);
+    setDragSticker({ id, startX: e.clientX, startY: e.clientY, origX: s.x, origY: s.y });
+    e.preventDefault();
+  }
+  function onMouseMove(e) {
+    if (!dragSticker) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const dx = ((e.clientX - dragSticker.startX) / rect.width) * 100;
+    const dy = ((e.clientY - dragSticker.startY) / rect.height) * 100;
+    setPlacedStickers(ps => ps.map(s => s.id === dragSticker.id
+      ? { ...s, x: Math.max(0, Math.min(90, dragSticker.origX + dx)), y: Math.max(0, Math.min(90, dragSticker.origY + dy)) }
+      : s));
+  }
+  function onMouseUp() { setDragSticker(null); }
+
+  function addSticker(emoji) {
+    saveHistory();
+    setPlacedStickers(ps => [...ps, { id: Date.now(), emoji, x: 10 + Math.random()*60, y: 10 + Math.random()*60, size: 2.5 }]);
+  }
+  function removeSticker(id) { saveHistory(); setPlacedStickers(ps => ps.filter(s => s.id !== id)); }
+  function resizeSticker(id, delta) {
+    setPlacedStickers(ps => ps.map(s => s.id === id ? { ...s, size: Math.max(1, Math.min(6, s.size + delta)) } : s));
+  }
+
+  const currentBg = bgTab === "upload" && uploadedImage
+    ? `url(${uploadedImage}) center/cover`
+    : bgTab === "photo" && bgImage
+      ? `url(${bgImage}) center/cover`
+      : theme.bg;
+
+  async function handleDownload() {
+    setDownloading(true);
+    try {
+      const { default: html2canvas } = await import("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.esm.min.js");
+      const canvas = await html2canvas(cardRef.current, { useCORS:true, scale:2, backgroundColor:null, logging:false });
+      const link = document.createElement("a");
+      link.download = `postcard-${Date.now()}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+      showToast("Downloaded! 🎉", "success");
+    } catch {
+      try { await manualCanvasDownload(); }
+      catch { showToast("Download failed — right-click the card to save.", "error"); }
+    }
+    setDownloading(false);
+  }
+
+  async function manualCanvasDownload() {
+    const W=1200, H=750;
+    const canvas = document.createElement("canvas"); canvas.width=W; canvas.height=H;
+    const ctx = canvas.getContext("2d");
+    if ((bgTab==="upload" && uploadedImage)||(bgTab==="photo" && bgImage)) {
+      const src = bgTab==="upload" ? uploadedImage : bgImage;
+      await new Promise(res => {
+        const img = new Image(); img.crossOrigin="anonymous";
+        img.onload = ()=>{ ctx.drawImage(img,0,0,W,H); res(); }; img.onerror=res; img.src=src;
+      });
+    } else {
+      const colors = theme.bg.match(/#[0-9A-Fa-f]{6}/g)||["#FF6B6B","#FFE66D","#4ECDC4"];
+      const g = ctx.createLinearGradient(0,0,W,H);
+      colors.forEach((c,i)=>g.addColorStop(i/(colors.length-1),c));
+      ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    }
+    ctx.strokeStyle="rgba(255,255,255,0.45)"; ctx.lineWidth=5;
+    ctx.beginPath(); ctx.roundRect?.(24,24,W-48,H-48,12); ctx.stroke();
+    ctx.fillStyle=textColor;
+    const fam = font.value.split(",")[0].replace(/'/g,"");
+    ctx.font=`italic ${fontSize*2}px "${fam}"`; ctx.textAlign="center"; ctx.textBaseline="middle";
+    const lines = wrapText(ctx, message, W-240);
+    const lh = fontSize*2.6; const startY = H/2-((lines.length-1)*lh)/2;
+    lines.forEach((line,i)=>ctx.fillText(line, W/2, startY+i*lh));
+    if (sender) { ctx.font=`${fontSize*1.5}px "${fam}"`; ctx.fillText(`— ${sender}`, W/2, startY+lines.length*lh+36); }
+    if (recipient) {
+      ctx.fillStyle="rgba(0,0,0,0.15)"; ctx.fillRect(W/2+60,H-200,W/2-80,160);
+      ctx.fillStyle=textColor; ctx.font=`${fontSize*1.2}px "${fam}"`;
+      ctx.fillText(`To: ${recipient}`, W/2+60+(W/2-80)/2, H-120);
+    }
+    ctx.fillStyle=theme.stamp; ctx.beginPath(); ctx.arc(W-90,90,52,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle="#fff"; ctx.font="36px Arial"; ctx.fillText("♥",W-90,93);
+    ctx.strokeStyle="rgba(0,0,0,0.18)"; ctx.lineWidth=2;
+    [0,1,2].forEach(i=>{ ctx.beginPath(); ctx.moveTo(W/2+80,H-160+i*44); ctx.lineTo(W-60,H-160+i*44); ctx.stroke(); });
+    for (const s of placedStickers) { ctx.font=`${s.size*30}px Arial`; ctx.fillText(s.emoji,(s.x/100)*W,(s.y/100)*H); }
+    const link=document.createElement("a"); link.download=`postcard-${Date.now()}.png`;
+    link.href=canvas.toDataURL("image/png"); link.click();
+    showToast("Downloaded! 🎉","success");
+  }
+
+  async function handleCopy() {
+    try {
+      const { default: html2canvas } = await import("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.esm.min.js");
+      const canvas = await html2canvas(cardRef.current, { useCORS:true, scale:2 });
+      canvas.toBlob(async blob => {
+        await navigator.clipboard.write([new ClipboardItem({"image/png":blob})]);
+        setCopied(true); setTimeout(()=>setCopied(false),2000);
+        showToast("Copied to clipboard!","success");
+      });
+    } catch { showToast("Copy failed — right-click to save image.","error"); }
+  }
+
+  function handleShare(platform) {
+    const text = encodeURIComponent(message+(sender?` — ${sender}`:""));
+    const url  = encodeURIComponent(window.location.href);
+    const urls = {
+      twitter:   `https://twitter.com/intent/tweet?text=${text}`,
+      facebook:  `https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${text}`,
+      linkedin:  `https://www.linkedin.com/sharing/share-offsite/?url=${url}`,
+      pinterest: `https://pinterest.com/pin/create/button/?url=${url}&description=${text}`,
+      whatsapp:  `https://api.whatsapp.com/send?text=${text}`,
+    };
+    window.open(urls[platform],"_blank","width=600,height=450");
+  }
+
+  async function handleWebShare() {
+    if (!navigator.share) { showToast("Web Share not supported here.","error"); return; }
+    try { await navigator.share({ title:"My Postcard", text:message+(sender?` — ${sender}`:"") }); } catch {}
+  }
+
+  const S = {
+    root:{ fontFamily:"'Lora', serif", background: dark?"#18110c":"#fff8f0", minHeight:"100vh", padding:"1rem", color: dark?"#f5e6d3":"#3d3029" },
+    h1:{ fontFamily:"'Playfair Display', serif", fontSize:"clamp(1.6rem,4vw,2.8rem)", color:"#c1666b", textAlign:"center", marginBottom:"0.25rem", fontWeight:700 },
+    sub:{ textAlign:"center", color: dark?"#c9b8a8":"#6b5d56", fontStyle:"italic", marginBottom:"1.5rem", fontSize:"1rem" },
+    grid:{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(340px,1fr))", gap:"1.5rem", maxWidth:1400, margin:"0 auto" },
+    panel:{ background: dark?"#2a2118":"#fff", borderRadius:"1.25rem", padding:"1.5rem", boxShadow:"0 4px 24px rgba(0,0,0,0.08)", border:`1px solid ${dark?"#4a3d32":"#e8d5c4"}` },
+    label:{ display:"block", fontWeight:600, fontSize:"0.85rem", marginBottom:"0.35rem", color: dark?"#e2d0c0":"#3d3029", textTransform:"uppercase", letterSpacing:"0.05em" },
+    input:{ width:"100%", padding:"0.65rem 0.9rem", fontFamily:"'Lora',serif", fontSize:"1rem", border:`1.5px solid ${dark?"#4a3d32":"#e8d5c4"}`, borderRadius:"0.6rem", background: dark?"#18110c":"#fff8f0", color: dark?"#f5e6d3":"#3d3029", outline:"none", boxSizing:"border-box" },
+    textarea:{ width:"100%", padding:"0.65rem 0.9rem", fontFamily:"'Lora',serif", fontSize:"1rem", border:`1.5px solid ${dark?"#4a3d32":"#e8d5c4"}`, borderRadius:"0.6rem", background: dark?"#18110c":"#fff8f0", color: dark?"#f5e6d3":"#3d3029", resize:"vertical", minHeight:90, outline:"none", boxSizing:"border-box" },
+    btn:(bg,color="#fff")=>({ background:bg, color, border:"none", borderRadius:"0.6rem", padding:"0.65rem 1.2rem", fontFamily:"'Lora',serif", fontWeight:600, fontSize:"0.9rem", cursor:"pointer", display:"flex", alignItems:"center", gap:"0.4rem", justifyContent:"center", transition:"opacity 0.15s" }),
+    sectionTitle:{ fontFamily:"'Playfair Display',serif", fontSize:"1.1rem", fontWeight:700, color:"#c1666b", marginBottom:"0.75rem" },
+    tabBtn:(active)=>({ padding:"0.4rem 0.9rem", borderRadius:"0.5rem", border:"none", fontFamily:"'Lora',serif", fontSize:"0.85rem", cursor:"pointer", fontWeight:active?700:400, background:active?"#c1666b":dark?"#3d2f24":"#f5e0d3", color:active?"#fff":dark?"#c9b8a8":"#6b5d56" }),
+  };
+
+  return (
+    <div style={S.root} onMouseMove={onMouseMove} onMouseUp={onMouseUp}>
+
+      {/* Store Banner */}
+      <div className="store-banner" style={{ background:"linear-gradient(135deg,#c1666b,#f4a261)", padding:"0.75rem 1rem", textAlign:"center", marginBottom:"1rem", borderRadius:"0.75rem", maxWidth:1400, margin:"0 auto 1rem" }}>
+        <span style={{ color:"#fff", fontFamily:"'Lora',serif", fontSize:"0.95rem", fontWeight:600 }}>
+          💝 Love this tool? Explore our full collection of digital wellness &amp; creativity products —&nbsp;
+          <a href="https://shop.artistrystore.com/store.html" target="_blank" rel="noreferrer" style={{ color:"#fff3e0", textDecoration:"underline", fontWeight:700 }}>
+            Visit the Store →
+          </a>
+          &nbsp;·&nbsp;
+          <a href="https://tlott12.gumroad.com/l/oqlhbt" target="_blank" rel="noreferrer" style={{ color:"#fff3e0", textDecoration:"underline", fontWeight:700 }}>
+            🌙 Sacred Cycles Renewal
+          </a>
+          &nbsp;·&nbsp;
+          <a href="https://shop.artistrystore.com/lead-magnets.html" target="_blank" rel="noreferrer" style={{ color:"#fff3e0", textDecoration:"underline", fontWeight:700 }}>
+            🎁 Free Resources
+          </a>
+        </span>
+      </div>
+
+      {/* Toast */}
+      {toast && (
+        <div style={{ position:"fixed", bottom:"1.5rem", left:"50%", transform:"translateX(-50%)", background:toast.type==="error"?"#ef4444":toast.type==="success"?"#10b981":"#6366f1", color:"#fff", padding:"0.65rem 1.4rem", borderRadius:"2rem", fontWeight:600, zIndex:9999, fontSize:"0.95rem", boxShadow:"0 4px 20px rgba(0,0,0,0.2)" }}>
+          {toast.msg}
+        </div>
+      )}
+
+      <h1 style={S.h1}>✉️ Postcard Creator</h1>
+      <p style={S.sub}>Design, personalize &amp; share beautiful postcards — 100% free</p>
+
+      <div style={S.grid}>
+
+        {/* Editor Panel */}
+        <div style={S.panel}>
+          <p style={S.sectionTitle}>✍️ Your Message</p>
+
+          <div style={{ marginBottom:"1rem" }}>
+            <button style={S.btn(showAi?"#c1666b":dark?"#3d2f24":"#fce7e8", showAi?"#fff":"#c1666b")} onClick={()=>setShowAi(v=>!v)}>
+              ✨ {showAi?"Hide AI Writer":"Generate with AI"}
+            </button>
+            {showAi && (
+              <div style={{ marginTop:"0.75rem", display:"flex", gap:"0.5rem" }}>
+                <input style={S.input} placeholder="e.g. tropical vacation, missing you, birthday" value={aiPrompt} onChange={e=>setAiPrompt(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleAI()} />
+                <button style={{ ...S.btn("#c1666b"), minWidth:80 }} onClick={handleAI} disabled={aiLoading}>
+                  {aiLoading?"…":"Write"}
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div style={{ marginBottom:"1rem" }}>
+            <label style={S.label}>Message</label>
+            <textarea style={S.textarea} value={message} onChange={e=>setMessage(e.target.value)} placeholder="Write your message here…" />
+          </div>
+
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0.75rem", marginBottom:"1rem" }}>
+            <div><label style={S.label}>From</label><input style={S.input} value={sender} onChange={e=>setSender(e.target.value)} placeholder="Your name"/></div>
+            <div><label style={S.label}>To (optional)</label><input style={S.input} value={recipient} onChange={e=>setRecipient(e.target.value)} placeholder="Recipient"/></div>
+          </div>
+
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0.75rem", marginBottom:"1rem" }}>
+            <div>
+              <label style={S.label}>Font</label>
+              <select style={{ ...S.input, cursor:"pointer" }} value={font.value} onChange={e=>setFont(FONTS.find(f=>f.value===e.target.value))}>
+                {FONTS.map(f=><option key={f.value} value={f.value}>{f.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={S.label}>Size — {fontSize}px</label>
+              <input type="range" min={14} max={52} value={fontSize} onChange={e=>setFontSize(+e.target.value)} style={{ width:"100%", marginTop:"0.5rem", accentColor:"#c1666b" }} />
+            </div>
+          </div>
+
+          <div style={{ marginBottom:"1rem" }}>
+            <label style={S.label}>Text Color</label>
+            <div style={{ display:"flex", gap:"0.5rem", flexWrap:"wrap" }}>
+              {["#2C3E50","#ffffff","#f9fafb","#fde68a","#fca5a5","#6ee7b7","#bfdbfe","#ddd6fe","#fecdd3"].map(c=>(
+                <button key={c} onClick={()=>setTextColor(c)} style={{ width:28, height:28, borderRadius:"50%", background:c, border:textColor===c?"3px solid #c1666b":`1px solid ${dark?"#555":"#ccc"}`, cursor:"pointer" }} />
+              ))}
+              <input type="color" value={textColor} onChange={e=>setTextColor(e.target.value)} style={{ width:28, height:28, borderRadius:"50%", border:"none", cursor:"pointer", padding:0 }} title="Custom color"/>
+            </div>
+          </div>
+
+          <div style={{ marginBottom:"1rem" }}>
+            <button style={S.btn(showStickers?"#c1666b":dark?"#3d2f24":"#fce7e8", showStickers?"#fff":"#c1666b")} onClick={()=>setShowStickers(v=>!v)}>
+              🎉 {showStickers?"Hide Stickers":"Add Stickers"}
+            </button>
+            {showStickers && (
+              <div style={{ marginTop:"0.75rem", display:"flex", flexWrap:"wrap", gap:"0.4rem" }}>
+                {STICKERS.map(s=>(
+                  <button key={s} onClick={()=>addSticker(s)} style={{ fontSize:"1.5rem", background:"none", border:"none", cursor:"pointer", lineHeight:1, padding:"0.2rem" }}>{s}</button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <button style={S.btn(dark?"#3d2f24":"#f5e0d3", dark?"#e2d0c0":"#6b5d56")} onClick={undo} disabled={!history.length}>↩ Undo</button>
+        </div>
+
+        {/* Background Panel */}
+        <div style={S.panel}>
+          <p style={S.sectionTitle}>🎨 Background</p>
+
+          <div style={{ display:"flex", gap:"0.5rem", marginBottom:"1rem" }}>
+            {["theme","photo","upload"].map(t=>(
+              <button key={t} style={S.tabBtn(bgTab===t)} onClick={()=>setBgTab(t)}>
+                {t==="theme"?"🎨 Themes":t==="photo"?"🖼 Stock":"📷 Upload"}
+              </button>
+            ))}
+          </div>
+
+          {bgTab==="theme" && (
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:"0.5rem" }}>
+              {THEMES.map(t=>(
+                <button key={t.id} title={t.label} onClick={()=>setTheme(t)} style={{ height:48, borderRadius:"0.6rem", background:t.bg, border:theme.id===t.id?"3px solid #c1666b":"2px solid transparent", cursor:"pointer", boxShadow:"0 2px 6px rgba(0,0,0,0.12)" }} />
+              ))}
+            </div>
+          )}
+
+          {bgTab==="photo" && (
+            <div>
+              <p style={{ fontSize:"0.82rem", color:dark?"#a0917f":"#9a8070", marginBottom:"0.75rem" }}>Free stock photos. Click a category:</p>
+              <div style={{ display:"flex", flexWrap:"wrap", gap:"0.4rem", marginBottom:"0.75rem" }}>
+                {BG_CATEGORIES.map(cat=>(
+                  <button key={cat} style={S.tabBtn(bgSeed===cat)} onClick={()=>{ setBgSeed(cat); loadPhoto(cat); }}>{cat}</button>
+                ))}
+              </div>
+              <button style={S.btn("#c1666b")} onClick={()=>loadPhoto(bgSeed)} disabled={photoLoading}>
+                {photoLoading?"⏳ Loading…":"🔀 Random Photo"}
+              </button>
+              {bgImage && bgTab==="photo" && (
+                <img src={bgImage} style={{ marginTop:"0.75rem", width:"100%", borderRadius:"0.6rem", maxHeight:120, objectFit:"cover" }} alt="preview" crossOrigin="anonymous"/>
+              )}
+            </div>
+          )}
+
+          {bgTab==="upload" && (
+            <div>
+              <input ref={fileRef} type="file" accept="image/*" style={{ display:"none" }} onChange={handleUpload}/>
+              <button style={S.btn("#c1666b")} onClick={()=>fileRef.current.click()}>
+                📷 {uploadedImage?"Change Image":"Upload Your Photo"}
+              </button>
+              {uploadedImage && (
+                <div style={{ marginTop:"0.75rem" }}>
+                  <img src={uploadedImage} style={{ width:"100%", borderRadius:"0.6rem", maxHeight:120, objectFit:"cover" }} alt="preview"/>
+                  <button style={{ ...S.btn("#ef4444"), marginTop:"0.5rem", fontSize:"0.8rem" }} onClick={()=>{ setUploadedImage(null); setBgTab("theme"); }}>✕ Remove</button>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div style={{ marginTop:"1.25rem" }}>
+            <p style={{ ...S.sectionTitle, marginBottom:"0.5rem" }}>✨ Filters</p>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:"0.4rem" }}>
+              {FILTERS.map(f=>(
+                <button key={f.id} style={S.tabBtn(filter.id===f.id)} onClick={()=>setFilter(f)}>{f.label}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Preview Panel */}
+        <div style={{ ...S.panel, gridColumn:"1 / -1" }}>
+          <p style={S.sectionTitle}>👁 Preview</p>
+
+          <div
+            ref={cardRef}
+            onMouseLeave={onMouseUp}
+            style={{
+              position:"relative", aspectRatio:"8/5", borderRadius:"1rem", overflow:"hidden",
+              background:currentBg, boxShadow:"0 12px 48px rgba(0,0,0,0.18)",
+              marginBottom:"1.25rem", userSelect:"none",
+              filter:filter.css||undefined,
+            }}
+          >
+            <div style={{ position:"absolute", inset:"0.8rem", border:"1.5px solid rgba(255,255,255,0.45)", borderRadius:"0.5rem", pointerEvents:"none" }}/>
+
+            <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"2.5rem", textAlign:"center" }}>
+              <div style={{ fontFamily:font.value, fontSize:`clamp(1rem,${fontSize/16}rem,3rem)`, color:textColor, textShadow:"0 1px 6px rgba(0,0,0,0.12)", fontStyle:"italic", maxWidth:"72%", lineHeight:1.55 }}>
+                {message||"Your message…"}
+              </div>
+              {sender && (
+                <div style={{ fontFamily:font.value, fontSize:`clamp(0.8rem,${(fontSize*0.7)/16}rem,1.6rem)`, color:textColor, marginTop:"0.75rem", opacity:0.9 }}>
+                  — {sender}
+                </div>
+              )}
+            </div>
+
+            <div style={{ position:"absolute", top:"1.2rem", right:"1.2rem", width:"3rem", height:"3rem", borderRadius:"50%", background:theme.stamp, display:"flex", alignItems:"center", justifyContent:"center", fontSize:"1.4rem", boxShadow:"0 3px 10px rgba(0,0,0,0.2)" }}>♥</div>
+
+            {recipient && (
+              <div style={{ position:"absolute", bottom:"1.2rem", right:"1.2rem", background:"rgba(0,0,0,0.18)", backdropFilter:"blur(4px)", borderRadius:"0.5rem", padding:"0.4rem 0.8rem", color:textColor, fontFamily:font.value, fontSize:"0.78rem" }}>
+                To: {recipient}
+              </div>
+            )}
+
+            <div style={{ position:"absolute", bottom:"1.8rem", right:"1.5rem", display:"flex", flexDirection:"column", gap:"0.5rem" }}>
+              {[0,1,2].map(i=>(
+                <div key={i} style={{ width:"60px", height:1, background:"rgba(0,0,0,0.2)" }}/>
+              ))}
+            </div>
+
+            {placedStickers.map(s=>(
+              <div key={s.id} onMouseDown={e=>startStickerDrag(e,s.id)} style={{ position:"absolute", left:`${s.x}%`, top:`${s.y}%`, fontSize:`${s.size}rem`, cursor:"grab", userSelect:"none", lineHeight:1 }}>
+                {s.emoji}
+                <span onClick={()=>removeSticker(s.id)} style={{ position:"absolute", top:-8, right:-8, background:"#ef4444", color:"#fff", borderRadius:"50%", width:16, height:16, fontSize:"0.6rem", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer" }}>✕</span>
+                <span onClick={()=>resizeSticker(s.id,0.5)} style={{ position:"absolute", bottom:-8, right:8, background:"#3b82f6", color:"#fff", borderRadius:"50%", width:16, height:16, fontSize:"0.7rem", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer" }}>+</span>
+                <span onClick={()=>resizeSticker(s.id,-0.5)} style={{ position:"absolute", bottom:-8, left:8, background:"#6b7280", color:"#fff", borderRadius:"50%", width:16, height:16, fontSize:"0.7rem", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer" }}>−</span>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display:"flex", flexWrap:"wrap", gap:"0.75rem", marginBottom:"1.25rem" }}>
+            <button style={S.btn("linear-gradient(135deg,#c1666b,#f4a261)")} onClick={handleDownload} disabled={downloading}>
+              {downloading?"⏳ Preparing…":"⬇️ Download PNG"}
+            </button>
+            <button style={S.btn(dark?"#3d2f24":"#f5e0d3", dark?"#e2d0c0":"#6b5d56")} onClick={handleCopy}>
+              {copied?"✅ Copied!":"📋 Copy Image"}
+            </button>
+            {"share" in navigator && (
+              <button style={S.btn(dark?"#3d2f24":"#f5e0d3", dark?"#e2d0c0":"#6b5d56")} onClick={handleWebShare}>📤 Share</button>
+            )}
+          </div>
+
+          <p style={{ ...S.sectionTitle, marginBottom:"0.6rem" }}>📣 Share to Social</p>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:"0.5rem" }}>
+            {[
+              { id:"twitter",   label:"𝕏 Twitter",  bg:"#1DA1F2" },
+              { id:"facebook",  label:"Facebook",   bg:"#4267B2" },
+              { id:"whatsapp",  label:"WhatsApp",   bg:"#25D366" },
+              { id:"linkedin",  label:"LinkedIn",   bg:"#0077B5" },
+              { id:"pinterest", label:"Pinterest",  bg:"#E60023" },
+            ].map(p=>(
+              <button key={p.id} style={{ ...S.btn(p.bg), flex:"1 1 100px" }} onClick={()=>handleShare(p.id)}>{p.label}</button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Footer CTA */}
+      <div style={{ textAlign:"center", marginTop:"2rem", padding:"1.5rem", background:"linear-gradient(135deg,#fff3e0,#fce4ec)", borderRadius:"1rem", maxWidth:1400, margin:"2rem auto 0" }}>
+        <p style={{ fontFamily:"'Playfair Display',serif", fontSize:"1.2rem", color:"#c1666b", fontWeight:700, marginBottom:"0.5rem" }}>
+          🌸 Enjoy this free tool? We've got more!
+        </p>
+        <p style={{ fontFamily:"'Lora',serif", color:"#6b5d56", marginBottom:"1rem", fontSize:"0.95rem" }}>
+          Check out our adult relaxation &amp; coloring books, Sacred Cycles Renewal, and free AI wellness resources.
+        </p>
+        <div style={{ display:"flex", flexWrap:"wrap", gap:"0.75rem", justifyContent:"center" }}>
+          <a href="https://shop.artistrystore.com/store.html" target="_blank" rel="noreferrer" style={{ background:"#c1666b", color:"#fff", padding:"0.6rem 1.4rem", borderRadius:"0.6rem", fontFamily:"'Lora',serif", fontWeight:600, textDecoration:"none", fontSize:"0.9rem" }}>🛍️ Shop All Products</a>
+          <a href="https://tlott12.gumroad.com/l/oqlhbt" target="_blank" rel="noreferrer" style={{ background:"#f4a261", color:"#fff", padding:"0.6rem 1.4rem", borderRadius:"0.6rem", fontFamily:"'Lora',serif", fontWeight:600, textDecoration:"none", fontSize:"0.9rem" }}>🌙 Sacred Cycles Renewal</a>
+          <a href="https://shop.artistrystore.com/lead-magnets.html" target="_blank" rel="noreferrer" style={{ background:"linear-gradient(135deg,#6366f1,#a855f7)", color:"#fff", padding:"0.6rem 1.4rem", borderRadius:"0.6rem", fontFamily:"'Lora',serif", fontWeight:600, textDecoration:"none", fontSize:"0.9rem" }}>🎁 Free AI Therapist &amp; Resources</a>
+        </div>
+        <p style={{ marginTop:"1rem", color:"#9a8070", fontSize:"0.78rem", fontFamily:"'Lora',serif" }}>
+          Stock photos via <a href="https://picsum.photos" target="_blank" rel="noreferrer" style={{ color:"#c1666b" }}>Picsum Photos</a> · AI writing by <a href="https://pollinations.ai" target="_blank" rel="noreferrer" style={{ color:"#c1666b" }}>Pollinations AI</a>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<PostcardCreator/>);
+</script>
+</body>
+</html>
