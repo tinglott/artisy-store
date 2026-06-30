@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUMINA OS v2.1 - Full Stack Enhanced</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+        body { font-family: 'Inter', system-ui, sans-serif; }
+        .title-font { font-family: 'Space Grotesk', sans-serif; }
+        @keyframes pulse { 0%, 100% { opacity: 0.4; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1); } }
+        .message { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-zinc-950 text-zinc-100 overflow-hidden">
+    <div id="root"></div>
+
+    <script>
+        const { useState, useRef, useEffect, useCallback } = React;
+
+        const BRAND = {
+            black: "#0A0A0F", deepBlack: "#06060A", gold: "#C9A84C", goldLight: "#E2C46A",
+            goldDim: "#8B6F35", surface: "#111118", surfaceHover: "#18181F", border: "#1E1E2A",
+            text: "#E8E8EE", muted: "#6B6B80", accent: "#7B5EA7", green: "#3DDC84", red: "#FF5A5A",
+        };
+
+        const MODEL_REGISTRY = [
+            { id: "Qwen/Qwen2.5-7B-Instruct", name: "Qwen 2.5 7B", provider: "HF", strengths: ["multilingual", "coding"], endpoint: "https://api-inference.huggingface.co/models/Qwen/Qwen2.5-7B-Instruct", color: "#C9A84C" },
+            { id: "microsoft/Phi-3-mini-4k-instruct", name: "Phi-3 Mini", provider: "HF", strengths: ["reasoning", "math"], endpoint: "https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct", color: "#0078D4" },
+            { id: "mistralai/Mistral-7B-Instruct-v0.3", name: "Mistral 7B", provider: "HF", strengths: ["writing", "chat"], endpoint: "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3", color: "#FF7000" },
+        ];
+
+        function routeModel(prompt, mode) {
+            const lower = prompt.toLowerCase();
+            if (mode === "code" || /code|function|script|debug|python|js/.test(lower)) return MODEL_REGISTRY[0];
+            if (mode === "write" || /write|essay|story/.test(lower)) return MODEL_REGISTRY[2];
+            if (mode === "reason" || /math|solve|logic/.test(lower)) return MODEL_REGISTRY[1];
+            return MODEL_REGISTRY[0];
+        }
+
+        class EnhancedRAG {
+            constructor() {
+                this.storageKey = "lumina_rag_docs_v2";
+                this.docs = this._load();
+            }
+            _load() { 
+                try { return JSON.parse(localStorage.getItem(this.storageKey) || "[]"); } catch { return []; }
+            }
+            _save() { localStorage.setItem(this.storageKey, JSON.stringify(this.docs)); }
+
+            embedText(text) {
+                const words = text.toLowerCase().replace(/[^\w\s]/g, '').split(/\s+/).filter(Boolean);
+                const freq = {};
+                words.forEach(w => freq[w] = (freq[w] || 0) + 1);
+                const total = words.length || 1;
+                Object.keys(freq).forEach(k => freq[k] /= total);
+                return { vector: freq, length: total };
+            }
+
+            cosineSim(a, b) {
+                let dot = 0, normA = 0, normB = 0;
+                const keys = new Set([...Object.keys(a.vector || {}), ...Object.keys(b.vector || {})]);
+                for (const k of keys) {
+                    const va = (a.vector || {})[k] || 0;
+                    const vb = (b.vector || {})[k] || 0;
+                    dot += va * vb;
+                    normA += va * va;
+                    normB += vb * vb;
+                }
+                if (!normA || !normB) return 0;
+                return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+            }
+
+            addDocument(content, metadata = {}) {
+                const embedding = this.embedText(content);
+                const doc = { 
+                    id: Date.now().toString(36) + Math.random().toString(36).substr(2), 
+                    content: content.trim(), 
+                    embedding, 
+                    metadata: { ...metadata, addedAt: new Date().toISOString() } 
+                };
+                this.docs.push(doc);
+                this._save();
+                return doc;
+            }
+
+            search(query, topK = 4) {
+                if (!this.docs.length) return [];
+                const qEmbed = this.embedText(query);
+                return this.docs
+                    .map(d => ({ ...d, score: this.cosineSim(qEmbed, d.embedding) }))
+                    .sort((a, b) => b.score - a.score)
+                    .slice(0, topK)
+                    .filter(d => d.score > 0.08);
+            }
+
+            getDocuments() { return [...this.docs]; }
+            deleteDocument(id) {
+                this.docs = this.docs.filter(d => d.id !== id);
+                this._save();
+            }
+            clearAll() { this.docs = []; this._save(); }
+        }
+
+        async function callHF(model, messages, hfToken, onToken) {
+            const headers = {
+                "Content-Type": "application/json",
+                ...(hfToken && { "Authorization": `Bearer ${hfToken}` })
+            };
+
+            const payload = {
+                inputs: messages.map(m => `${m.role}: ${m.content}`).join("\n\n"),
+                parameters: { 
+                    max_new_tokens: 1200, 
+                    temperature: 0.75, 
+                    top_p: 0.9,
+                    return_full_text: false 
+                }
+            };
+
+            try {
+                const res = await fetch(model.endpoint, { method: "POST", headers, body: JSON.stringify(payload) });
+                
+                if (!res.ok) {
+                    const errText = await res.text().catch(() => "Unknown");
+                    throw new Error(`HF ${res.status}: ${errText.slice(0, 150)}`);
+                }
+
+                const data = await res.json();
+                let text = Array.isArray(data) ? (data[0]?.generated_text || "") : (data.generated_text || data[0] || "No response generated.");
+                
+                const chunks = text.match(/.{1,18}/g) || [text];
+                let out = "";
+                for (const chunk of chunks) {
+                    out += chunk;
+                    onToken(out);
+                    await new Promise(r => setTimeout(r, 8));
+                }
+                return text;
+            } catch (err) {
+                console.error(err);
+                throw err;
+            }
+        }
+
+        function LuminaOS() {
+            const [tab, setTab] = React.useState("chat");
+            const [hfToken, setHfToken] = React.useState(localStorage.getItem("hfToken") || "");
+            const [messages, setMessages] = React.useState([{
+                role: "assistant", 
+                content: "✅ LUMINA OS v2.1 Ready\n\nSmart routing • Persistent RAG • GitHub integration.\n\nAdd your HF token in Settings for real AI inference.",
+                model: "LUMINA Core"
+            }]);
+            const [input, setInput] = React.useState("");
+            const [loading, setLoading] = React.useState(false);
+            const [selectedModelId, setSelectedModelId] = React.useState(null);
+            const [mode, setMode] = React.useState("auto");
+            const [routerLog, setRouterLog] = React.useState([]);
+            const [ragDocs, setRagDocs] = React.useState([]);
+            const [docInput, setDocInput] = React.useState("");
+            const [docMeta, setDocMeta] = React.useState("");
+            const [ragStatus, setRagStatus] = React.useState("");
+            const [systemPrompt, setSystemPrompt] = React.useState("You are LUMINA, a precise, helpful, and creative AI assistant.");
+            const [githubRepo, setGithubRepo] = React.useState("");
+
+            const messagesEndRef = React.useRef(null);
+            const ragRef = React.useRef(new EnhancedRAG());
+
+            React.useEffect(() => { if (hfToken) localStorage.setItem("hfToken", hfToken); }, [hfToken]);
+            React.useEffect(() => { setRagDocs(ragRef.current.getDocuments()); }, [tab]);
+            React.useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+
+            const sendMessage = useCallback(async () => {
+                if (!input.trim() || loading) return;
+                const userText = input.trim();
+                setInput("");
+                setLoading(true);
+
+                const model = selectedModelId 
+                    ? MODEL_REGISTRY.find(m => m.id === selectedModelId) || MODEL_REGISTRY[0]
+                    : routeModel(userText, mode);
+
+                let contextChunks = [];
+                let ragContext = "";
+                try {
+                    contextChunks = ragRef.current.search(userText, 5);
+                    if (contextChunks.length) ragContext = contextChunks.map(c => c.content).join("\n\n---\n\n");
+                } catch (e) { console.error(e); }
+
+                const fullSystem = ragContext 
+                    ? `${systemPrompt}\n\n[RELEVANT KNOWLEDGE]:\n${ragContext}\n\nAnswer using provided knowledge when relevant.`
+                    : systemPrompt;
+
+                const newUserMsg = { role: "user", content: userText };
+                const routeInfo = { role: "system_info", content: `🔀 Routed → ${model.name} ${ragContext ? `(+${contextChunks.length} RAG)` : ""}` };
+
+                setMessages(prev => [...prev, newUserMsg, routeInfo]);
+                setRouterLog(prev => [{ ts: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), query: userText.slice(0,45)+'...', model: model.name, rag: contextChunks.length }, ...prev].slice(0, 6));
+
+                const history = [
+                    { role: "system", content: fullSystem },
+                    ...messages.filter(m => ["user","assistant"].includes(m.role)).slice(-8),
+                    newUserMsg
+                ];
+
+                const streamingId = "stream-" + Date.now();
+                setMessages(prev => [...prev, { role: "assistant", content: "", id: streamingId, model: model.name }]);
+
+                try {
+                    await callHF(model, history, hfToken, (partial) => {
+                        setMessages(prev => prev.map(m => m.id === streamingId ? { ...m, content: partial } : m));
+                    });
+                } catch (err) {
+                    setMessages(prev => prev.map(m => 
+                        m.id === streamingId ? { ...m, content: `❌ ${err.message}\n\n💡 Tip: Valid HF read token required. Check model availability.` } : m
+                    ));
+                }
+                setLoading(false);
+            }, [input, loading, selectedModelId, mode, messages, hfToken, systemPrompt]);
+
+            const addDocument = async () => {
+                if (!docInput.trim()) return;
+                setRagStatus("Embedding...");
+                try {
+                    ragRef.current.addDocument(docInput, { tag: docMeta || "general" });
+                    setRagDocs(ragRef.current.getDocuments());
+                    setDocInput(""); 
+                    setDocMeta("");
+                    setRagStatus("✅ Added to Memory");
+                } catch (e) {
+                    setRagStatus("❌ Error");
+                }
+                setTimeout(() => setRagStatus(""), 1800);
+            };
+
+            const deleteDoc = (id) => {
+                ragRef.current.deleteDocument(id);
+                setRagDocs(ragRef.current.getDocuments());
+            };
+
+            const analyzeGithub = async () => {
+                if (!githubRepo.trim()) return alert("Enter a GitHub repo URL");
+                setLoading(true);
+                try {
+                    const repoPath = githubRepo.replace("https://github.com/", "");
+                    const res = await fetch(`https://api.github.com/repos/${repoPath}`, {
+                        headers: { "User-Agent": "Lumina-OS" }
+                    });
+                    const repoData = await res.json();
+                    const summary = `📊 ${repoData.full_name}\n⭐ Stars: ${repoData.stargazers_count}\n🍴 Forks: ${repoData.forks_count}\n📝 Description: ${repoData.description || "None"}\n\n💡 Ask LUMINA coding questions about this repo!`;
+                    setMessages(prev => [...prev, { role: "assistant", content: summary, model: "GitHub Analyzer" }]);
+                } catch (e) {
+                    setMessages(prev => [...prev, { role: "assistant", content: "❌ Could not analyze repo. Make sure it's public." }]);
+                }
+                setLoading(false);
+            };
+
+            return React.createElement("div", { className: "min-h-screen bg-zinc-950 flex flex-col text-zinc-100" },
+                React.createElement("header", {
+                    className: "border-b border-zinc-800 bg-black/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex items-center justify-between"
+                },
+                    React.createElement("div", { className: "flex items-center gap-3" },
+                        React.createElement("div", { className: "w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-violet-500 flex items-center justify-center text-2xl shadow-lg" }, "✦"),
+                        React.createElement("div", {},
+                            React.createElement("div", { className: "title-font text-3xl font-bold tracking-tighter text-amber-400" }, "LUMINA"),
+                            React.createElement("div", { className: "text-[10px] text-zinc-500 tracking-widest" }, "OS v2.1 • FULLY FIXED")
+                        )
+                    ),
+                    React.createElement("div", { className: "flex items-center gap-4 text-xs" },
+                        React.createElement("div", { className: "px-4 py-1.5 bg-emerald-500/10 text-emerald-400 rounded-full border border-emerald-500/30" }, "RAG ENABLED"),
+                        React.createElement("div", { className: "px-4 py-1.5 bg-amber-500/10 text-amber-400 rounded-full border border-amber-500/30" }, `${MODEL_REGISTRY.length} MODELS`)
+                    )
+                ),
+
+                React.createElement("div", { className: "flex flex-1 overflow-hidden" },
+                    React.createElement("div", { className: "w-80 bg-zinc-900 border-r border-zinc-800 flex flex-col" },
+                        React.createElement("div", { className: "p-4 flex border-b border-zinc-800 gap-1" },
+                            ["chat","models","memory","github","settings"].map(t => 
+                                React.createElement("button", {
+                                    key: t,
+                                    onClick: () => setTab(t),
+                                    className: `flex-1 py-3 text-sm font-medium rounded-2xl transition-all ${tab === t ? 'bg-zinc-800 text-amber-400 shadow' : 'text-zinc-400 hover:bg-zinc-800'}`
+                                }, t === "chat" ? "💬 Chat" : t === "models" ? "Models" : t === "memory" ? "🧠 Memory" : t === "github" ? "GitHub" : "⚙️")
+                            )
+                        ),
+
+                        tab === "chat" && React.createElement("div", { className: "p-5 space-y-8 overflow-auto flex-1" },
+                            React.createElement("div", {},
+                                React.createElement("div", { className: "uppercase text-xs tracking-widest text-zinc-500 mb-3" }, "TASK MODE"),
+                                ["auto","code","write","reason"].map(m => 
+                                    React.createElement("button", {
+                                        key: m,
+                                        onClick: () => setMode(m),
+                                        className: `w-full text-left px-5 py-3.5 rounded-2xl mb-2 transition-all text-sm ${mode === m ? 'bg-amber-500/15 border border-amber-400/60 text-amber-300' : 'hover:bg-zinc-800'}`
+                                    }, m.toUpperCase())
+                                )
+                            ),
+                            React.createElement("div", {},
+                                React.createElement("div", { className: "uppercase text-xs tracking-widest text-zinc-500 mb-3 mt-6" }, "PIN MODEL"),
+                                React.createElement("button", { onClick: () => setSelectedModelId(null), className: `w-full text-left px-5 py-3.5 rounded-2xl mb-2 text-sm ${!selectedModelId ? 'bg-violet-500/10 border border-violet-400' : 'hover:bg-zinc-800'}` }, "🔀 Smart Router"),
+                                ...MODEL_REGISTRY.map(m => React.createElement("button", {
+                                    key: m.id,
+                                    onClick: () => setSelectedModelId(m.id),
+                                    className: `w-full text-left px-5 py-3.5 rounded-2xl mb-2 text-sm ${selectedModelId === m.id ? 'bg-violet-500/10 border border-violet-400' : 'hover:bg-zinc-800'}`
+                                }, m.name))
+                            )
+                        ),
+
+                        tab === "models" && React.createElement("div", { className: "p-5 space-y-4" },
+                            MODEL_REGISTRY.map(model => React.createElement("div", {
+                                key: model.id,
+                                className: "bg-zinc-800/80 rounded-3xl p-5 border border-zinc-700 hover:border-amber-400/40 cursor-pointer",
+                                onClick: () => { setSelectedModelId(model.id); setTab("chat"); }
+                            },
+                                React.createElement("div", { className: "font-semibold text-lg" }, model.name),
+                                React.createElement("div", { className: "text-xs text-zinc-400 mt-1" }, model.strengths.join(" • "))
+                            ))
+                        ),
+
+                        tab === "memory" && React.createElement("div", { className: "flex flex-col h-full p-5" },
+                            React.createElement("div", { className: "mb-4 font-medium" }, `Knowledge Base (${ragDocs.length} docs)`),
+                            React.createElement("div", { className: "flex-1 overflow-auto space-y-4 pr-3" },
+                                ragDocs.length === 0 && React.createElement("div", { className: "text-center py-20 text-zinc-500 italic" }, "Add documents below"),
+                                ragDocs.map(doc => React.createElement("div", {
+                                    key: doc.id,
+                                    className: "bg-zinc-800 rounded-2xl p-5 text-sm border border-zinc-700"
+                                },
+                                    React.createElement("div", { className: "line-clamp-4 mb-4 opacity-90" }, doc.content),
+                                    React.createElement("div", { className: "flex justify-between text-xs" },
+                                        React.createElement("span", { className: "text-amber-400" }, doc.metadata?.tag),
+                                        React.createElement("button", { onClick: () => deleteDoc(doc.id), className: "text-red-400 hover:text-red-500" }, "DELETE")
+                                    )
+                                ))
+                            ),
+                            ragDocs.length > 0 && React.createElement("button", {
+                                onClick: () => { ragRef.current.clearAll(); setRagDocs([]); },
+                                className: "mt-6 w-full py-3 text-red-400 border border-red-500/30 hover:bg-red-950 rounded-2xl"
+                            }, "CLEAR ALL MEMORY")
+                        ),
+
+                        tab === "github" && React.createElement("div", { className: "p-6 space-y-6" },
+                            React.createElement("div", { className: "text-sm text-zinc-400" }, "Analyze public GitHub repos for context in chat."),
+                            React.createElement("input", {
+                                type: "text",
+                                value: githubRepo,
+                                onChange: e => setGithubRepo(e.target.value),
+                                placeholder: "https://github.com/user/repo",
+                                className: "w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4 text-sm focus:border-amber-400 outline-none"
+                            }),
+                            React.createElement("button", {
+                                onClick: analyzeGithub,
+                                className: "w-full py-4 bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-semibold rounded-2xl hover:brightness-110"
+                            }, "ANALYZE REPO")
+                        ),
+
+                        tab === "settings" && React.createElement("div", { className: "p-6 space-y-10 overflow-auto" },
+                            React.createElement("div", {},
+                                React.createElement("div", { className: "uppercase text-xs tracking-widest text-zinc-500 mb-3" }, "HUGGING FACE TOKEN"),
+                                React.createElement("input", {
+                                    type: "password",
+                                    value: hfToken,
+                                    onChange: e => setHfToken(e.target.value),
+                                    placeholder: "hf_xxxxxxxxxxxxxxxx",
+                                    className: "w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4 focus:border-amber-400"
+                                }),
+                                React.createElement("p", { className: "text-[10px] text-zinc-500 mt-3" }, "Required for real AI responses. Get free token at huggingface.co/settings/tokens")
+                            ),
+                            React.createElement("div", {},
+                                React.createElement("div", { className: "uppercase text-xs tracking-widest text-zinc-500 mb-3" }, "SYSTEM PROMPT"),
+                                React.createElement("textarea", {
+                                    value: systemPrompt,
+                                    onChange: e => setSystemPrompt(e.target.value),
+                                    rows: 8,
+                                    className: "w-full bg-zinc-900 border border-zinc-700 rounded-3xl px-5 py-4 text-sm resize-y focus:border-amber-400"
+                                })
+                            )
+                        )
+                    ),
+
+                    React.createElement("div", { className: "flex-1 flex flex-col" },
+                        routerLog.length > 0 && React.createElement("div", {
+                            className: "bg-black border-b border-zinc-800 px-8 py-3 text-xs text-zinc-400 flex gap-8 overflow-x-auto whitespace-nowrap"
+                        }, routerLog.slice(0, 4).map((log, i) => 
+                            React.createElement("span", { key: i }, `[${log.ts}] ${log.query} → ${log.model} ${log.rag ? '+RAG' : ''}`)
+                        )),
+
+                        React.createElement("div", { className: "flex-1 overflow-auto p-8 space-y-10" },
+                            messages.map((msg, idx) => 
+                                React.createElement("div", {
+                                    key: idx,
+                                    className: `flex ${msg.role === "user" ? "justify-end" : "justify-start"} message`
+                                },
+                                    msg.role !== "user" && React.createElement("div", {
+                                        className: "w-9 h-9 rounded-2xl bg-gradient-to-br from-amber-400 to-violet-500 flex-shrink-0 mr-5 mt-1 flex items-center justify-center text-lg shadow"
+                                    }, "✦"),
+                                    React.createElement("div", {
+                                        className: `max-w-[78%] px-7 py-5 rounded-3xl text-[15.2px] leading-relaxed ${msg.role === "user" ? "bg-amber-400/10 border border-amber-400/30" : "bg-zinc-900 border border-zinc-700"}`
+                                    },
+                                        React.createElement("div", { className: "whitespace-pre-wrap" }, msg.content || "..."),
+                                        msg.model && React.createElement("div", { className: "text-[10px] text-zinc-500 mt-4 tracking-widest" }, `• ${msg.model}`)
+                                    )
+                                )
+                            ),
+                            React.createElement("div", { ref: messagesEndRef }),
+                            loading && React.createElement("div", { className: "flex items-center gap-4 pl-14" },
+                                React.createElement("div", { className: "w-9 h-9 rounded-2xl bg-gradient-to-br from-amber-400 to-violet-500 flex items-center justify-center animate-pulse" }, "✦"),
+                                React.createElement("div", { className: "flex gap-2" },
+                                    [1,2,3].map(i => React.createElement("div", {
+                                        key: i,
+                                        className: "w-2.5 h-2.5 bg-amber-400 rounded-full animate-pulse",
+                                        style: { animationDelay: (i*90) + "ms" }
+                                    }))
+                                )
+                            )
+                        ),
+
+                        React.createElement("div", { className: "p-6 border-t border-zinc-800 bg-zinc-900" },
+                            React.createElement("div", { className: "max-w-4xl mx-auto" },
+                                React.createElement("div", { className: "bg-zinc-800 border border-zinc-700 rounded-3xl p-2 flex items-end" },
+                                    React.createElement("textarea", {
+                                        value: input,
+                                        onChange: e => setInput(e.target.value),
+                                        onKeyDown: e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } },
+                                        placeholder: "Ask LUMINA anything... (Shift+Enter for new line)",
+                                        className: "flex-1 bg-transparent px-7 py-5 outline-none resize-y max-h-56 text-base leading-relaxed"
+                                    }),
+                                    React.createElement("button", {
+                                        onClick: sendMessage,
+                                        disabled: loading || !input.trim(),
+                                        className: `w-16 h-16 rounded-2xl flex items-center justify-center text-3xl transition-all flex-shrink-0 ${loading || !input.trim() ? 'bg-zinc-700 text-zinc-500' : 'bg-gradient-to-br from-amber-400 to-yellow-500 text-black hover:scale-110 active:scale-95'}`
+                                    }, "↑")
+                                ),
+                                React.createElement("div", { className: "text-center text-[10px] text-zinc-500 mt-4" }, "Persistent RAG • GitHub Context • Free HF Inference • artistrystore.com")
+                            )
+                        ),
+
+                        tab === "memory" && React.createElement("div", { className: "p-6 border-t border-zinc-800 bg-black" },
+                            React.createElement("div", { className: "max-w-4xl mx-auto" },
+                                React.createElement("div", { className: "uppercase text-xs tracking-widest text-zinc-500 mb-4" }, "QUICK ADD TO KNOWLEDGE BASE"),
+                                React.createElement("div", { className: "flex gap-4" },
+                                    React.createElement("textarea", {
+                                        value: docInput,
+                                        onChange: e => setDocInput(e.target.value),
+                                        placeholder: "Paste text, code, notes, or knowledge here...",
+                                        className: "flex-1 bg-zinc-900 border border-zinc-700 rounded-3xl px-6 py-5 text-sm resize-y h-28"
+                                    }),
+                                    React.createElement("div", { className: "flex flex-col gap-3 w-52" },
+                                        React.createElement("input", {
+                                            value: docMeta,
+                                            onChange: e => setDocMeta(e.target.value),
+                                            placeholder: "Optional tag",
+                                            className: "bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4 text-sm"
+                                        }),
+                                        React.createElement("button", {
+                                            onClick: addDocument,
+                                            className: "flex-1 bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-semibold rounded-2xl"
+                                        }, "ADD DOCUMENT")
+                                    )
+                                ),
+                                ragStatus && React.createElement("div", { className: "mt-4 text-emerald-400 text-sm" }, ragStatus)
+                            )
+                        )
+                    )
+                )
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById("root")).render(
+            React.createElement(LuminaOS)
+        );
+    </script>
+</body>
+</html>
