@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrustLink — Vetted Local Services</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',sans-serif;background:#0a1628;color:#fff;min-height:100vh;overflow-x:hidden}
+  .glass{background:rgba(255,255,255,0.06);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,0.12)}
+  .glass-dark{background:rgba(0,0,0,0.35);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,0.1)}
+  .orb{position:fixed;border-radius:50%;filter:blur(90px);opacity:0.18;pointer-events:none;z-index:0}
+  .orb1{width:600px;height:600px;background:radial-gradient(#2dd4bf,#0d9488);top:-200px;left:-200px;animation:floatOrb 14s ease-in-out infinite}
+  .orb2{width:500px;height:500px;background:radial-gradient(#f59e0b,#d97706);bottom:-150px;right:-150px;animation:floatOrb 18s ease-in-out infinite reverse}
+  .orb3{width:350px;height:350px;background:radial-gradient(#6366f1,#4f46e5);top:50%;left:50%;transform:translate(-50%,-50%);animation:floatOrb 22s ease-in-out infinite}
+  @keyframes floatOrb{0%,100%{transform:translate(0,0)}50%{transform:translate(0,-40px)}}
+  .orb3{animation:floatOrb3 22s ease-in-out infinite}
+  @keyframes floatOrb3{0%,100%{transform:translate(-50%,-50%)}50%{transform:translate(-50%,-60%)}}
+  .provider-card{transition:transform 0.3s cubic-bezier(0.4,0,0.2,1),box-shadow 0.3s ease}
+  .provider-card:hover{transform:translateY(-8px);box-shadow:0 25px 50px rgba(0,0,0,0.4)}
+  .cat-chip{transition:all 0.2s ease;cursor:pointer}
+  .cat-chip:hover,.cat-chip.active{background:linear-gradient(135deg,#14b8a6,#f59e0b);color:#000;transform:scale(1.06)}
+  .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:9999;align-items:center;justify-content:center;padding:1rem}
+  .modal.open{display:flex}
+  .modal-box{background:#0f1f3d;border:1px solid rgba(255,255,255,0.15);border-radius:1.5rem;padding:2.5rem;width:100%;max-width:480px;position:relative;animation:slideUp 0.3s ease}
+  @keyframes slideUp{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
+  .inp{width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:0.875rem;padding:0.875rem 1.125rem;color:#fff;outline:none;font-size:0.95rem;transition:border-color 0.2s}
+  .inp:focus{border-color:#14b8a6}
+  .inp::placeholder{color:rgba(255,255,255,0.4)}
+  .btn-teal{background:linear-gradient(135deg,#0d9488,#0891b2);color:#fff;border:none;border-radius:0.875rem;padding:0.875rem 1.5rem;font-weight:600;cursor:pointer;transition:all 0.2s;width:100%}
+  .btn-teal:hover{transform:scale(1.02);box-shadow:0 8px 25px rgba(13,148,136,0.4)}
+  .btn-amber{background:linear-gradient(135deg,#f59e0b,#ea580c);color:#000;border:none;border-radius:0.875rem;padding:0.875rem 1.5rem;font-weight:600;cursor:pointer;transition:all 0.2s;width:100%}
+  .btn-amber:hover{transform:scale(1.02);box-shadow:0 8px 25px rgba(245,158,11,0.4)}
+  .star{color:#f59e0b}
+  .badge-verified{background:rgba(20,184,166,0.2);color:#2dd4bf;border:1px solid rgba(20,184,166,0.4);padding:0.2rem 0.7rem;border-radius:9999px;font-size:0.75rem;font-weight:600}
+  .badge-new{background:rgba(99,102,241,0.2);color:#a5b4fc;border:1px solid rgba(99,102,241,0.4);padding:0.2rem 0.7rem;border-radius:9999px;font-size:0.75rem;font-weight:600}
+  .toast{position:fixed;bottom:2rem;right:2rem;z-index:99999;padding:1rem 1.5rem;border-radius:1rem;font-weight:600;font-size:0.9rem;animation:toastIn 0.3s ease;box-shadow:0 10px 30px rgba(0,0,0,0.4)}
+  @keyframes toastIn{from{transform:translateX(100px);opacity:0}to{transform:translateX(0);opacity:1}}
+  .toast-success{background:linear-gradient(135deg,#0d9488,#059669);color:#fff}
+  .toast-error{background:linear-gradient(135deg,#dc2626,#991b1b);color:#fff}
+  .avatar{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;flex-shrink:0}
+  .stars-row span{font-size:1.1rem}
+  select.inp option{background:#0f1f3d;color:#fff}
+  ::-webkit-scrollbar{width:6px}
+  ::-webkit-scrollbar-track{background:#0a1628}
+  ::-webkit-scrollbar-thumb{background:#1e3a5f;border-radius:3px}
+  .skeleton{background:linear-gradient(90deg,rgba(255,255,255,0.05) 25%,rgba(255,255,255,0.1) 50%,rgba(255,255,255,0.05) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite}
+  @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  .tab-btn{padding:0.5rem 1.25rem;border-radius:9999px;font-weight:600;font-size:0.85rem;cursor:pointer;transition:all 0.2s;border:1px solid rgba(255,255,255,0.15);background:transparent;color:rgba(255,255,255,0.6)}
+  .tab-btn.active{background:linear-gradient(135deg,#0d9488,#0891b2);color:#fff;border-color:transparent}
+  .price-tag{background:rgba(20,184,166,0.15);color:#2dd4bf;border:1px solid rgba(20,184,166,0.3);padding:0.25rem 0.75rem;border-radius:9999px;font-size:0.8rem;font-weight:700}
+</style>
+</head>
+<body>
+
+<!-- BG Orbs -->
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+
+<!-- ═══ HEADER ═══ -->
+<header class="glass sticky top-0 z-50" style="border-bottom:1px solid rgba(255,255,255,0.1)">
+  <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center gap-4">
+    <a href="#" class="flex items-center gap-3" style="text-decoration:none">
+      <div style="width:42px;height:42px;background:linear-gradient(135deg,#14b8a6,#f59e0b);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">🔗</div>
+      <span style="font-size:1.5rem;font-weight:800;color:#fff">TrustLink</span>
+      <span style="background:rgba(20,184,166,0.2);color:#2dd4bf;border:1px solid rgba(20,184,166,0.4);padding:0.15rem 0.6rem;border-radius:9999px;font-size:0.7rem;font-weight:700">BETA</span>
+    </a>
+    <div class="flex items-center gap-2" style="flex-wrap:wrap">
+      <span id="userGreeting" style="color:rgba(255,255,255,0.6);font-size:0.85rem;display:none"></span>
+      <button id="btnMyBookings" onclick="showMyBookings()" style="display:none;padding:0.45rem 1rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:9999px;color:#fff;font-size:0.85rem;cursor:pointer;font-weight:500">📅 Bookings</button>
+      <button id="btnLogin" onclick="openModal('authModal')" style="padding:0.45rem 1rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:9999px;color:#fff;font-size:0.85rem;cursor:pointer;font-weight:500">Login</button>
+      <button id="btnLogout" onclick="doLogout()" style="display:none;padding:0.45rem 1rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:9999px;color:#fff;font-size:0.85rem;cursor:pointer;font-weight:500">Logout</button>
+      <button onclick="openModal('bizModal')" style="padding:0.5rem 1.2rem;background:linear-gradient(135deg,#f59e0b,#ea580c);border:none;border-radius:9999px;color:#000;font-size:0.85rem;cursor:pointer;font-weight:700;white-space:nowrap">For Businesses ↗</button>
+    </div>
+  </div>
+</header>
+
+<!-- ═══ HERO ═══ -->
+<section style="padding:5rem 1.5rem 3rem;position:relative;z-index:1">
+  <div class="max-w-7xl mx-auto">
+    <div style="display:grid;gap:3rem;align-items:center" class="md:grid-cols-2">
+      <!-- Left -->
+      <div>
+        <div style="display:inline-flex;align-items:center;gap:0.5rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);padding:0.5rem 1.25rem;border-radius:9999px;font-size:0.85rem;margin-bottom:1.5rem">
+          <span style="color:#2dd4bf">✓</span> Background-checked &amp; insured providers
+        </div>
+        <h1 style="font-size:clamp(2.2rem,5vw,3.75rem);font-weight:800;line-height:1.15;margin-bottom:1.25rem">
+          Find Trusted<br>Local Pros.<br>
+          <span style="background:linear-gradient(90deg,#2dd4bf,#38bdf8,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Booked by AI.</span>
+        </h1>
+        <p style="font-size:1.15rem;color:rgba(255,255,255,0.65);margin-bottom:2rem;max-width:440px">Instant AI-powered matches. Real-time availability. 99.7% satisfaction rate.</p>
+
+        <!-- Search Bar -->
+        <div class="glass" style="padding:1.5rem;border-radius:1.5rem">
+          <div style="display:flex;gap:0.75rem;margin-bottom:1rem">
+            <input id="searchInput" type="text" placeholder="What do you need? (e.g. plumber, elder care, tutoring…)" 
+              class="inp" style="flex:1" onkeypress="if(event.key==='Enter')performSearch()">
+            <select id="locationSel" class="inp" style="width:130px;flex-shrink:0">
+              <option value="">All Cities</option>
+              <option>Miami, FL</option>
+              <option>Atlanta, GA</option>
+              <option>Houston, TX</option>
+              <option>Chicago, IL</option>
+              <option>New York, NY</option>
+              <option>Los Angeles, CA</option>
+            </select>
+          </div>
+          <button onclick="performSearch()" class="btn-teal" style="padding:1rem">
+            <i class="fas fa-search" style="margin-right:0.5rem"></i>Find Providers Near Me →
+          </button>
+        </div>
+
+        <!-- Stats -->
+        <div style="display:flex;gap:2rem;margin-top:1.5rem;flex-wrap:wrap">
+          <div><div style="font-size:1.75rem;font-weight:800;color:#2dd4bf">2,400+</div><div style="font-size:0.8rem;color:rgba(255,255,255,0.5)">Verified Providers</div></div>
+          <div><div style="font-size:1.75rem;font-weight:800;color:#f59e0b">48K+</div><div style="font-size:0.8rem;color:rgba(255,255,255,0.5)">Bookings Completed</div></div>
+          <div><div style="font-size:1.75rem;font-weight:800;color:#a5b4fc">4.9★</div><div style="font-size:0.8rem;color:rgba(255,255,255,0.5)">Average Rating</div></div>
+        </div>
+      </div>
+
+      <!-- Right — Featured Card -->
+      <div id="featuredCard" class="glass provider-card" style="border-radius:1.5rem;padding:2rem;cursor:pointer;position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;right:0;width:180px;height:180px;background:radial-gradient(circle,rgba(20,184,166,0.15),transparent);border-radius:50%;transform:translate(40px,-40px)"></div>
+        <div style="display:flex;gap:1rem;align-items:flex-start;margin-bottom:1.5rem">
+          <div class="avatar" style="background:linear-gradient(135deg,#0d9488,#0891b2)">SC</div>
+          <div style="flex:1">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start">
+              <div>
+                <div style="font-weight:700;font-size:1.15rem">Sarah Chen</div>
+                <div style="color:rgba(255,255,255,0.6);font-size:0.85rem">Master Plumber · 12 yrs exp</div>
+              </div>
+              <span class="badge-verified">✓ Verified</span>
+            </div>
+            <div class="stars-row" style="margin-top:0.4rem">
+              <span class="star">★★★★★</span> <span style="color:rgba(255,255,255,0.6);font-size:0.85rem">4.9 (312 reviews)</span>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1.25rem">
+          <span style="background:rgba(255,255,255,0.08);padding:0.3rem 0.75rem;border-radius:9999px;font-size:0.8rem">🔧 Plumbing</span>
+          <span style="background:rgba(255,255,255,0.08);padding:0.3rem 0.75rem;border-radius:9999px;font-size:0.8rem">🏠 Miami, FL</span>
+          <span style="background:rgba(255,255,255,0.08);padding:0.3rem 0.75rem;border-radius:9999px;font-size:0.8rem">⚡ Same-day</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><span class="price-tag">$85/hr</span> <span style="color:rgba(255,255,255,0.5);font-size:0.8rem;margin-left:0.5rem">· Free estimate</span></div>
+          <button onclick="openBookingFromFeatured()" class="btn-teal" style="width:auto;padding:0.65rem 1.5rem">Book Now</button>
+        </div>
+        <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid rgba(255,255,255,0.1);font-size:0.85rem;color:rgba(255,255,255,0.55);font-style:italic">
+          "Showed up on time and fixed our burst pipe in under 2 hours. Absolutely professional." — Maria T.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CATEGORIES ═══ -->
+<section style="padding:1rem 1.5rem 3rem;position:relative;z-index:1">
+  <div class="max-w-7xl mx-auto">
+    <h2 style="font-size:1.75rem;font-weight:700;text-align:center;margin-bottom:2rem">Browse by Service</h2>
+    <div id="categories" style="display:flex;flex-wrap:wrap;gap:0.75rem;justify-content:center"></div>
+  </div>
+</section>
+
+<!-- ═══ HOW IT WORKS ═══ -->
+<section style="padding:2rem 1.5rem 3rem;position:relative;z-index:1;background:rgba(255,255,255,0.03)">
+  <div class="max-w-7xl mx-auto">
+    <h2 style="font-size:1.75rem;font-weight:700;text-align:center;margin-bottom:2.5rem">How TrustLink Works</h2>
+    <div style="display:grid;gap:1.5rem" class="md:grid-cols-3">
+      <div class="glass" style="padding:2rem;border-radius:1.25rem;text-align:center">
+        <div style="font-size:2.5rem;margin-bottom:1rem">🔍</div>
+        <div style="font-weight:700;font-size:1.1rem;margin-bottom:0.5rem">1. Search</div>
+        <div style="color:rgba(255,255,255,0.6);font-size:0.9rem">Tell us what you need. Our AI matches you with verified local pros instantly.</div>
+      </div>
+      <div class="glass" style="padding:2rem;border-radius:1.25rem;text-align:center">
+        <div style="font-size:2.5rem;margin-bottom:1rem">📅</div>
+        <div style="font-weight:700;font-size:1.1rem;margin-bottom:0.5rem">2. Book</div>
+        <div style="color:rgba(255,255,255,0.6);font-size:0.9rem">Choose your provider, pick a time, and confirm — all in under 60 seconds.</div>
+      </div>
+      <div class="glass" style="padding:2rem;border-radius:1.25rem;text-align:center">
+        <div style="font-size:2.5rem;margin-bottom:1rem">✅</div>
+        <div style="font-weight:700;font-size:1.1rem;margin-bottom:0.5rem">3. Done</div>
+        <div style="color:rgba(255,255,255,0.6);font-size:0.9rem">Your pro arrives, gets the job done, and you leave a verified review.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ RESULTS ═══ -->
+<section id="resultsSection" style="display:none;padding:2rem 1.5rem 3rem;position:relative;z-index:1">
+  <div class="max-w-7xl mx-auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:gap">
+      <h2 style="font-size:1.5rem;font-weight:700">
+        <span id="resultLabel">Providers</span> 
+        <span id="resultCount" style="color:#2dd4bf"></span>
+      </h2>
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+        <button class="tab-btn active" onclick="sortResults('rating',this)">Top Rated</button>
+        <button class="tab-btn" onclick="sortResults('price',this)">Lowest Price</button>
+        <button class="tab-btn" onclick="sortResults('distance',this)">Nearest</button>
+      </div>
+    </div>
+    <div id="resultsGrid" style="display:grid;gap:1.5rem;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))"></div>
+  </div>
+</section>
+
+<!-- ═══ ALL PROVIDERS ═══ -->
+<section style="padding:2rem 1.5rem 4rem;position:relative;z-index:1">
+  <div class="max-w-7xl mx-auto">
+    <h2 style="font-size:1.75rem;font-weight:700;margin-bottom:1.5rem">Featured Providers</h2>
+    <div id="allProviders" style="display:grid;gap:1.5rem;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))">
+      <!-- Skeleton loaders -->
+      <div class="glass skeleton" style="border-radius:1.25rem;height:200px"></div>
+      <div class="glass skeleton" style="border-radius:1.25rem;height:200px"></div>
+      <div class="glass skeleton" style="border-radius:1.25rem;height:200px"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer style="background:rgba(0,0,0,0.4);border-top:1px solid rgba(255,255,255,0.08);padding:2rem 1.5rem;text-align:center;position:relative;z-index:1">
+  <div style="font-size:1.25rem;font-weight:700;margin-bottom:0.5rem">🔗 TrustLink</div>
+  <div style="color:rgba(255,255,255,0.4);font-size:0.85rem;margin-bottom:1rem">Connecting communities with trusted local professionals</div>
+  <div style="display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap;font-size:0.85rem">
+    <a href="https://shop.artistrystore.com" style="color:rgba(255,255,255,0.5);text-decoration:none">← Back to Store</a>
+    <a href="https://shop.artistrystore.com/lead-magnets-landing.html" style="color:rgba(255,255,255,0.5);text-decoration:none">Free Resources</a>
+    <a href="#" onclick="openModal('bizModal')" style="color:#2dd4bf;text-decoration:none">List Your Business</a>
+  </div>
+  <div style="margin-top:1.5rem;color:rgba(255,255,255,0.3);font-size:0.75rem">Powered by Artistry Store · AI-Driven Service Matching</div>
+</footer>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- MODALS -->
+<!-- ═══════════════════════════════════════════════ -->
+
+<!-- AUTH MODAL -->
+<div id="authModal" class="modal">
+  <div class="modal-box">
+    <button onclick="closeModal('authModal')" style="position:absolute;top:1rem;right:1.25rem;background:none;border:none;color:rgba(255,255,255,0.5);font-size:1.4rem;cursor:pointer">✕</button>
+    <div style="text-align:center;margin-bottom:1.75rem">
+      <div style="font-size:2rem;margin-bottom:0.5rem">🔗</div>
+      <h2 style="font-size:1.5rem;font-weight:700" id="authTitle">Welcome Back</h2>
+      <p style="color:rgba(255,255,255,0.5);font-size:0.85rem;margin-top:0.25rem" id="authSub">Sign in to your TrustLink account</p>
+    </div>
+    <div id="authForms">
+      <!-- Login Form -->
+      <div id="loginForm">
+        <div style="display:flex;flex-direction:column;gap:1rem">
+          <input id="loginEmail" type="email" class="inp" placeholder="Email address">
+          <input id="loginPass" type="password" class="inp" placeholder="Password" onkeypress="if(event.key==='Enter')doLogin()">
+          <button onclick="doLogin()" class="btn-teal">Sign In</button>
+        </div>
+        <p style="text-align:center;margin-top:1.25rem;color:rgba(255,255,255,0.5);font-size:0.85rem">
+          No account? <a href="#" onclick="switchAuthMode('signup')" style="color:#2dd4bf;text-decoration:none">Create one free</a>
+        </p>
+      </div>
+      <!-- Signup Form -->
+      <div id="signupForm" style="display:none">
+        <div style="display:flex;flex-direction:column;gap:1rem">
+          <input id="signupName" type="text" class="inp" placeholder="Your full name">
+          <input id="signupEmail" type="email" class="inp" placeholder="Email address">
+          <input id="signupPass" type="password" class="inp" placeholder="Password (min 6 chars)" onkeypress="if(event.key==='Enter')doSignup()">
+          <button onclick="doSignup()" class="btn-teal">Create Free Account</button>
+        </div>
+        <p style="text-align:center;margin-top:1.25rem;color:rgba(255,255,255,0.5);font-size:0.85rem">
+          Already have one? <a href="#" onclick="switchAuthMode('login')" style="color:#2dd4bf;text-decoration:none">Sign in</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BOOKING MODAL -->
+<div id="bookingModal" class="modal">
+  <div class="modal-box" style="max-width:520px">
+    <button onclick="closeModal('bookingModal')" style="position:absolute;top:1rem;right:1.25rem;background:none;border:none;color:rgba(255,255,255,0.5);font-size:1.4rem;cursor:pointer">✕</button>
+    <h2 style="font-size:1.4rem;font-weight:700;margin-bottom:0.25rem" id="bookingTitle">Book Service</h2>
+    <p style="color:rgba(255,255,255,0.5);font-size:0.85rem;margin-bottom:1.5rem" id="bookingSubtitle">Fill in your details below</p>
+    <div style="display:flex;flex-direction:column;gap:1rem">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem">
+        <div>
+          <label style="display:block;font-size:0.8rem;color:rgba(255,255,255,0.6);margin-bottom:0.4rem">Date</label>
+          <input id="bookDate" type="date" class="inp">
+        </div>
+        <div>
+          <label style="display:block;font-size:0.8rem;color:rgba(255,255,255,0.6);margin-bottom:0.4rem">Time</label>
+          <select id="bookTime" class="inp">
+            <option>8:00 AM</option><option>9:00 AM</option><option>10:00 AM</option>
+            <option>11:00 AM</option><option>12:00 PM</option><option>1:00 PM</option>
+            <option>2:00 PM</option><option>3:00 PM</option><option>4:00 PM</option>
+            <option>5:00 PM</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label style="display:block;font-size:0.8rem;color:rgba(255,255,255,0.6);margin-bottom:0.4rem">Service Address</label>
+        <input id="bookAddress" type="text" class="inp" placeholder="123 Main St, City, State">
+      </div>
+      <div>
+        <label style="display:block;font-size:0.8rem;color:rgba(255,255,255,0.6);margin-bottom:0.4rem">Describe the job</label>
+        <textarea id="bookDesc" class="inp" rows="3" placeholder="What needs to be done? Any specific details…" style="resize:vertical"></textarea>
+      </div>
+      <div>
+        <label style="display:block;font-size:0.8rem;color:rgba(255,255,255,0.6);margin-bottom:0.4rem">Contact Phone (optional)</label>
+        <input id="bookPhone" type="tel" class="inp" placeholder="+1 (555) 000-0000">
+      </div>
+      <button onclick="submitBooking()" class="btn-teal" style="padding:1rem">Confirm Booking ✓</button>
+      <p style="text-align:center;font-size:0.8rem;color:rgba(255,255,255,0.4)">Free cancellation up to 24 hours before · No payment now</p>
+    </div>
+  </div>
+</div>
+
+<!-- BUSINESS MODAL -->
+<div id="bizModal" class="modal">
+  <div class="modal-box" style="max-width:540px">
+    <button onclick="closeModal('bizModal')" style="position:absolute;top:1rem;right:1.25rem;background:none;border:none;color:rgba(255,255,255,0.5);font-size:1.4rem;cursor:pointer">✕</button>
+    <div style="text-align:center;margin-bottom:1.5rem">
+      <div style="font-size:2rem;margin-bottom:0.5rem">🏢</div>
+      <h2 style="font-size:1.4rem;font-weight:700">List Your Business on TrustLink</h2>
+      <p style="color:rgba(255,255,255,0.5);font-size:0.85rem;margin-top:0.25rem">Join 2,400+ verified providers. Free to list.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:1rem">
+      <input id="bizName" type="text" class="inp" placeholder="Business / Your Name">
+      <input id="bizEmail" type="email" class="inp" placeholder="Contact email">
+      <input id="bizPhone" type="tel" class="inp" placeholder="Phone number">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem">
+        <select id="bizService" class="inp">
+          <option value="">Service Category</option>
+          <option>Plumbing</option><option>Electrical</option><option>Elder Care</option>
+          <option>Tutoring</option><option>Landscaping</option><option>Cleaning</option>
+          <option>HVAC</option><option>Painting</option><option>Carpentry</option>
+          <option>Pet Care</option><option>Child Care</option><option>Transportation</option>
+          <option>Nutrition</option><option>Mental Health</option><option>Other</option>
+        </select>
+        <input id="bizCity" type="text" class="inp" placeholder="City, State">
+      </div>
+      <input id="bizRate" type="text" class="inp" placeholder="Your rate (e.g. $75/hr or $150 flat)">
+      <textarea id="bizBio" class="inp" rows="3" placeholder="Brief bio — what makes you great? Years of experience, certifications…" style="resize:vertical"></textarea>
+      <div style="display:flex;align-items:flex-start;gap:0.75rem">
+        <input type="checkbox" id="bizAgree" style="margin-top:0.2rem;width:16px;height:16px;flex-shrink:0">
+        <label for="bizAgree" style="font-size:0.82rem;color:rgba(255,255,255,0.6)">I confirm I am licensed/insured where required and agree to TrustLink's provider standards</label>
+      </div>
+      <button onclick="submitBusinessApp()" class="btn-amber" style="padding:1rem">Submit Application →</button>
+    </div>
+  </div>
+</div>
+
+<!-- MY BOOKINGS MODAL -->
+<div id="bookingsModal" class="modal">
+  <div class="modal-box" style="max-width:600px">
+    <button onclick="closeModal('bookingsModal')" style="position:absolute;top:1rem;right:1.25rem;background:none;border:none;color:rgba(255,255,255,0.5);font-size:1.4rem;cursor:pointer">✕</button>
+    <h2 style="font-size:1.4rem;font-weight:700;margin-bottom:1.5rem">📅 My Bookings</h2>
+    <div id="bookingsList" style="display:flex;flex-direction:column;gap:1rem;max-height:400px;overflow-y:auto"></div>
+  </div>
+</div>
+
+<!-- REVIEW MODAL -->
+<div id="reviewModal" class="modal">
+  <div class="modal-box" style="max-width:440px">
+    <button onclick="closeModal('reviewModal')" style="position:absolute;top:1rem;right:1.25rem;background:none;border:none;color:rgba(255,255,255,0.5);font-size:1.4rem;cursor:pointer">✕</button>
+    <h2 style="font-size:1.4rem;font-weight:700;margin-bottom:0.5rem">Leave a Review</h2>
+    <p style="color:rgba(255,255,255,0.5);font-size:0.85rem;margin-bottom:1.5rem" id="reviewSubtitle">Share your experience</p>
+    <div style="display:flex;flex-direction:column;gap:1rem">
+      <div>
+        <label style="display:block;font-size:0.8rem;color:rgba(255,255,255,0.6);margin-bottom:0.75rem">Rating</label>
+        <div id="starPicker" style="display:flex;gap:0.5rem">
+          <span style="font-size:2rem;cursor:pointer;transition:transform 0.15s" onclick="setRating(1)" class="star-pick">★</span>
+          <span style="font-size:2rem;cursor:pointer;transition:transform 0.15s" onclick="setRating(2)" class="star-pick">★</span>
+          <span style="font-size:2rem;cursor:pointer;transition:transform 0.15s" onclick="setRating(3)" class="star-pick">★</span>
+          <span style="font-size:2rem;cursor:pointer;transition:transform 0.15s" onclick="setRating(4)" class="star-pick">★</span>
+          <span style="font-size:2rem;cursor:pointer;transition:transform 0.15s" onclick="setRating(5)" class="star-pick">★</span>
+        </div>
+      </div>
+      <textarea id="reviewText" class="inp" rows="4" placeholder="Tell us about your experience…" style="resize:vertical"></textarea>
+      <button onclick="submitReview()" class="btn-teal" style="padding:1rem">Submit Review ✓</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// SUPABASE CONFIG
+// ═══════════════════════════════════════════════════════════
+const SB_URL = 'https://lltlbjmurwhnotjegjrz.supabase.co';
+const SB_KEY = atob('ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnBjM01pT2lKemRYQmhZbUZ6WlNJc0luSmxaaUk2SW14c2RHeGlhbTExY25kb2FHNXZkR3BsWjJweWVpSXNJbkp2YkdVaU9pSmhibTl1SWl3aWFXRjBJam94TnpRMk5UTXpPVEV4TENKbGVIQWlPakl3TmpJeE1EazVNVEY5LllSVmp0NXhXMTZyOXZsekFRMUpSdE02Wl9fV1RfWjlsQlhKaEdpODBmQXM=');
+const sb = window.supabase.createClient(SB_URL, SB_KEY);
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+let currentUser = null;
+let allProviders = [];
+let filteredProviders = [];
+let selectedProvider = null;
+let selectedRating = 5;
+let reviewProviderId = null;
+
+// ═══════════════════════════════════════════════════════════
+// SAMPLE PROVIDERS (fallback + seed)
+// ═══════════════════════════════════════════════════════════
+const SAMPLE_PROVIDERS = [
+  {id:'p1',name:'Sarah Chen',service:'Plumbing',category:'Plumbing',rating:4.9,reviews:312,distance:2.1,city:'Miami, FL',rate:'$85/hr',verified:true,experience:'12 yrs',emoji:'🔧',bio:'Licensed master plumber. Same-day emergency service available. Fully insured and background-checked.',badge:'Top Pro'},
+  {id:'p2',name:'Marcus Johnson',service:'Electrical',category:'Electrical',rating:4.8,reviews:248,distance:3.4,city:'Miami, FL',rate:'$95/hr',verified:true,experience:'9 yrs',emoji:'⚡',bio:'Certified electrician specializing in residential rewiring, panel upgrades, and EV charger installation.',badge:''},
+  {id:'p3',name:'Gloria Torres',service:'Elder Care',category:'Elder Care',rating:5.0,reviews:189,distance:1.8,city:'Miami, FL',rate:'$28/hr',verified:true,experience:'15 yrs',emoji:'💙',bio:'Compassionate caregiver with CNA certification. Specializing in Alzheimer\'s and mobility assistance.',badge:'Top Pro'},
+  {id:'p4',name:'James Patel',service:'Tutoring',category:'Tutoring',rating:4.7,reviews:156,distance:4.2,city:'Atlanta, GA',rate:'$55/hr',verified:true,experience:'7 yrs',emoji:'📚',bio:'PhD candidate in Mathematics. Expert K-12 tutoring in STEM subjects. Online & in-person available.',badge:''},
+  {id:'p5',name:'Aria Williams',service:'Landscaping',category:'Landscaping',rating:4.8,reviews:203,distance:5.1,city:'Houston, TX',rate:'$65/hr',verified:true,experience:'10 yrs',emoji:'🌿',bio:'Full-service landscaping, lawn care, garden design, and seasonal cleanups. Licensed & insured.',badge:''},
+  {id:'p6',name:'David Kim',service:'HVAC',category:'HVAC',rating:4.9,reviews:274,distance:2.9,city:'Chicago, IL',rate:'$110/hr',verified:true,experience:'14 yrs',emoji:'❄️',bio:'HVAC technician certified in all major brands. AC repair, furnace installs, duct cleaning.',badge:'Top Pro'},
+  {id:'p7',name:'Priya Sharma',service:'Nutrition',category:'Nutrition',rating:4.8,reviews:127,distance:3.1,city:'New York, NY',rate:'$80/hr',verified:true,experience:'8 yrs',emoji:'🥗',bio:'Registered Dietitian. Personalized meal plans for weight management, diabetes, and sports nutrition.',badge:''},
+  {id:'p8',name:'Tyler Brooks',service:'Painting',category:'Painting',rating:4.6,reviews:98,distance:6.0,city:'Los Angeles, CA',rate:'$55/hr',verified:true,experience:'6 yrs',emoji:'🎨',bio:'Interior & exterior painting. Deck staining, cabinet refinishing, wallpaper removal. Free estimates.',badge:''},
+  {id:'p9',name:'Linda Hayes',service:'Child Care',category:'Child Care',rating:5.0,reviews:215,distance:1.5,city:'Miami, FL',rate:'$22/hr',verified:true,experience:'18 yrs',emoji:'👶',bio:'CPR-certified childcare provider. Background-checked. Newborn to age 12. References available.',badge:'Top Pro'},
+  {id:'p10',name:'Roberto Vega',service:'Carpentry',category:'Carpentry',rating:4.7,reviews:142,distance:4.8,city:'Houston, TX',rate:'$75/hr',verified:true,experience:'11 yrs',emoji:'🪵',bio:'Custom furniture, deck building, kitchen remodels, door/window installation. Master carpenter.',badge:''},
+  {id:'p11',name:'Samantha Lee',service:'Mental Health',category:'Mental Health',rating:4.9,reviews:87,distance:2.3,city:'Atlanta, GA',rate:'$120/hr',verified:true,experience:'13 yrs',emoji:'🧠',bio:'Licensed therapist (LCSW). Anxiety, depression, grief counseling. Telehealth & in-person sessions.',badge:''},
+  {id:'p12',name:'Carlos Rivera',service:'Pet Care',category:'Pet Care',rating:4.8,reviews:164,distance:3.7,city:'New York, NY',rate:'$35/hr',verified:true,experience:'5 yrs',emoji:'🐾',bio:'Bonded & insured pet sitter, dog walker, and in-home boarding. All breeds welcome.',badge:''},
+];
+
+const CATEGORIES = [
+  {emoji:'🔧',name:'Plumbing'},{emoji:'⚡',name:'Electrical'},{emoji:'💙',name:'Elder Care'},
+  {emoji:'📚',name:'Tutoring'},{emoji:'🌿',name:'Landscaping'},{emoji:'❄️',name:'HVAC'},
+  {emoji:'🧹',name:'Cleaning'},{emoji:'🎨',name:'Painting'},{emoji:'🪵',name:'Carpentry'},
+  {emoji:'👶',name:'Child Care'},{emoji:'🐾',name:'Pet Care'},{emoji:'🥗',name:'Nutrition'},
+  {emoji:'🧠',name:'Mental Health'},{emoji:'🚗',name:'Transportation'},{emoji:'🏠',name:'Home Repair'},
+];
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+async function initApp() {
+  renderCategories();
+  await loadProviders();
+  initAuthListener();
+  // Set default date
+  const d = new Date(); d.setDate(d.getDate()+1);
+  const el = document.getElementById('bookDate');
+  if(el) el.value = d.toISOString().split('T')[0];
+}
+
+async function loadProviders() {
+  // Try Supabase first
+  try {
+    const {data,error} = await sb.from('trustlink_providers').select('*').eq('active',true).limit(50);
+    if(data && data.length > 0) {
+      allProviders = data;
+    } else {
+      allProviders = SAMPLE_PROVIDERS;
+    }
+  } catch(e) {
+    allProviders = SAMPLE_PROVIDERS;
+  }
+  renderAllProviders(allProviders);
+}
+
+function initAuthListener() {
+  sb.auth.getSession().then(({data}) => {
+    if(data.session) handleAuthChange(data.session.user);
+  });
+  sb.auth.onAuthStateChange((_,session) => {
+    handleAuthChange(session?.user || null);
+  });
+}
+
+function handleAuthChange(user) {
+  currentUser = user;
+  const greeting = document.getElementById('userGreeting');
+  const btnLogin = document.getElementById('btnLogin');
+  const btnLogout = document.getElementById('btnLogout');
+  const btnMy = document.getElementById('btnMyBookings');
+  if(user) {
+    const name = user.user_metadata?.full_name || user.email.split('@')[0];
+    greeting.textContent = `Hi, ${name} 👋`;
+    greeting.style.display = 'inline';
+    btnLogin.style.display = 'none';
+    btnLogout.style.display = 'inline';
+    btnMy.style.display = 'inline';
+  } else {
+    greeting.style.display = 'none';
+    btnLogin.style.display = 'inline';
+    btnLogout.style.display = 'none';
+    btnMy.style.display = 'none';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════
+function renderCategories() {
+  const el = document.getElementById('categories');
+  el.innerHTML = CATEGORIES.map(c => `
+    <button class="cat-chip glass" style="padding:0.65rem 1.25rem;border-radius:9999px;font-size:0.9rem;font-weight:500;cursor:pointer;border:1px solid rgba(255,255,255,0.12);color:#fff;display:flex;align-items:center;gap:0.4rem" onclick="filterByCategory('${c.name}',this)">
+      ${c.emoji} ${c.name}
+    </button>
+  `).join('');
+}
+
+function renderAllProviders(list) {
+  const el = document.getElementById('allProviders');
+  if(!list.length) {
+    el.innerHTML = '<p style="color:rgba(255,255,255,0.5)">No providers found.</p>';
+    return;
+  }
+  el.innerHTML = list.slice(0,9).map(p => providerCardHTML(p)).join('');
+}
+
+function renderResults(list) {
+  filteredProviders = list;
+  const sec = document.getElementById('resultsSection');
+  const grid = document.getElementById('resultsGrid');
+  const count = document.getElementById('resultCount');
+  sec.style.display = 'block';
+  count.textContent = `(${list.length} found)`;
+  if(!list.length) {
+    grid.innerHTML = '<p style="color:rgba(255,255,255,0.5)">No providers match your search. Try a different term.</p>';
+    return;
+  }
+  grid.innerHTML = list.map(p => providerCardHTML(p)).join('');
+  sec.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function providerCardHTML(p) {
+  const stars = '★'.repeat(Math.round(p.rating||5)) + '☆'.repeat(5-Math.round(p.rating||5));
+  const initials = (p.name||'?').split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+  const colors = ['from-teal-500 to-cyan-600','from-amber-500 to-orange-500','from-indigo-500 to-purple-600','from-rose-500 to-pink-600','from-green-500 to-emerald-600'];
+  const col = colors[(p.name||'').charCodeAt(0)%colors.length];
+  return `
+    <div class="glass provider-card" style="border-radius:1.25rem;padding:1.5rem;display:flex;flex-direction:column;gap:1rem">
+      <div style="display:flex;gap:1rem;align-items:flex-start">
+        <div class="avatar bg-gradient-to-br ${col}" style="color:#fff">${p.emoji||initials}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem">
+            <div>
+              <div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name||'Provider'}</div>
+              <div style="color:rgba(255,255,255,0.55);font-size:0.82rem">${p.service||p.category||'Service'} · ${p.experience||'Experienced'}</div>
+            </div>
+            ${p.verified ? '<span class="badge-verified" style="flex-shrink:0">✓ Verified</span>' : ''}
+          </div>
+          <div style="margin-top:0.35rem;display:flex;align-items:center;gap:0.5rem">
+            <span style="color:#f59e0b;font-size:0.9rem">${stars.slice(0,5)}</span>
+            <span style="color:rgba(255,255,255,0.5);font-size:0.8rem">${p.rating||'5.0'} (${p.reviews||0} reviews)</span>
+          </div>
+        </div>
+      </div>
+      <div style="color:rgba(255,255,255,0.6);font-size:0.85rem;line-height:1.5;flex:1">${(p.bio||'').slice(0,120)}${(p.bio||'').length>120?'…':''}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:0.4rem">
+        <span style="background:rgba(255,255,255,0.07);padding:0.25rem 0.65rem;border-radius:9999px;font-size:0.75rem">📍 ${p.city||'Local'}</span>
+        <span style="background:rgba(255,255,255,0.07);padding:0.25rem 0.65rem;border-radius:9999px;font-size:0.75rem">${p.distance?p.distance+' mi away':'Local'}</span>
+        ${p.badge ? `<span class="badge-new">${p.badge}</span>` : ''}
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,0.08);padding-top:1rem">
+        <span class="price-tag">${p.rate||'Contact'}</span>
+        <div style="display:flex;gap:0.5rem">
+          <button onclick="openReviewModal('${p.id||p.name}','${(p.name||'').replace(/'/g,"\\'")}'); event.stopPropagation()" style="padding:0.5rem 0.75rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:0.625rem;color:rgba(255,255,255,0.7);font-size:0.8rem;cursor:pointer">★ Review</button>
+          <button onclick="openBooking(${JSON.stringify(p).replace(/"/g,'&quot;')})" class="btn-teal" style="width:auto;padding:0.5rem 1.1rem;font-size:0.85rem">Book</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════
+// SEARCH & FILTER
+// ═══════════════════════════════════════════════════════════
+function performSearch() {
+  const q = (document.getElementById('searchInput').value||'').toLowerCase().trim();
+  const loc = (document.getElementById('locationSel').value||'').toLowerCase();
+  if(!q && !loc) {
+    showToast('Please enter a service or select a location','error');
+    return;
+  }
+  let results = allProviders;
+  if(q) results = results.filter(p => (p.service||'').toLowerCase().includes(q)||(p.category||'').toLowerCase().includes(q)||(p.name||'').toLowerCase().includes(q)||(p.bio||'').toLowerCase().includes(q));
+  if(loc) results = results.filter(p => (p.city||'').toLowerCase().includes(loc.split(',')[0]));
+  document.getElementById('resultLabel').textContent = q ? `Results for "${q}"` : 'Providers';
+  renderResults(results);
+}
+
+function filterByCategory(cat, btn) {
+  document.querySelectorAll('.cat-chip').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  document.getElementById('searchInput').value = cat;
+  const results = allProviders.filter(p=>(p.service||p.category||'').toLowerCase()===cat.toLowerCase());
+  document.getElementById('resultLabel').textContent = cat;
+  renderResults(results);
+}
+
+function sortResults(by, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  const list = [...filteredProviders];
+  if(by==='rating') list.sort((a,b)=>(b.rating||0)-(a.rating||0));
+  else if(by==='price') list.sort((a,b)=>{const pa=parseInt((a.rate||'99').replace(/\D/g,'')),pb=parseInt((b.rate||'99').replace(/\D/g,''));return pa-pb;});
+  else if(by==='distance') list.sort((a,b)=>(a.distance||99)-(b.distance||99));
+  renderResults(list);
+}
+
+// ═══════════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════════
+function switchAuthMode(mode) {
+  const isLogin = mode==='login';
+  document.getElementById('loginForm').style.display = isLogin?'block':'none';
+  document.getElementById('signupForm').style.display = isLogin?'none':'block';
+  document.getElementById('authTitle').textContent = isLogin?'Welcome Back':'Create Account';
+  document.getElementById('authSub').textContent = isLogin?'Sign in to your TrustLink account':'Join thousands of satisfied customers';
+}
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  if(!email||!pass){showToast('Please enter email and password','error');return;}
+  const {data,error} = await sb.auth.signInWithPassword({email,password:pass});
+  if(error){showToast('Login failed: '+error.message,'error');return;}
+  closeModal('authModal');
+  showToast('Welcome back! 🎉','success');
+}
+
+async function doSignup() {
+  const name = document.getElementById('signupName').value.trim();
+  const email = document.getElementById('signupEmail').value.trim();
+  const pass = document.getElementById('signupPass').value;
+  if(!name||!email||!pass){showToast('Please fill in all fields','error');return;}
+  if(pass.length<6){showToast('Password must be at least 6 characters','error');return;}
+  const {data,error} = await sb.auth.signUp({email,password:pass,options:{data:{full_name:name}}});
+  if(error){showToast('Signup failed: '+error.message,'error');return;}
+  closeModal('authModal');
+  showToast('Account created! Welcome to TrustLink 🎉','success');
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
+  showToast('Signed out successfully','success');
+}
+
+// ═══════════════════════════════════════════════════════════
+// BOOKING
+// ═══════════════════════════════════════════════════════════
+function openBookingFromFeatured() {
+  selectedProvider = SAMPLE_PROVIDERS[0];
+  openModal('bookingModal');
+  document.getElementById('bookingTitle').textContent = `Book ${selectedProvider.name}`;
+  document.getElementById('bookingSubtitle').textContent = `${selectedProvider.service} · ${selectedProvider.rate}`;
+}
+
+function openBooking(provider) {
+  if(!currentUser){
+    showToast('Please sign in to book a provider','error');
+    openModal('authModal');
+    return;
+  }
+  selectedProvider = provider;
+  openModal('bookingModal');
+  document.getElementById('bookingTitle').textContent = `Book ${provider.name||'Provider'}`;
+  document.getElementById('bookingSubtitle').textContent = `${provider.service||provider.category||'Service'} · ${provider.rate||'Contact for rate'}`;
+}
+
+async function submitBooking() {
+  if(!currentUser){
+    closeModal('bookingModal');
+    openModal('authModal');
+    return;
+  }
+  const date = document.getElementById('bookDate').value;
+  const time = document.getElementById('bookTime').value;
+  const address = document.getElementById('bookAddress').value.trim();
+  const desc = document.getElementById('bookDesc').value.trim();
+  if(!date||!address){showToast('Please enter a date and address','error');return;}
+  const booking = {
+    user_id: currentUser.id,
+    user_email: currentUser.email,
+    provider_name: selectedProvider?.name||'Unknown',
+    provider_id: selectedProvider?.id||null,
+    service: selectedProvider?.service||selectedProvider?.category||'Service',
+    booking_date: date,
+    booking_time: time,
+    address,
+    description: desc,
+    status: 'pending',
+    created_at: new Date().toISOString()
+  };
+  try {
+    await sb.from('trustlink_bookings').insert([booking]);
+  } catch(e){}
+  closeModal('bookingModal');
+  showToast(`✅ Booking confirmed! ${selectedProvider?.name||'Provider'} will contact you shortly.`,'success');
+  // Reset
+  document.getElementById('bookAddress').value='';
+  document.getElementById('bookDesc').value='';
+}
+
+async function showMyBookings() {
+  openModal('bookingsModal');
+  const list = document.getElementById('bookingsList');
+  list.innerHTML = '<p style="color:rgba(255,255,255,0.5);text-align:center">Loading…</p>';
+  if(!currentUser){
+    list.innerHTML = '<p style="color:rgba(255,255,255,0.5)">Please sign in to view bookings.</p>';
+    return;
+  }
+  let bookings = [];
+  try {
+    const {data} = await sb.from('trustlink_bookings').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:false});
+    bookings = data||[];
+  } catch(e){}
+  if(!bookings.length){
+    list.innerHTML = '<p style="color:rgba(255,255,255,0.5);text-align:center">No bookings yet. Find a provider and book today!</p>';
+    return;
+  }
+  list.innerHTML = bookings.map(b=>`
+    <div class="glass" style="padding:1.25rem;border-radius:1rem">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.5rem">
+        <div style="font-weight:600">${b.provider_name}</div>
+        <span style="background:rgba(20,184,166,0.2);color:#2dd4bf;border:1px solid rgba(20,184,166,0.4);padding:0.15rem 0.6rem;border-radius:9999px;font-size:0.75rem;font-weight:600;text-transform:capitalize">${b.status||'pending'}</span>
+      </div>
+      <div style="color:rgba(255,255,255,0.6);font-size:0.85rem">${b.service} · ${b.booking_date} at ${b.booking_time}</div>
+      <div style="color:rgba(255,255,255,0.5);font-size:0.82rem;margin-top:0.25rem">📍 ${b.address}</div>
+      ${b.description?`<div style="color:rgba(255,255,255,0.45);font-size:0.8rem;margin-top:0.25rem">${b.description}</div>`:''}
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// REVIEWS
+// ═══════════════════════════════════════════════════════════
+function openReviewModal(id, name) {
+  if(!currentUser){
+    showToast('Please sign in to leave a review','error');
+    openModal('authModal');
+    return;
+  }
+  reviewProviderId = id;
+  document.getElementById('reviewSubtitle').textContent = `Rate your experience with ${name}`;
+  setRating(5);
+  document.getElementById('reviewText').value = '';
+  openModal('reviewModal');
+}
+
+function setRating(n) {
+  selectedRating = n;
+  document.querySelectorAll('.star-pick').forEach((s,i)=>{
+    s.style.color = i < n ? '#f59e0b' : 'rgba(255,255,255,0.2)';
+    s.style.transform = i < n ? 'scale(1.1)' : 'scale(1)';
+  });
+}
+
+async function submitReview() {
+  const text = document.getElementById('reviewText').value.trim();
+  if(!text){showToast('Please write a review','error');return;}
+  const review = {
+    user_id: currentUser.id,
+    user_email: currentUser.email,
+    provider_id: reviewProviderId,
+    rating: selectedRating,
+    review_text: text,
+    created_at: new Date().toISOString()
+  };
+  try {
+    await sb.from('trustlink_reviews').insert([review]);
+  } catch(e){}
+  closeModal('reviewModal');
+  showToast('Thank you for your review! ⭐','success');
+}
+
+// ═══════════════════════════════════════════════════════════
+// BUSINESS APPLICATION
+// ═══════════════════════════════════════════════════════════
+async function submitBusinessApp() {
+  const name = document.getElementById('bizName').value.trim();
+  const email = document.getElementById('bizEmail').value.trim();
+  const phone = document.getElementById('bizPhone').value.trim();
+  const service = document.getElementById('bizService').value;
+  const city = document.getElementById('bizCity').value.trim();
+  const rate = document.getElementById('bizRate').value.trim();
+  const bio = document.getElementById('bizBio').value.trim();
+  const agreed = document.getElementById('bizAgree').checked;
+  if(!name||!email||!service||!city){showToast('Please fill in required fields','error');return;}
+  if(!agreed){showToast('Please agree to provider standards','error');return;}
+  const app = {name,email,phone,service,city,rate,bio,status:'pending',created_at:new Date().toISOString()};
+  try {
+    await sb.from('trustlink_applications').insert([app]);
+  } catch(e){}
+  closeModal('bizModal');
+  showToast('Application submitted! We\'ll review and contact you within 24 hours. 🎉','success');
+  // Clear form
+  ['bizName','bizEmail','bizPhone','bizCity','bizRate','bizBio'].forEach(id=>{document.getElementById(id).value='';});
+  document.getElementById('bizService').value='';
+  document.getElementById('bizAgree').checked=false;
+}
+
+// ═══════════════════════════════════════════════════════════
+// MODAL HELPERS
+// ═══════════════════════════════════════════════════════════
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+// Close on backdrop click
+document.querySelectorAll('.modal').forEach(m => {
+  m.addEventListener('click', e => { if(e.target===m) closeModal(m.id); });
+});
+// Close on ESC
+document.addEventListener('keydown', e => {
+  if(e.key==='Escape') document.querySelectorAll('.modal.open').forEach(m=>closeModal(m.id));
+});
+
+// ═══════════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════════
+function showToast(msg, type='success') {
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.innerHTML = `<i class="fas fa-${type==='success'?'check-circle':'exclamation-circle'}" style="margin-right:0.5rem"></i>${msg}`;
+  document.body.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity 0.4s';setTimeout(()=>t.remove(),400);},3500);
+}
+
+// ═══════════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════════
+window.addEventListener('load', initApp);
+</script>
+</body>
+</html>
