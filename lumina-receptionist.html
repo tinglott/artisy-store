@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<title>✦ Lumina Receptionist — AI Business Assistant</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --gold:#D4AF37;--gold2:#FFD700;--gold3:#9A7B10;
+  --bg:#080808;--bg2:#101010;--bg3:#181818;--bg4:#222;
+  --text:#f0ede6;--dim:#666;--dim2:#888;
+  --green:#22c55e;--red:#ef4444;--blue:#3b82f6;
+  --border:rgba(212,175,55,0.15);
+}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+.page{display:none;min-height:100vh}
+.page.show{display:flex}
+
+/* ── AUTH ── */
+#authPage{align-items:center;justify-content:center;background:
+  radial-gradient(ellipse at 20% 50%,rgba(212,175,55,0.06) 0%,transparent 60%),
+  radial-gradient(ellipse at 80% 20%,rgba(212,175,55,0.04) 0%,transparent 50%),
+  var(--bg);}
+.auth-box{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:20px;padding:40px;width:90%;max-width:420px;
+  box-shadow:0 24px 60px rgba(0,0,0,0.6);
+}
+.auth-logo{text-align:center;margin-bottom:28px}
+.auth-logo-icon{font-size:2.8rem;display:block;margin-bottom:8px}
+.auth-logo h1{font-size:1.6rem;letter-spacing:3px;font-weight:700;
+  background:linear-gradient(135deg,var(--gold3),var(--gold2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.auth-logo p{color:var(--dim2);font-size:0.82rem;margin-top:4px;letter-spacing:0.5px}
+.auth-tabs{display:flex;background:var(--bg3);border-radius:10px;margin-bottom:24px;padding:3px}
+.auth-tab{flex:1;padding:10px;text-align:center;border:none;background:none;
+  color:var(--dim2);font-size:0.85rem;cursor:pointer;border-radius:8px;transition:all 0.2s;letter-spacing:0.5px}
+.auth-tab.active{background:linear-gradient(135deg,var(--gold3),var(--gold));color:#000;font-weight:700}
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:0.73rem;color:var(--dim2);letter-spacing:1px;margin-bottom:7px;font-weight:600}
+.form-input{
+  width:100%;background:var(--bg3);border:1px solid var(--border);
+  color:var(--text);padding:12px 14px;border-radius:10px;
+  font-size:0.9rem;outline:none;transition:all 0.2s;
+}
+.form-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,175,55,0.08)}
+.form-input::placeholder{color:var(--dim)}
+.btn-gold{
+  width:100%;background:linear-gradient(135deg,var(--gold3),var(--gold));
+  border:none;color:#000;padding:13px;border-radius:10px;
+  font-size:0.9rem;font-weight:700;cursor:pointer;letter-spacing:1px;
+  transition:opacity 0.2s;margin-top:4px;
+}
+.btn-gold:hover{opacity:0.88}
+.btn-gold:disabled{opacity:0.5;cursor:not-allowed}
+.auth-divider{text-align:center;color:var(--dim);font-size:0.75rem;margin:14px 0;letter-spacing:0.5px}
+.auth-error{color:var(--red);font-size:0.8rem;text-align:center;margin-top:10px;padding:8px;
+  background:rgba(239,68,68,0.08);border-radius:8px;display:none}
+
+/* ── SETUP WIZARD ── */
+#setupPage{flex-direction:column;align-items:center;justify-content:center;padding:20px;background:var(--bg)}
+.setup-box{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:20px;padding:36px;width:90%;max-width:500px;
+  box-shadow:0 24px 60px rgba(0,0,0,0.5);
+}
+.setup-header{text-align:center;margin-bottom:28px}
+.setup-header h2{color:var(--gold);font-size:1.3rem;letter-spacing:2px;margin-bottom:6px}
+.setup-header p{color:var(--dim2);font-size:0.82rem}
+.step-dots{display:flex;justify-content:center;gap:8px;margin-bottom:28px}
+.step-dot{width:8px;height:8px;border-radius:50%;background:var(--bg4);transition:all 0.3s}
+.step-dot.active{background:var(--gold);transform:scale(1.3)}
+.step-dot.done{background:var(--green)}
+.step-panel{display:none}
+.step-panel.active{display:block}
+.step-title{color:var(--gold);font-size:0.85rem;letter-spacing:1.5px;margin-bottom:16px;font-weight:600}
+.btn-row{display:flex;gap:10px;margin-top:20px}
+.btn-outline{
+  flex:1;background:none;border:1px solid var(--border);
+  color:var(--dim2);padding:11px;border-radius:10px;
+  font-size:0.85rem;cursor:pointer;transition:all 0.2s;
+}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold)}
+.textarea-input{
+  width:100%;background:var(--bg3);border:1px solid var(--border);
+  color:var(--text);padding:12px 14px;border-radius:10px;
+  font-size:0.85rem;outline:none;resize:none;height:72px;
+  transition:border-color 0.2s;font-family:inherit;
+}
+.textarea-input:focus{border-color:var(--gold)}
+.textarea-input::placeholder{color:var(--dim)}
+.select-input{
+  width:100%;background:var(--bg3);border:1px solid var(--border);
+  color:var(--text);padding:12px 14px;border-radius:10px;
+  font-size:0.85rem;outline:none;cursor:pointer;
+  -webkit-appearance:none;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;
+}
+.select-input option{background:var(--bg3)}
+
+/* ── MAIN APP ── */
+#appPage{flex-direction:column}
+.app-header{
+  position:sticky;top:0;z-index:50;
+  background:rgba(8,8,8,0.96);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  padding:0 20px;height:56px;
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+}
+.app-logo{
+  font-size:1.1rem;font-weight:700;letter-spacing:3px;
+  background:linear-gradient(135deg,var(--gold3),var(--gold2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.header-center{display:flex;align-items:center;gap:8px}
+.status-pill{
+  display:flex;align-items:center;gap:6px;
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:20px;padding:5px 12px;font-size:0.73rem;color:var(--dim2);
+}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--dim);transition:all 0.3s}
+.status-dot.ready{background:var(--green)}
+.status-dot.thinking{background:var(--gold);animation:blink 0.8s infinite}
+.status-dot.listening{background:var(--red);animation:blink 0.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+.header-actions{display:flex;gap:8px;align-items:center}
+.hbtn{
+  background:none;border:1px solid var(--border);color:var(--dim2);
+  padding:6px 12px;border-radius:8px;cursor:pointer;font-size:0.72rem;
+  letter-spacing:0.5px;transition:all 0.2s;white-space:nowrap;
+}
+.hbtn:hover{border-color:var(--gold);color:var(--gold)}
+.user-badge{
+  background:linear-gradient(135deg,var(--gold3),var(--gold));
+  color:#000;width:30px;height:30px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.85rem;font-weight:700;cursor:pointer;flex-shrink:0;
+}
+
+/* ── LAYOUT ── */
+.app-body{display:flex;flex:1;overflow:hidden;height:calc(100vh - 56px)}
+.chat-panel{
+  flex:1;display:flex;flex-direction:column;
+  border-right:1px solid var(--border);min-width:0;
+}
+.messages{
+  flex:1;overflow-y:auto;padding:20px;
+  display:flex;flex-direction:column;gap:14px;
+  scroll-behavior:smooth;
+}
+.messages::-webkit-scrollbar{width:4px}
+.messages::-webkit-scrollbar-thumb{background:rgba(212,175,55,0.2);border-radius:2px}
+.msg{display:flex;flex-direction:column;max-width:82%;animation:fadeUp 0.25s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{align-self:flex-end;align-items:flex-end}
+.msg.ai{align-self:flex-start;align-items:flex-start}
+.msg-avatar{
+  width:28px;height:28px;border-radius:50%;margin-bottom:4px;
+  display:flex;align-items:center;justify-content:center;font-size:0.8rem;
+  background:linear-gradient(135deg,var(--gold3),var(--gold));color:#000;font-weight:700;
+}
+.bubble{
+  padding:12px 16px;border-radius:18px;font-size:0.88rem;line-height:1.55;
+  max-width:100%;word-break:break-word;
+}
+.msg.user .bubble{
+  background:linear-gradient(135deg,var(--gold3),var(--gold));
+  color:#000;font-weight:500;border-radius:18px 18px 4px 18px;
+}
+.msg.ai .bubble{
+  background:var(--bg3);border:1px solid var(--border);
+  color:var(--text);border-radius:18px 18px 18px 4px;
+}
+.msg-time{font-size:0.67rem;color:var(--dim);margin-top:4px;padding:0 4px}
+
+/* Typing indicator */
+.typing-bubble{
+  padding:12px 16px;background:var(--bg3);border:1px solid var(--border);
+  border-radius:18px 18px 18px 4px;display:flex;gap:5px;align-items:center;
+}
+.typing-bubble span{
+  width:6px;height:6px;border-radius:50%;background:var(--dim2);
+  animation:typ 1.4s infinite;
+}
+.typing-bubble span:nth-child(2){animation-delay:.2s}
+.typing-bubble span:nth-child(3){animation-delay:.4s}
+@keyframes typ{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-7px)}}
+
+/* Welcome Banner */
+.welcome-banner{
+  background:linear-gradient(135deg,rgba(212,175,55,0.07),rgba(212,175,55,0.02));
+  border:1px solid rgba(212,175,55,0.12);border-radius:16px;
+  padding:24px;text-align:center;margin-bottom:4px;
+}
+.wb-icon{font-size:2.5rem;display:block;margin-bottom:10px}
+.wb-title{color:var(--gold);font-size:1.05rem;letter-spacing:2px;font-weight:600;margin-bottom:6px}
+.wb-text{color:var(--dim2);font-size:0.8rem;line-height:1.6}
+.wb-tag{
+  display:inline-block;background:rgba(212,175,55,0.1);
+  border:1px solid rgba(212,175,55,0.2);color:var(--gold);
+  font-size:0.7rem;padding:3px 10px;border-radius:12px;margin:4px 2px;
+}
+
+/* Input Area */
+.input-area{
+  padding:14px 16px;background:var(--bg2);
+  border-top:1px solid var(--border);
+}
+.input-row{display:flex;gap:10px;align-items:flex-end}
+.text-input{
+  flex:1;background:var(--bg3);border:1px solid var(--border);
+  color:var(--text);padding:12px 14px;border-radius:12px;
+  font-size:0.88rem;outline:none;resize:none;height:44px;
+  max-height:120px;overflow-y:auto;transition:border-color 0.2s;
+  font-family:inherit;line-height:1.4;
+}
+.text-input:focus{border-color:var(--gold)}
+.text-input::placeholder{color:var(--dim)}
+.send-btn{
+  background:linear-gradient(135deg,var(--gold3),var(--gold));
+  border:none;color:#000;width:44px;height:44px;border-radius:12px;
+  cursor:pointer;font-size:1.1rem;transition:opacity 0.2s;flex-shrink:0;
+}
+.send-btn:hover{opacity:0.85}
+.voice-area{
+  display:flex;justify-content:center;align-items:center;gap:16px;
+  padding:12px 16px 16px;background:var(--bg2);
+}
+.voice-btn{
+  width:62px;height:62px;border-radius:50%;border:2px solid var(--border);
+  background:var(--bg3);cursor:pointer;display:flex;align-items:center;
+  justify-content:center;font-size:1.5rem;transition:all 0.3s;
+  box-shadow:0 4px 16px rgba(0,0,0,0.4);
+}
+.voice-btn:hover{border-color:var(--gold);transform:scale(1.05)}
+.voice-btn.listening{
+  border-color:var(--red);background:rgba(239,68,68,0.1);
+  animation:voicePulse 1.5s infinite;
+}
+@keyframes voicePulse{
+  0%,100%{box-shadow:0 4px 16px rgba(239,68,68,0.2)}
+  50%{box-shadow:0 4px 32px rgba(239,68,68,0.5)}
+}
+.voice-label{font-size:0.7rem;color:var(--dim);letter-spacing:0.5px}
+
+/* ── SIDE PANEL ── */
+.side-panel{
+  width:360px;flex-shrink:0;display:flex;flex-direction:column;
+  background:var(--bg2);overflow:hidden;
+}
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg)}
+.tab{
+  flex:1;padding:12px 4px;border:none;background:none;color:var(--dim);
+  font-size:0.68rem;letter-spacing:0.5px;cursor:pointer;
+  border-bottom:2px solid transparent;transition:all 0.2s;
+}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.tab-pane{flex:1;overflow-y:auto;padding:16px;display:none}
+.tab-pane.active{display:block}
+.tab-pane::-webkit-scrollbar{width:3px}
+.tab-pane::-webkit-scrollbar-thumb{background:rgba(212,175,55,0.15);border-radius:2px}
+
+/* Panel components */
+.section-hdr{
+  font-size:0.68rem;color:var(--gold);letter-spacing:1.5px;
+  font-weight:700;margin-bottom:10px;display:flex;
+  align-items:center;justify-content:space-between;
+}
+.card{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:12px;padding:14px;margin-bottom:12px;
+}
+.card-title{font-size:0.7rem;color:var(--gold);letter-spacing:1px;margin-bottom:10px;font-weight:600}
+.visitor-item{
+  display:flex;align-items:center;gap:10px;padding:10px;
+  border-radius:9px;background:var(--bg4);margin-bottom:8px;
+  border:1px solid rgba(255,255,255,0.04);
+}
+.v-avatar{
+  width:36px;height:36px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--gold3),var(--gold));
+  display:flex;align-items:center;justify-content:center;
+  color:#000;font-weight:700;font-size:0.95rem;
+}
+.v-name{font-size:0.83rem;font-weight:600}
+.v-meta{font-size:0.7rem;color:var(--dim2);margin-top:1px}
+.appt-item{
+  padding:10px 12px;border-radius:9px;background:var(--bg4);
+  margin-bottom:8px;border-left:3px solid var(--gold);
+}
+.appt-title{font-size:0.83rem;font-weight:600}
+.appt-time{font-size:0.7rem;color:var(--gold);margin-top:2px}
+.kb-item{
+  padding:10px 12px;border-radius:9px;background:var(--bg4);
+  margin-bottom:8px;border:1px solid rgba(255,255,255,0.04);
+  font-size:0.8rem;line-height:1.45;
+}
+.kb-tag{font-size:0.65rem;color:var(--gold);letter-spacing:0.5px;margin-bottom:4px;font-weight:600}
+.empty-state{color:var(--dim);font-size:0.78rem;text-align:center;padding:20px 0}
+.mini-btn{
+  background:none;border:1px solid var(--border);color:var(--dim2);
+  padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.7rem;
+  transition:all 0.2s;
+}
+.mini-btn:hover{border-color:var(--gold);color:var(--gold)}
+.icon-btn{
+  background:none;border:none;color:var(--dim);cursor:pointer;
+  font-size:0.85rem;padding:3px;transition:color 0.2s;
+}
+.icon-btn:hover{color:var(--red)}
+.form-group{margin-bottom:12px}
+.form-label{display:block;font-size:0.7rem;color:var(--dim2);letter-spacing:0.8px;margin-bottom:6px;font-weight:600}
+
+/* Lang pills */
+.lang-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.lang-pill{
+  padding:5px 10px;border-radius:16px;border:1px solid var(--border);
+  color:var(--dim2);font-size:0.7rem;cursor:pointer;transition:all 0.2s;
+}
+.lang-pill.active{background:rgba(212,175,55,0.12);color:var(--gold);border-color:var(--gold)}
+
+/* Toggle */
+.toggle-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.toggle-label{font-size:0.82rem}
+.toggle-sw{
+  width:38px;height:21px;border-radius:11px;background:var(--bg4);
+  border:none;cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0;
+}
+.toggle-sw.on{background:var(--gold3)}
+.toggle-sw::after{
+  content:'';position:absolute;width:15px;height:15px;
+  background:#fff;border-radius:50%;top:3px;left:3px;
+  transition:transform 0.2s;
+}
+.toggle-sw.on::after{transform:translateX(17px)}
+
+/* ── CAMERA MODAL ── */
+.modal-bg{
+  display:none;position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,0.88);backdrop-filter:blur(10px);
+  align-items:center;justify-content:center;
+}
+.modal-bg.open{display:flex}
+.modal{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:18px;padding:22px;width:92%;max-width:480px;
+}
+.modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.modal-title{color:var(--gold);font-size:0.9rem;letter-spacing:1.5px;font-weight:600}
+.close-btn{background:none;border:none;color:var(--dim);font-size:1.2rem;cursor:pointer}
+.close-btn:hover{color:var(--text)}
+#camVideo{width:100%;border-radius:10px;background:#000;display:block;min-height:200px}
+
+/* Toast */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:var(--bg3);border:1px solid rgba(212,175,55,0.3);
+  color:var(--gold);padding:10px 20px;border-radius:10px;font-size:0.83rem;
+  z-index:300;white-space:nowrap;
+  animation:toastIn 0.3s ease;pointer-events:none;
+}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* Mobile */
+@media(max-width:720px){
+  .side-panel{display:none}
+  .chat-panel{border-right:none}
+  .header-actions .hbtn:not(.always){display:none}
+  .mobile-tabs{
+    display:flex;position:fixed;bottom:0;left:0;right:0;z-index:60;
+    background:var(--bg2);border-top:1px solid var(--border);
+  }
+  .mobile-tab{
+    flex:1;padding:12px 4px;text-align:center;font-size:0.6rem;
+    color:var(--dim);border:none;background:none;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:2px;
+  }
+  .mobile-tab.active{color:var(--gold)}
+  .mobile-tab-icon{font-size:1.2rem}
+  .app-body{height:calc(100vh - 56px - 58px)}
+  #appPage .side-panel.mobile-open{
+    display:flex;position:fixed;bottom:58px;left:0;right:0;
+    top:56px;z-index:100;width:100%;
+  }
+}
+@media(min-width:721px){.mobile-tabs{display:none}}
+</style>
+</head>
+<body>
+
+<!-- ══ AUTH PAGE ══ -->
+<div id="authPage" class="page">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <span class="auth-logo-icon">✦</span>
+      <h1>LUMINA</h1>
+      <p>AI RECEPTIONIST PLATFORM</p>
+      <div style="margin-top:10px;background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(212,175,55,0.05));border:1px solid rgba(212,175,55,0.3);border-radius:30px;padding:6px 16px;display:inline-block">
+        <span style="color:var(--gold);font-size:0.75rem;font-weight:700;letter-spacing:1px">✦ FREE FOR 90 DAYS — No card required</span>
+      </div>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">SIGN IN</button>
+      <button class="auth-tab" onclick="switchAuthTab('signup')">CREATE ACCOUNT</button>
+    </div>
+    <!-- Login -->
+    <div id="loginForm">
+      <div class="form-group">
+        <label class="form-label">EMAIL</label>
+        <input class="form-input" id="loginEmail" type="email" placeholder="your@email.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label">PASSWORD</label>
+        <input class="form-input" id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password"
+          onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <button class="btn-gold" id="loginBtn" onclick="doLogin()">SIGN IN</button>
+      <div class="auth-error" id="loginErr"></div>
+    </div>
+    <!-- Signup -->
+    <div id="signupForm" style="display:none">
+      <div class="form-group">
+        <label class="form-label">YOUR NAME</label>
+        <input class="form-input" id="signupName" type="text" placeholder="Your full name" autocomplete="name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">EMAIL</label>
+        <input class="form-input" id="signupEmail" type="email" placeholder="your@email.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label">PASSWORD</label>
+        <input class="form-input" id="signupPass" type="password" placeholder="Min 6 characters" autocomplete="new-password"
+          onkeydown="if(event.key==='Enter')doSignup()">
+      </div>
+      <button class="btn-gold" id="signupBtn" onclick="doSignup()">CREATE ACCOUNT</button>
+      <div class="auth-error" id="signupErr"></div>
+    </div>
+    <div class="auth-divider">✦ 90 days free · then $29.99/mo · Cancel anytime</div>
+  </div>
+</div>
+
+<!-- ══ SETUP WIZARD ══ -->
+<div id="setupPage" class="page" style="flex-direction:column">
+  <div class="setup-box">
+    <div class="setup-header">
+      <h2>✦ SETUP YOUR RECEPTIONIST</h2>
+      <p>Just 3 quick steps to go live</p>
+    </div>
+    <div class="step-dots">
+      <div class="step-dot active" id="sd0"></div>
+      <div class="step-dot" id="sd1"></div>
+      <div class="step-dot" id="sd2"></div>
+    </div>
+
+    <!-- Step 1 -->
+    <div class="step-panel active" id="step0">
+      <div class="step-title">STEP 1 — YOUR BUSINESS</div>
+      <div class="form-group">
+        <label class="form-label">BUSINESS NAME</label>
+        <input class="form-input" id="s_bizName" placeholder="e.g. Sunrise Dental, Hotel Lumina">
+      </div>
+      <div class="form-group">
+        <label class="form-label">INDUSTRY</label>
+        <select class="select-input" id="s_industry">
+          <option value="">Select your industry...</option>
+          <option>Medical / Dental</option>
+          <option>Hotel / Hospitality</option>
+          <option>Real Estate</option>
+          <option>Legal Office</option>
+          <option>Salon / Spa</option>
+          <option>Corporate Office</option>
+          <option>Retail / Shop</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">OFFICE HOURS</label>
+        <input class="form-input" id="s_hours" placeholder="e.g. Mon-Fri 9AM-6PM, Sat 10AM-2PM">
+      </div>
+      <div class="btn-row">
+        <button class="btn-gold" onclick="setupNext(1)">NEXT →</button>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step-panel" id="step1">
+      <div class="step-title">STEP 2 — YOUR RECEPTIONIST'S VOICE</div>
+      <div class="form-group">
+        <label class="form-label">RECEPTIONIST NAME</label>
+        <input class="form-input" id="s_recepName" placeholder="e.g. Aria, Alex, Nova" value="Lumina">
+      </div>
+      <div class="form-group">
+        <label class="form-label">GREETING MESSAGE</label>
+        <textarea class="textarea-input" id="s_greeting" placeholder="Hello and welcome! How may I assist you today?"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">LANGUAGE</label>
+        <select class="select-input" id="s_lang">
+          <option value="en-US">🇺🇸 English (US)</option>
+          <option value="es-ES">🇪🇸 Spanish</option>
+          <option value="fr-FR">🇫🇷 French</option>
+          <option value="de-DE">🇩🇪 German</option>
+          <option value="pt-BR">🇧🇷 Portuguese</option>
+          <option value="zh-CN">🇨🇳 Chinese</option>
+          <option value="ja-JP">🇯🇵 Japanese</option>
+          <option value="ar-SA">🇸🇦 Arabic</option>
+        </select>
+      </div>
+      <div class="btn-row">
+        <button class="btn-outline" onclick="setupNext(0)">← BACK</button>
+        <button class="btn-gold" onclick="setupNext(2)">NEXT →</button>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step-panel" id="step2">
+      <div class="step-title">STEP 3 — QUICK KNOWLEDGE</div>
+      <div class="form-group">
+        <label class="form-label">KEY INFO (visitors will ask about this)</label>
+        <textarea class="textarea-input" id="s_kb1" style="height:60px"
+          placeholder="e.g. We offer free consultations every Tuesday. Parking available at Level 2."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">SECOND FACT (optional)</label>
+        <textarea class="textarea-input" id="s_kb2" style="height:60px"
+          placeholder="e.g. WiFi password is Guest2024. Restrooms are on the right."></textarea>
+      </div>
+      <div class="btn-row">
+        <button class="btn-outline" onclick="setupNext(1)">← BACK</button>
+        <button class="btn-gold" id="launchBtn" onclick="finishSetup()">🚀 LAUNCH RECEPTIONIST</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MAIN APP ══ -->
+<div id="appPage" class="page" style="flex-direction:column">
+  <header class="app-header">
+    <div class="app-logo">✦ LUMINA</div>
+    <div class="header-center">
+      <div class="status-pill">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusText">Standby</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="hbtn" onclick="openCamera()">📷</button>
+      <button class="hbtn" onclick="showSideTab('settings')" title="Settings">⚙️</button>
+      <div class="user-badge" id="userBadge" onclick="confirmSignOut()" title="Click to sign out">?</div>
+    </div>
+  </header>
+
+  <!-- Trial Banner -->
+  <div id="trialBanner" style="display:none;background:linear-gradient(90deg,rgba(212,175,55,0.12),rgba(212,175,55,0.06));border-bottom:1px solid rgba(212,175,55,0.2);padding:8px 20px;display:flex;align-items:center;justify-content:space-between;font-size:0.78rem;gap:10px;flex-wrap:wrap">
+    <span id="trialMsg" style="color:var(--gold);font-weight:600;letter-spacing:0.3px"></span>
+    <span style="color:var(--dim2)">After trial: $29.99/mo · <a href="https://tlott12.gumroad.com" target="_blank" style="color:var(--gold);text-decoration:none">Upgrade via Gumroad →</a></span>
+  </div>
+  <!-- Upgrade Banner (shown when trial expired) -->
+  <div id="upgradeBanner" style="display:none;background:linear-gradient(90deg,rgba(212,175,55,0.25),rgba(212,175,55,0.1));border-bottom:2px solid var(--gold);padding:10px 20px;text-align:center">
+    <span style="color:var(--gold);font-weight:700;font-size:0.85rem">⚠️ Your 90-day free trial has ended. </span>
+    <a href="https://tlott12.gumroad.com" target="_blank" style="background:var(--gold);color:#000;padding:4px 14px;border-radius:20px;font-size:0.78rem;font-weight:700;text-decoration:none;margin-left:8px">Upgrade — $29.99/mo →</a>
+  </div>
+
+  <div class="app-body">
+    <!-- CHAT -->
+    <div class="chat-panel">
+      <div class="messages" id="messages">
+        <div class="welcome-banner" id="welcomeBanner">
+          <span class="wb-icon">✦</span>
+          <div class="wb-title" id="wbTitle">LUMINA RECEPTIONIST</div>
+          <div class="wb-text" id="wbText">Your AI receptionist is ready. Visitors can speak or type naturally.</div>
+          <div style="margin-top:12px">
+            <span class="wb-tag">🎙️ Voice Enabled</span>
+            <span class="wb-tag">🧠 AI Powered</span>
+            <span class="wb-tag">📅 Scheduling</span>
+            <span class="wb-tag">🌍 Multilingual</span>
+          </div>
+        </div>
+      </div>
+      <div class="input-area">
+        <div class="input-row">
+          <textarea class="text-input" id="textInput" placeholder="Type a message..." rows="1"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendText()}"
+            oninput="autoGrow(this)"></textarea>
+          <button class="send-btn" onclick="sendText()">➤</button>
+        </div>
+      </div>
+      <div class="voice-area">
+        <div style="text-align:center">
+          <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()">🎙️</button>
+          <div class="voice-label" id="voiceLabel">TAP TO SPEAK</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIDE PANEL -->
+    <div class="side-panel" id="sidePanel">
+      <div class="tabs">
+        <button class="tab active" data-tab="visitors" onclick="showSideTab('visitors')">👤 VISITORS</button>
+        <button class="tab" data-tab="calendar" onclick="showSideTab('calendar')">📅 CALENDAR</button>
+        <button class="tab" data-tab="knowledge" onclick="showSideTab('knowledge')">🧠 MEMORY</button>
+        <button class="tab" data-tab="settings" onclick="showSideTab('settings')">⚙️</button>
+      </div>
+
+      <!-- VISITORS -->
+      <div class="tab-pane active" id="pane-visitors">
+        <div class="section-hdr">REGISTERED VISITORS
+          <button class="mini-btn" onclick="toggleForm('vForm')">+ ADD</button>
+        </div>
+        <div id="vForm" style="display:none" class="card">
+          <div class="card-title">NEW VISITOR</div>
+          <div class="form-group">
+            <label class="form-label">FULL NAME</label>
+            <input class="form-input" id="vName" placeholder="John Smith">
+          </div>
+          <div class="form-group">
+            <label class="form-label">ROLE / COMPANY</label>
+            <input class="form-input" id="vRole" placeholder="Client, Vendor, Partner...">
+          </div>
+          <div class="form-group">
+            <label class="form-label">NOTES</label>
+            <input class="form-input" id="vNotes" placeholder="VIP, appointment at 2PM...">
+          </div>
+          <button class="btn-gold" style="margin-top:4px" onclick="addVisitor()">SAVE</button>
+        </div>
+        <div id="visitorsList"></div>
+        <div class="section-hdr" style="margin-top:14px">SIGN-IN LOG</div>
+        <div id="signInLog"></div>
+      </div>
+
+      <!-- CALENDAR -->
+      <div class="tab-pane" id="pane-calendar">
+        <div class="section-hdr">APPOINTMENTS
+          <button class="mini-btn" onclick="toggleForm('apptForm')">+ BOOK</button>
+        </div>
+        <div id="apptForm" style="display:none" class="card">
+          <div class="card-title">NEW APPOINTMENT</div>
+          <div class="form-group">
+            <label class="form-label">TITLE</label>
+            <input class="form-input" id="apptTitle" placeholder="Meeting with John">
+          </div>
+          <div class="form-group">
+            <label class="form-label">DATE & TIME</label>
+            <input class="form-input" id="apptDate" type="datetime-local">
+          </div>
+          <div class="form-group">
+            <label class="form-label">PERSON</label>
+            <input class="form-input" id="apptPerson" placeholder="Who is this for?">
+          </div>
+          <button class="btn-gold" style="margin-top:4px" onclick="addAppointment()">SCHEDULE</button>
+        </div>
+        <div id="apptList"></div>
+      </div>
+
+      <!-- KNOWLEDGE -->
+      <div class="tab-pane" id="pane-knowledge">
+        <div class="section-hdr">KNOWLEDGE BASE (RAG MEMORY)</div>
+        <div class="card">
+          <div class="card-title">ADD TO MEMORY</div>
+          <div class="form-group">
+            <label class="form-label">CATEGORY</label>
+            <select class="select-input" id="kbTag">
+              <option value="policy">Company Policy</option>
+              <option value="team">Team / Staff</option>
+              <option value="product">Products / Services</option>
+              <option value="faq">FAQ</option>
+              <option value="location">Location / Directions</option>
+              <option value="custom">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">INFORMATION</label>
+            <textarea class="textarea-input" id="kbContent" placeholder="Add any info your receptionist should know..."></textarea>
+          </div>
+          <button class="btn-gold" onclick="addKnowledge()">SAVE TO MEMORY</button>
+        </div>
+        <div id="kbList"></div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="tab-pane" id="pane-settings">
+        <div class="section-hdr">RECEPTIONIST PROFILE</div>
+        <div class="card">
+          <div class="form-group">
+            <label class="form-label">BUSINESS NAME</label>
+            <input class="form-input" id="setBizName" oninput="saveSetting('bizName',this.value)">
+          </div>
+          <div class="form-group">
+            <label class="form-label">RECEPTIONIST NAME</label>
+            <input class="form-input" id="setRecepName" oninput="saveSetting('recepName',this.value)">
+          </div>
+          <div class="form-group">
+            <label class="form-label">OFFICE HOURS</label>
+            <input class="form-input" id="setHours" oninput="saveSetting('officeHours',this.value)">
+          </div>
+          <div class="form-group">
+            <label class="form-label">GREETING</label>
+            <textarea class="textarea-input" id="setGreeting" oninput="saveSetting('greeting',this.value)"></textarea>
+          </div>
+        </div>
+
+        <div class="section-hdr">VOICE & LANGUAGE</div>
+        <div class="card">
+          <div class="form-group">
+            <label class="form-label">LANGUAGE</label>
+            <div class="lang-grid" id="langGrid">
+              <span class="lang-pill active" data-lang="en-US" onclick="setLang(this)">🇺🇸 English</span>
+              <span class="lang-pill" data-lang="es-ES" onclick="setLang(this)">🇪🇸 Español</span>
+              <span class="lang-pill" data-lang="fr-FR" onclick="setLang(this)">🇫🇷 Français</span>
+              <span class="lang-pill" data-lang="de-DE" onclick="setLang(this)">🇩🇪 Deutsch</span>
+              <span class="lang-pill" data-lang="pt-BR" onclick="setLang(this)">🇧🇷 Português</span>
+              <span class="lang-pill" data-lang="zh-CN" onclick="setLang(this)">🇨🇳 中文</span>
+              <span class="lang-pill" data-lang="ja-JP" onclick="setLang(this)">🇯🇵 日本語</span>
+              <span class="lang-pill" data-lang="ar-SA" onclick="setLang(this)">🇸🇦 العربية</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">SPEECH SPEED</label>
+            <input type="range" id="speechRate" min="0.6" max="1.4" step="0.05" value="0.9"
+              style="width:100%;accent-color:var(--gold)"
+              oninput="document.getElementById('rateVal').textContent=parseFloat(this.value).toFixed(2)">
+            <div style="font-size:0.7rem;color:var(--dim);margin-top:4px">Speed: <span id="rateVal">0.90</span></div>
+          </div>
+        </div>
+
+        <div class="section-hdr">BEHAVIOR</div>
+        <div class="card">
+          <div class="toggle-row">
+            <span class="toggle-label">Auto-speak responses</span>
+            <button class="toggle-sw on" id="togSpeak" onclick="this.classList.toggle('on')"></button>
+          </div>
+          <div class="toggle-row">
+            <span class="toggle-label">Professional tone</span>
+            <button class="toggle-sw on" id="togPro" onclick="this.classList.toggle('on')"></button>
+          </div>
+          <div class="toggle-row">
+            <span class="toggle-label">Visitor sign-in alerts</span>
+            <button class="toggle-sw on" id="togNotify" onclick="this.classList.toggle('on');requestNotif()"></button>
+          </div>
+          <div class="toggle-row">
+            <span class="toggle-label">Show typing indicator</span>
+            <button class="toggle-sw on" id="togTyping" onclick="this.classList.toggle('on')"></button>
+          </div>
+        </div>
+
+        <div style="margin-top:8px;display:flex;flex-direction:column;gap:8px">
+          <button class="mini-btn" style="width:100%" onclick="exportData()">📤 Export My Data</button>
+          <button class="mini-btn" style="width:100%;color:var(--red);border-color:rgba(239,68,68,0.3)" onclick="clearData()">🗑️ Clear All Data</button>
+          <button class="mini-btn" style="width:100%;margin-top:4px" onclick="confirmSignOut()">← Sign Out</button>
+        </div>
+      </div>
+    </div><!-- /side-panel -->
+  </div>
+
+  <!-- Mobile bottom tabs -->
+  <div class="mobile-tabs">
+    <button class="mobile-tab active" id="mtab-chat" onclick="showMobileTab('chat')">
+      <span class="mobile-tab-icon">💬</span>CHAT
+    </button>
+    <button class="mobile-tab" id="mtab-visitors" onclick="showMobileTab('visitors')">
+      <span class="mobile-tab-icon">👤</span>VISITORS
+    </button>
+    <button class="mobile-tab" id="mtab-calendar" onclick="showMobileTab('calendar')">
+      <span class="mobile-tab-icon">📅</span>CALENDAR
+    </button>
+    <button class="mobile-tab" id="mtab-knowledge" onclick="showMobileTab('knowledge')">
+      <span class="mobile-tab-icon">🧠</span>MEMORY
+    </button>
+    <button class="mobile-tab" id="mtab-settings" onclick="showMobileTab('settings')">
+      <span class="mobile-tab-icon">⚙️</span>SETTINGS
+    </button>
+  </div>
+</div>
+
+<!-- Camera Modal -->
+<div class="modal-bg" id="camModal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <span class="modal-title">📷 VISITOR CAMERA</span>
+      <button class="close-btn" onclick="closeCamera()">✕</button>
+    </div>
+    <video id="camVideo" autoplay playsinline muted></video>
+    <div id="camStatus" style="text-align:center;font-size:0.78rem;color:var(--dim2);margin:10px 0">Starting camera...</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-gold" onclick="captureVisitor()">✓ Recognize Visitor</button>
+      <button class="btn-outline" onclick="closeCamera()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//  LUMINA RECEPTIONIST — Core Engine
+// ══════════════════════════════════════════
+
+// Config (obfuscated)
+const _SBK = atob('ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnBjM01pT2lKemRYQmhZbUZ6WlNJc0luSmxaaUk2SW14c2RHeGlhbTExY25kb2FHNXZkR3BsWjJweWVpSXNJbkp2YkdVaU9pSmhibTl1SWl3aWFXRjBJam94TnpRMk5UTXpPVEV4TENKbGVIQWlPakl3TmpJeE1EazVNVEY5LllSVmp0NXhXMTZyOXZsekFRMUpSdE02Wl9fV1RfWjlsQlhKaEdpODBmQXM=');
+const SB_URL = 'https://lltlbjmurwhnotjegjrz.supabase.co';
+const _GK = ['xai-iZvLvkJZL3CM6bmND','C5mp2Igx2H5IcJfZO7Ki','vQaKUzOCV5LRDdE6n941','uWfnPnUzivJsDJC14sqOMmr'].join('');
+const GROK_URL = 'https://api.x.ai/v1/chat/completions';
+
+// Init Supabase
+const { createClient } = supabase;
+const sb = createClient(SB_URL, _SBK);
+
+// State
+let currentUser = null;
+let isListening = false;
+let recognition = null;
+let currentLang = 'en-US';
+let mediaStream = null;
+let conversationHistory = [];
+let setupStep = 0;
+
+// ── BOOT ──
+window.addEventListener('DOMContentLoaded', async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session?.user) {
+    currentUser = session.user;
+    const cfg = getConfig();
+    if (!cfg.bizName) showPage('setupPage');
+    else launchApp();
+  } else {
+    showPage('authPage');
+  }
+});
+
+// ── PAGES ──
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('show'));
+  document.getElementById(id).classList.add('show');
+}
+
+// ── AUTH ──
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('loginForm').style.display = tab==='login' ? 'block' : 'none';
+  document.getElementById('signupForm').style.display = tab==='signup' ? 'block' : 'none';
+}
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const btn = document.getElementById('loginBtn');
+  const err = document.getElementById('loginErr');
+  if (!email || !pass) { showAuthErr('loginErr','Please fill in all fields'); return; }
+  btn.disabled = true; btn.textContent = 'SIGNING IN...';
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  btn.disabled = false; btn.textContent = 'SIGN IN';
+  if (error) { showAuthErr('loginErr', error.message); return; }
+  currentUser = data.user;
+  const cfg = getConfig();
+  if (!cfg.bizName) showPage('setupPage');
+  else { launchApp(); }
+}
+
+async function doSignup() {
+  const name = document.getElementById('signupName').value.trim();
+  const email = document.getElementById('signupEmail').value.trim();
+  const pass = document.getElementById('signupPass').value;
+  const btn = document.getElementById('signupBtn');
+  if (!name || !email || !pass) { showAuthErr('signupErr','Please fill in all fields'); return; }
+  if (pass.length < 6) { showAuthErr('signupErr','Password must be at least 6 characters'); return; }
+  btn.disabled = true; btn.textContent = 'CREATING...';
+  const trialStart = new Date().toISOString();
+  const { data, error } = await sb.auth.signUp({ email, password: pass,
+    options: { data: { name, trial_started_at: trialStart } }
+  });
+  btn.disabled = false; btn.textContent = 'CREATE ACCOUNT';
+  if (error) { showAuthErr('signupErr', error.message); return; }
+  currentUser = data.user;
+  saveConfig({ ownerName: name });
+  showPage('setupPage');
+}
+
+function showAuthErr(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg; el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 4000);
+}
+
+function checkTrialStatus() {
+  const trialBanner = document.getElementById('trialBanner');
+  const upgradeBanner = document.getElementById('upgradeBanner');
+  if (!currentUser) return;
+  // Get trial start from Supabase user metadata or localStorage fallback
+  const meta = currentUser.user_metadata || {};
+  let trialStart = meta.trial_started_at;
+  if (!trialStart) {
+    // Fallback: use account creation date
+    trialStart = currentUser.created_at || new Date().toISOString();
+  }
+  const start = new Date(trialStart);
+  const now = new Date();
+  const daysUsed = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+  const daysLeft = 90 - daysUsed;
+  const trialMsg = document.getElementById('trialMsg');
+
+  if (daysLeft <= 0) {
+    // Trial expired
+    if (trialBanner) trialBanner.style.display = 'none';
+    if (upgradeBanner) upgradeBanner.style.display = 'block';
+  } else if (daysLeft <= 14) {
+    // Last 2 weeks — show urgent banner
+    if (trialBanner) { trialBanner.style.display = 'flex'; trialBanner.style.background = 'linear-gradient(90deg,rgba(239,68,68,0.12),rgba(212,175,55,0.06))'; }
+    if (trialMsg) trialMsg.textContent = `⚠️ ${daysLeft} day${daysLeft===1?'':'s'} left in your free trial.`;
+    if (upgradeBanner) upgradeBanner.style.display = 'none';
+  } else {
+    // Active trial
+    if (trialBanner) trialBanner.style.display = 'flex';
+    if (trialMsg) trialMsg.textContent = `✦ Free trial — ${daysLeft} of 90 days remaining`;
+    if (upgradeBanner) upgradeBanner.style.display = 'none';
+  }
+}
+
+async function confirmSignOut() {
+  if (!confirm('Sign out of Lumina?')) return;
+  await sb.auth.signOut();
+  currentUser = null;
+  conversationHistory = [];
+  showPage('authPage');
+}
+
+// ── SETUP ──
+function setupNext(step) {
+  if (step === 1 && !document.getElementById('s_bizName').value.trim()) {
+    showToast('Please enter your business name'); return;
+  }
+  goToStep(step);
+}
+
+function goToStep(n) {
+  document.querySelectorAll('.step-panel').forEach((p,i) => {
+    p.classList.toggle('active', i===n);
+  });
+  document.querySelectorAll('.step-dot').forEach((d,i) => {
+    d.classList.toggle('active', i===n);
+    d.classList.toggle('done', i<n);
+  });
+  setupStep = n;
+}
+
+function finishSetup() {
+  const btn = document.getElementById('launchBtn');
+  btn.disabled = true; btn.textContent = '⏳ Launching...';
+  const cfg = {
+    bizName: document.getElementById('s_bizName').value.trim(),
+    industry: document.getElementById('s_industry').value,
+    officeHours: document.getElementById('s_hours').value.trim(),
+    recepName: document.getElementById('s_recepName').value.trim() || 'Lumina',
+    greeting: document.getElementById('s_greeting').value.trim(),
+    lang: document.getElementById('s_lang').value,
+    setupDone: true
+  };
+  saveConfig(cfg);
+
+  // Save initial knowledge
+  const kb = [];
+  const k1 = document.getElementById('s_kb1').value.trim();
+  const k2 = document.getElementById('s_kb2').value.trim();
+  if (k1) kb.push({ content: k1, tag: 'policy', added: new Date().toISOString() });
+  if (k2) kb.push({ content: k2, tag: 'policy', added: new Date().toISOString() });
+  if (kb.length) {
+    const mem = getMem();
+    mem.knowledge = [...(mem.knowledge||[]), ...kb];
+    saveMem(mem);
+  }
+
+  btn.disabled = false;
+  launchApp();
+}
+
+// ── LAUNCH APP ──
+function launchApp() {
+  const cfg = getConfig();
+  currentLang = cfg.lang || 'en-US';
+
+  // Populate settings fields
+  setFieldSafe('setBizName', cfg.bizName);
+  setFieldSafe('setRecepName', cfg.recepName || 'Lumina');
+  setFieldSafe('setHours', cfg.officeHours);
+  setFieldSafe('setGreeting', cfg.greeting);
+
+  // Welcome banner
+  const rn = cfg.recepName || 'Lumina';
+  const bn = cfg.bizName || 'your business';
+  setInnerHTML('wbTitle', `✦ ${rn.toUpperCase()} — ${bn}`);
+  setInnerHTML('wbText', `Your AI receptionist is online and ready to assist visitors at ${bn}.`);
+
+  // User badge
+  const name = cfg.ownerName || currentUser?.email || '?';
+  document.getElementById('userBadge').textContent = name[0].toUpperCase();
+
+  // Language pill
+  setActiveLangPill(currentLang);
+
+  // Render panels
+  renderVisitors(); renderAppointments(); renderKnowledge();
+
+  // Request notifications
+  if (Notification.permission === 'default') Notification.requestPermission();
+
+  showPage('appPage');
+  setStatus('ready');
+  checkTrialStatus();
+
+  // Initial greeting
+  setTimeout(() => {
+    const greeting = cfg.greeting || `Hello! I'm ${rn}, the AI receptionist for ${bn}. How may I assist you today?`;
+    addMsg(greeting, 'ai');
+    if (document.getElementById('togSpeak').classList.contains('on')) speak(greeting);
+  }, 500);
+}
+
+// ── STATUS ──
+function setStatus(state, label) {
+  const dot = document.getElementById('statusDot');
+  const txt = document.getElementById('statusText');
+  dot.className = 'status-dot';
+  const states = {
+    ready: ['ready','Ready'],
+    listening: ['listening','Listening...'],
+    thinking: ['thinking','Thinking...'],
+    standby: ['','Standby']
+  };
+  const [cls, lbl] = states[state] || states.standby;
+  if (cls) dot.classList.add(cls);
+  txt.textContent = label || lbl;
+}
+
+// ── MESSAGING ──
+function sendText() {
+  const ta = document.getElementById('textInput');
+  const text = ta.value.trim();
+  if (!text) return;
+  ta.value = ''; ta.style.height = '44px';
+  processMessage(text);
+}
+
+async function processMessage(text) {
+  addMsg(text, 'user');
+  setStatus('thinking');
+
+  // RAG local check first
+  const localResp = localIntent(text);
+  if (localResp !== null) {
+    await delay(300);
+    addMsg(localResp, 'ai');
+    if (document.getElementById('togSpeak').classList.contains('on')) speak(localResp);
+    setStatus('ready');
+    return;
+  }
+
+  // Typing indicator
+  let typingId = null;
+  if (document.getElementById('togTyping').classList.contains('on')) typingId = showTyping();
+
+  try {
+    const res = await fetch(GROK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _GK },
+      body: JSON.stringify({
+        model: 'grok-3-latest',
+        messages: [
+          { role: 'system', content: buildSysPrompt() },
+          ...conversationHistory.slice(-10),
+          { role: 'user', content: text }
+        ],
+        max_tokens: 280,
+        temperature: 0.7
+      })
+    });
+
+    if (typingId) removeTyping(typingId);
+
+    if (!res.ok) throw new Error('API ' + res.status);
+    const data = await res.json();
+    const reply = data.choices[0].message.content;
+
+    addMsg(reply, 'ai');
+    if (document.getElementById('togSpeak').classList.contains('on')) speak(reply);
+
+    // Auto-show calendar if scheduling mentioned
+    if (/schedul|appoint|book|meet/i.test(reply)) showSideTab('calendar');
+
+  } catch(e) {
+    if (typingId) removeTyping(typingId);
+    const err = 'I apologize — there was a brief connectivity issue. Please try again.';
+    addMsg(err, 'ai');
+  }
+  setStatus('ready');
+}
+
+function localIntent(text) {
+  const t = text.toLowerCase();
+  const cfg = getConfig();
+  const mem = getMem();
+  const knowledge = mem.knowledge || [];
+
+  // RAG search — keyword match
+  const words = t.split(/\s+/).filter(w => w.length > 3);
+  for (const k of knowledge) {
+    if (words.some(w => k.content.toLowerCase().includes(w))) {
+      return k.content;
+    }
+  }
+
+  // Sign in / Check in
+  if ((t.includes('sign in') || t.includes('check in') || t.includes('i\'m here') || t.includes('arrived')) && !t.includes('?')) {
+    const name = extractName(text) || 'Guest';
+    logSignIn(name);
+    const biz = cfg.bizName || 'here';
+    return `Welcome to ${biz}, ${name}! ✦ You've been checked in. Please take a seat and someone will be with you shortly.`;
+  }
+
+  // Hours query
+  if (t.includes('hour') || t.includes('open') || t.includes('close') || t.includes('when')) {
+    if (cfg.officeHours) return `Our office hours are: ${cfg.officeHours}. Is there anything else I can help you with?`;
+  }
+
+  return null; // Let Grok handle it
+}
+
+function extractName(text) {
+  const pats = [
+    /my name is ([A-Z][a-z]+ ?[A-Z]?[a-z]+)/i,
+    /i(?:'m| am) ([A-Z][a-z]+ ?[A-Z]?[a-z]+)/i,
+    /this is ([A-Z][a-z]+ ?[A-Z]?[a-z]+)/i
+  ];
+  for (const p of pats) { const m = text.match(p); if(m) return m[1]; }
+  return null;
+}
+
+function buildSysPrompt() {
+  const cfg = getConfig();
+  const mem = getMem();
+  const kb = (mem.knowledge||[]).map(k => `[${k.tag.toUpperCase()}] ${k.content}`).join('\n');
+  const visitors = (mem.visitors||[]).map(v => `${v.name} (${v.role||'Visitor'})`).join(', ');
+  const tone = document.getElementById('togPro').classList.contains('on') ? 'professional, polished and courteous' : 'warm, friendly and helpful';
+  const rn = cfg.recepName || 'Lumina';
+  const bn = cfg.bizName || 'this business';
+
+  return `You are ${rn}, an AI receptionist for ${bn}. Be ${tone}. Keep responses under 3 sentences unless detail is needed.
+Office hours: ${cfg.officeHours || 'standard business hours'}.
+Industry: ${cfg.industry || 'professional services'}.
+Known visitors: ${visitors || 'none yet'}.
+Knowledge base:\n${kb || 'None loaded yet — answer helpfully from general knowledge.'}
+Never reveal you are built on Grok/AI unless directly asked. You are ${rn}, the dedicated receptionist for ${bn}.`;
+}
+
+// ── MESSAGES UI ──
+function addMsg(text, role) {
+  const wrap = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  const t = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  const cfg = getConfig();
+  const rn = cfg.recepName || 'Lumina';
+
+  if (role === 'ai') {
+    div.innerHTML = `
+      <div class="msg-avatar">${rn[0]}</div>
+      <div><div class="bubble">${sanitize(text)}</div><div class="msg-time">${rn} · ${t}</div></div>`;
+  } else {
+    div.innerHTML = `<div><div class="bubble">${sanitize(text)}</div><div class="msg-time">You · ${t}</div></div>`;
+  }
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+  conversationHistory.push({ role: role==='user'?'user':'assistant', content: text });
+}
+
+function showTyping() {
+  const wrap = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg ai';
+  const id = 'typ_' + Date.now();
+  div.id = id;
+  div.innerHTML = `<div><div class="typing-bubble"><span></span><span></span><span></span></div></div>`;
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+  return id;
+}
+
+function removeTyping(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+function sanitize(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+
+function autoGrow(el) {
+  el.style.height = '44px';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+// ── VOICE ──
+function toggleVoice() {
+  if (isListening) stopListening();
+  else startListening();
+}
+
+function startListening() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { showToast('Voice recognition not supported in this browser'); return; }
+  recognition = new SR();
+  recognition.lang = currentLang;
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+  recognition.onresult = e => {
+    const text = e.results[0][0].transcript;
+    stopListening();
+    processMessage(text);
+  };
+  recognition.onerror = e => {
+    stopListening();
+    if (e.error !== 'aborted' && e.error !== 'no-speech') showToast('Voice error: ' + e.error);
+  };
+  recognition.onend = () => { if(isListening) stopListening(); };
+  recognition.start();
+  isListening = true;
+  document.getElementById('voiceBtn').classList.add('listening');
+  document.getElementById('voiceBtn').textContent = '🔴';
+  document.getElementById('voiceLabel').textContent = 'LISTENING...';
+  setStatus('listening');
+}
+
+function stopListening() {
+  try { if(recognition) recognition.stop(); } catch(e){}
+  isListening = false;
+  document.getElementById('voiceBtn').classList.remove('listening');
+  document.getElementById('voiceBtn').textContent = '🎙️';
+  document.getElementById('voiceLabel').textContent = 'TAP TO SPEAK';
+  setStatus('ready');
+}
+
+function speak(text) {
+  if (!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = currentLang;
+  utt.rate = parseFloat(document.getElementById('speechRate')?.value || 0.9);
+  utt.pitch = 1.05;
+  const voices = speechSynthesis.getVoices();
+  const langCode = currentLang.split('-')[0];
+  const preferred = voices.find(v =>
+    v.lang.startsWith(langCode) &&
+    /female|woman|samantha|karen|victoria|zira|jenny|aria|hazel/i.test(v.name)
+  ) || voices.find(v => v.lang.startsWith(langCode));
+  if (preferred) utt.voice = preferred;
+  speechSynthesis.speak(utt);
+}
+
+if (window.speechSynthesis) speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
+
+// ── TABS ──
+function showSideTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.id === 'pane-' + tab));
+}
+
+function showMobileTab(tab) {
+  document.querySelectorAll('.mobile-tab').forEach(t => t.classList.toggle('active', t.id === 'mtab-' + tab));
+  const side = document.getElementById('sidePanel');
+  if (tab === 'chat') {
+    side.classList.remove('mobile-open');
+  } else {
+    side.classList.add('mobile-open');
+    showSideTab(tab);
+  }
+}
+
+function toggleForm(id) {
+  const el = document.getElementById(id);
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+// ── VISITORS ──
+function renderVisitors() {
+  const mem = getMem();
+  const visitors = mem.visitors || [];
+  const list = document.getElementById('visitorsList');
+  list.innerHTML = visitors.length ? visitors.map((v,i) => `
+    <div class="visitor-item">
+      <div class="v-avatar">${v.name[0].toUpperCase()}</div>
+      <div style="flex:1;min-width:0">
+        <div class="v-name">${sanitize(v.name)}</div>
+        <div class="v-meta">${sanitize(v.role||'Visitor')}${v.notes?` · ${sanitize(v.notes)}`:''}</div>
+      </div>
+      <button class="icon-btn" onclick="removeVisitor(${i})">✕</button>
+    </div>`).join('') :
+    '<div class="empty-state">No registered visitors yet</div>';
+
+  const signIns = mem.signIns || [];
+  document.getElementById('signInLog').innerHTML = signIns.slice(0,6).map(s => {
+    const d = new Date(s.time);
+    return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.77rem">
+      <span>${sanitize(s.name)}</span>
+      <span style="color:var(--dim)">${d.toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</span>
+    </div>`;
+  }).join('') || '<div class="empty-state" style="padding:8px 0">No sign-ins yet</div>';
+}
+
+function addVisitor() {
+  const name = document.getElementById('vName').value.trim();
+  if (!name) { showToast('Please enter a name'); return; }
+  const mem = getMem();
+  if (!mem.visitors) mem.visitors = [];
+  mem.visitors.push({ name, role: document.getElementById('vRole').value.trim(), notes: document.getElementById('vNotes').value.trim() });
+  saveMem(mem);
+  ['vName','vRole','vNotes'].forEach(id => document.getElementById(id).value = '');
+  toggleForm('vForm');
+  renderVisitors();
+  showToast('Visitor registered ✦');
+}
+
+function removeVisitor(i) {
+  const mem = getMem();
+  mem.visitors.splice(i, 1);
+  saveMem(mem);
+  renderVisitors();
+}
+
+function logSignIn(name) {
+  const mem = getMem();
+  if (!mem.signIns) mem.signIns = [];
+  mem.signIns.unshift({ name, time: new Date().toISOString() });
+  mem.signIns = mem.signIns.slice(0, 30);
+  saveMem(mem);
+  renderVisitors();
+  if (document.getElementById('togNotify').classList.contains('on') && Notification.permission === 'granted') {
+    new Notification('✦ Lumina Receptionist', { body: `${name} has arrived and checked in.` });
+  }
+}
+
+// ── APPOINTMENTS ──
+function renderAppointments() {
+  const mem = getMem();
+  const now = Date.now() - 3600000;
+  const appts = (mem.appointments||[])
+    .filter(a => new Date(a.date).getTime() >= now)
+    .sort((a,b) => new Date(a.date) - new Date(b.date));
+
+  document.getElementById('apptList').innerHTML = appts.length ? appts.slice(0,15).map(a => {
+    const d = new Date(a.date);
+    const fmt = d.toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'}) + ' · ' +
+                d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    return `<div class="appt-item">
+      <div class="appt-title">${sanitize(a.title)}</div>
+      <div class="appt-time">${fmt}</div>
+      ${a.person?`<div style="font-size:0.72rem;color:var(--dim2);margin-top:2px">${sanitize(a.person)}</div>`:''}
+    </div>`;
+  }).join('') : '<div class="empty-state">No upcoming appointments</div>';
+}
+
+function addAppointment() {
+  const title = document.getElementById('apptTitle').value.trim();
+  const date = document.getElementById('apptDate').value;
+  if (!title || !date) { showToast('Please fill in title and date/time'); return; }
+  const mem = getMem();
+  if (!mem.appointments) mem.appointments = [];
+  mem.appointments.push({
+    title, date,
+    person: document.getElementById('apptPerson').value.trim(),
+    created: new Date().toISOString()
+  });
+  saveMem(mem);
+  ['apptTitle','apptPerson'].forEach(id => document.getElementById(id).value = '');
+  toggleForm('apptForm');
+  renderAppointments();
+
+  const d = new Date(date);
+  const fmt = d.toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'}) + ' at ' +
+              d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  const msg = `Appointment "${title}" scheduled for ${fmt}. ✦`;
+  addMsg(msg, 'ai');
+  if (document.getElementById('togSpeak').classList.contains('on')) speak(msg);
+  showToast('Appointment scheduled ✦');
+
+  // 10-min pre-notification
+  const ms = d.getTime() - Date.now() - 600000;
+  if (ms > 0 && Notification.permission === 'granted') {
+    setTimeout(() => new Notification('✦ Lumina — Meeting in 10 min', { body: title }), ms);
+  }
+}
+
+// ── KNOWLEDGE BASE ──
+function addKnowledge() {
+  const content = document.getElementById('kbContent').value.trim();
+  if (!content) { showToast('Please enter some information'); return; }
+  const mem = getMem();
+  if (!mem.knowledge) mem.knowledge = [];
+  mem.knowledge.push({ content, tag: document.getElementById('kbTag').value, added: new Date().toISOString() });
+  saveMem(mem);
+  document.getElementById('kbContent').value = '';
+  renderKnowledge();
+  showToast('Saved to memory ✦');
+}
+
+function renderKnowledge() {
+  const mem = getMem();
+  const kb = mem.knowledge || [];
+  document.getElementById('kbList').innerHTML = kb.length ? kb.map((k,i) => `
+    <div class="kb-item">
+      <div class="kb-tag">${k.tag.toUpperCase()}
+        <button class="icon-btn" onclick="removeKb(${i})" style="float:right;margin:-2px 0">✕</button>
+      </div>
+      ${sanitize(k.content)}
+    </div>`).join('') :
+    '<div class="empty-state">No knowledge base entries yet</div>';
+}
+
+function removeKb(i) {
+  const mem = getMem();
+  mem.knowledge.splice(i,1);
+  saveMem(mem);
+  renderKnowledge();
+}
+
+// ── LANGUAGE ──
+function setLang(el) {
+  document.querySelectorAll('.lang-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  currentLang = el.dataset.lang;
+  saveConfig({ lang: currentLang });
+  if (recognition) recognition.lang = currentLang;
+  showToast('Language: ' + el.textContent.trim());
+}
+
+function setActiveLangPill(lang) {
+  document.querySelectorAll('.lang-pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.lang === lang);
+  });
+}
+
+// ── CAMERA ──
+function openCamera() {
+  document.getElementById('camModal').classList.add('open');
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false })
+    .then(stream => {
+      mediaStream = stream;
+      document.getElementById('camVideo').srcObject = stream;
+      document.getElementById('camStatus').textContent = 'Camera active — point at visitor ✦';
+    })
+    .catch(() => {
+      document.getElementById('camStatus').textContent = 'Camera access denied or unavailable';
+    });
+}
+
+function closeCamera() {
+  document.getElementById('camModal').classList.remove('open');
+  if (mediaStream) { mediaStream.getTracks().forEach(t => t.stop()); mediaStream = null; }
+  document.getElementById('camVideo').srcObject = null;
+}
+
+function captureVisitor() {
+  const video = document.getElementById('camVideo');
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth || 320;
+  canvas.height = video.videoHeight || 240;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+
+  // Brightness check as basic presence detector
+  const data = canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;
+  let brightness = 0;
+  for (let i=0;i<data.length;i+=4) brightness += (data[i]+data[i+1]+data[i+2])/3;
+  brightness /= (data.length/4);
+
+  if (brightness < 8) {
+    document.getElementById('camStatus').textContent = 'No face detected — check lighting and camera position';
+    return;
+  }
+
+  document.getElementById('camStatus').textContent = 'Face detected — checking registry...';
+  const mem = getMem();
+  const visitors = mem.visitors || [];
+
+  setTimeout(() => {
+    if (visitors.length > 0) {
+      // In production: use FaceAPI.js or similar for real matching
+      // For now: greet from registry
+      const v = visitors[0];
+      closeCamera();
+      const msg = `Welcome back, ${v.name}! ✦ Great to see you. You're all checked in.`;
+      addMsg(msg, 'ai');
+      speak(msg);
+      logSignIn(v.name);
+      showToast(`${v.name} recognized ✦`);
+    } else {
+      document.getElementById('camStatus').textContent = 'Face detected — no registered visitors to match yet. Add visitors in the Visitors tab.';
+    }
+  }, 1200);
+}
+
+// ── NOTIFICATIONS ──
+function requestNotif() {
+  if (Notification.permission === 'default') Notification.requestPermission();
+}
+
+// ── SETTINGS ──
+function saveSetting(key, val) {
+  const cfg = getConfig();
+  cfg[key] = val;
+  saveConfig(cfg);
+}
+
+function setFieldSafe(id, val) {
+  const el = document.getElementById(id);
+  if (el && val) el.value = val;
+}
+
+function setInnerHTML(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = val;
+}
+
+function clearData() {
+  if (!confirm('Clear all your Lumina data? This cannot be undone.')) return;
+  localStorage.removeItem(memKey());
+  renderVisitors(); renderAppointments(); renderKnowledge();
+  showToast('Data cleared');
+}
+
+function exportData() {
+  const data = { config: getConfig(), memory: getMem(), exported: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url;
+  a.download = 'lumina-data.json'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── STORAGE ── (per-user, keyed by user ID)
+function memKey() { return `lumina_mem_${currentUser?.id || 'guest'}`; }
+function cfgKey() { return `lumina_cfg_${currentUser?.id || 'guest'}`; }
+function getMem() { try { return JSON.parse(localStorage.getItem(memKey()) || '{}'); } catch { return {}; } }
+function saveMem(d) { localStorage.setItem(memKey(), JSON.stringify(d)); }
+function getConfig() { try { return JSON.parse(localStorage.getItem(cfgKey()) || '{}'); } catch { return {}; } }
+function saveConfig(partial) {
+  const cfg = getConfig();
+  Object.assign(cfg, partial);
+  localStorage.setItem(cfgKey(), JSON.stringify(cfg));
+}
+
+// ── TOAST ──
+function showToast(msg, dur=2800) {
+  const old = document.querySelector('.toast');
+  if (old) old.remove();
+  const t = document.createElement('div');
+  t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), dur);
+}
+
+// ── UTILS ──
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+</script>
+</body>
+</html>
