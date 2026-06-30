@@ -973,34 +973,25 @@ document.getElementById('emailForm').addEventListener('submit', async (e) => {
     return;
   }
 
-  btnText.textContent = 'Sending...';
-  // Save email to localStorage and attempt Supabase sync
+  btnText.textContent = 'Accessing...';
+  // Save email locally immediately
   email = emailInput.value.trim();
   saveState();
   
-  // Attempt Supabase sync (non-blocking)
-  fetch(`${SUPABASE_URL}/rest/v1/email_captures?apikey=${SUPABASE_KEY}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Prefer': 'return=minimal'
-    },
-    body: JSON.stringify({
-      email: email,
-      source: 'trustlink-learning',
-      nurture_stage: 'day_1'
-    })
-  }).catch(() => {
-    // Silent fail — email is saved locally
-  });
+  // Close gate and unlock app
+  document.getElementById('emailGate').style.display = 'none';
+  render();
   
-  // Unlock immediately
-  successDiv.textContent = 'Welcome! You\'re all set.';
-  successDiv.style.display = 'block';
+  // Async: Attempt Supabase sync in background (silently fail if network issue)
   setTimeout(() => {
-    checkEmailGate();
-    render();
-  }, 800);
+    fetch(`${SUPABASE_URL}/rest/v1/email_captures?apikey=${SUPABASE_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ email, source: 'trustlink-learning', nurture_stage: 'day_1' })
+    }).catch(() => {});
+  }, 100);
+  
+  btnText.textContent = 'Access Studio';
 });
 
 // Generate guide
