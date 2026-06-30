@@ -3,819 +3,1030 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TrustLink — Vetted Local Services</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<title>TrustLink — Find Trusted Local Pros Near You</title>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Inter',sans-serif;background:#0a1628;color:#fff;min-height:100vh;overflow-x:hidden}
-  .glass{background:rgba(255,255,255,0.06);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,0.12)}
-  .glass-dark{background:rgba(0,0,0,0.35);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,0.1)}
-  .orb{position:fixed;border-radius:50%;filter:blur(90px);opacity:0.18;pointer-events:none;z-index:0}
-  .orb1{width:600px;height:600px;background:radial-gradient(#2dd4bf,#0d9488);top:-200px;left:-200px;animation:floatOrb 14s ease-in-out infinite}
-  .orb2{width:500px;height:500px;background:radial-gradient(#f59e0b,#d97706);bottom:-150px;right:-150px;animation:floatOrb 18s ease-in-out infinite reverse}
-  .orb3{width:350px;height:350px;background:radial-gradient(#6366f1,#4f46e5);top:50%;left:50%;transform:translate(-50%,-50%);animation:floatOrb 22s ease-in-out infinite}
-  @keyframes floatOrb{0%,100%{transform:translate(0,0)}50%{transform:translate(0,-40px)}}
-  .orb3{animation:floatOrb3 22s ease-in-out infinite}
-  @keyframes floatOrb3{0%,100%{transform:translate(-50%,-50%)}50%{transform:translate(-50%,-60%)}}
-  .provider-card{transition:transform 0.3s cubic-bezier(0.4,0,0.2,1),box-shadow 0.3s ease}
-  .provider-card:hover{transform:translateY(-8px);box-shadow:0 25px 50px rgba(0,0,0,0.4)}
-  .cat-chip{transition:all 0.2s ease;cursor:pointer}
-  .cat-chip:hover,.cat-chip.active{background:linear-gradient(135deg,#14b8a6,#f59e0b);color:#000;transform:scale(1.06)}
-  .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:9999;align-items:center;justify-content:center;padding:1rem}
-  .modal.open{display:flex}
-  .modal-box{background:#0f1f3d;border:1px solid rgba(255,255,255,0.15);border-radius:1.5rem;padding:2.5rem;width:100%;max-width:480px;position:relative;animation:slideUp 0.3s ease}
-  @keyframes slideUp{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
-  .inp{width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:0.875rem;padding:0.875rem 1.125rem;color:#fff;outline:none;font-size:0.95rem;transition:border-color 0.2s}
-  .inp:focus{border-color:#14b8a6}
-  .inp::placeholder{color:rgba(255,255,255,0.4)}
-  .btn-teal{background:linear-gradient(135deg,#0d9488,#0891b2);color:#fff;border:none;border-radius:0.875rem;padding:0.875rem 1.5rem;font-weight:600;cursor:pointer;transition:all 0.2s;width:100%}
-  .btn-teal:hover{transform:scale(1.02);box-shadow:0 8px 25px rgba(13,148,136,0.4)}
-  .btn-amber{background:linear-gradient(135deg,#f59e0b,#ea580c);color:#000;border:none;border-radius:0.875rem;padding:0.875rem 1.5rem;font-weight:600;cursor:pointer;transition:all 0.2s;width:100%}
-  .btn-amber:hover{transform:scale(1.02);box-shadow:0 8px 25px rgba(245,158,11,0.4)}
-  .star{color:#f59e0b}
-  .badge-verified{background:rgba(20,184,166,0.2);color:#2dd4bf;border:1px solid rgba(20,184,166,0.4);padding:0.2rem 0.7rem;border-radius:9999px;font-size:0.75rem;font-weight:600}
-  .badge-new{background:rgba(99,102,241,0.2);color:#a5b4fc;border:1px solid rgba(99,102,241,0.4);padding:0.2rem 0.7rem;border-radius:9999px;font-size:0.75rem;font-weight:600}
-  .toast{position:fixed;bottom:2rem;right:2rem;z-index:99999;padding:1rem 1.5rem;border-radius:1rem;font-weight:600;font-size:0.9rem;animation:toastIn 0.3s ease;box-shadow:0 10px 30px rgba(0,0,0,0.4)}
-  @keyframes toastIn{from{transform:translateX(100px);opacity:0}to{transform:translateX(0);opacity:1}}
-  .toast-success{background:linear-gradient(135deg,#0d9488,#059669);color:#fff}
-  .toast-error{background:linear-gradient(135deg,#dc2626,#991b1b);color:#fff}
-  .avatar{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;flex-shrink:0}
-  .stars-row span{font-size:1.1rem}
-  select.inp option{background:#0f1f3d;color:#fff}
-  ::-webkit-scrollbar{width:6px}
-  ::-webkit-scrollbar-track{background:#0a1628}
-  ::-webkit-scrollbar-thumb{background:#1e3a5f;border-radius:3px}
-  .skeleton{background:linear-gradient(90deg,rgba(255,255,255,0.05) 25%,rgba(255,255,255,0.1) 50%,rgba(255,255,255,0.05) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite}
-  @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-  .tab-btn{padding:0.5rem 1.25rem;border-radius:9999px;font-weight:600;font-size:0.85rem;cursor:pointer;transition:all 0.2s;border:1px solid rgba(255,255,255,0.15);background:transparent;color:rgba(255,255,255,0.6)}
-  .tab-btn.active{background:linear-gradient(135deg,#0d9488,#0891b2);color:#fff;border-color:transparent}
-  .price-tag{background:rgba(20,184,166,0.15);color:#2dd4bf;border:1px solid rgba(20,184,166,0.3);padding:0.25rem 0.75rem;border-radius:9999px;font-size:0.8rem;font-weight:700}
+:root {
+  --gold: #d4a843;
+  --gold2: #f0c060;
+  --dark: #0a0f1e;
+  --dark2: #111827;
+  --dark3: #1a2235;
+  --teal: #2dd4bf;
+  --teal2: #14b8a6;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --card: rgba(255,255,255,0.06);
+  --border: rgba(255,255,255,0.1);
+  --radius: 16px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--dark);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* Glass */
+.glass{background:rgba(255,255,255,0.07);backdrop-filter:blur(16px);border:1px solid var(--border)}
+
+/* Header */
+header{position:sticky;top:0;z-index:100;background:rgba(10,15,30,0.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:14px 24px}
+.hdr-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--teal),var(--gold));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.logo-text{font-size:22px;font-weight:800;color:#fff}
+.logo-text span{color:var(--gold)}
+.hdr-right{display:flex;align-items:center;gap:10px}
+.btn-ghost{background:none;border:1px solid var(--border);color:var(--text);padding:8px 18px;border-radius:50px;cursor:pointer;font-size:14px;transition:.2s}
+.btn-ghost:hover{background:rgba(255,255,255,0.1)}
+.btn-gold{background:linear-gradient(135deg,var(--gold),#e88c00);color:#000;border:none;padding:9px 20px;border-radius:50px;cursor:pointer;font-size:14px;font-weight:700;transition:.2s}
+.btn-gold:hover{filter:brightness(1.1);transform:translateY(-1px)}
+
+/* Hero */
+.hero{padding:60px 24px 40px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-200px;left:50%;transform:translateX(-50%);width:700px;height:700px;background:radial-gradient(circle,rgba(45,212,191,0.12) 0%,transparent 70%);pointer-events:none}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(45,212,191,0.12);border:1px solid rgba(45,212,191,0.3);color:var(--teal);padding:7px 18px;border-radius:50px;font-size:13px;font-weight:600;margin-bottom:24px}
+.hero h1{font-size:clamp(32px,5vw,58px);font-weight:900;line-height:1.1;margin-bottom:16px}
+.hero h1 span{background:linear-gradient(135deg,var(--teal),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{font-size:18px;color:var(--muted);max-width:540px;margin:0 auto 36px}
+
+/* Search Box */
+.search-box{max-width:700px;margin:0 auto 20px;display:flex;flex-direction:column;gap:12px}
+.search-row{display:flex;gap:10px;flex-wrap:wrap}
+.search-input-wrap{flex:2;min-width:220px;position:relative}
+.search-input-wrap input{width:100%;background:rgba(255,255,255,0.08);border:1.5px solid var(--border);color:#fff;padding:16px 20px;border-radius:var(--radius);font-size:16px;outline:none;transition:.2s}
+.search-input-wrap input:focus{border-color:var(--teal);background:rgba(255,255,255,0.11)}
+.location-wrap{flex:1;min-width:160px;position:relative}
+.location-wrap input{width:100%;background:rgba(255,255,255,0.08);border:1.5px solid var(--border);color:#fff;padding:16px 20px 16px 44px;border-radius:var(--radius);font-size:15px;outline:none;transition:.2s}
+.location-wrap input:focus{border-color:var(--teal)}
+.loc-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:18px;pointer-events:none}
+.btn-locate{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:var(--teal2);border:none;color:#000;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
+.btn-search{background:linear-gradient(135deg,var(--teal2),#0ea5e9);color:#000;border:none;padding:16px 32px;border-radius:var(--radius);font-size:16px;font-weight:700;cursor:pointer;white-space:nowrap;transition:.2s}
+.btn-search:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.btn-ai{background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border:none;padding:13px 22px;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;transition:.2s}
+.btn-ai:hover{filter:brightness(1.1)}
+.search-hint{font-size:13px;color:var(--muted);text-align:center}
+
+/* Stats */
+.stats{display:flex;justify-content:center;gap:32px;flex-wrap:wrap;margin:28px 0 0;padding-top:28px;border-top:1px solid var(--border)}
+.stat{text-align:center}
+.stat-num{font-size:24px;font-weight:800;color:var(--gold)}
+.stat-label{font-size:12px;color:var(--muted)}
+
+/* Categories */
+.section{padding:48px 24px}
+.section-inner{max-width:1200px;margin:0 auto}
+.section-title{font-size:28px;font-weight:800;margin-bottom:8px}
+.section-sub{color:var(--muted);margin-bottom:28px}
+.cats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px}
+.cat-btn{background:var(--card);border:1px solid var(--border);color:var(--text);padding:16px 12px;border-radius:var(--radius);cursor:pointer;text-align:center;transition:.2s;display:flex;flex-direction:column;align-items:center;gap:8px}
+.cat-btn:hover,.cat-btn.active{background:rgba(45,212,191,0.15);border-color:var(--teal);color:var(--teal)}
+.cat-icon{font-size:28px}
+.cat-label{font-size:12px;font-weight:600}
+
+/* Results */
+#results-section{padding:40px 24px}
+.results-inner{max-width:1200px;margin:0 auto}
+.results-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px}
+.results-title{font-size:22px;font-weight:800}
+.results-count{color:var(--teal);font-size:18px;font-weight:700}
+.sort-row{display:flex;gap:8px;flex-wrap:wrap}
+.sort-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:8px 16px;border-radius:50px;cursor:pointer;font-size:13px;transition:.2s}
+.sort-btn.active,.sort-btn:hover{background:rgba(45,212,191,0.15);border-color:var(--teal);color:var(--teal)}
+
+/* Business Cards */
+.biz-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
+.biz-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:20px;transition:.3s;cursor:pointer;position:relative;overflow:hidden}
+.biz-card:hover{border-color:rgba(45,212,191,0.4);background:rgba(255,255,255,0.1);transform:translateY(-4px)}
+.biz-card.featured{border-color:rgba(212,168,67,0.4);background:rgba(212,168,67,0.06)}
+.biz-card.featured::before{content:'⭐ FEATURED';position:absolute;top:12px;right:12px;background:var(--gold);color:#000;font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px}
+.biz-top{display:flex;align-items:flex-start;gap:14px;margin-bottom:14px}
+.biz-avatar{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;background:linear-gradient(135deg,rgba(45,212,191,0.2),rgba(212,168,67,0.2))}
+.biz-info{flex:1;min-width:0}
+.biz-name{font-size:16px;font-weight:700;color:#fff;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.biz-cat{font-size:13px;color:var(--teal);font-weight:600}
+.biz-badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid}
+.badge-verified{color:#22c55e;border-color:rgba(34,197,94,0.3);background:rgba(34,197,94,0.08)}
+.badge-ai{color:#a78bfa;border-color:rgba(167,139,250,0.3);background:rgba(167,139,250,0.08)}
+.badge-new{color:var(--gold);border-color:rgba(212,168,67,0.3);background:rgba(212,168,67,0.08)}
+.biz-meta{display:flex;align-items:center;gap:14px;margin-bottom:12px;flex-wrap:wrap}
+.biz-rating{display:flex;align-items:center;gap:5px;font-size:14px;font-weight:700;color:var(--gold)}
+.biz-dist{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:4px}
+.biz-addr{font-size:12px;color:var(--muted);margin-bottom:12px;display:flex;align-items:flex-start;gap:6px;line-height:1.4}
+.biz-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn-call{background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);color:#22c55e;padding:9px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:6px;transition:.2s}
+.btn-call:hover{background:rgba(34,197,94,0.25)}
+.btn-book{background:linear-gradient(135deg,var(--teal2),#0ea5e9);color:#000;border:none;padding:9px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:.2s}
+.btn-book:hover{filter:brightness(1.1)}
+.btn-review{background:rgba(212,168,67,0.12);border:1px solid rgba(212,168,67,0.25);color:var(--gold);padding:9px 14px;border-radius:10px;font-size:13px;cursor:pointer;transition:.2s}
+.btn-review:hover{background:rgba(212,168,67,0.2)}
+
+/* Loading */
+.loading{text-align:center;padding:60px;color:var(--muted)}
+.spinner{width:44px;height:44px;border:3px solid var(--border);border-top:3px solid var(--teal);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Empty State */
+.empty{text-align:center;padding:60px;color:var(--muted)}
+.empty-icon{font-size:56px;margin-bottom:16px}
+.empty h3{font-size:20px;color:var(--text);margin-bottom:8px}
+
+/* AI Result Box */
+.ai-box{background:linear-gradient(135deg,rgba(124,58,237,0.12),rgba(168,85,247,0.08));border:1px solid rgba(167,139,250,0.25);border-radius:var(--radius);padding:18px;margin-bottom:24px;display:none}
+.ai-box-title{font-size:13px;font-weight:700;color:#a78bfa;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.ai-box-text{font-size:14px;color:var(--text);line-height:1.6}
+
+/* Upsell Banner */
+.upsell-banner{background:linear-gradient(135deg,rgba(212,168,67,0.12),rgba(232,140,0,0.08));border:1px solid rgba(212,168,67,0.25);border-radius:var(--radius);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:28px}
+.upsell-text h4{font-size:15px;font-weight:700;color:var(--gold);margin-bottom:4px}
+.upsell-text p{font-size:13px;color:var(--muted)}
+.upsell-actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn-upsell{padding:10px 20px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:.2s;text-decoration:none;display:inline-block}
+.btn-upsell-gold{background:var(--gold);color:#000}
+.btn-upsell-ghost{background:none;border:1px solid var(--gold);color:var(--gold)}
+
+/* Modals */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--dark2);border:1px solid var(--border);border-radius:24px;padding:28px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;position:relative}
+.modal-close{position:absolute;top:16px;right:16px;background:var(--card);border:none;color:var(--text);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center}
+.modal h2{font-size:22px;font-weight:800;margin-bottom:6px}
+.modal p.modal-sub{font-size:14px;color:var(--muted);margin-bottom:20px}
+.modal-biz-header{display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--border)}
+.modal-biz-avatar{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;background:linear-gradient(135deg,rgba(45,212,191,0.2),rgba(212,168,67,0.2));flex-shrink:0}
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px}
+.form-input{width:100%;background:rgba(255,255,255,0.08);border:1.5px solid var(--border);color:#fff;padding:12px 16px;border-radius:10px;font-size:14px;outline:none;transition:.2s}
+.form-input:focus{border-color:var(--teal)}
+.form-input::placeholder{color:var(--muted)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn-submit{width:100%;background:linear-gradient(135deg,var(--teal2),#0ea5e9);color:#000;border:none;padding:14px;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;margin-top:6px;transition:.2s}
+.btn-submit:hover{filter:brightness(1.1)}
+.btn-submit:disabled{opacity:.5;cursor:not-allowed}
+.success-msg{background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:10px;padding:14px;text-align:center;color:#22c55e;font-weight:600;display:none}
+
+/* Review modal stars */
+.star-row{display:flex;gap:8px;margin:12px 0}
+.star-btn{font-size:28px;cursor:pointer;transition:.2s;background:none;border:none;line-height:1;filter:grayscale(1) opacity(0.4)}
+.star-btn.on{filter:none}
+
+/* Claim Modal */
+.claim-features{list-style:none;margin:14px 0 20px}
+.claim-features li{display:flex;align-items:center;gap:10px;padding:8px 0;font-size:14px;color:var(--text);border-bottom:1px solid var(--border)}
+.claim-features li:last-child{border:none}
+.feat-icon{font-size:18px}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;right:24px;z-index:999;padding:14px 20px;border-radius:12px;font-size:14px;font-weight:600;max-width:320px;animation:slideUp .3s ease;display:none}
+.toast.success{background:rgba(34,197,94,0.9);color:#000}
+.toast.error{background:rgba(239,68,68,0.9);color:#fff}
+.toast.info{background:rgba(45,212,191,0.9);color:#000}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* Footer banner */
+.cta-section{padding:48px 24px;text-align:center;background:linear-gradient(135deg,rgba(45,212,191,0.06),rgba(212,168,67,0.06));border-top:1px solid var(--border)}
+.cta-section h2{font-size:28px;font-weight:800;margin-bottom:10px}
+.cta-section p{color:var(--muted);margin-bottom:24px}
+.cta-btns{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.footer{padding:24px;text-align:center;color:var(--muted);font-size:13px;border-top:1px solid var(--border)}
+.footer a{color:var(--teal);text-decoration:none}
+
+/* Auth tabs */
+.auth-tabs{display:flex;gap:0;margin-bottom:20px;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.auth-tab{flex:1;background:none;border:none;color:var(--muted);padding:11px;cursor:pointer;font-size:14px;font-weight:600;transition:.2s}
+.auth-tab.active{background:var(--teal2);color:#000}
+
+/* Map placeholder */
+.map-placeholder{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);height:200px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px;margin-bottom:24px;flex-direction:column;gap:8px}
+
+/* Responsive */
+@media(max-width:600px){
+  .search-row{flex-direction:column}
+  .biz-grid{grid-template-columns:1fr}
+  .hdr-right .btn-ghost{display:none}
+  .form-row{grid-template-columns:1fr}
+  .sort-row{display:none}
+}
 </style>
 </head>
 <body>
 
-<!-- BG Orbs -->
-<div class="orb orb1"></div>
-<div class="orb orb2"></div>
-<div class="orb orb3"></div>
-
-<!-- ═══ HEADER ═══ -->
-<header class="glass sticky top-0 z-50" style="border-bottom:1px solid rgba(255,255,255,0.1)">
-  <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center gap-4">
-    <a href="#" class="flex items-center gap-3" style="text-decoration:none">
-      <div style="width:42px;height:42px;background:linear-gradient(135deg,#14b8a6,#f59e0b);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">🔗</div>
-      <span style="font-size:1.5rem;font-weight:800;color:#fff">TrustLink</span>
-      <span style="background:rgba(20,184,166,0.2);color:#2dd4bf;border:1px solid rgba(20,184,166,0.4);padding:0.15rem 0.6rem;border-radius:9999px;font-size:0.7rem;font-weight:700">BETA</span>
+<!-- Header -->
+<header>
+  <div class="hdr-inner">
+    <a class="logo" href="#">
+      <div class="logo-icon">🔗</div>
+      <div class="logo-text">Trust<span>Link</span></div>
     </a>
-    <div class="flex items-center gap-2" style="flex-wrap:wrap">
-      <span id="userGreeting" style="color:rgba(255,255,255,0.6);font-size:0.85rem;display:none"></span>
-      <button id="btnMyBookings" onclick="showMyBookings()" style="display:none;padding:0.45rem 1rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:9999px;color:#fff;font-size:0.85rem;cursor:pointer;font-weight:500">📅 Bookings</button>
-      <button id="btnLogin" onclick="openModal('authModal')" style="padding:0.45rem 1rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:9999px;color:#fff;font-size:0.85rem;cursor:pointer;font-weight:500">Login</button>
-      <button id="btnLogout" onclick="doLogout()" style="display:none;padding:0.45rem 1rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:9999px;color:#fff;font-size:0.85rem;cursor:pointer;font-weight:500">Logout</button>
-      <button onclick="openModal('bizModal')" style="padding:0.5rem 1.2rem;background:linear-gradient(135deg,#f59e0b,#ea580c);border:none;border-radius:9999px;color:#000;font-size:0.85rem;cursor:pointer;font-weight:700;white-space:nowrap">For Businesses ↗</button>
+    <div class="hdr-right">
+      <button class="btn-ghost" onclick="openAuthModal()">Sign In</button>
+      <button class="btn-gold" onclick="openClaimModal(null)">List Your Business</button>
     </div>
   </div>
 </header>
 
-<!-- ═══ HERO ═══ -->
-<section style="padding:5rem 1.5rem 3rem;position:relative;z-index:1">
-  <div class="max-w-7xl mx-auto">
-    <div style="display:grid;gap:3rem;align-items:center" class="md:grid-cols-2">
-      <!-- Left -->
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-badge">✅ AI-Verified Local Pros • Free to Search • Book Instantly</div>
+  <h1>Find Trusted Pros.<br><span>Powered by AI.</span></h1>
+  <p>Real businesses. Real reviews. AI matches the best fit — then connects you directly.</p>
+
+  <div class="search-box">
+    <div class="search-row">
+      <div class="search-input-wrap">
+        <input type="text" id="serviceInput" placeholder="What do you need? (e.g. plumber, house cleaning)" 
+               onkeydown="if(event.key==='Enter')doSearch()">
+      </div>
+      <div class="location-wrap">
+        <span class="loc-icon">📍</span>
+        <input type="text" id="cityInput" placeholder="City or zip" onkeydown="if(event.key==='Enter')doSearch()">
+        <button class="btn-locate" onclick="detectLocation()" title="Use my location">⌖</button>
+      </div>
+      <button class="btn-search" onclick="doSearch()">Search</button>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="btn-ai" onclick="doAISearch()">🤖 AI Smart Match</button>
+      <button class="btn-ghost" onclick="doSearch()" style="padding:12px 20px;border-radius:12px;font-size:14px">📍 Find Near Me</button>
+    </div>
+    <p class="search-hint" id="locationStatus">📍 Enter your city or click "Find Near Me" to auto-detect your location</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-num">15K+</div><div class="stat-label">Local Businesses</div></div>
+    <div class="stat"><div class="stat-num">58K+</div><div class="stat-label">Bookings Made</div></div>
+    <div class="stat"><div class="stat-num">99.4%</div><div class="stat-label">Satisfaction Rate</div></div>
+    <div class="stat"><div class="stat-num">Free</div><div class="stat-label">For Consumers</div></div>
+  </div>
+</section>
+
+<!-- Categories -->
+<section class="section" style="padding-top:0;background:rgba(255,255,255,0.02);border-top:1px solid var(--border)">
+  <div class="section-inner">
+    <h2 class="section-title">Browse by Service</h2>
+    <p class="section-sub">Click any category to find pros near you</p>
+    <div class="cats-grid" id="catsGrid"></div>
+  </div>
+</section>
+
+<!-- Results -->
+<section id="results-section" style="display:none">
+  <div class="results-inner">
+    <!-- AI Box -->
+    <div class="ai-box" id="aiBox">
+      <div class="ai-box-title">🤖 Grok AI Analysis</div>
+      <div class="ai-box-text" id="aiBoxText"></div>
+    </div>
+
+    <!-- Upsell Banner -->
+    <div class="upsell-banner">
+      <div class="upsell-text">
+        <h4>🚀 Is your business listed here? Claim it FREE + Boost your Google rating</h4>
+        <p>Get a Featured badge, AI Receptionist, and more 5-star reviews on Google Maps automatically</p>
+      </div>
+      <div class="upsell-actions">
+        <button class="btn-upsell btn-upsell-gold" onclick="openClaimModal(null)">Claim Free Listing</button>
+        <a class="btn-upsell btn-upsell-ghost" href="https://tlott12.gumroad.com/l/reviewpilotpro" target="_blank">Boost Google Rating ⭐</a>
+      </div>
+    </div>
+
+    <div class="results-header">
       <div>
-        <div style="display:inline-flex;align-items:center;gap:0.5rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);padding:0.5rem 1.25rem;border-radius:9999px;font-size:0.85rem;margin-bottom:1.5rem">
-          <span style="color:#2dd4bf">✓</span> Background-checked &amp; insured providers
-        </div>
-        <h1 style="font-size:clamp(2.2rem,5vw,3.75rem);font-weight:800;line-height:1.15;margin-bottom:1.25rem">
-          Find Trusted<br>Local Pros.<br>
-          <span style="background:linear-gradient(90deg,#2dd4bf,#38bdf8,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Booked by AI.</span>
-        </h1>
-        <p style="font-size:1.15rem;color:rgba(255,255,255,0.65);margin-bottom:2rem;max-width:440px">Instant AI-powered matches. Real-time availability. 99.7% satisfaction rate.</p>
-
-        <!-- Search Bar -->
-        <div class="glass" style="padding:1.5rem;border-radius:1.5rem">
-          <div style="display:flex;gap:0.75rem;margin-bottom:1rem">
-            <input id="searchInput" type="text" placeholder="What do you need? (e.g. plumber, elder care, tutoring…)" 
-              class="inp" style="flex:1" onkeypress="if(event.key==='Enter')performSearch()">
-            <select id="locationSel" class="inp" style="width:130px;flex-shrink:0">
-              <option value="">All Cities</option>
-              <option>Miami, FL</option>
-              <option>Atlanta, GA</option>
-              <option>Houston, TX</option>
-              <option>Chicago, IL</option>
-              <option>New York, NY</option>
-              <option>Los Angeles, CA</option>
-            </select>
-          </div>
-          <button onclick="performSearch()" class="btn-teal" style="padding:1rem">
-            <i class="fas fa-search" style="margin-right:0.5rem"></i>Find Providers Near Me →
-          </button>
-        </div>
-
-        <!-- Stats -->
-        <div style="display:flex;gap:2rem;margin-top:1.5rem;flex-wrap:wrap">
-          <div><div style="font-size:1.75rem;font-weight:800;color:#2dd4bf">2,400+</div><div style="font-size:0.8rem;color:rgba(255,255,255,0.5)">Verified Providers</div></div>
-          <div><div style="font-size:1.75rem;font-weight:800;color:#f59e0b">48K+</div><div style="font-size:0.8rem;color:rgba(255,255,255,0.5)">Bookings Completed</div></div>
-          <div><div style="font-size:1.75rem;font-weight:800;color:#a5b4fc">4.9★</div><div style="font-size:0.8rem;color:rgba(255,255,255,0.5)">Average Rating</div></div>
-        </div>
+        <div class="results-title">Providers Near You <span class="results-count" id="resultCount"></span></div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px" id="searchContext"></div>
       </div>
-
-      <!-- Right — Featured Card -->
-      <div id="featuredCard" class="glass provider-card" style="border-radius:1.5rem;padding:2rem;cursor:pointer;position:relative;overflow:hidden">
-        <div style="position:absolute;top:0;right:0;width:180px;height:180px;background:radial-gradient(circle,rgba(20,184,166,0.15),transparent);border-radius:50%;transform:translate(40px,-40px)"></div>
-        <div style="display:flex;gap:1rem;align-items:flex-start;margin-bottom:1.5rem">
-          <div class="avatar" style="background:linear-gradient(135deg,#0d9488,#0891b2)">SC</div>
-          <div style="flex:1">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start">
-              <div>
-                <div style="font-weight:700;font-size:1.15rem">Sarah Chen</div>
-                <div style="color:rgba(255,255,255,0.6);font-size:0.85rem">Master Plumber · 12 yrs exp</div>
-              </div>
-              <span class="badge-verified">✓ Verified</span>
-            </div>
-            <div class="stars-row" style="margin-top:0.4rem">
-              <span class="star">★★★★★</span> <span style="color:rgba(255,255,255,0.6);font-size:0.85rem">4.9 (312 reviews)</span>
-            </div>
-          </div>
-        </div>
-        <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1.25rem">
-          <span style="background:rgba(255,255,255,0.08);padding:0.3rem 0.75rem;border-radius:9999px;font-size:0.8rem">🔧 Plumbing</span>
-          <span style="background:rgba(255,255,255,0.08);padding:0.3rem 0.75rem;border-radius:9999px;font-size:0.8rem">🏠 Miami, FL</span>
-          <span style="background:rgba(255,255,255,0.08);padding:0.3rem 0.75rem;border-radius:9999px;font-size:0.8rem">⚡ Same-day</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div><span class="price-tag">$85/hr</span> <span style="color:rgba(255,255,255,0.5);font-size:0.8rem;margin-left:0.5rem">· Free estimate</span></div>
-          <button onclick="openBookingFromFeatured()" class="btn-teal" style="width:auto;padding:0.65rem 1.5rem">Book Now</button>
-        </div>
-        <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid rgba(255,255,255,0.1);font-size:0.85rem;color:rgba(255,255,255,0.55);font-style:italic">
-          "Showed up on time and fixed our burst pipe in under 2 hours. Absolutely professional." — Maria T.
-        </div>
+      <div class="sort-row">
+        <button class="sort-btn active" data-sort="dist" onclick="sortResults(this,'dist')">📍 Nearest</button>
+        <button class="sort-btn" data-sort="rating" onclick="sortResults(this,'rating')">⭐ Top Rated</button>
+        <button class="sort-btn" data-sort="alpha" onclick="sortResults(this,'alpha')">A–Z</button>
       </div>
+    </div>
+    <div class="biz-grid" id="bizGrid"></div>
+    <div class="loading" id="loadingSpinner" style="display:none">
+      <div class="spinner"></div>
+      <p>Finding trusted pros near you…</p>
+    </div>
+    <div class="empty" id="emptyState" style="display:none">
+      <div class="empty-icon">🔍</div>
+      <h3>No businesses found</h3>
+      <p>Try a different service or city, or be the first to list your business here!</p>
+      <button class="btn-gold" style="margin-top:16px;padding:12px 24px;border-radius:12px" onclick="openClaimModal(null)">Add Your Business FREE</button>
     </div>
   </div>
 </section>
 
-<!-- ═══ CATEGORIES ═══ -->
-<section style="padding:1rem 1.5rem 3rem;position:relative;z-index:1">
-  <div class="max-w-7xl mx-auto">
-    <h2 style="font-size:1.75rem;font-weight:700;text-align:center;margin-bottom:2rem">Browse by Service</h2>
-    <div id="categories" style="display:flex;flex-wrap:wrap;gap:0.75rem;justify-content:center"></div>
+<!-- Bottom CTA -->
+<section class="cta-section">
+  <h2>Are You a Local Business?</h2>
+  <p>Join TrustLink free. Get found by AI-matched customers. Activate your AI receptionist so you never miss a call.</p>
+  <div class="cta-btns">
+    <button class="btn-gold" style="padding:14px 28px;border-radius:14px;font-size:15px" onclick="openClaimModal(null)">🏢 List My Business FREE</button>
+    <a class="btn-ghost" style="padding:14px 28px;border-radius:14px;font-size:15px;text-decoration:none" href="https://shop.artistrystore.com/lumina-receptionist.html" target="_blank">🤖 Activate AI Receptionist</a>
+    <a class="btn-ghost" style="padding:14px 28px;border-radius:14px;font-size:15px;text-decoration:none" href="https://tlott12.gumroad.com/l/reviewpilotpro" target="_blank">⭐ Boost Google Reviews</a>
   </div>
 </section>
 
-<!-- ═══ HOW IT WORKS ═══ -->
-<section style="padding:2rem 1.5rem 3rem;position:relative;z-index:1;background:rgba(255,255,255,0.03)">
-  <div class="max-w-7xl mx-auto">
-    <h2 style="font-size:1.75rem;font-weight:700;text-align:center;margin-bottom:2.5rem">How TrustLink Works</h2>
-    <div style="display:grid;gap:1.5rem" class="md:grid-cols-3">
-      <div class="glass" style="padding:2rem;border-radius:1.25rem;text-align:center">
-        <div style="font-size:2.5rem;margin-bottom:1rem">🔍</div>
-        <div style="font-weight:700;font-size:1.1rem;margin-bottom:0.5rem">1. Search</div>
-        <div style="color:rgba(255,255,255,0.6);font-size:0.9rem">Tell us what you need. Our AI matches you with verified local pros instantly.</div>
-      </div>
-      <div class="glass" style="padding:2rem;border-radius:1.25rem;text-align:center">
-        <div style="font-size:2.5rem;margin-bottom:1rem">📅</div>
-        <div style="font-weight:700;font-size:1.1rem;margin-bottom:0.5rem">2. Book</div>
-        <div style="color:rgba(255,255,255,0.6);font-size:0.9rem">Choose your provider, pick a time, and confirm — all in under 60 seconds.</div>
-      </div>
-      <div class="glass" style="padding:2rem;border-radius:1.25rem;text-align:center">
-        <div style="font-size:2.5rem;margin-bottom:1rem">✅</div>
-        <div style="font-weight:700;font-size:1.1rem;margin-bottom:0.5rem">3. Done</div>
-        <div style="color:rgba(255,255,255,0.6);font-size:0.9rem">Your pro arrives, gets the job done, and you leave a verified review.</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══ RESULTS ═══ -->
-<section id="resultsSection" style="display:none;padding:2rem 1.5rem 3rem;position:relative;z-index:1">
-  <div class="max-w-7xl mx-auto">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:gap">
-      <h2 style="font-size:1.5rem;font-weight:700">
-        <span id="resultLabel">Providers</span> 
-        <span id="resultCount" style="color:#2dd4bf"></span>
-      </h2>
-      <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
-        <button class="tab-btn active" onclick="sortResults('rating',this)">Top Rated</button>
-        <button class="tab-btn" onclick="sortResults('price',this)">Lowest Price</button>
-        <button class="tab-btn" onclick="sortResults('distance',this)">Nearest</button>
-      </div>
-    </div>
-    <div id="resultsGrid" style="display:grid;gap:1.5rem;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))"></div>
-  </div>
-</section>
-
-<!-- ═══ ALL PROVIDERS ═══ -->
-<section style="padding:2rem 1.5rem 4rem;position:relative;z-index:1">
-  <div class="max-w-7xl mx-auto">
-    <h2 style="font-size:1.75rem;font-weight:700;margin-bottom:1.5rem">Featured Providers</h2>
-    <div id="allProviders" style="display:grid;gap:1.5rem;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))">
-      <!-- Skeleton loaders -->
-      <div class="glass skeleton" style="border-radius:1.25rem;height:200px"></div>
-      <div class="glass skeleton" style="border-radius:1.25rem;height:200px"></div>
-      <div class="glass skeleton" style="border-radius:1.25rem;height:200px"></div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══ FOOTER ═══ -->
-<footer style="background:rgba(0,0,0,0.4);border-top:1px solid rgba(255,255,255,0.08);padding:2rem 1.5rem;text-align:center;position:relative;z-index:1">
-  <div style="font-size:1.25rem;font-weight:700;margin-bottom:0.5rem">🔗 TrustLink</div>
-  <div style="color:rgba(255,255,255,0.4);font-size:0.85rem;margin-bottom:1rem">Connecting communities with trusted local professionals</div>
-  <div style="display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap;font-size:0.85rem">
-    <a href="https://shop.artistrystore.com" style="color:rgba(255,255,255,0.5);text-decoration:none">← Back to Store</a>
-    <a href="https://shop.artistrystore.com/lead-magnets-landing.html" style="color:rgba(255,255,255,0.5);text-decoration:none">Free Resources</a>
-    <a href="#" onclick="openModal('bizModal')" style="color:#2dd4bf;text-decoration:none">List Your Business</a>
-  </div>
-  <div style="margin-top:1.5rem;color:rgba(255,255,255,0.3);font-size:0.75rem">Powered by Artistry Store · AI-Driven Service Matching</div>
+<footer class="footer">
+  <p>© 2026 TrustLink · Powered by <a href="https://shop.artistrystore.com/store.html" target="_blank">Artistry AI</a> · 
+  <a href="https://shop.artistrystore.com/lumina-receptionist.html" target="_blank">AI Receptionist</a> · 
+  <a href="https://shop.artistrystore.com/store.html" target="_blank">Browse All Tools</a></p>
 </footer>
 
-<!-- ═══════════════════════════════════════════════ -->
-<!-- MODALS -->
-<!-- ═══════════════════════════════════════════════ -->
-
-<!-- AUTH MODAL -->
-<div id="authModal" class="modal">
-  <div class="modal-box">
-    <button onclick="closeModal('authModal')" style="position:absolute;top:1rem;right:1.25rem;background:none;border:none;color:rgba(255,255,255,0.5);font-size:1.4rem;cursor:pointer">✕</button>
-    <div style="text-align:center;margin-bottom:1.75rem">
-      <div style="font-size:2rem;margin-bottom:0.5rem">🔗</div>
-      <h2 style="font-size:1.5rem;font-weight:700" id="authTitle">Welcome Back</h2>
-      <p style="color:rgba(255,255,255,0.5);font-size:0.85rem;margin-top:0.25rem" id="authSub">Sign in to your TrustLink account</p>
-    </div>
-    <div id="authForms">
-      <!-- Login Form -->
-      <div id="loginForm">
-        <div style="display:flex;flex-direction:column;gap:1rem">
-          <input id="loginEmail" type="email" class="inp" placeholder="Email address">
-          <input id="loginPass" type="password" class="inp" placeholder="Password" onkeypress="if(event.key==='Enter')doLogin()">
-          <button onclick="doLogin()" class="btn-teal">Sign In</button>
-        </div>
-        <p style="text-align:center;margin-top:1.25rem;color:rgba(255,255,255,0.5);font-size:0.85rem">
-          No account? <a href="#" onclick="switchAuthMode('signup')" style="color:#2dd4bf;text-decoration:none">Create one free</a>
-        </p>
-      </div>
-      <!-- Signup Form -->
-      <div id="signupForm" style="display:none">
-        <div style="display:flex;flex-direction:column;gap:1rem">
-          <input id="signupName" type="text" class="inp" placeholder="Your full name">
-          <input id="signupEmail" type="email" class="inp" placeholder="Email address">
-          <input id="signupPass" type="password" class="inp" placeholder="Password (min 6 chars)" onkeypress="if(event.key==='Enter')doSignup()">
-          <button onclick="doSignup()" class="btn-teal">Create Free Account</button>
-        </div>
-        <p style="text-align:center;margin-top:1.25rem;color:rgba(255,255,255,0.5);font-size:0.85rem">
-          Already have one? <a href="#" onclick="switchAuthMode('login')" style="color:#2dd4bf;text-decoration:none">Sign in</a>
-        </p>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- BOOKING MODAL -->
-<div id="bookingModal" class="modal">
-  <div class="modal-box" style="max-width:520px">
-    <button onclick="closeModal('bookingModal')" style="position:absolute;top:1rem;right:1.25rem;background:none;border:none;color:rgba(255,255,255,0.5);font-size:1.4rem;cursor:pointer">✕</button>
-    <h2 style="font-size:1.4rem;font-weight:700;margin-bottom:0.25rem" id="bookingTitle">Book Service</h2>
-    <p style="color:rgba(255,255,255,0.5);font-size:0.85rem;margin-bottom:1.5rem" id="bookingSubtitle">Fill in your details below</p>
-    <div style="display:flex;flex-direction:column;gap:1rem">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem">
-        <div>
-          <label style="display:block;font-size:0.8rem;color:rgba(255,255,255,0.6);margin-bottom:0.4rem">Date</label>
-          <input id="bookDate" type="date" class="inp">
-        </div>
-        <div>
-          <label style="display:block;font-size:0.8rem;color:rgba(255,255,255,0.6);margin-bottom:0.4rem">Time</label>
-          <select id="bookTime" class="inp">
-            <option>8:00 AM</option><option>9:00 AM</option><option>10:00 AM</option>
-            <option>11:00 AM</option><option>12:00 PM</option><option>1:00 PM</option>
-            <option>2:00 PM</option><option>3:00 PM</option><option>4:00 PM</option>
-            <option>5:00 PM</option>
-          </select>
-        </div>
-      </div>
-      <div>
-        <label style="display:block;font-size:0.8rem;color:rgba(255,255,255,0.6);margin-bottom:0.4rem">Service Address</label>
-        <input id="bookAddress" type="text" class="inp" placeholder="123 Main St, City, State">
-      </div>
-      <div>
-        <label style="display:block;font-size:0.8rem;color:rgba(255,255,255,0.6);margin-bottom:0.4rem">Describe the job</label>
-        <textarea id="bookDesc" class="inp" rows="3" placeholder="What needs to be done? Any specific details…" style="resize:vertical"></textarea>
-      </div>
-      <div>
-        <label style="display:block;font-size:0.8rem;color:rgba(255,255,255,0.6);margin-bottom:0.4rem">Contact Phone (optional)</label>
-        <input id="bookPhone" type="tel" class="inp" placeholder="+1 (555) 000-0000">
-      </div>
-      <button onclick="submitBooking()" class="btn-teal" style="padding:1rem">Confirm Booking ✓</button>
-      <p style="text-align:center;font-size:0.8rem;color:rgba(255,255,255,0.4)">Free cancellation up to 24 hours before · No payment now</p>
+<div class="modal-overlay" id="bookingModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('bookingModal')">✕</button>
+    <h2>📅 Book Appointment</h2>
+    <div class="modal-biz-header" id="bookingBizHeader"></div>
+    <p class="modal-sub">Fill in your info and we'll connect you directly with this business.</p>
+    <div class="form-group">
+      <label class="form-label">Your Name</label>
+      <input class="form-input" id="bookName" placeholder="Full name">
     </div>
-  </div>
-</div>
-
-<!-- BUSINESS MODAL -->
-<div id="bizModal" class="modal">
-  <div class="modal-box" style="max-width:540px">
-    <button onclick="closeModal('bizModal')" style="position:absolute;top:1rem;right:1.25rem;background:none;border:none;color:rgba(255,255,255,0.5);font-size:1.4rem;cursor:pointer">✕</button>
-    <div style="text-align:center;margin-bottom:1.5rem">
-      <div style="font-size:2rem;margin-bottom:0.5rem">🏢</div>
-      <h2 style="font-size:1.4rem;font-weight:700">List Your Business on TrustLink</h2>
-      <p style="color:rgba(255,255,255,0.5);font-size:0.85rem;margin-top:0.25rem">Join 2,400+ verified providers. Free to list.</p>
+    <div class="form-group">
+      <label class="form-label">Phone Number</label>
+      <input class="form-input" id="bookPhone" placeholder="(555) 000-0000" type="tel">
     </div>
-    <div style="display:flex;flex-direction:column;gap:1rem">
-      <input id="bizName" type="text" class="inp" placeholder="Business / Your Name">
-      <input id="bizEmail" type="email" class="inp" placeholder="Contact email">
-      <input id="bizPhone" type="tel" class="inp" placeholder="Phone number">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem">
-        <select id="bizService" class="inp">
-          <option value="">Service Category</option>
-          <option>Plumbing</option><option>Electrical</option><option>Elder Care</option>
-          <option>Tutoring</option><option>Landscaping</option><option>Cleaning</option>
-          <option>HVAC</option><option>Painting</option><option>Carpentry</option>
-          <option>Pet Care</option><option>Child Care</option><option>Transportation</option>
-          <option>Nutrition</option><option>Mental Health</option><option>Other</option>
-        </select>
-        <input id="bizCity" type="text" class="inp" placeholder="City, State">
-      </div>
-      <input id="bizRate" type="text" class="inp" placeholder="Your rate (e.g. $75/hr or $150 flat)">
-      <textarea id="bizBio" class="inp" rows="3" placeholder="Brief bio — what makes you great? Years of experience, certifications…" style="resize:vertical"></textarea>
-      <div style="display:flex;align-items:flex-start;gap:0.75rem">
-        <input type="checkbox" id="bizAgree" style="margin-top:0.2rem;width:16px;height:16px;flex-shrink:0">
-        <label for="bizAgree" style="font-size:0.82rem;color:rgba(255,255,255,0.6)">I confirm I am licensed/insured where required and agree to TrustLink's provider standards</label>
-      </div>
-      <button onclick="submitBusinessApp()" class="btn-amber" style="padding:1rem">Submit Application →</button>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input class="form-input" id="bookEmail" placeholder="your@email.com" type="email">
     </div>
-  </div>
-</div>
-
-<!-- MY BOOKINGS MODAL -->
-<div id="bookingsModal" class="modal">
-  <div class="modal-box" style="max-width:600px">
-    <button onclick="closeModal('bookingsModal')" style="position:absolute;top:1rem;right:1.25rem;background:none;border:none;color:rgba(255,255,255,0.5);font-size:1.4rem;cursor:pointer">✕</button>
-    <h2 style="font-size:1.4rem;font-weight:700;margin-bottom:1.5rem">📅 My Bookings</h2>
-    <div id="bookingsList" style="display:flex;flex-direction:column;gap:1rem;max-height:400px;overflow-y:auto"></div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Date</label>
+        <input class="form-input" id="bookDate" type="date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Time</label>
+        <input class="form-input" id="bookTime" type="time">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Service Needed</label>
+      <textarea class="form-input" id="bookNotes" rows="3" placeholder="Briefly describe what you need…" style="resize:vertical"></textarea>
+    </div>
+    <button class="btn-submit" id="bookBtn" onclick="submitBooking()">Confirm Booking Request →</button>
+    <div class="success-msg" id="bookSuccess">✅ Booking request sent! The business will contact you shortly.</div>
   </div>
 </div>
 
 <!-- REVIEW MODAL -->
-<div id="reviewModal" class="modal">
-  <div class="modal-box" style="max-width:440px">
-    <button onclick="closeModal('reviewModal')" style="position:absolute;top:1rem;right:1.25rem;background:none;border:none;color:rgba(255,255,255,0.5);font-size:1.4rem;cursor:pointer">✕</button>
-    <h2 style="font-size:1.4rem;font-weight:700;margin-bottom:0.5rem">Leave a Review</h2>
-    <p style="color:rgba(255,255,255,0.5);font-size:0.85rem;margin-bottom:1.5rem" id="reviewSubtitle">Share your experience</p>
-    <div style="display:flex;flex-direction:column;gap:1rem">
-      <div>
-        <label style="display:block;font-size:0.8rem;color:rgba(255,255,255,0.6);margin-bottom:0.75rem">Rating</label>
-        <div id="starPicker" style="display:flex;gap:0.5rem">
-          <span style="font-size:2rem;cursor:pointer;transition:transform 0.15s" onclick="setRating(1)" class="star-pick">★</span>
-          <span style="font-size:2rem;cursor:pointer;transition:transform 0.15s" onclick="setRating(2)" class="star-pick">★</span>
-          <span style="font-size:2rem;cursor:pointer;transition:transform 0.15s" onclick="setRating(3)" class="star-pick">★</span>
-          <span style="font-size:2rem;cursor:pointer;transition:transform 0.15s" onclick="setRating(4)" class="star-pick">★</span>
-          <span style="font-size:2rem;cursor:pointer;transition:transform 0.15s" onclick="setRating(5)" class="star-pick">★</span>
-        </div>
+<div class="modal-overlay" id="reviewModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('reviewModal')">✕</button>
+    <h2>⭐ Leave a Review</h2>
+    <div class="modal-biz-header" id="reviewBizHeader"></div>
+    <div class="form-group">
+      <label class="form-label">Your Rating</label>
+      <div class="star-row" id="starRow">
+        <button class="star-btn" data-v="1" onclick="setStar(1)">⭐</button>
+        <button class="star-btn" data-v="2" onclick="setStar(2)">⭐</button>
+        <button class="star-btn" data-v="3" onclick="setStar(3)">⭐</button>
+        <button class="star-btn" data-v="4" onclick="setStar(4)">⭐</button>
+        <button class="star-btn" data-v="5" onclick="setStar(5)">⭐</button>
       </div>
-      <textarea id="reviewText" class="inp" rows="4" placeholder="Tell us about your experience…" style="resize:vertical"></textarea>
-      <button onclick="submitReview()" class="btn-teal" style="padding:1rem">Submit Review ✓</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Your Name</label>
+      <input class="form-input" id="revName" placeholder="Display name">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Review</label>
+      <textarea class="form-input" id="revText" rows="4" placeholder="Tell others about your experience…" style="resize:vertical"></textarea>
+    </div>
+    <button class="btn-submit" onclick="submitReview()">Post Review</button>
+    <div class="success-msg" id="revSuccess">✅ Thank you! Your review has been posted.</div>
+  </div>
+</div>
+
+<!-- CLAIM MODAL -->
+<div class="modal-overlay" id="claimModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('claimModal')">✕</button>
+    <h2>🏢 Claim or List Your Business</h2>
+    <p class="modal-sub">FREE forever for basic listings. Upgrade anytime for featured placement + AI tools.</p>
+    <ul class="claim-features">
+      <li><span class="feat-icon">✅</span> Free business profile with your logo + photos</li>
+      <li><span class="feat-icon">📍</span> Show up in AI-powered local searches</li>
+      <li><span class="feat-icon">📅</span> Receive booking requests directly</li>
+      <li><span class="feat-icon">⭐</span> Collect verified customer reviews</li>
+      <li><span class="feat-icon">🤖</span> <strong>Add Lumina AI Receptionist — $29.99/mo</strong></li>
+      <li><span class="feat-icon">🚀</span> <strong>Boost Google Maps ratings — ReviewPilot Pro</strong></li>
+    </ul>
+    <div class="form-group">
+      <label class="form-label">Business Name</label>
+      <input class="form-input" id="claimName" placeholder="Your business name">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Service Category</label>
+      <input class="form-input" id="claimCat" placeholder="e.g. Plumbing, House Cleaning, Elder Care">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Your Phone</label>
+      <input class="form-input" id="claimPhone" placeholder="(555) 000-0000" type="tel">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input class="form-input" id="claimEmail" placeholder="business@email.com" type="email">
+    </div>
+    <div class="form-group">
+      <label class="form-label">City / Service Area</label>
+      <input class="form-input" id="claimCity" placeholder="e.g. Miami, FL">
+    </div>
+    <button class="btn-submit" onclick="submitClaim()">Submit Free Listing →</button>
+    <div class="success-msg" id="claimSuccess">✅ Application submitted! We'll review and activate your listing within 24 hours.</div>
+    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+      <a href="https://shop.artistrystore.com/lumina-receptionist.html" target="_blank" class="btn-upsell btn-upsell-ghost" style="padding:11px 18px;border-radius:10px;font-size:13px;flex:1;text-align:center">🤖 Add AI Receptionist ($29.99/mo)</a>
+      <a href="https://tlott12.gumroad.com/l/reviewpilotpro" target="_blank" class="btn-upsell btn-upsell-gold" style="padding:11px 18px;border-radius:10px;font-size:13px;flex:1;text-align:center">⭐ Boost Google Reviews</a>
     </div>
   </div>
 </div>
 
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('authModal')">✕</button>
+    <h2>Welcome Back</h2>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchTab(this,'login')">Sign In</button>
+      <button class="auth-tab" onclick="switchTab(this,'signup')">Create Account</button>
+    </div>
+    <div id="loginForm">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" id="authEmail" placeholder="your@email.com" type="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" id="authPassword" placeholder="••••••••" type="password" onkeydown="if(event.key==='Enter')doAuth()">
+      </div>
+      <button class="btn-submit" onclick="doAuth()">Sign In</button>
+    </div>
+    <div id="signupForm" style="display:none">
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input class="form-input" id="authName" placeholder="Your name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" id="authEmail2" placeholder="your@email.com" type="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" id="authPassword2" placeholder="Create password" type="password">
+      </div>
+      <button class="btn-submit" onclick="doSignup()">Create Account</button>
+    </div>
+    <div class="success-msg" id="authSuccess" style="margin-top:12px"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
 <script>
-// ═══════════════════════════════════════════════════════════
-// SUPABASE CONFIG
-// ═══════════════════════════════════════════════════════════
-const SB_URL = 'https://lltlbjmurwhnotjegjrz.supabase.co';
-const SB_KEY = atob('ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnBjM01pT2lKemRYQmhZbUZ6WlNJc0luSmxaaUk2SW14c2RHeGlhbTExY25kb2FHNXZkR3BsWjJweWVpSXNJbkp2YkdVaU9pSmhibTl1SWl3aWFXRjBJam94TnpRMk5UTXpPVEV4TENKbGVIQWlPakl3TmpJeE1EazVNVEY5LllSVmp0NXhXMTZyOXZsekFRMUpSdE02Wl9fV1RfWjlsQlhKaEdpODBmQXM=');
-const sb = window.supabase.createClient(SB_URL, SB_KEY);
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+const SB_URL  = 'https://lltlbjmurwhnotjegjrz.supabase.co';
+const SB_KEY  = atob('ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnBjM01pT2lKemRYQmhZbUZ6WlNJc0luSmxaaUk2SW14c2RHeGlhbTExY25kb2FHNXZkR3BsWjJweWVpSXNJbkp2YkdVaU9pSmhibTl1SWl3aWFXRjBJam94TnpRMk5UTXpPVEV4TENKbGVIQWlPakl3TmpJeE1EazVNVEY5LllSVmp0NXhXMTZyOXZsekFRMUpSdE02Wl9fV1RfWjlsQlhKaEdpODBmQXM=');
+const GROK_KEY = atob('eGFpLWladkx2a0paTDNDTTZibU5EQzVtcDJJZ3gySDVJY0pmWk83S2l2UWFLVXpPQ1Y1TFJEZUU2bjk0MXVXZm5QblV6aXZKc0RKQzE0c3FPTW1y');
 
-// ═══════════════════════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════════════════════
-let currentUser = null;
-let allProviders = [];
-let filteredProviders = [];
-let selectedProvider = null;
-let selectedRating = 5;
-let reviewProviderId = null;
+const SB_HEADERS = { 'Content-Type':'application/json', 'apikey':SB_KEY, 'Authorization':'Bearer '+SB_KEY };
 
-// ═══════════════════════════════════════════════════════════
-// SAMPLE PROVIDERS (fallback + seed)
-// ═══════════════════════════════════════════════════════════
-const SAMPLE_PROVIDERS = [
-  {id:'p1',name:'Sarah Chen',service:'Plumbing',category:'Plumbing',rating:4.9,reviews:312,distance:2.1,city:'Miami, FL',rate:'$85/hr',verified:true,experience:'12 yrs',emoji:'🔧',bio:'Licensed master plumber. Same-day emergency service available. Fully insured and background-checked.',badge:'Top Pro'},
-  {id:'p2',name:'Marcus Johnson',service:'Electrical',category:'Electrical',rating:4.8,reviews:248,distance:3.4,city:'Miami, FL',rate:'$95/hr',verified:true,experience:'9 yrs',emoji:'⚡',bio:'Certified electrician specializing in residential rewiring, panel upgrades, and EV charger installation.',badge:''},
-  {id:'p3',name:'Gloria Torres',service:'Elder Care',category:'Elder Care',rating:5.0,reviews:189,distance:1.8,city:'Miami, FL',rate:'$28/hr',verified:true,experience:'15 yrs',emoji:'💙',bio:'Compassionate caregiver with CNA certification. Specializing in Alzheimer\'s and mobility assistance.',badge:'Top Pro'},
-  {id:'p4',name:'James Patel',service:'Tutoring',category:'Tutoring',rating:4.7,reviews:156,distance:4.2,city:'Atlanta, GA',rate:'$55/hr',verified:true,experience:'7 yrs',emoji:'📚',bio:'PhD candidate in Mathematics. Expert K-12 tutoring in STEM subjects. Online & in-person available.',badge:''},
-  {id:'p5',name:'Aria Williams',service:'Landscaping',category:'Landscaping',rating:4.8,reviews:203,distance:5.1,city:'Houston, TX',rate:'$65/hr',verified:true,experience:'10 yrs',emoji:'🌿',bio:'Full-service landscaping, lawn care, garden design, and seasonal cleanups. Licensed & insured.',badge:''},
-  {id:'p6',name:'David Kim',service:'HVAC',category:'HVAC',rating:4.9,reviews:274,distance:2.9,city:'Chicago, IL',rate:'$110/hr',verified:true,experience:'14 yrs',emoji:'❄️',bio:'HVAC technician certified in all major brands. AC repair, furnace installs, duct cleaning.',badge:'Top Pro'},
-  {id:'p7',name:'Priya Sharma',service:'Nutrition',category:'Nutrition',rating:4.8,reviews:127,distance:3.1,city:'New York, NY',rate:'$80/hr',verified:true,experience:'8 yrs',emoji:'🥗',bio:'Registered Dietitian. Personalized meal plans for weight management, diabetes, and sports nutrition.',badge:''},
-  {id:'p8',name:'Tyler Brooks',service:'Painting',category:'Painting',rating:4.6,reviews:98,distance:6.0,city:'Los Angeles, CA',rate:'$55/hr',verified:true,experience:'6 yrs',emoji:'🎨',bio:'Interior & exterior painting. Deck staining, cabinet refinishing, wallpaper removal. Free estimates.',badge:''},
-  {id:'p9',name:'Linda Hayes',service:'Child Care',category:'Child Care',rating:5.0,reviews:215,distance:1.5,city:'Miami, FL',rate:'$22/hr',verified:true,experience:'18 yrs',emoji:'👶',bio:'CPR-certified childcare provider. Background-checked. Newborn to age 12. References available.',badge:'Top Pro'},
-  {id:'p10',name:'Roberto Vega',service:'Carpentry',category:'Carpentry',rating:4.7,reviews:142,distance:4.8,city:'Houston, TX',rate:'$75/hr',verified:true,experience:'11 yrs',emoji:'🪵',bio:'Custom furniture, deck building, kitchen remodels, door/window installation. Master carpenter.',badge:''},
-  {id:'p11',name:'Samantha Lee',service:'Mental Health',category:'Mental Health',rating:4.9,reviews:87,distance:2.3,city:'Atlanta, GA',rate:'$120/hr',verified:true,experience:'13 yrs',emoji:'🧠',bio:'Licensed therapist (LCSW). Anxiety, depression, grief counseling. Telehealth & in-person sessions.',badge:''},
-  {id:'p12',name:'Carlos Rivera',service:'Pet Care',category:'Pet Care',rating:4.8,reviews:164,distance:3.7,city:'New York, NY',rate:'$35/hr',verified:true,experience:'5 yrs',emoji:'🐾',bio:'Bonded & insured pet sitter, dog walker, and in-home boarding. All breeds welcome.',badge:''},
-];
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let userLat = null, userLng = null, userCity = '';
+let currentBizzes = [], activeStar = 0, currentBizId = null, currentBizName = '';
+let authUser = null;
 
+// ─── CATEGORIES ───────────────────────────────────────────────────────────────
 const CATEGORIES = [
-  {emoji:'🔧',name:'Plumbing'},{emoji:'⚡',name:'Electrical'},{emoji:'💙',name:'Elder Care'},
-  {emoji:'📚',name:'Tutoring'},{emoji:'🌿',name:'Landscaping'},{emoji:'❄️',name:'HVAC'},
-  {emoji:'🧹',name:'Cleaning'},{emoji:'🎨',name:'Painting'},{emoji:'🪵',name:'Carpentry'},
-  {emoji:'👶',name:'Child Care'},{emoji:'🐾',name:'Pet Care'},{emoji:'🥗',name:'Nutrition'},
-  {emoji:'🧠',name:'Mental Health'},{emoji:'🚗',name:'Transportation'},{emoji:'🏠',name:'Home Repair'},
+  {icon:'🔧',label:'Plumbing',   osm:[['craft','plumber'],['trade','plumber']]},
+  {icon:'⚡',label:'Electrical', osm:[['craft','electrician'],['trade','electrician']]},
+  {icon:'🏠',label:'Cleaning',   osm:[['craft','cleaning'],['shop','cleaning']]},
+  {icon:'🌿',label:'Landscaping',osm:[['craft','landscaper'],['landuse','grass']]},
+  {icon:'❄️',label:'HVAC',       osm:[['craft','hvac_technician'],['craft','heating_engineer']]},
+  {icon:'🔨',label:'Handyman',   osm:[['craft','carpenter'],['craft','painter']]},
+  {icon:'💆',label:'Elder Care', osm:[['amenity','social_facility'],['social_facility','assisted_living']]},
+  {icon:'📚',label:'Tutoring',   osm:[['amenity','college'],['amenity','language_school']]},
+  {icon:'💇',label:'Hair & Beauty',osm:[['shop','hairdresser'],['shop','beauty']]},
+  {icon:'🐾',label:'Pet Care',   osm:[['shop','pet'],['amenity','veterinary']]},
+  {icon:'🚗',label:'Auto Repair',osm:[['shop','car_repair'],['shop','tyres']]},
+  {icon:'⚖️',label:'Legal',      osm:[['office','lawyer'],['office','notary']]},
+  {icon:'💰',label:'Financial',  osm:[['office','financial_advisor'],['office','accountant']]},
+  {icon:'🏥',label:'Medical',    osm:[['amenity','clinic'],['amenity','doctors']]},
+  {icon:'🍽️',label:'Catering',  osm:[['amenity','restaurant'],['shop','bakery']]},
+  {icon:'📸',label:'Photography',osm:[['shop','photo'],['craft','photographer']]}
 ];
 
-// ═══════════════════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════════════════
-async function initApp() {
-  renderCategories();
-  await loadProviders();
-  initAuthListener();
-  // Set default date
-  const d = new Date(); d.setDate(d.getDate()+1);
-  const el = document.getElementById('bookDate');
-  if(el) el.value = d.toISOString().split('T')[0];
+// ─── RENDER CATEGORIES ────────────────────────────────────────────────────────
+function renderCats(){
+  const g = document.getElementById('catsGrid');
+  g.innerHTML = CATEGORIES.map((c,i)=>`
+    <button class="cat-btn" onclick="searchByCategory(${i})" title="${c.label}">
+      <span class="cat-icon">${c.icon}</span>
+      <span class="cat-label">${c.label}</span>
+    </button>`).join('');
 }
 
-async function loadProviders() {
-  // Try Supabase first
-  try {
-    const {data,error} = await sb.from('trustlink_providers').select('*').eq('active',true).limit(50);
-    if(data && data.length > 0) {
-      allProviders = data;
-    } else {
-      allProviders = SAMPLE_PROVIDERS;
+// ─── GEOLOCATION ──────────────────────────────────────────────────────────────
+function detectLocation(){
+  document.getElementById('locationStatus').textContent='📍 Detecting your location…';
+  if(!navigator.geolocation){showToast('Geolocation not supported in this browser','error');return;}
+  navigator.geolocation.getCurrentPosition(
+    async pos=>{
+      userLat=pos.coords.latitude; userLng=pos.coords.longitude;
+      try{
+        const r=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${userLat}&lon=${userLng}&format=json`);
+        const d=await r.json();
+        userCity=d.address.city||d.address.town||d.address.county||'Your Area';
+        document.getElementById('cityInput').value=userCity;
+        document.getElementById('locationStatus').textContent=`📍 Location detected: ${userCity}`;
+        showToast('Location detected: '+userCity,'info');
+      }catch(e){
+        document.getElementById('locationStatus').textContent='📍 Location detected (coordinates)';
+      }
+    },
+    err=>{
+      document.getElementById('locationStatus').textContent='📍 Enter your city to search';
+      showToast('Could not detect location — please enter your city','error');
     }
-  } catch(e) {
-    allProviders = SAMPLE_PROVIDERS;
-  }
-  renderAllProviders(allProviders);
+  );
 }
 
-function initAuthListener() {
-  sb.auth.getSession().then(({data}) => {
-    if(data.session) handleAuthChange(data.session.user);
-  });
-  sb.auth.onAuthStateChange((_,session) => {
-    handleAuthChange(session?.user || null);
-  });
+async function geocodeCity(city){
+  try{
+    const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1`);
+    const d=await r.json();
+    if(d.length){userLat=parseFloat(d[0].lat);userLng=parseFloat(d[0].lon);}
+  }catch(e){}
 }
 
-function handleAuthChange(user) {
-  currentUser = user;
-  const greeting = document.getElementById('userGreeting');
-  const btnLogin = document.getElementById('btnLogin');
-  const btnLogout = document.getElementById('btnLogout');
-  const btnMy = document.getElementById('btnMyBookings');
-  if(user) {
-    const name = user.user_metadata?.full_name || user.email.split('@')[0];
-    greeting.textContent = `Hi, ${name} 👋`;
-    greeting.style.display = 'inline';
-    btnLogin.style.display = 'none';
-    btnLogout.style.display = 'inline';
-    btnMy.style.display = 'inline';
+// ─── OVERPASS API ─────────────────────────────────────────────────────────────
+async function fetchOverpass(lat,lng,radius,tags){
+  const tagFilters=tags.map(([k,v])=>`node["${k}"="${v}"](around:${radius},${lat},${lng});`).join('\n');
+  const q=`[out:json][timeout:20];(${tagFilters});out body;`;
+  const r=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:'data='+encodeURIComponent(q)});
+  const d=await r.json();
+  return d.elements||[];
+}
+
+function osmToCard(node,catLabel,catIcon,userLat,userLng){
+  const t=node.tags||{};
+  const lat=node.lat, lng=node.lon;
+  const name=t.name||t['name:en']||'Local Business';
+  const phone=t['contact:phone']||t['phone']||t['contact:mobile']||null;
+  const website=t['contact:website']||t['website']||null;
+  const addr=[t['addr:housenumber'],t['addr:street'],t['addr:city']].filter(Boolean).join(' ');
+  const dist=userLat?haversine(userLat,userLng,lat,lng):null;
+  return {id:'osm_'+node.id, name, cat:catLabel, icon:catIcon, phone, website, addr:addr||'Local area',
+          lat, lng, dist, tags:t, osmId:node.id, verified:false, featured:false, rating:null, reviewCount:0, source:'osm'};
+}
+
+function haversine(lat1,lon1,lat2,lon2){
+  const R=3958.8;
+  const dLat=(lat2-lat1)*Math.PI/180;
+  const dLon=(lon2-lon1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return (R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))).toFixed(1);
+}
+
+// ─── SUPABASE FEATURED BUSINESSES ────────────────────────────────────────────
+async function fetchFeatured(){
+  try{
+    const r=await fetch(`${SB_URL}/rest/v1/trustlink_businesses?featured=eq.true&limit=6`,{headers:SB_HEADERS});
+    if(!r.ok)return[];
+    return (await r.json())||[];
+  }catch(e){return[];}
+}
+
+async function fetchRatings(ids){
+  if(!ids.length)return{};
+  try{
+    const r=await fetch(`${SB_URL}/rest/v1/trustlink_reviews?select=biz_id,rating&biz_id=in.(${ids.join(',')})`,{headers:SB_HEADERS});
+    if(!r.ok)return{};
+    const rows=await r.json();
+    const map={};
+    rows.forEach(row=>{
+      if(!map[row.biz_id])map[row.biz_id]={sum:0,count:0};
+      map[row.biz_id].sum+=row.rating;
+      map[row.biz_id].count++;
+    });
+    Object.keys(map).forEach(k=>{map[k].avg=(map[k].sum/map[k].count).toFixed(1);});
+    return map;
+  }catch(e){return{};}
+}
+
+// ─── SEARCH ───────────────────────────────────────────────────────────────────
+async function doSearch(){
+  const svc=document.getElementById('serviceInput').value.trim();
+  const city=document.getElementById('cityInput').value.trim();
+  if(!svc&&!city){showToast('Please enter a service or location','error');return;}
+
+  showResultsSection();
+  showLoading(true);
+
+  // Geocode city if needed
+  if(city&&!userLat){await geocodeCity(city);}
+  if(!userLat){showToast('Could not find location — try a different city name','error');showLoading(false);return;}
+
+  // Find matching category
+  let tags=null, catLabel='Services', catIcon='🔧';
+  if(svc){
+    const q=svc.toLowerCase();
+    CATEGORIES.forEach(c=>{
+      if(c.label.toLowerCase().includes(q)||q.includes(c.label.toLowerCase().split(' ')[0].toLowerCase())){
+        tags=c.osm; catLabel=c.label; catIcon=c.icon;
+      }
+    });
+    if(!tags) tags=CATEGORIES[0].osm; // default plumbing if no match
   } else {
-    greeting.style.display = 'none';
-    btnLogin.style.display = 'inline';
-    btnLogout.style.display = 'none';
-    btnMy.style.display = 'none';
+    tags=CATEGORIES[0].osm;
+  }
+
+  try{
+    const nodes=await fetchOverpass(userLat,userLng,15000,tags);
+    let bizzes=nodes.map(n=>osmToCard(n,catLabel,catIcon,userLat,userLng));
+
+    // Also try second tag set
+    if(bizzes.length<5){
+      try{
+        const cat=CATEGORIES.find(c=>c.label===catLabel);
+        if(cat&&cat.osm.length>1){
+          const nodes2=await fetchOverpass(userLat,userLng,25000,[cat.osm[1]]);
+          const more=nodes2.map(n=>osmToCard(n,catLabel,catIcon,userLat,userLng));
+          // Deduplicate by osmId
+          const seen=new Set(bizzes.map(b=>b.osmId));
+          more.forEach(b=>{if(!seen.has(b.osmId)){bizzes.push(b);seen.add(b.osmId);}});
+        }
+      }catch(e){}
+    }
+
+    // Fetch featured businesses
+    const featured=await fetchFeatured();
+    featured.forEach(f=>{f.featured=true;f.source='db';bizzes.unshift(f);});
+
+    // Fetch Supabase ratings
+    const ids=bizzes.filter(b=>b.id).map(b=>b.id);
+    const ratings=await fetchRatings(ids);
+    bizzes.forEach(b=>{
+      if(ratings[b.id]){b.rating=ratings[b.id].avg;b.reviewCount=ratings[b.id].count;}
+    });
+
+    currentBizzes=bizzes;
+    renderResults(bizzes,svc||catLabel,city||userCity);
+  }catch(e){
+    // If Overpass fails, show friendly message
+    showLoading(false);
+    document.getElementById('emptyState').style.display='block';
+    document.getElementById('emptyState').innerHTML=`<div class="empty-icon">🌐</div><h3>Live data temporarily unavailable</h3><p>OpenStreetMap data is loading. Try again in a moment, or add your business now.</p><button class="btn-gold" style="margin-top:16px;padding:12px 24px;border-radius:12px" onclick="openClaimModal(null)">Add Your Business FREE</button>`;
   }
 }
 
-// ═══════════════════════════════════════════════════════════
-// RENDER
-// ═══════════════════════════════════════════════════════════
-function renderCategories() {
-  const el = document.getElementById('categories');
-  el.innerHTML = CATEGORIES.map(c => `
-    <button class="cat-chip glass" style="padding:0.65rem 1.25rem;border-radius:9999px;font-size:0.9rem;font-weight:500;cursor:pointer;border:1px solid rgba(255,255,255,0.12);color:#fff;display:flex;align-items:center;gap:0.4rem" onclick="filterByCategory('${c.name}',this)">
-      ${c.emoji} ${c.name}
-    </button>
-  `).join('');
-}
+async function searchByCategory(idx){
+  const cat=CATEGORIES[idx];
+  document.getElementById('serviceInput').value=cat.label;
+  document.querySelectorAll('.cat-btn').forEach((b,i)=>b.classList.toggle('active',i===idx));
+  showResultsSection();
+  showLoading(true);
 
-function renderAllProviders(list) {
-  const el = document.getElementById('allProviders');
-  if(!list.length) {
-    el.innerHTML = '<p style="color:rgba(255,255,255,0.5)">No providers found.</p>';
+  const city=document.getElementById('cityInput').value.trim();
+  if(city&&!userLat){await geocodeCity(city);}
+
+  if(!userLat){
+    showLoading(false);
+    showToast('Please enter your city first','error');
+    document.getElementById('cityInput').focus();
     return;
   }
-  el.innerHTML = list.slice(0,9).map(p => providerCardHTML(p)).join('');
+
+  try{
+    let all=[];
+    for(const tag of cat.osm){
+      const nodes=await fetchOverpass(userLat,userLng,20000,[tag]);
+      const cards=nodes.map(n=>osmToCard(n,cat.label,cat.icon,userLat,userLng));
+      const seen=new Set(all.map(b=>b.osmId));
+      cards.forEach(b=>{if(!seen.has(b.osmId)){all.push(b);seen.add(b.osmId);}});
+    }
+    const featured=await fetchFeatured();
+    featured.forEach(f=>{f.featured=true;f.source='db';all.unshift(f);});
+    const ids=all.map(b=>b.id);
+    const ratings=await fetchRatings(ids);
+    all.forEach(b=>{if(ratings[b.id]){b.rating=ratings[b.id].avg;b.reviewCount=ratings[b.id].count;}});
+    currentBizzes=all;
+    renderResults(all,cat.label,city||userCity);
+  }catch(e){showLoading(false);document.getElementById('emptyState').style.display='block';}
 }
 
-function renderResults(list) {
-  filteredProviders = list;
-  const sec = document.getElementById('resultsSection');
-  const grid = document.getElementById('resultsGrid');
-  const count = document.getElementById('resultCount');
-  sec.style.display = 'block';
-  count.textContent = `(${list.length} found)`;
-  if(!list.length) {
-    grid.innerHTML = '<p style="color:rgba(255,255,255,0.5)">No providers match your search. Try a different term.</p>';
-    return;
+// ─── AI SMART MATCH ───────────────────────────────────────────────────────────
+async function doAISearch(){
+  const svc=document.getElementById('serviceInput').value.trim();
+  if(!svc){showToast('Enter a service description first, then click AI Smart Match','error');return;}
+
+  // First run regular search
+  await doSearch();
+
+  if(!currentBizzes.length)return;
+
+  // Ask Grok to rank and explain
+  document.getElementById('aiBox').style.display='block';
+  document.getElementById('aiBoxText').textContent='Analyzing matches…';
+
+  const bizList=currentBizzes.slice(0,10).map((b,i)=>`${i+1}. ${b.name} (${b.cat}, ${b.dist||'?'} mi away)`).join('\n');
+
+  try{
+    const resp=await fetch('https://api.x.ai/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROK_KEY},
+      body:JSON.stringify({
+        model:'grok-3-latest',
+        messages:[{
+          role:'user',
+          content:`A person is searching for: "${svc}"\n\nHere are the nearby businesses found:\n${bizList}\n\nIn 2-3 sentences, tell the user which businesses look like the best match and why. Be friendly, specific, and helpful. Mention the top 2-3 by name.`
+        }],
+        max_tokens:200
+      })
+    });
+    if(resp.ok){
+      const d=await resp.json();
+      document.getElementById('aiBoxText').textContent=d.choices[0].message.content;
+    } else {
+      document.getElementById('aiBoxText').textContent='Showing nearest verified providers for "'+svc+'". Click any business to book.';
+    }
+  }catch(e){
+    document.getElementById('aiBoxText').textContent='Showing nearest verified providers for "'+svc+'". Click any business to book.';
   }
-  grid.innerHTML = list.map(p => providerCardHTML(p)).join('');
-  sec.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
-function providerCardHTML(p) {
-  const stars = '★'.repeat(Math.round(p.rating||5)) + '☆'.repeat(5-Math.round(p.rating||5));
-  const initials = (p.name||'?').split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
-  const colors = ['from-teal-500 to-cyan-600','from-amber-500 to-orange-500','from-indigo-500 to-purple-600','from-rose-500 to-pink-600','from-green-500 to-emerald-600'];
-  const col = colors[(p.name||'').charCodeAt(0)%colors.length];
+// ─── RENDER RESULTS ───────────────────────────────────────────────────────────
+function renderResults(bizzes,query,city){
+  showLoading(false);
+  const grid=document.getElementById('bizGrid');
+  const empty=document.getElementById('emptyState');
+  document.getElementById('resultCount').textContent=bizzes.length?`(${bizzes.length} found)`:'';
+  document.getElementById('searchContext').textContent=query&&city?`Showing results for "${query}" near ${city}`:'';
+
+  if(!bizzes.length){empty.style.display='block';grid.innerHTML='';return;}
+  empty.style.display='none';
+
+  grid.innerHTML=bizzes.map(b=>buildCard(b)).join('');
+  window.scrollTo({top:document.getElementById('results-section').offsetTop-80,behavior:'smooth'});
+}
+
+function buildCard(b){
+  const stars=b.rating?'⭐'.repeat(Math.round(parseFloat(b.rating))):'';
+  const ratingTxt=b.rating?`${b.rating} (${b.reviewCount} review${b.reviewCount!==1?'s':''})` : 'No reviews yet';
+  const distTxt=b.dist?`${b.dist} mi away`:'';
+  const phoneBadge=b.phone?`<a class="btn-call" href="tel:${b.phone.replace(/[^+\d]/g,'')}">📞 Call</a>`:'';
+  const webLink=b.website?`<a class="btn-call" href="${b.website}" target="_blank" style="color:var(--teal);border-color:rgba(45,212,191,0.3)">🌐 Website</a>`:'';
+
   return `
-    <div class="glass provider-card" style="border-radius:1.25rem;padding:1.5rem;display:flex;flex-direction:column;gap:1rem">
-      <div style="display:flex;gap:1rem;align-items:flex-start">
-        <div class="avatar bg-gradient-to-br ${col}" style="color:#fff">${p.emoji||initials}</div>
-        <div style="flex:1;min-width:0">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem">
-            <div>
-              <div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name||'Provider'}</div>
-              <div style="color:rgba(255,255,255,0.55);font-size:0.82rem">${p.service||p.category||'Service'} · ${p.experience||'Experienced'}</div>
-            </div>
-            ${p.verified ? '<span class="badge-verified" style="flex-shrink:0">✓ Verified</span>' : ''}
-          </div>
-          <div style="margin-top:0.35rem;display:flex;align-items:center;gap:0.5rem">
-            <span style="color:#f59e0b;font-size:0.9rem">${stars.slice(0,5)}</span>
-            <span style="color:rgba(255,255,255,0.5);font-size:0.8rem">${p.rating||'5.0'} (${p.reviews||0} reviews)</span>
-          </div>
-        </div>
-      </div>
-      <div style="color:rgba(255,255,255,0.6);font-size:0.85rem;line-height:1.5;flex:1">${(p.bio||'').slice(0,120)}${(p.bio||'').length>120?'…':''}</div>
-      <div style="display:flex;flex-wrap:wrap;gap:0.4rem">
-        <span style="background:rgba(255,255,255,0.07);padding:0.25rem 0.65rem;border-radius:9999px;font-size:0.75rem">📍 ${p.city||'Local'}</span>
-        <span style="background:rgba(255,255,255,0.07);padding:0.25rem 0.65rem;border-radius:9999px;font-size:0.75rem">${p.distance?p.distance+' mi away':'Local'}</span>
-        ${p.badge ? `<span class="badge-new">${p.badge}</span>` : ''}
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,0.08);padding-top:1rem">
-        <span class="price-tag">${p.rate||'Contact'}</span>
-        <div style="display:flex;gap:0.5rem">
-          <button onclick="openReviewModal('${p.id||p.name}','${(p.name||'').replace(/'/g,"\\'")}'); event.stopPropagation()" style="padding:0.5rem 0.75rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:0.625rem;color:rgba(255,255,255,0.7);font-size:0.8rem;cursor:pointer">★ Review</button>
-          <button onclick="openBooking(${JSON.stringify(p).replace(/"/g,'&quot;')})" class="btn-teal" style="width:auto;padding:0.5rem 1.1rem;font-size:0.85rem">Book</button>
-        </div>
+  <div class="biz-card${b.featured?' featured':''}" id="card_${b.id}">
+    <div class="biz-top">
+      <div class="biz-avatar">${b.icon||'🏢'}</div>
+      <div class="biz-info">
+        <div class="biz-name" title="${b.name}">${b.name}</div>
+        <div class="biz-cat">${b.cat}</div>
       </div>
     </div>
-  `;
-}
-
-// ═══════════════════════════════════════════════════════════
-// SEARCH & FILTER
-// ═══════════════════════════════════════════════════════════
-function performSearch() {
-  const q = (document.getElementById('searchInput').value||'').toLowerCase().trim();
-  const loc = (document.getElementById('locationSel').value||'').toLowerCase();
-  if(!q && !loc) {
-    showToast('Please enter a service or select a location','error');
-    return;
-  }
-  let results = allProviders;
-  if(q) results = results.filter(p => (p.service||'').toLowerCase().includes(q)||(p.category||'').toLowerCase().includes(q)||(p.name||'').toLowerCase().includes(q)||(p.bio||'').toLowerCase().includes(q));
-  if(loc) results = results.filter(p => (p.city||'').toLowerCase().includes(loc.split(',')[0]));
-  document.getElementById('resultLabel').textContent = q ? `Results for "${q}"` : 'Providers';
-  renderResults(results);
-}
-
-function filterByCategory(cat, btn) {
-  document.querySelectorAll('.cat-chip').forEach(b=>b.classList.remove('active'));
-  if(btn) btn.classList.add('active');
-  document.getElementById('searchInput').value = cat;
-  const results = allProviders.filter(p=>(p.service||p.category||'').toLowerCase()===cat.toLowerCase());
-  document.getElementById('resultLabel').textContent = cat;
-  renderResults(results);
-}
-
-function sortResults(by, btn) {
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  if(btn) btn.classList.add('active');
-  const list = [...filteredProviders];
-  if(by==='rating') list.sort((a,b)=>(b.rating||0)-(a.rating||0));
-  else if(by==='price') list.sort((a,b)=>{const pa=parseInt((a.rate||'99').replace(/\D/g,'')),pb=parseInt((b.rate||'99').replace(/\D/g,''));return pa-pb;});
-  else if(by==='distance') list.sort((a,b)=>(a.distance||99)-(b.distance||99));
-  renderResults(list);
-}
-
-// ═══════════════════════════════════════════════════════════
-// AUTH
-// ═══════════════════════════════════════════════════════════
-function switchAuthMode(mode) {
-  const isLogin = mode==='login';
-  document.getElementById('loginForm').style.display = isLogin?'block':'none';
-  document.getElementById('signupForm').style.display = isLogin?'none':'block';
-  document.getElementById('authTitle').textContent = isLogin?'Welcome Back':'Create Account';
-  document.getElementById('authSub').textContent = isLogin?'Sign in to your TrustLink account':'Join thousands of satisfied customers';
-}
-
-async function doLogin() {
-  const email = document.getElementById('loginEmail').value.trim();
-  const pass = document.getElementById('loginPass').value;
-  if(!email||!pass){showToast('Please enter email and password','error');return;}
-  const {data,error} = await sb.auth.signInWithPassword({email,password:pass});
-  if(error){showToast('Login failed: '+error.message,'error');return;}
-  closeModal('authModal');
-  showToast('Welcome back! 🎉','success');
-}
-
-async function doSignup() {
-  const name = document.getElementById('signupName').value.trim();
-  const email = document.getElementById('signupEmail').value.trim();
-  const pass = document.getElementById('signupPass').value;
-  if(!name||!email||!pass){showToast('Please fill in all fields','error');return;}
-  if(pass.length<6){showToast('Password must be at least 6 characters','error');return;}
-  const {data,error} = await sb.auth.signUp({email,password:pass,options:{data:{full_name:name}}});
-  if(error){showToast('Signup failed: '+error.message,'error');return;}
-  closeModal('authModal');
-  showToast('Account created! Welcome to TrustLink 🎉','success');
-}
-
-async function doLogout() {
-  await sb.auth.signOut();
-  showToast('Signed out successfully','success');
-}
-
-// ═══════════════════════════════════════════════════════════
-// BOOKING
-// ═══════════════════════════════════════════════════════════
-function openBookingFromFeatured() {
-  selectedProvider = SAMPLE_PROVIDERS[0];
-  openModal('bookingModal');
-  document.getElementById('bookingTitle').textContent = `Book ${selectedProvider.name}`;
-  document.getElementById('bookingSubtitle').textContent = `${selectedProvider.service} · ${selectedProvider.rate}`;
-}
-
-function openBooking(provider) {
-  if(!currentUser){
-    showToast('Please sign in to book a provider','error');
-    openModal('authModal');
-    return;
-  }
-  selectedProvider = provider;
-  openModal('bookingModal');
-  document.getElementById('bookingTitle').textContent = `Book ${provider.name||'Provider'}`;
-  document.getElementById('bookingSubtitle').textContent = `${provider.service||provider.category||'Service'} · ${provider.rate||'Contact for rate'}`;
-}
-
-async function submitBooking() {
-  if(!currentUser){
-    closeModal('bookingModal');
-    openModal('authModal');
-    return;
-  }
-  const date = document.getElementById('bookDate').value;
-  const time = document.getElementById('bookTime').value;
-  const address = document.getElementById('bookAddress').value.trim();
-  const desc = document.getElementById('bookDesc').value.trim();
-  if(!date||!address){showToast('Please enter a date and address','error');return;}
-  const booking = {
-    user_id: currentUser.id,
-    user_email: currentUser.email,
-    provider_name: selectedProvider?.name||'Unknown',
-    provider_id: selectedProvider?.id||null,
-    service: selectedProvider?.service||selectedProvider?.category||'Service',
-    booking_date: date,
-    booking_time: time,
-    address,
-    description: desc,
-    status: 'pending',
-    created_at: new Date().toISOString()
-  };
-  try {
-    await sb.from('trustlink_bookings').insert([booking]);
-  } catch(e){}
-  closeModal('bookingModal');
-  showToast(`✅ Booking confirmed! ${selectedProvider?.name||'Provider'} will contact you shortly.`,'success');
-  // Reset
-  document.getElementById('bookAddress').value='';
-  document.getElementById('bookDesc').value='';
-}
-
-async function showMyBookings() {
-  openModal('bookingsModal');
-  const list = document.getElementById('bookingsList');
-  list.innerHTML = '<p style="color:rgba(255,255,255,0.5);text-align:center">Loading…</p>';
-  if(!currentUser){
-    list.innerHTML = '<p style="color:rgba(255,255,255,0.5)">Please sign in to view bookings.</p>';
-    return;
-  }
-  let bookings = [];
-  try {
-    const {data} = await sb.from('trustlink_bookings').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:false});
-    bookings = data||[];
-  } catch(e){}
-  if(!bookings.length){
-    list.innerHTML = '<p style="color:rgba(255,255,255,0.5);text-align:center">No bookings yet. Find a provider and book today!</p>';
-    return;
-  }
-  list.innerHTML = bookings.map(b=>`
-    <div class="glass" style="padding:1.25rem;border-radius:1rem">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.5rem">
-        <div style="font-weight:600">${b.provider_name}</div>
-        <span style="background:rgba(20,184,166,0.2);color:#2dd4bf;border:1px solid rgba(20,184,166,0.4);padding:0.15rem 0.6rem;border-radius:9999px;font-size:0.75rem;font-weight:600;text-transform:capitalize">${b.status||'pending'}</span>
-      </div>
-      <div style="color:rgba(255,255,255,0.6);font-size:0.85rem">${b.service} · ${b.booking_date} at ${b.booking_time}</div>
-      <div style="color:rgba(255,255,255,0.5);font-size:0.82rem;margin-top:0.25rem">📍 ${b.address}</div>
-      ${b.description?`<div style="color:rgba(255,255,255,0.45);font-size:0.8rem;margin-top:0.25rem">${b.description}</div>`:''}
+    <div class="biz-badges">
+      ${b.featured?'<span class="badge badge-verified">⭐ Featured</span>':''}
+      ${b.verified?'<span class="badge badge-verified">✓ Verified</span>':'<span class="badge badge-new">OpenStreetMap</span>'}
+      ${b.aiReceptionist?'<span class="badge badge-ai">🤖 AI Reception</span>':''}
     </div>
-  `).join('');
+    <div class="biz-meta">
+      <div class="biz-rating">${stars||'☆☆☆☆☆'} <span style="font-size:12px;font-weight:400;color:var(--muted)">${ratingTxt}</span></div>
+      ${distTxt?`<div class="biz-dist">📍 ${distTxt}</div>`:''}
+    </div>
+    ${b.addr?`<div class="biz-addr">📍 <span>${b.addr}</span></div>`:''}
+    <div class="biz-actions">
+      ${phoneBadge}
+      <button class="btn-book" onclick="openBookingModal('${b.id}','${escQ(b.name)}','${b.icon||'🏢'}','${b.cat}')">📅 Book</button>
+      ${webLink}
+      <button class="btn-review" onclick="openReviewModal('${b.id}','${escQ(b.name)}','${b.icon||'🏢'}','${b.cat}')" title="Leave a review">⭐</button>
+    </div>
+  </div>`;
 }
 
-// ═══════════════════════════════════════════════════════════
-// REVIEWS
-// ═══════════════════════════════════════════════════════════
-function openReviewModal(id, name) {
-  if(!currentUser){
-    showToast('Please sign in to leave a review','error');
-    openModal('authModal');
-    return;
-  }
-  reviewProviderId = id;
-  document.getElementById('reviewSubtitle').textContent = `Rate your experience with ${name}`;
-  setRating(5);
-  document.getElementById('reviewText').value = '';
+function escQ(s){return (s||'').replace(/'/g,"\\'")}
+
+// ─── SORT ──────────────────────────────────────────────────────────────────────
+function sortResults(btn,type){
+  document.querySelectorAll('.sort-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  let sorted=[...currentBizzes];
+  if(type==='dist') sorted.sort((a,b)=>(parseFloat(a.dist)||999)-(parseFloat(b.dist)||999));
+  if(type==='rating') sorted.sort((a,b)=>(parseFloat(b.rating)||0)-(parseFloat(a.rating)||0));
+  if(type==='alpha') sorted.sort((a,b)=>a.name.localeCompare(b.name));
+  renderResults(sorted,'','');
+}
+
+// ─── BOOKING ──────────────────────────────────────────────────────────────────
+function openBookingModal(id,name,icon,cat){
+  currentBizId=id; currentBizName=name;
+  document.getElementById('bookingBizHeader').innerHTML=`
+    <div class="modal-biz-avatar">${icon}</div>
+    <div><div style="font-weight:700">${name}</div><div style="font-size:13px;color:var(--teal)">${cat}</div></div>`;
+  document.getElementById('bookSuccess').style.display='none';
+  document.getElementById('bookBtn').disabled=false;
+  document.getElementById('bookDate').value=new Date().toISOString().split('T')[0];
+  openModal('bookingModal');
+}
+
+async function submitBooking(){
+  const name=document.getElementById('bookName').value.trim();
+  const phone=document.getElementById('bookPhone').value.trim();
+  const email=document.getElementById('bookEmail').value.trim();
+  const date=document.getElementById('bookDate').value;
+  const time=document.getElementById('bookTime').value;
+  const notes=document.getElementById('bookNotes').value.trim();
+  if(!name||!phone){showToast('Name and phone are required','error');return;}
+
+  document.getElementById('bookBtn').disabled=true;
+  document.getElementById('bookBtn').textContent='Sending…';
+
+  try{
+    await fetch(`${SB_URL}/rest/v1/trustlink_bookings`,{
+      method:'POST',
+      headers:{...SB_HEADERS,'Prefer':'return=minimal'},
+      body:JSON.stringify({biz_id:currentBizId,biz_name:currentBizName,customer_name:name,customer_phone:phone,customer_email:email||null,appt_date:date||null,appt_time:time||null,notes:notes||null})
+    });
+  }catch(e){}
+
+  document.getElementById('bookSuccess').style.display='block';
+  document.getElementById('bookBtn').style.display='none';
+  showToast('Booking request sent!','info');
+}
+
+// ─── REVIEWS ──────────────────────────────────────────────────────────────────
+function openReviewModal(id,name,icon,cat){
+  currentBizId=id;
+  activeStar=0;
+  document.getElementById('reviewBizHeader').innerHTML=`
+    <div class="modal-biz-avatar">${icon}</div>
+    <div><div style="font-weight:700">${name}</div><div style="font-size:13px;color:var(--teal)">${cat}</div></div>`;
+  document.getElementById('revSuccess').style.display='none';
+  document.getElementById('revName').value='';
+  document.getElementById('revText').value='';
+  setStar(0);
   openModal('reviewModal');
 }
 
-function setRating(n) {
-  selectedRating = n;
-  document.querySelectorAll('.star-pick').forEach((s,i)=>{
-    s.style.color = i < n ? '#f59e0b' : 'rgba(255,255,255,0.2)';
-    s.style.transform = i < n ? 'scale(1.1)' : 'scale(1)';
+function setStar(n){
+  activeStar=n;
+  document.querySelectorAll('.star-btn').forEach(b=>{
+    b.classList.toggle('on',parseInt(b.dataset.v)<=n);
   });
 }
 
-async function submitReview() {
-  const text = document.getElementById('reviewText').value.trim();
-  if(!text){showToast('Please write a review','error');return;}
-  const review = {
-    user_id: currentUser.id,
-    user_email: currentUser.email,
-    provider_id: reviewProviderId,
-    rating: selectedRating,
-    review_text: text,
-    created_at: new Date().toISOString()
-  };
-  try {
-    await sb.from('trustlink_reviews').insert([review]);
-  } catch(e){}
-  closeModal('reviewModal');
-  showToast('Thank you for your review! ⭐','success');
+async function submitReview(){
+  const name=document.getElementById('revName').value.trim();
+  const text=document.getElementById('revText').value.trim();
+  if(!activeStar){showToast('Please select a star rating','error');return;}
+  if(!name){showToast('Please enter your name','error');return;}
+
+  try{
+    await fetch(`${SB_URL}/rest/v1/trustlink_reviews`,{
+      method:'POST',
+      headers:{...SB_HEADERS,'Prefer':'return=minimal'},
+      body:JSON.stringify({biz_id:currentBizId,reviewer_name:name,rating:activeStar,review_text:text||null})
+    });
+  }catch(e){}
+
+  document.getElementById('revSuccess').style.display='block';
+  document.getElementById('revSuccess').textContent='✅ Thank you! Your review has been posted.';
+  showToast('Review posted!','info');
 }
 
-// ═══════════════════════════════════════════════════════════
-// BUSINESS APPLICATION
-// ═══════════════════════════════════════════════════════════
-async function submitBusinessApp() {
-  const name = document.getElementById('bizName').value.trim();
-  const email = document.getElementById('bizEmail').value.trim();
-  const phone = document.getElementById('bizPhone').value.trim();
-  const service = document.getElementById('bizService').value;
-  const city = document.getElementById('bizCity').value.trim();
-  const rate = document.getElementById('bizRate').value.trim();
-  const bio = document.getElementById('bizBio').value.trim();
-  const agreed = document.getElementById('bizAgree').checked;
-  if(!name||!email||!service||!city){showToast('Please fill in required fields','error');return;}
-  if(!agreed){showToast('Please agree to provider standards','error');return;}
-  const app = {name,email,phone,service,city,rate,bio,status:'pending',created_at:new Date().toISOString()};
-  try {
-    await sb.from('trustlink_applications').insert([app]);
-  } catch(e){}
-  closeModal('bizModal');
-  showToast('Application submitted! We\'ll review and contact you within 24 hours. 🎉','success');
-  // Clear form
-  ['bizName','bizEmail','bizPhone','bizCity','bizRate','bizBio'].forEach(id=>{document.getElementById(id).value='';});
-  document.getElementById('bizService').value='';
-  document.getElementById('bizAgree').checked=false;
+// ─── CLAIM ────────────────────────────────────────────────────────────────────
+function openClaimModal(biz){
+  if(biz){
+    document.getElementById('claimName').value=biz.name||'';
+    document.getElementById('claimCat').value=biz.cat||'';
+    document.getElementById('claimCity').value=userCity||'';
+  }
+  document.getElementById('claimSuccess').style.display='none';
+  openModal('claimModal');
 }
 
-// ═══════════════════════════════════════════════════════════
-// MODAL HELPERS
-// ═══════════════════════════════════════════════════════════
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-// Close on backdrop click
-document.querySelectorAll('.modal').forEach(m => {
-  m.addEventListener('click', e => { if(e.target===m) closeModal(m.id); });
+async function submitClaim(){
+  const name=document.getElementById('claimName').value.trim();
+  const cat=document.getElementById('claimCat').value.trim();
+  const phone=document.getElementById('claimPhone').value.trim();
+  const email=document.getElementById('claimEmail').value.trim();
+  const city=document.getElementById('claimCity').value.trim();
+  if(!name||!email){showToast('Business name and email are required','error');return;}
+
+  try{
+    await fetch(`${SB_URL}/rest/v1/trustlink_businesses`,{
+      method:'POST',
+      headers:{...SB_HEADERS,'Prefer':'return=minimal'},
+      body:JSON.stringify({name,cat:cat||'General Services',phone:phone||null,email,city:city||null,featured:false,verified:false,source:'claimed'})
+    });
+  }catch(e){}
+
+  document.getElementById('claimSuccess').style.display='block';
+  showToast('Business submitted!','info');
+}
+
+// ─── AUTH ─────────────────────────────────────────────────────────────────────
+function openAuthModal(){openModal('authModal');}
+function switchTab(btn,mode){
+  document.querySelectorAll('.auth-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('loginForm').style.display=mode==='login'?'block':'none';
+  document.getElementById('signupForm').style.display=mode==='signup'?'block':'none';
+}
+
+async function doAuth(){
+  const email=document.getElementById('authEmail').value.trim();
+  const pass=document.getElementById('authPassword').value;
+  if(!email||!pass){showToast('Email and password required','error');return;}
+  try{
+    const r=await fetch(`${SB_URL}/auth/v1/token?grant_type=password`,{
+      method:'POST',headers:{...SB_HEADERS,'Content-Type':'application/json'},
+      body:JSON.stringify({email,password:pass})
+    });
+    const d=await r.json();
+    if(d.access_token){
+      authUser=d.user;
+      document.getElementById('authSuccess').textContent='✅ Welcome back!';
+      document.getElementById('authSuccess').style.display='block';
+      setTimeout(()=>closeModal('authModal'),1200);
+      showToast('Signed in!','info');
+    }else{
+      showToast(d.error_description||'Sign in failed','error');
+    }
+  }catch(e){showToast('Sign in error','error');}
+}
+
+async function doSignup(){
+  const name=document.getElementById('authName').value.trim();
+  const email=document.getElementById('authEmail2').value.trim();
+  const pass=document.getElementById('authPassword2').value;
+  if(!email||!pass){showToast('Email and password required','error');return;}
+  try{
+    const r=await fetch(`${SB_URL}/auth/v1/signup`,{
+      method:'POST',headers:{...SB_HEADERS,'Content-Type':'application/json'},
+      body:JSON.stringify({email,password:pass,data:{full_name:name}})
+    });
+    const d=await r.json();
+    if(d.id||d.user){
+      document.getElementById('authSuccess').textContent='✅ Account created! Check email to confirm.';
+      document.getElementById('authSuccess').style.display='block';
+      showToast('Account created!','info');
+    }else{
+      showToast(d.msg||d.error_description||'Signup failed','error');
+    }
+  }catch(e){showToast('Signup error','error');}
+}
+
+// ─── MODAL HELPERS ────────────────────────────────────────────────────────────
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.addEventListener('click',e=>{
+  if(e.target.classList.contains('modal-overlay'))closeModal(e.target.id);
 });
-// Close on ESC
-document.addEventListener('keydown', e => {
-  if(e.key==='Escape') document.querySelectorAll('.modal.open').forEach(m=>closeModal(m.id));
-});
 
-// ═══════════════════════════════════════════════════════════
-// TOAST
-// ═══════════════════════════════════════════════════════════
-function showToast(msg, type='success') {
-  const t = document.createElement('div');
-  t.className = `toast toast-${type}`;
-  t.innerHTML = `<i class="fas fa-${type==='success'?'check-circle':'exclamation-circle'}" style="margin-right:0.5rem"></i>${msg}`;
-  document.body.appendChild(t);
-  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity 0.4s';setTimeout(()=>t.remove(),400);},3500);
+// ─── LOADING / SECTIONS ───────────────────────────────────────────────────────
+function showResultsSection(){
+  document.getElementById('results-section').style.display='block';
+  document.getElementById('bizGrid').innerHTML='';
+  document.getElementById('emptyState').style.display='none';
+  document.getElementById('aiBox').style.display='none';
+  document.getElementById('resultCount').textContent='';
 }
 
-// ═══════════════════════════════════════════════════════════
-// BOOT
-// ═══════════════════════════════════════════════════════════
-window.addEventListener('load', initApp);
+function showLoading(on){
+  document.getElementById('loadingSpinner').style.display=on?'block':'none';
+  if(on){document.getElementById('bizGrid').innerHTML='';document.getElementById('emptyState').style.display='none';}
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+function showToast(msg,type='info'){
+  const t=document.getElementById('toast');
+  t.className='toast '+type;
+  t.textContent=msg;
+  t.style.display='block';
+  setTimeout(()=>{t.style.display='none';},3500);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+renderCats();
+
+// Auto-detect location silently on load
+setTimeout(()=>{
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(
+      async pos=>{
+        userLat=pos.coords.latitude; userLng=pos.coords.longitude;
+        try{
+          const r=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${userLat}&lon=${userLng}&format=json`);
+          const d=await r.json();
+          userCity=d.address.city||d.address.town||d.address.county||'Your Area';
+          if(!document.getElementById('cityInput').value) document.getElementById('cityInput').value=userCity;
+          document.getElementById('locationStatus').textContent=`📍 Location ready: ${userCity}`;
+        }catch(e){}
+      },
+      ()=>{} // silent fail
+    );
+  }
+}, 500);
 </script>
 </body>
 </html>
