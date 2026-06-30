@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Golpo Canvas — Free AI Whiteboard Explainer Maker</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=Bricolage+Grotesque:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0c0a07;
+      --surface: #141209;
+      --surface2: #1e1a10;
+      --border: #2e2818;
+      --amber: #f59e0b;
+      --amber-light: #fcd34d;
+      --coral: #fb7185;
+      --teal: #2dd4bf;
+      --text: #f5f0e8;
+      --muted: #8a7d65;
+    }
+
+    body {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      background: linear-gradient(135deg, var(--bg) 0%, #1a1410 100%);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Navigation */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 48px;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(8px);
+      background: rgba(12, 10, 7, 0.8);
+    }
+
+    .logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .logo-icon { font-size: 2.2rem; }
+    
+    .logo-text {
+      font-family: 'Playfair Display';
+      font-size: 1.5rem;
+      font-weight: 800;
+    }
+
+    .logo-text span { color: var(--amber); }
+
+    .nav-right {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .btn-nav {
+      background: none;
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-weight: 600;
+    }
+
+    .btn-nav:hover {
+      border-color: var(--amber);
+      color: var(--amber);
+      background: rgba(245, 158, 11, 0.05);
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: 100px 48px;
+      text-align: center;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid var(--amber);
+      color: var(--amber);
+      padding: 8px 16px;
+      border-radius: 999px;
+      margin-bottom: 32px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .hero h1 {
+      font-family: 'Playfair Display';
+      font-size: 4rem;
+      line-height: 1.15;
+      margin-bottom: 24px;
+      background: linear-gradient(135deg, #fcd34d 0%, #f59e0b 50%, #e07b00 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: 1.3rem;
+      color: var(--muted);
+      margin-bottom: 48px;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .cta-primary {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--amber), #e07b00);
+      color: #0c0a07;
+      padding: 18px 48px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+      margin-bottom: 60px;
+    }
+
+    .cta-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(245, 158, 11, 0.3);
+    }
+
+    /* Cover Image */
+    .cover-section {
+      margin: 80px auto;
+      max-width: 900px;
+      text-align: center;
+    }
+
+    .cover-image {
+      width: 100%;
+      max-width: 800px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+      margin-bottom: 40px;
+    }
+
+    /* Features Section */
+    .features-section {
+      padding: 100px 48px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-title {
+      font-family: 'Playfair Display';
+      font-size: 2.5rem;
+      text-align: center;
+      margin-bottom: 60px;
+      color: var(--amber-light);
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 32px;
+    }
+
+    .feature-card {
+      padding: 32px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      text-align: left;
+      transition: all 0.3s;
+    }
+
+    .feature-card:hover {
+      border-color: var(--amber);
+      transform: translateY(-4px);
+      background: var(--surface2);
+    }
+
+    .feature-icon {
+      font-size: 2.5rem;
+      margin-bottom: 16px;
+    }
+
+    .feature-card h3 {
+      font-size: 1.2rem;
+      margin-bottom: 12px;
+      color: var(--amber-light);
+    }
+
+    .feature-card p {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    /* Pricing Section */
+    .pricing-section {
+      padding: 100px 48px;
+      text-align: center;
+      background: linear-gradient(180deg, transparent 0%, rgba(245, 158, 11, 0.05) 100%);
+    }
+
+    .pricing-box {
+      display: inline-block;
+      background: var(--surface);
+      border: 2px solid var(--amber);
+      border-radius: 16px;
+      padding: 60px 80px;
+      max-width: 500px;
+      margin-bottom: 40px;
+    }
+
+    .price-label {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .price-value {
+      font-family: 'Playfair Display';
+      font-size: 3.5rem;
+      font-weight: 900;
+      color: var(--amber);
+      margin-bottom: 8px;
+    }
+
+    .price-subtext {
+      color: var(--teal);
+      margin-bottom: 32px;
+      font-weight: 600;
+    }
+
+    .price-features {
+      text-align: left;
+      margin: 32px 0;
+    }
+
+    .price-features li {
+      list-style: none;
+      padding: 8px 0;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .price-features li:before {
+      content: "✓ ";
+      color: var(--teal);
+      font-weight: 700;
+      margin-right: 8px;
+    }
+
+    /* Footer */
+    footer {
+      padding: 40px 48px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .footer-links {
+      margin-bottom: 20px;
+    }
+
+    .footer-links a {
+      color: var(--amber);
+      text-decoration: none;
+      margin: 0 16px;
+      transition: color 0.3s;
+    }
+
+    .footer-links a:hover {
+      color: var(--amber-light);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 2.5rem; }
+      .hero-sub { font-size: 1.1rem; }
+      nav { padding: 16px 24px; }
+      .hero { padding: 60px 24px; }
+      .features-section { padding: 60px 24px; }
+      .pricing-section { padding: 60px 24px; }
+      .pricing-box { padding: 40px; }
+    }
+</style>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav>
+    <a href="/" class="logo-wrap">
+      <span class="logo-icon">✨</span>
+      <span class="logo-text">Golpo <span>Canvas</span></span>
+    </a>
+    <div class="nav-right">
+      <a href="https://shop.artistrystore.com" class="btn-nav">← Back to Store</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="badge">🎬 Free • Open-Source • AI-Powered</div>
+    <h1>Create Animated Explainer Videos in Minutes</h1>
+    <p class="hero-sub">Turn your ideas into hand-drawn animated explainers with AI-powered scripts, Rough.js animations, and one-click video export.</p>
+    <button class="cta-primary" onclick="launchStudio()">Launch Studio — Free Access</button>
+  </section>
+
+  <!-- Cover Image -->
+  <section class="cover-section">
+    <img src="/images/covers/apps/golpo-canvas.jpg" alt="Golpo Canvas App Cover" class="cover-image">
+  </section>
+
+  <!-- Features -->
+  <section class="features-section">
+    <h2 class="section-title">Powerful Features</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🎨</div>
+        <h3>Hand-Drawn Animations</h3>
+        <p>Rough.js creates beautiful sketch-style animations that bring your content to life with organic, hand-drawn aesthetics.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <h3>AI Script Generation</h3>
+        <p>Powered by Grok AI—just paste your topic and get instant, engaging scripts for your videos. Edit freely in the studio.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📹</div>
+        <h3>Multi-Scene Timeline</h3>
+        <p>Build complex explainers with multiple scenes, each with its own canvas, narration, and timeline. Perfect for tutorials and stories.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎬</div>
+        <h3>Direct Video Export</h3>
+        <p>Export your entire animation timeline as an MP4 video with integrated audio. Download and share instantly.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔊</div>
+        <h3>Built-In TTS Narration</h3>
+        <p>Add professional narration with browser-native text-to-speech. Multiple voices, full control over timing and tone.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💾</div>
+        <h3>Cloud Saving</h3>
+        <p>Projects auto-save to Supabase. Access your work anywhere, anytime. Export as JSON for full portability.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section class="pricing-section">
+    <h2 class="section-title">Completely Free</h2>
+    <div class="pricing-box">
+      <div class="price-label">Always Free • No Credit Card • No Limits</div>
+      <div class="price-value">$0</div>
+      <div class="price-subtext">Forever Free Access</div>
+      <ul class="price-features">
+        <li>Unlimited projects and scenes</li>
+        <li>Full AI script generation (Grok-powered)</li>
+        <li>Hand-drawn animations</li>
+        <li>Multi-scene timeline editor</li>
+        <li>Video export to MP4</li>
+        <li>Cloud project storage</li>
+        <li>Text-to-speech narration</li>
+        <li>Canvas recording & editing</li>
+      </ul>
+      <button class="cta-primary" onclick="launchStudio()" style="display: block; width: 100%; padding: 16px 32px; margin: 0;">Get Started Free →</button>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-links">
+      <a href="https://shop.artistrystore.com">Artistry Store</a>
+      <a href="https://shop.artistrystore.com">All Products</a>
+      <a href="https://bluesky.app">Follow on Bluesky</a>
+    </div>
+    <p>Golpo Canvas — Free open-source AI whiteboard explainer maker. Powered by Grok, Rough.js, and Supabase.</p>
+  </footer>
+
+  <script>
+    // Launch the studio with your free Grok API key (encoded)
+    function launchStudio() {
+      const encodedKey = 'eGFpLWladkx2a0paTDNDTTZibU5EQzVtcDJJZ3gySDVJY0pmWk83S2l2UWFLVXpPQ1Y1TFJEZUU2bjk0MXVXZm5QblV6aXZKc0RKQzE0c3FPTW1y';
+      window.location.href = `studio.html?key=${encodedKey}`;
+    }
+  </script>
+</body>
+</html>
