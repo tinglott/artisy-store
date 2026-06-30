@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LocalBotPro Finder</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0a;--card:#141414;--card2:#1c1c1c;--border:#2a2a2a;
+  --gold:#d4af37;--gold2:#f0d060;--gold3:#a07c1a;
+  --text:#e8e8e8;--muted:#888;--dim:#555;
+  --green:#4ade80;--red:#f87171;--orange:#fbbf24;--blue:#60a5fa;
+  --radius:12px;--radius-sm:8px;
+}
+html{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+body{min-height:100vh;background:var(--bg)}
+a{color:var(--gold);text-decoration:none}
+a:hover{color:var(--gold2)}
+button{cursor:pointer;border:none;font-family:inherit}
+input,select,textarea{font-family:inherit;background:var(--card2);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-size:14px;width:100%;outline:none;transition:border-color .2s}
+input:focus,select:focus,textarea:focus{border-color:var(--gold)}
+select option{background:var(--card2)}
+.hidden{display:none!important}
+
+/* Layout */
+.app{max-width:1100px;margin:0 auto;padding:16px}
+.header{display:flex;align-items:center;justify-content:space-between;padding:20px 0 24px;border-bottom:1px solid var(--border);margin-bottom:24px;flex-wrap:wrap;gap:12px}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--gold3),var(--gold));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.logo-text{font-size:20px;font-weight:700;color:var(--gold)}
+.logo-sub{font-size:12px;color:var(--muted);margin-top:1px}
+.header-actions{display:flex;gap:10px;align-items:center}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;background:var(--card);padding:5px;border-radius:var(--radius);margin-bottom:24px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab-btn{padding:9px 18px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;color:var(--muted);background:transparent;transition:all .2s;white-space:nowrap}
+.tab-btn.active{background:var(--gold);color:#0a0a0a}
+.tab-btn:hover:not(.active){color:var(--text);background:var(--card2)}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;transition:all .2s;cursor:pointer;border:none;font-family:inherit}
+.btn-gold{background:var(--gold);color:#0a0a0a}
+.btn-gold:hover{background:var(--gold2)}
+.btn-outline{background:transparent;color:var(--gold);border:1px solid var(--gold)}
+.btn-outline:hover{background:rgba(212,175,55,.1)}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn-ghost:hover{color:var(--text);border-color:var(--dim)}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-danger{background:rgba(248,113,113,.15);color:var(--red);border:1px solid rgba(248,113,113,.3)}
+.btn-danger:hover{background:rgba(248,113,113,.25)}
+.btn-success{background:rgba(74,222,128,.15);color:var(--green);border:1px solid rgba(74,222,128,.3)}
+.btn-success:hover{background:rgba(74,222,128,.25)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* Finder Controls */
+.search-row{display:grid;grid-template-columns:1fr auto;gap:12px;margin-bottom:16px}
+.filter-row{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;margin-bottom:20px;align-items:end}
+.filter-row label{font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+@media(max-width:640px){.filter-row{grid-template-columns:1fr 1fr}.search-row{grid-template-columns:1fr}}
+.csv-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--card2);border:1px dashed var(--border);border-radius:var(--radius-sm);margin-bottom:20px;gap:10px;flex-wrap:wrap}
+.csv-bar span{font-size:13px;color:var(--muted)}
+
+/* Lead Cards */
+.leads-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.lead-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;transition:border-color .2s}
+.lead-card:hover{border-color:var(--gold3)}
+.lead-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}
+.lead-info{flex:1;min-width:0}
+.lead-name{font-size:15px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lead-type{font-size:12px;color:var(--gold);margin-top:2px}
+.lead-city{font-size:12px;color:var(--muted);margin-top:1px}
+.lead-meta{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;font-size:12px;color:var(--muted)}
+.lead-meta-row{display:flex;align-items:center;gap:6px}
+.stars{color:var(--gold)}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-red{background:rgba(248,113,113,.15);color:var(--red)}
+.badge-green{background:rgba(74,222,128,.15);color:var(--green)}
+.badge-gold{background:rgba(212,175,55,.15);color:var(--gold)}
+.badge-blue{background:rgba(96,165,250,.15);color:var(--blue)}
+.lead-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* Score Ring */
+.score-ring{flex-shrink:0}
+.score-ring svg{display:block}
+
+/* Pipeline */
+.pipeline-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.pipeline-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px}
+@media(max-width:640px){.pipeline-stats{grid-template-columns:repeat(2,1fr)}}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;text-align:center}
+.stat-num{font-size:22px;font-weight:800;color:var(--gold)}
+.stat-label{font-size:11px;color:var(--muted);margin-top:2px}
+.pipeline-list{display:flex;flex-direction:column;gap:12px}
+.pipeline-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;transition:border-color .2s}
+.pipeline-card:hover{border-color:var(--dim)}
+.pipeline-card-top{display:flex;align-items:center;gap:14px}
+.pipeline-card-body{flex:1;min-width:0}
+.pipeline-name{font-size:14px;font-weight:700}
+.pipeline-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.pipeline-controls{display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap}
+.status-select{width:auto;padding:5px 10px;font-size:12px;border-radius:20px;cursor:pointer}
+.status-new{border-color:var(--blue)!important;color:var(--blue)!important}
+.status-contacted{border-color:var(--orange)!important;color:var(--orange)!important}
+.status-negotiating{border-color:var(--gold)!important;color:var(--gold)!important}
+.status-closed{border-color:var(--green)!important;color:var(--green)!important}
+.status-lost{border-color:var(--red)!important;color:var(--red)!important}
+.notes-input{width:100%;margin-top:8px;resize:vertical;min-height:60px;font-size:13px;padding:8px 12px}
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-icon{font-size:40px;margin-bottom:12px}
+.empty-title{font-size:16px;font-weight:600;color:var(--dim);margin-bottom:6px}
+.empty-sub{font-size:13px}
+
+/* Scraper Tools */
+.tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:30px}
+.tool-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.tool-card-top{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.tool-icon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.tool-name{font-size:15px;font-weight:700}
+.tool-tag{font-size:11px;color:var(--muted)}
+.tool-desc{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:12px}
+.csv-format{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;margin-bottom:24px}
+.csv-format h3{font-size:14px;font-weight:600;color:var(--gold);margin-bottom:10px}
+.code-block{background:#000;border-radius:6px;padding:12px;font-family:monospace;font-size:12px;color:var(--green);overflow-x:auto}
+
+/* Services Map */
+.services-map{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.service-tile{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;transition:border-color .2s,transform .2s}
+.service-tile:hover{border-color:var(--gold3);transform:translateY(-2px)}
+.service-tile-icon{font-size:28px;margin-bottom:8px}
+.service-tile-name{font-size:14px;font-weight:700;margin-bottom:4px}
+.service-tile-opp{font-size:11px;font-weight:600;margin-bottom:6px}
+.service-tile-desc{font-size:12px;color:var(--muted);line-height:1.5}
+.opp-high{color:var(--green)}
+.opp-med{color:var(--orange)}
+.opp-low{color:var(--muted)}
+.opp-bar{height:4px;border-radius:2px;background:var(--border);margin-top:8px;overflow:hidden}
+.opp-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--gold3),var(--gold))}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.modal-title{font-size:17px;font-weight:700;color:var(--gold)}
+.modal-close{background:transparent;border:none;color:var(--muted);font-size:22px;cursor:pointer;padding:0;line-height:1}
+.modal-close:hover{color:var(--text)}
+.modal-lead-info{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:16px;font-size:13px}
+.modal-lead-info div{margin-bottom:4px;color:var(--muted)}
+.modal-lead-info span{color:var(--text)}
+.outreach-area{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;min-height:140px;font-size:13px;color:var(--text);line-height:1.7;margin-bottom:12px;white-space:pre-wrap;word-break:break-word}
+.outreach-actions{display:flex;gap:10px;flex-wrap:wrap}
+
+/* Settings */
+.settings-modal .modal{max-width:400px}
+.setting-row{margin-bottom:16px}
+.setting-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+
+/* Notification Toast */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 18px;font-size:13px;font-weight:500;z-index:9999;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,.4);animation:slideIn .2s ease;max-width:320px}
+.toast.success{border-color:var(--green);color:var(--green)}
+.toast.error{border-color:var(--red);color:var(--red)}
+.toast.info{border-color:var(--gold);color:var(--gold)}
+@keyframes slideIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* Loading Spinner */
+.spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-overlay{display:flex;align-items:center;justify-content:center;padding:60px;gap:14px;color:var(--muted);font-size:14px}
+
+/* Divider */
+.divider{height:1px;background:var(--border);margin:24px 0}
+.section-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:14px}
+
+/* Gear button */
+.gear-btn{width:36px;height:36px;border-radius:50%;background:var(--card);border:1px solid var(--border);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;font-size:16px}
+.gear-btn:hover{border-color:var(--gold);color:var(--gold)}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">🤖</div>
+      <div>
+        <div class="logo-text">LocalBotPro Finder</div>
+        <div class="logo-sub">B2B Lead Discovery & Outreach Engine &nbsp;·&nbsp; <span style="color:#d4a843;font-size:10px;background:rgba(212,168,67,0.15);padding:2px 6px;border-radius:4px;font-weight:600">🔒 INTERNAL</span></div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-outline btn-sm" onclick="exportPipeline()">⬇ Export CSV</button>
+      <button class="gear-btn" onclick="openSettings()" title="Settings">⚙</button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('finder')" id="tab-finder">🔍 Finder</button>
+    <button class="tab-btn" onclick="switchTab('pipeline')" id="tab-pipeline">📋 Pipeline</button>
+    <button class="tab-btn" onclick="switchTab('scrapers')" id="tab-scrapers">🛠 Scraper Tools</button>
+    <button class="tab-btn" onclick="switchTab('services')" id="tab-services">🗺 Services Map</button>
+  </div>
+
+  <!-- FINDER TAB -->
+  <div id="pane-finder">
+    <div class="search-row">
+      <input type="text" id="searchInput" placeholder="Search business name or keyword..." 
+             onkeydown="if(event.key==='Enter')doSearch()" value="">
+      <button class="btn btn-gold" onclick="doSearch()">🔍 Search</button>
+    </div>
+    <div class="filter-row">
+      <div>
+        <label>City</label>
+        <select id="citySelect">
+          <option>All Cities</option>
+          <option>Atlanta</option><option>Austin</option><option>Charlotte</option>
+          <option>Chicago</option><option>Dallas</option><option>Denver</option>
+          <option>Houston</option><option>Las Vegas</option><option>Los Angeles</option>
+          <option>Miami</option><option>Nashville</option><option>New York</option>
+          <option>Orlando</option><option>Phoenix</option><option>Seattle</option>
+        </select>
+      </div>
+      <div>
+        <label>Service Type</label>
+        <select id="serviceSelect">
+          <option value="all">All Services</option>
+          <option>Auto Shop</option><option>Barbershop</option><option>Beauty Salon</option>
+          <option>Cleaning Service</option><option>Dental Practice</option>
+          <option>Esthetics</option><option>Fitness Center</option><option>Hair Salon</option>
+          <option>HVAC</option><option>Landscaping</option><option>Law Firm</option>
+          <option>Massage Therapy</option><option>Mental Health</option><option>Nail Salon</option>
+          <option>Pet Services</option><option>Photography</option><option>Plumbing</option>
+          <option>Real Estate</option><option>Restaurant</option><option>Retail</option>
+          <option>Tutoring</option><option>Wellness Spa</option>
+        </select>
+      </div>
+      <div>
+        <label>Min Score: <span id="scoreLabel">60</span></label>
+        <input type="range" id="scoreRange" min="0" max="95" value="60" 
+               oninput="document.getElementById('scoreLabel').textContent=this.value"
+               style="padding:0;background:transparent;border:none;cursor:pointer">
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <button class="btn btn-ghost" onclick="resetFilters()">✕ Reset</button>
+      </div>
+    </div>
+
+    <div class="csv-bar">
+      <span>📥 Import leads from Outscraper, Apify, or any scraper CSV</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <label class="btn btn-outline btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+          📂 Import CSV
+          <input type="file" accept=".csv" id="csvInput" style="display:none" onchange="handleCSVImport(event)">
+        </label>
+      </div>
+    </div>
+
+    <div id="leadsContainer">
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <div class="empty-title">Ready to find leads</div>
+        <div class="empty-sub">Search above or import a CSV from your favorite scraper</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PIPELINE TAB -->
+  <div id="pane-pipeline" class="hidden">
+    <div class="pipeline-header">
+      <div style="font-size:17px;font-weight:700">Your Pipeline</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" onclick="exportPipeline()">⬇ Export CSV</button>
+        <button class="btn btn-ghost btn-sm" onclick="loadPipeline()">↺ Refresh</button>
+      </div>
+    </div>
+    <div class="pipeline-stats" id="pipelineStats">
+      <div class="stat-card"><div class="stat-num" id="stat-total">0</div><div class="stat-label">Total</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-new" style="color:var(--blue)">0</div><div class="stat-label">New</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-contacted" style="color:var(--orange)">0</div><div class="stat-label">Contacted</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-negotiating" style="color:var(--gold)">0</div><div class="stat-label">Negotiating</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-closed" style="color:var(--green)">0</div><div class="stat-label">Closed</div></div>
+    </div>
+    <div id="pipelineList">
+      <div class="loading-overlay"><div class="spinner"></div> Loading pipeline...</div>
+    </div>
+  </div>
+
+  <!-- SCRAPER TOOLS TAB -->
+  <div id="pane-scrapers" class="hidden">
+    <div class="section-title">Recommended Scraper Tools</div>
+    <div class="tools-grid">
+      <div class="tool-card">
+        <div class="tool-card-top">
+          <div class="tool-icon" style="background:rgba(74,222,128,.1)">📊</div>
+          <div><div class="tool-name">Outscraper</div><div class="tool-tag">Google Maps · Best for Local</div></div>
+        </div>
+        <div class="tool-desc">Pull thousands of local business listings from Google Maps with ratings, reviews, phone, website, and claim status. Best for high-volume lead generation.</div>
+        <a href="https://outscraper.com" target="_blank" class="btn btn-success btn-sm">Open Outscraper →</a>
+      </div>
+      <div class="tool-card">
+        <div class="tool-card-top">
+          <div class="tool-icon" style="background:rgba(96,165,250,.1)">🕷</div>
+          <div><div class="tool-name">Apify</div><div class="tool-tag">Google Maps · Yelp · Flexible</div></div>
+        </div>
+        <div class="tool-desc">Powerful cloud scraper with pre-built actors for Google Maps, Yelp, and more. Pay-per-result model. Good for targeted campaigns.</div>
+        <a href="https://apify.com/store" target="_blank" class="btn btn-outline btn-sm" style="color:var(--blue);border-color:var(--blue)">Open Apify →</a>
+      </div>
+      <div class="tool-card">
+        <div class="tool-card-top">
+          <div class="tool-icon" style="background:rgba(251,191,36,.1)">⭐</div>
+          <div><div class="tool-name">Yelp Scraper</div><div class="tool-tag">Yelp · Review-Focused</div></div>
+        </div>
+        <div class="tool-desc">Great for finding businesses with low star ratings and no response to reviews — perfect for pitching your review automation service.</div>
+        <a href="https://apify.com/petr_cermak/yelp-scraper" target="_blank" class="btn btn-outline btn-sm" style="color:var(--orange);border-color:var(--orange)">Open →</a>
+      </div>
+      <div class="tool-card">
+        <div class="tool-card-top">
+          <div class="tool-icon" style="background:rgba(212,175,55,.1)">👻</div>
+          <div><div class="tool-name">PhantomBuster</div><div class="tool-tag">LinkedIn · Social</div></div>
+        </div>
+        <div class="tool-desc">Extract business decision-makers from LinkedIn. Connect it to LocalBotPro pipeline and use AI outreach for B2B agency deals.</div>
+        <a href="https://phantombuster.com" target="_blank" class="btn btn-outline btn-sm">Open →</a>
+      </div>
+      <div class="tool-card">
+        <div class="tool-card-top">
+          <div class="tool-icon" style="background:rgba(168,85,247,.1)">🗺</div>
+          <div><div class="tool-name">omkarcloud/gmaps-scraper</div><div class="tool-tag">GitHub · Free · Open Source</div></div>
+        </div>
+        <div class="tool-desc">Free open-source Google Maps scraper. Run locally with Python. Great for unlimited scraping without API fees.</div>
+        <a href="https://github.com/omkarcloud/google-maps-scraper" target="_blank" class="btn btn-outline btn-sm">View on GitHub →</a>
+      </div>
+      <div class="tool-card">
+        <div class="tool-card-top">
+          <div class="tool-icon" style="background:rgba(248,113,113,.1)">🌐</div>
+          <div><div class="tool-name">Google Maps API</div><div class="tool-tag">Official · Accurate · Paid</div></div>
+        </div>
+        <div class="tool-desc">Use Places API with a key for real-time live data. $200 free monthly credit. Best for production deployments where accuracy matters.</div>
+        <a href="https://developers.google.com/maps/documentation/places" target="_blank" class="btn btn-outline btn-sm">View Docs →</a>
+      </div>
+    </div>
+
+    <div class="section-title" style="margin-top:8px">Expected CSV Import Format</div>
+    <div class="csv-format">
+      <h3>📄 Standard Format (works with Outscraper & most scrapers)</h3>
+      <div class="code-block">name,type,city,rating,reviews,phone,website
+"Golden Touch Nail Salon","Nail Salon","Atlanta","2.9","23","(404) 555-0182","No website"
+"Prestige Auto Detail","Auto Shop","Atlanta","3.1","41","(404) 555-0243","prestigeauto.com"
+"Haven Wellness Spa","Wellness Spa","Miami","2.7","14","(305) 555-0198","No website"</div>
+      <p style="font-size:12px;color:var(--muted);margin-top:10px">💡 Headers must be in row 1. Website column: use <strong>"No website"</strong> if they don't have one. Score is auto-calculated from rating, reviews, and website/claimed status.</p>
+    </div>
+
+    <div class="section-title">Workflow Tips</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px">
+        <div style="font-size:20px;margin-bottom:8px">1️⃣</div>
+        <div style="font-weight:700;font-size:14px;margin-bottom:4px">Scrape Your Niche</div>
+        <div style="font-size:13px;color:var(--muted)">Use Outscraper or Apify to pull 50–500 businesses by city + category. Filter by low rating (under 3.5 stars).</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px">
+        <div style="font-size:20px;margin-bottom:8px">2️⃣</div>
+        <div style="font-weight:700;font-size:14px;margin-bottom:4px">Import to Finder</div>
+        <div style="font-size:13px;color:var(--muted)">Upload your CSV here. LocalBotPro scores each lead automatically based on website, reviews, rating & claim status.</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px">
+        <div style="font-size:20px;margin-bottom:8px">3️⃣</div>
+        <div style="font-weight:700;font-size:14px;margin-bottom:4px">AI Outreach</div>
+        <div style="font-size:13px;color:var(--muted)">Click "Generate Outreach" on any lead. Grok AI writes a personalized pitch. Copy and send via email or phone.</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px">
+        <div style="font-size:20px;margin-bottom:8px">4️⃣</div>
+        <div style="font-weight:700;font-size:14px;margin-bottom:4px">Track in Pipeline</div>
+        <div style="font-size:13px;color:var(--muted)">Save hot leads to Pipeline. Update status as you move them from New → Contacted → Negotiating → Closed.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SERVICES MAP TAB -->
+  <div id="pane-services" class="hidden">
+    <div class="section-title">High-Opportunity Service Categories</div>
+    <div class="services-map" id="servicesMap"></div>
+  </div>
+</div>
+
+<!-- OUTREACH MODAL -->
+<div class="modal-overlay hidden" id="outreachModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">✍ AI Outreach Generator</div>
+      <button class="modal-close" onclick="closeOutreach()">×</button>
+    </div>
+    <div class="modal-lead-info" id="modalLeadInfo"></div>
+    <div class="outreach-area" id="outreachContent">Click "Generate with Grok" to create a personalized outreach message for this business.</div>
+    <div class="outreach-actions">
+      <button class="btn btn-gold" id="genBtn" onclick="generateOutreach()">⚡ Generate with Grok</button>
+      <button class="btn btn-outline" onclick="copyOutreach()">📋 Copy</button>
+      <button class="btn btn-ghost" onclick="closeOutreach()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay hidden" id="settingsModal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <div class="modal-title">⚙ Settings</div>
+      <button class="modal-close" onclick="closeSettings()">×</button>
+    </div>
+    <div class="setting-row">
+      <div class="setting-label">Grok API Key (xAI)</div>
+      <input type="password" id="grokKeyInput" placeholder="xai-..." style="width:100%">
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">Pre-loaded from workspace. Override only if needed.</div>
+    </div>
+    <div class="setting-row" style="margin-top:16px">
+      <button class="btn btn-gold" onclick="saveSettings()" style="width:100%">Save Settings</button>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-top:12px;line-height:1.5">
+      Pipeline data is stored in Supabase cloud (synced across devices) with localStorage fallback if offline.
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast hidden" id="toast"></div>
+
+<script>
+// ─── Config ─────────────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://lltlbjmurwhnotjegjrz.supabase.co';
+const SUPABASE_KEY = atob('ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnBjM01pT2lKemRYQmhZbUZ6WlNJc0luSmxaaUk2SW14c2RHeGlhbTExY25kb2JtOTBhbVZuYW5KNklpd2ljbTlzWlNJNkltRnViMjRpTENKcFlYUWlPakUzTnpRNE5UQTBNVEVzSW1WNGNDSTZNakE1TURReU5qUXhNWDAuMEdUQzZXZjZoZHlyV3Q2OE51QUo0RWNsS1pzZmppMUZtMGdldEtQbzdBcw==');
+const DEFAULT_GROK_KEY = atob('eGFpLTNsN1lGdHEydGI2ZFpsSVhKenZYZVl1QVRsM1dvREtHZjNlUnYxYkw0Q2k5ejBPMlRtODVvb21RVlJ5M2w4ZkZHR25FYkVsNm8zU29IME5y');
+const GROK_URL = 'https://api.x.ai/v1/chat/completions';
+
+function getGrokKey() {
+  return localStorage.getItem('localbotpro_grok_key') || DEFAULT_GROK_KEY;
+}
+
+// ─── State ───────────────────────────────────────────────────────────────────
+let currentLeads = [];
+let pipeline = [];
+let currentOutreachLead = null;
+let toastTimer = null;
+
+// ─── Mock Data ───────────────────────────────────────────────────────────────
+const MOCK_LEADS = [
+  {name:"Golden Touch Nail Salon",type:"Nail Salon",city:"Atlanta",rating:2.9,reviews:23,phone:"(404) 555-0182",website:"No website",claimed:false},
+  {name:"Prestige Auto Detail",type:"Auto Shop",city:"Atlanta",rating:3.1,reviews:41,phone:"(404) 555-0243",website:"prestigeauto-ga.com",claimed:false},
+  {name:"Sunrise Dental Studio",type:"Dental Practice",city:"Dallas",rating:3.4,reviews:67,phone:"(214) 555-0156",website:"No website",claimed:true},
+  {name:"Haven Wellness Spa",type:"Wellness Spa",city:"Miami",rating:2.7,reviews:14,phone:"(305) 555-0198",website:"No website",claimed:false},
+  {name:"Peak Fitness Gym",type:"Fitness Center",city:"Chicago",rating:3.6,reviews:89,phone:"(312) 555-0127",website:"peakfitness.com",claimed:true},
+  {name:"Bloom Hair Boutique",type:"Hair Salon",city:"Houston",rating:3.0,reviews:31,phone:"(713) 555-0164",website:"No website",claimed:false},
+  {name:"Elite Plumbing Solutions",type:"Plumbing",city:"Phoenix",rating:2.5,reviews:19,phone:"(602) 555-0271",website:"No website",claimed:false},
+  {name:"Serenity Massage & Spa",type:"Massage Therapy",city:"Nashville",rating:3.3,reviews:52,phone:"(615) 555-0193",website:"serenitynash.com",claimed:false},
+  {name:"Bright Smiles Dental",type:"Dental Practice",city:"Charlotte",rating:2.8,reviews:28,phone:"(704) 555-0147",website:"No website",claimed:false},
+  {name:"Champion HVAC Services",type:"HVAC",city:"Austin",rating:3.2,reviews:37,phone:"(512) 555-0219",website:"championhvac.net",claimed:true},
+  {name:"Luxe Beauty Studio",type:"Beauty Salon",city:"Atlanta",rating:2.6,reviews:11,phone:"(404) 555-0351",website:"No website",claimed:false},
+  {name:"QuickFix Auto Repair",type:"Auto Shop",city:"Los Angeles",rating:3.1,reviews:78,phone:"(213) 555-0402",website:"quickfixla.com",claimed:false},
+  {name:"Tranquil Mind Therapy",type:"Mental Health",city:"Seattle",rating:3.5,reviews:44,phone:"(206) 555-0231",website:"No website",claimed:false},
+  {name:"Royal Cut Barbershop",type:"Barbershop",city:"New York",rating:2.9,reviews:91,phone:"(212) 555-0187",website:"royalcutnyc.com",claimed:true},
+  {name:"Paws & Claws Pet Grooming",type:"Pet Services",city:"Denver",rating:3.0,reviews:26,phone:"(720) 555-0304",website:"No website",claimed:false},
+  {name:"Glow Skin Studio",type:"Esthetics",city:"Miami",rating:3.3,reviews:33,phone:"(305) 555-0472",website:"glowskinstudio.com",claimed:false},
+  {name:"Ace Landscaping",type:"Landscaping",city:"Dallas",rating:2.7,reviews:15,phone:"(214) 555-0538",website:"No website",claimed:false},
+  {name:"Harmony Yoga Studio",type:"Fitness Center",city:"Nashville",rating:2.8,reviews:22,phone:"(615) 555-0712",website:"No website",claimed:false},
+  {name:"Crystal Clear Windows",type:"Cleaning Service",city:"Orlando",rating:3.1,reviews:41,phone:"(407) 555-0283",website:"No website",claimed:false},
+  {name:"Summit Law Group",type:"Law Firm",city:"Chicago",rating:3.4,reviews:57,phone:"(312) 555-0623",website:"summitlaw.com",claimed:true},
+  {name:"Blossom Photography",type:"Photography",city:"Seattle",rating:3.0,reviews:19,phone:"(206) 555-0812",website:"No website",claimed:false},
+  {name:"Coastal Real Estate Group",type:"Real Estate",city:"Miami",rating:2.8,reviews:34,phone:"(305) 555-0934",website:"coastalre.com",claimed:false},
+];
+
+// ─── Score Calculator ────────────────────────────────────────────────────────
+function calcScore(lead) {
+  let s = 50;
+  s += (4.5 - lead.rating) * 12;
+  s += Math.max(0, (100 - (lead.reviews || 0))) * 0.18;
+  if (!lead.website || lead.website === 'No website' || lead.website === '') s += 18;
+  if (!lead.claimed) s += 10;
+  return Math.min(99, Math.max(30, Math.round(s)));
+}
+
+function enrichLeads(leads) {
+  return leads.map((l, i) => ({
+    ...l,
+    id: l.id || `lead_${Date.now()}_${i}`,
+    score: l.score || calcScore(l)
+  }));
+}
+
+// ─── Score Ring SVG ─────────────────────────────────────────────────────────
+function scoreRing(score, size = 52) {
+  const r = 20, cx = 26, cy = 26, sw = 5;
+  const circ = 2 * Math.PI * r;
+  const fill = (score / 100) * circ;
+  const color = score >= 80 ? 'var(--gold)' : score >= 65 ? 'var(--orange)' : 'var(--muted)';
+  return `<svg width="${size}" height="${size}" viewBox="0 0 52 52" class="score-ring">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--border)" stroke-width="${sw}"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="${sw}"
+      stroke-dasharray="${fill.toFixed(1)} ${circ.toFixed(1)}" stroke-linecap="round"
+      transform="rotate(-90 ${cx} ${cy})"/>
+    <text x="${cx}" y="${cy+5}" text-anchor="middle" fill="${color}" font-size="12" font-weight="800" font-family="Segoe UI,sans-serif">${score}</text>
+  </svg>`;
+}
+
+// ─── Stars ───────────────────────────────────────────────────────────────────
+function stars(rating) {
+  const full = Math.floor(rating);
+  const half = rating % 1 >= 0.5 ? 1 : 0;
+  let s = '<span class="stars">';
+  for (let i = 0; i < full; i++) s += '★';
+  if (half) s += '½';
+  s += '</span>';
+  return s;
+}
+
+// ─── Lead Card ───────────────────────────────────────────────────────────────
+function leadCardHTML(lead) {
+  const inPipe = pipeline.some(p => p.lead_id === lead.id);
+  const hasWeb = lead.website && lead.website !== 'No website';
+  return `<div class="lead-card" id="card_${lead.id}">
+    <div class="lead-card-top">
+      <div class="lead-info">
+        <div class="lead-name" title="${escHtml(lead.name)}">${escHtml(lead.name)}</div>
+        <div class="lead-type">${escHtml(lead.type)}</div>
+        <div class="lead-city">📍 ${escHtml(lead.city)}</div>
+      </div>
+      ${scoreRing(lead.score)}
+    </div>
+    <div class="lead-meta">
+      <div class="lead-meta-row">${stars(lead.rating)} <span style="color:var(--muted)">${lead.rating} · ${lead.reviews} reviews</span></div>
+      <div class="lead-meta-row">📞 <span>${escHtml(lead.phone || 'N/A')}</span></div>
+      <div class="lead-meta-row">
+        🌐 <span class="${hasWeb ? 'badge badge-green' : 'badge badge-red'}">${hasWeb ? 'Has Website' : 'No Website'}</span>
+        <span class="${lead.claimed ? 'badge badge-blue' : 'badge badge-gold'}" style="margin-left:4px">${lead.claimed ? 'Claimed' : 'Unclaimed'}</span>
+      </div>
+    </div>
+    <div class="lead-actions">
+      <button class="btn btn-ghost btn-sm" onclick="openOutreach(${JSON.stringify(lead).replace(/"/g,'&quot;')})">✍ Outreach</button>
+      <button class="btn ${inPipe ? 'btn-success' : 'btn-outline'} btn-sm" onclick="saveToPipeline(${JSON.stringify(lead).replace(/"/g,'&quot;')})" id="save_${lead.id}">
+        ${inPipe ? '✓ Saved' : '+ Pipeline'}
+      </button>
+    </div>
+  </div>`;
+}
+
+// ─── Render Leads ─────────────────────────────────────────────────────────────
+function renderLeads(leads) {
+  const container = document.getElementById('leadsContainer');
+  if (!leads.length) {
+    container.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">🔎</div>
+      <div class="empty-title">No leads found</div>
+      <div class="empty-sub">Try different filters or import a CSV</div>
+    </div>`;
+    return;
+  }
+  container.innerHTML = `<div style="font-size:13px;color:var(--muted);margin-bottom:14px">
+    Found <strong style="color:var(--gold)">${leads.length}</strong> leads
+  </div><div class="leads-grid">${leads.map(leadCardHTML).join('')}</div>`;
+}
+
+// ─── Search & Filter ─────────────────────────────────────────────────────────
+function doSearch() {
+  const query = document.getElementById('searchInput').value.toLowerCase().trim();
+  const city = document.getElementById('citySelect').value;
+  const service = document.getElementById('serviceSelect').value;
+  const minScore = parseInt(document.getElementById('scoreRange').value) || 0;
+
+  let results = enrichLeads(MOCK_LEADS);
+  if (query) results = results.filter(l =>
+    l.name.toLowerCase().includes(query) || l.type.toLowerCase().includes(query) || l.city.toLowerCase().includes(query)
+  );
+  if (city !== 'All Cities') results = results.filter(l => l.city === city);
+  if (service !== 'all') results = results.filter(l => l.type === service);
+  results = results.filter(l => l.score >= minScore);
+  results.sort((a, b) => b.score - a.score);
+
+  currentLeads = results;
+  renderLeads(results);
+}
+
+function resetFilters() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('citySelect').value = 'All Cities';
+  document.getElementById('serviceSelect').value = 'all';
+  document.getElementById('scoreRange').value = 60;
+  document.getElementById('scoreLabel').textContent = '60';
+  currentLeads = [];
+  document.getElementById('leadsContainer').innerHTML = `<div class="empty-state">
+    <div class="empty-icon">🔍</div>
+    <div class="empty-title">Ready to find leads</div>
+    <div class="empty-sub">Search above or import a CSV from your favorite scraper</div>
+  </div>`;
+}
+
+// ─── CSV Import ───────────────────────────────────────────────────────────────
+function handleCSVImport(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const text = e.target.result;
+      const lines = text.split('\n').filter(l => l.trim());
+      if (lines.length < 2) { notify('CSV file appears empty', 'error'); return; }
+      const header = lines[0].toLowerCase().replace(/"/g,'').split(',').map(h => h.trim());
+      const idx = {
+        name: header.indexOf('name'),
+        type: Math.max(header.indexOf('type'), header.indexOf('category'), header.indexOf('business type')),
+        city: header.indexOf('city'),
+        rating: header.indexOf('rating'),
+        reviews: Math.max(header.indexOf('reviews'), header.indexOf('review count')),
+        phone: Math.max(header.indexOf('phone'), header.indexOf('phone number')),
+        website: header.indexOf('website')
+      };
+      const imported = [];
+      for (let i = 1; i < lines.length; i++) {
+        const cols = parseCSVRow(lines[i]);
+        if (!cols.length) continue;
+        const lead = {
+          id: `csv_${Date.now()}_${i}`,
+          name: (idx.name >= 0 ? cols[idx.name] : '') || 'Unknown Business',
+          type: (idx.type >= 0 ? cols[idx.type] : '') || 'Business',
+          city: (idx.city >= 0 ? cols[idx.city] : '') || 'Unknown',
+          rating: parseFloat(idx.rating >= 0 ? cols[idx.rating] : 0) || 0,
+          reviews: parseInt(idx.reviews >= 0 ? cols[idx.reviews] : 0) || 0,
+          phone: (idx.phone >= 0 ? cols[idx.phone] : '') || '',
+          website: (idx.website >= 0 ? cols[idx.website] : '') || 'No website',
+          claimed: false
+        };
+        lead.score = calcScore(lead);
+        imported.push(lead);
+      }
+      if (!imported.length) { notify('No valid leads found in CSV', 'error'); return; }
+      currentLeads = imported;
+      renderLeads(imported);
+      notify(`✅ ${imported.length} leads imported from CSV`, 'success');
+    } catch(err) {
+      notify('CSV parse error: ' + err.message, 'error');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function parseCSVRow(row) {
+  const result = [];
+  let current = '', inQuote = false;
+  for (let i = 0; i < row.length; i++) {
+    const c = row[i];
+    if (c === '"') { inQuote = !inQuote; continue; }
+    if (c === ',' && !inQuote) { result.push(current.trim()); current = ''; continue; }
+    current += c;
+  }
+  result.push(current.trim());
+  return result;
+}
+
+// ─── Supabase Helpers ─────────────────────────────────────────────────────────
+async function supaFetch(path, opts = {}) {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    ...opts,
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation',
+      ...(opts.headers || {})
+    }
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(err);
+  }
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
+// ─── Pipeline CRUD ────────────────────────────────────────────────────────────
+async function loadPipeline() {
+  try {
+    const data = await supaFetch('localbotpro_pipeline?order=created_at.desc&limit=200');
+    pipeline = data || [];
+    // Also sync from localStorage if Supabase is empty
+    if (!pipeline.length) {
+      const local = localStorage.getItem('localbotpro_pipeline');
+      if (local) pipeline = JSON.parse(local);
+    } else {
+      localStorage.setItem('localbotpro_pipeline', JSON.stringify(pipeline));
+    }
+  } catch(err) {
+    console.warn('Supabase unavailable, using localStorage:', err.message);
+    const local = localStorage.getItem('localbotpro_pipeline');
+    pipeline = local ? JSON.parse(local) : [];
+  }
+  renderPipeline();
+}
+
+async function saveToPipeline(lead) {
+  if (pipeline.some(p => p.lead_id === lead.id)) {
+    notify('Already in pipeline', 'info'); return;
+  }
+  const row = {
+    lead_id: lead.id,
+    name: lead.name,
+    type: lead.type,
+    city: lead.city,
+    rating: lead.rating,
+    reviews: lead.reviews,
+    phone: lead.phone,
+    website: lead.website,
+    claimed: lead.claimed,
+    score: lead.score,
+    status: 'New',
+    notes: ''
+  };
+  try {
+    const saved = await supaFetch('localbotpro_pipeline', {
+      method: 'POST',
+      body: JSON.stringify(row)
+    });
+    pipeline.unshift(saved ? saved[0] : row);
+  } catch(err) {
+    console.warn('Supabase save failed, using localStorage:', err.message);
+    pipeline.unshift(row);
+  }
+  localStorage.setItem('localbotpro_pipeline', JSON.stringify(pipeline));
+  // Update button
+  const btn = document.getElementById('save_' + lead.id);
+  if (btn) { btn.textContent = '✓ Saved'; btn.className = 'btn btn-success btn-sm'; }
+  notify('✅ Lead saved to pipeline', 'success');
+}
+
+async function updateStatus(leadId, status) {
+  const idx = pipeline.findIndex(p => p.lead_id === leadId || p.id == leadId);
+  if (idx < 0) return;
+  pipeline[idx].status = status;
+  localStorage.setItem('localbotpro_pipeline', JSON.stringify(pipeline));
+  updatePipelineStats();
+  try {
+    const filter = pipeline[idx].lead_id 
+      ? `localbotpro_pipeline?lead_id=eq.${pipeline[idx].lead_id}`
+      : `localbotpro_pipeline?id=eq.${pipeline[idx].id}`;
+    await supaFetch(filter, {
+      method: 'PATCH',
+      body: JSON.stringify({ status, updated_at: new Date().toISOString() })
+    });
+  } catch(err) { console.warn('Status sync failed:', err.message); }
+}
+
+async function updateNotes(leadId, notes) {
+  const idx = pipeline.findIndex(p => p.lead_id === leadId || p.id == leadId);
+  if (idx < 0) return;
+  pipeline[idx].notes = notes;
+  localStorage.setItem('localbotpro_pipeline', JSON.stringify(pipeline));
+  try {
+    const filter = pipeline[idx].lead_id 
+      ? `localbotpro_pipeline?lead_id=eq.${pipeline[idx].lead_id}`
+      : `localbotpro_pipeline?id=eq.${pipeline[idx].id}`;
+    await supaFetch(filter, {
+      method: 'PATCH',
+      body: JSON.stringify({ notes, updated_at: new Date().toISOString() })
+    });
+  } catch(err) { console.warn('Notes sync failed:', err.message); }
+}
+
+async function deletePipelineLead(leadId) {
+  if (!confirm('Remove this lead from pipeline?')) return;
+  const idx = pipeline.findIndex(p => p.lead_id === leadId || p.id == leadId);
+  if (idx < 0) return;
+  const removed = pipeline.splice(idx, 1)[0];
+  localStorage.setItem('localbotpro_pipeline', JSON.stringify(pipeline));
+  renderPipeline();
+  try {
+    const filter = removed.lead_id 
+      ? `localbotpro_pipeline?lead_id=eq.${removed.lead_id}`
+      : `localbotpro_pipeline?id=eq.${removed.id}`;
+    await supaFetch(filter, { method: 'DELETE', headers: { 'Prefer': 'return=minimal' } });
+  } catch(err) { console.warn('Delete sync failed:', err.message); }
+  notify('Lead removed from pipeline', 'info');
+}
+
+// ─── Pipeline Render ──────────────────────────────────────────────────────────
+function renderPipeline() {
+  updatePipelineStats();
+  const el = document.getElementById('pipelineList');
+  if (!pipeline.length) {
+    el.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">📋</div>
+      <div class="empty-title">Pipeline is empty</div>
+      <div class="empty-sub">Save leads from the Finder tab to track them here</div>
+    </div>`;
+    return;
+  }
+  el.innerHTML = `<div class="pipeline-list">${pipeline.map(pipelineCardHTML).join('')}</div>`;
+}
+
+function pipelineCardHTML(lead) {
+  const statusColors = { New:'status-new', Contacted:'status-contacted', Negotiating:'status-negotiating', Closed:'status-closed', Lost:'status-lost' };
+  const cls = statusColors[lead.status] || 'status-new';
+  const uid = lead.lead_id || lead.id;
+  return `<div class="pipeline-card" id="pcard_${uid}">
+    <div class="pipeline-card-top">
+      ${scoreRing(lead.score || 70, 44)}
+      <div class="pipeline-card-body">
+        <div class="pipeline-name">${escHtml(lead.name)}</div>
+        <div class="pipeline-sub">${escHtml(lead.type)} · 📍 ${escHtml(lead.city)} · ${lead.rating || '—'}★ · ${lead.reviews || 0} reviews</div>
+        ${lead.phone ? `<div style="font-size:12px;color:var(--muted);margin-top:3px">📞 ${escHtml(lead.phone)}</div>` : ''}
+      </div>
+    </div>
+    <div class="pipeline-controls">
+      <select class="status-select ${cls}" onchange="updateStatus('${uid}', this.value)">
+        ${['New','Contacted','Negotiating','Closed','Lost'].map(s =>
+          `<option value="${s}" ${lead.status === s ? 'selected' : ''}>${s}</option>`
+        ).join('')}
+      </select>
+      <button class="btn btn-ghost btn-sm" onclick="openOutreach(${JSON.stringify(lead).replace(/"/g,'&quot;')})">✍ Outreach</button>
+      <button class="btn btn-danger btn-sm" onclick="deletePipelineLead('${uid}')">🗑</button>
+    </div>
+    <textarea class="notes-input" placeholder="Add notes..." onblur="updateNotes('${uid}', this.value)">${escHtml(lead.notes || '')}</textarea>
+  </div>`;
+}
+
+function updatePipelineStats() {
+  const counts = { total: pipeline.length, New: 0, Contacted: 0, Negotiating: 0, Closed: 0 };
+  pipeline.forEach(p => { if (counts[p.status] !== undefined) counts[p.status]++; });
+  document.getElementById('stat-total').textContent = counts.total;
+  document.getElementById('stat-new').textContent = counts.New;
+  document.getElementById('stat-contacted').textContent = counts.Contacted;
+  document.getElementById('stat-negotiating').textContent = counts.Negotiating;
+  document.getElementById('stat-closed').textContent = counts.Closed;
+}
+
+// ─── Export Pipeline CSV ──────────────────────────────────────────────────────
+function exportPipeline() {
+  if (!pipeline.length) { notify('Pipeline is empty', 'info'); return; }
+  const header = ['Name','Type','City','Score','Status','Rating','Reviews','Phone','Website','Notes'];
+  const rows = pipeline.map(l => [
+    csvEscape(l.name), csvEscape(l.type), csvEscape(l.city),
+    l.score || '', csvEscape(l.status), l.rating || '', l.reviews || '',
+    csvEscape(l.phone), csvEscape(l.website), csvEscape(l.notes)
+  ]);
+  const csv = [header, ...rows].map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `localbotpro-pipeline-${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  notify('✅ Pipeline exported', 'success');
+}
+
+function csvEscape(v) {
+  if (!v) return '';
+  const s = String(v);
+  return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g,'""')}"` : s;
+}
+
+// ─── AI Outreach ──────────────────────────────────────────────────────────────
+function openOutreach(lead) {
+  currentOutreachLead = lead;
+  document.getElementById('modalLeadInfo').innerHTML = `
+    <div><strong style="color:var(--gold)">${escHtml(lead.name)}</strong></div>
+    <div>${escHtml(lead.type)} · ${escHtml(lead.city)}</div>
+    <div>Rating: ${lead.rating}⭐ · ${lead.reviews} reviews · Score: ${lead.score}</div>
+    <div>${lead.website && lead.website !== 'No website' ? '🌐 Has website' : '❌ No website'} · ${lead.claimed ? '✅ Claimed' : '⚠ Unclaimed'}</div>
+  `;
+  document.getElementById('outreachContent').textContent = 'Click "Generate with Grok" to create a personalized outreach message.';
+  document.getElementById('outreachModal').classList.remove('hidden');
+}
+
+function closeOutreach() {
+  document.getElementById('outreachModal').classList.add('hidden');
+  currentOutreachLead = null;
+}
+
+async function generateOutreach() {
+  if (!currentOutreachLead) return;
+  const lead = currentOutreachLead;
+  const btn = document.getElementById('genBtn');
+  const content = document.getElementById('outreachContent');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Generating...';
+  content.textContent = 'Writing your personalized outreach message...';
+
+  const pain = [];
+  if (lead.rating < 3.5) pain.push(`their ${lead.rating}-star rating`);
+  if (!lead.website || lead.website === 'No website') pain.push('lack of online presence');
+  if (!lead.claimed) pain.push('unclaimed Google profile');
+  if (lead.reviews < 30) pain.push(`only ${lead.reviews} reviews`);
+
+  const prompt = `You are a B2B sales copywriter for LocalBotPro, an AI automation agency.
+Write a SHORT, personalized cold outreach message for this business:
+- Business: ${lead.name}
+- Type: ${lead.type} in ${lead.city}
+- Pain points: ${pain.join(', ')}
+
+Requirements:
+- Maximum 4 sentences
+- Friendly and non-pushy
+- Mention 1 specific pain point
+- Offer: automated review management + AI-powered marketing system
+- Include a soft call to action (5-min chat or reply)
+- Sign off as "Ting" from LocalBotPro
+- Do NOT use generic openers like "Hope this finds you well"
+Write only the message, no subject line.`;
+
+  try {
+    const res = await fetch(GROK_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + getGrokKey()
+      },
+      body: JSON.stringify({
+        model: 'grok-3-latest',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 300,
+        temperature: 0.8
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message || 'Grok API error');
+    content.textContent = data.choices[0].message.content.trim();
+  } catch(err) {
+    content.textContent = `Hi ${lead.name},\n\nI noticed your business in ${lead.city} has ${pain[0] || 'some opportunities for growth'} — and I help businesses like yours turn that around fast with automated review systems and AI marketing.\n\nWould you have 5 minutes this week to see how it works?\n\n— Ting, LocalBotPro`;
+    notify('Using fallback message (API unavailable)', 'info');
+  }
+  btn.disabled = false;
+  btn.innerHTML = '⚡ Generate with Grok';
+}
+
+function copyOutreach() {
+  const text = document.getElementById('outreachContent').textContent;
+  navigator.clipboard.writeText(text).then(() => notify('✅ Copied to clipboard', 'success'))
+    .catch(() => notify('Copy failed — select text manually', 'error'));
+}
+
+// ─── Services Map ─────────────────────────────────────────────────────────────
+const SERVICES_DATA = [
+  {icon:'🦷',name:'Dental Practices',opp:95,level:'high',desc:'Most have poor review management, no website follow-up, and unclaimed Google profiles. Massive revenue opportunity.'},
+  {icon:'💅',name:'Nail & Beauty Salons',opp:92,level:'high',desc:'High competition, low ratings common, no online booking or reputation management. Perfect AI automation fit.'},
+  {icon:'🚗',name:'Auto Shops',opp:88,level:'high',desc:'Owner-operated, no marketing staff, rely on word-of-mouth. Reviews are critical to survival.'},
+  {icon:'💆',name:'Wellness & Spas',opp:87,level:'high',desc:'Premium service, high client value. Poor digital presence costs them thousands in missed bookings.'},
+  {icon:'🏋',name:'Fitness Centers',opp:80,level:'high',desc:'Membership churn, no automated follow-up, often struggle with Google ranking.'},
+  {icon:'✂',name:'Hair & Barbershops',opp:84,level:'high',desc:'Loyal customer base but zero automation. Review responses take hours they don\'t have.'},
+  {icon:'🔧',name:'Plumbing & HVAC',opp:83,level:'high',desc:'Emergency service businesses live and die by reviews. High job value = high ROI per client.'},
+  {icon:'🐾',name:'Pet Services',opp:77,level:'med',desc:'Growing market, emotionally-driven reviews, owners need reputation management badly.'},
+  {icon:'🧹',name:'Cleaning Services',opp:75,level:'med',desc:'Referral-based business that\'s moving online. Review automation = automatic growth.'},
+  {icon:'📸',name:'Photography',opp:70,level:'med',desc:'Creative services with poor follow-up systems. AI outreach converts past clients to repeat buyers.'},
+  {icon:'🌿',name:'Landscaping',opp:72,level:'med',desc:'Seasonal business that benefits from year-round review accumulation.'},
+  {icon:'⚖',name:'Law Firms',opp:82,level:'high',desc:'Every 5-star review is worth thousands. Lawyers rarely respond to feedback online.'},
+  {icon:'🏠',name:'Real Estate',opp:68,level:'med',desc:'Transaction-based with high value per deal. Agent review management = competitive edge.'},
+  {icon:'📚',name:'Tutoring Services',opp:65,level:'med',desc:'Trust-dependent service. Parents rely heavily on Google reviews.'},
+  {icon:'🧠',name:'Mental Health',opp:78,level:'high',desc:'Sensitive niche. Practitioners need reputation management but lack time for it.'},
+  {icon:'🍽',name:'Restaurants',opp:74,level:'med',desc:'Most competitive review category. Automated response tools save hours weekly.'},
+];
+
+function renderServicesMap() {
+  const el = document.getElementById('servicesMap');
+  el.innerHTML = SERVICES_DATA.sort((a,b) => b.opp - a.opp).map(s => `
+    <div class="service-tile">
+      <div class="service-tile-icon">${s.icon}</div>
+      <div class="service-tile-name">${s.name}</div>
+      <div class="service-tile-opp opp-${s.level}">
+        ${s.level === 'high' ? '🔥 High Opportunity' : '💡 Medium Opportunity'} · ${s.opp}%
+      </div>
+      <div class="service-tile-desc">${s.desc}</div>
+      <div class="opp-bar"><div class="opp-bar-fill" style="width:${s.opp}%"></div></div>
+    </div>`).join('');
+}
+
+// ─── Tabs ─────────────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  ['finder','pipeline','scrapers','services'].forEach(t => {
+    document.getElementById('pane-' + t).classList.toggle('hidden', t !== tab);
+    document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+  });
+  if (tab === 'pipeline') loadPipeline();
+  if (tab === 'services') renderServicesMap();
+}
+
+// ─── Settings ─────────────────────────────────────────────────────────────────
+function openSettings() {
+  document.getElementById('grokKeyInput').value = localStorage.getItem('localbotpro_grok_key') || '';
+  document.getElementById('settingsModal').classList.remove('hidden');
+}
+function closeSettings() { document.getElementById('settingsModal').classList.add('hidden'); }
+function saveSettings() {
+  const key = document.getElementById('grokKeyInput').value.trim();
+  if (key) localStorage.setItem('localbotpro_grok_key', key);
+  else localStorage.removeItem('localbotpro_grok_key');
+  closeSettings();
+  notify('✅ Settings saved', 'success');
+}
+
+// Close modals on overlay click
+document.getElementById('outreachModal').addEventListener('click', function(e) {
+  if (e.target === this) closeOutreach();
+});
+document.getElementById('settingsModal').addEventListener('click', function(e) {
+  if (e.target === this) closeSettings();
+});
+
+// ─── Toast ────────────────────────────────────────────────────────────────────
+function notify(msg, type = 'success') {
+  const el = document.getElementById('toast');
+  const icons = { success:'✅', error:'❌', info:'ℹ️' };
+  el.innerHTML = `${icons[type] || ''} ${escHtml(msg)}`;
+  el.className = `toast ${type}`;
+  el.classList.remove('hidden');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.add('hidden'), 3000);
+}
+
+// ─── Utils ────────────────────────────────────────────────────────────────────
+function escHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+(function init() {
+  // Show all leads by default
+  currentLeads = enrichLeads(MOCK_LEADS);
+  renderLeads(currentLeads);
+})();
+</script>
+</body>
+</html>
