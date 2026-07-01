@@ -1240,6 +1240,18 @@ function stopListening() {
 }
 
 function speak(text) {
+  if (!text) return;
+  // Try KittenTTS neural voice first (Sarah - warm professional)
+  if (window._kittenReady && window._kittenReady()) {
+    window._kittenSpeak(text);
+    return;
+  }
+  // If still loading, queue it
+  if (window._kittenLoading && window._kittenLoading() && !window._kittenFailed) {
+    if (window._kittenQueue) window._kittenQueue.push(text);
+    return;
+  }
+  // Fallback: browser SpeechSynthesis
   if (!window.speechSynthesis) return;
   speechSynthesis.cancel();
   const utt = new SpeechSynthesisUtterance(text);
@@ -1560,5 +1572,74 @@ function showToast(msg, dur=2800) {
 // ── UTILS ──
 function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 </script>
+
+<!-- KittenTTS Neural Voice Engine (Kokoro-82M ONNX) -->
+<script type="module">
+import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.5.2';
+
+env.allowLocalModels = false;
+env.useBrowserCache = true;
+
+let kittenPipeline = null;
+let kittenLoading = false;
+let kittenReady = false;
+let kittenQueue = [];
+
+async function loadKittenTTS() {
+  if (kittenReady || kittenLoading) return;
+  kittenLoading = true;
+  console.log('[KittenTTS] Loading Kokoro-82M model...');
+  try {
+    kittenPipeline = await pipeline('text-to-speech', 'onnx-community/Kokoro-82M-v1.0', {
+      dtype: 'fp32',
+      device: 'wasm',
+    });
+    kittenReady = true;
+    kittenLoading = false;
+    console.log('[KittenTTS] Model ready!');
+    // Process any queued speech
+    while (kittenQueue.length > 0) {
+      const text = kittenQueue.shift();
+      await kittenSpeak(text);
+    }
+  } catch (e) {
+    console.warn('[KittenTTS] Load failed, falling back to browser TTS:', e);
+    kittenLoading = false;
+    window._kittenFailed = true;
+  }
+}
+
+async function kittenSpeak(text) {
+  if (!kittenReady || !kittenPipeline) return false;
+  try {
+    const out = await kittenPipeline(text, { voice: 'af_sarah', speed: 0.9 });
+    const ctx = new AudioContext();
+    const buf = ctx.createBuffer(1, out.audio.length, out.sampling_rate);
+    buf.getChannelData(0).set(out.audio);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    src.start();
+    return true;
+  } catch (e) {
+    console.warn('[KittenTTS] Speak error:', e);
+    return false;
+  }
+}
+
+// Expose to global scope for speak() function
+window._kittenSpeak = kittenSpeak;
+window._kittenQueue = kittenQueue;
+window._kittenReady = () => kittenReady;
+window._kittenLoading = () => kittenLoading;
+window._kittenFailed = false;
+
+// Auto-load model when page is idle (after 3 seconds)
+setTimeout(() => loadKittenTTS(), 3000);
+
+// Also load on first user interaction if not already loaded
+document.addEventListener('click', () => { if (!kittenReady && !kittenLoading && !window._kittenFailed) loadKittenTTS(); }, { once: true });
+</script>
+
 </body>
 </html>
