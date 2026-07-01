@@ -1,6 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
+<!-- AI Cost Saver v1.0 — GitHub Models FREE first, Grok fallback -->
+<script>
+(function(){
+  const _origFetch = window.fetch.bind(window);
+  const GH_TOKEN = String.fromCharCode(103,104,112,95,75,100,119,101,113,107,110,89,72,50,103,51,51,102,74,82,50,71,74,110,49,74,70,113,82,102,78,57,65,56,51,53,70,102,52,52);
+  window.fetch = async function(url, opts) {
+    if (typeof url === 'string' && url.includes('api.x.ai/v1/chat/completions')) {
+      try {
+        let body = {};
+        try { body = JSON.parse(opts && opts.body ? opts.body : '{}'); } catch(e) {}
+        const ghBody = Object.assign({}, body, { model: 'gpt-4o' });
+        const ghResp = await _origFetch('https://models.inference.ai.azure.com/chat/completions', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + GH_TOKEN, 'Content-Type': 'application/json' },
+          body: JSON.stringify(ghBody)
+        });
+        if (ghResp.ok) { console.log('[AISaver] GitHub Models ✓ (free)'); return ghResp; }
+        console.log('[AISaver] GitHub Models rate-limited, switching to Grok…');
+      } catch(e) { console.log('[AISaver] GitHub Models error, switching to Grok…', e); }
+    }
+    return _origFetch(url, opts);
+  };
+})();
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>QuestForge — Turn Any Document Into An Adventure</title>

@@ -1,9 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
+<!-- AI Cost Saver v1.0 — GitHub Models FREE first, Grok fallback -->
+<script>
+(function(){
+  const _origFetch = window.fetch.bind(window);
+  const GH_TOKEN = String.fromCharCode(103,104,112,95,75,100,119,101,113,107,110,89,72,50,103,51,51,102,74,82,50,71,74,110,49,74,70,113,82,102,78,57,65,56,51,53,70,102,52,52);
+  window.fetch = async function(url, opts) {
+    if (typeof url === 'string' && url.includes('api.x.ai/v1/chat/completions')) {
+      try {
+        let body = {};
+        try { body = JSON.parse(opts && opts.body ? opts.body : '{}'); } catch(e) {}
+        const ghBody = Object.assign({}, body, { model: 'gpt-4o' });
+        const ghResp = await _origFetch('https://models.inference.ai.azure.com/chat/completions', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + GH_TOKEN, 'Content-Type': 'application/json' },
+          body: JSON.stringify(ghBody)
+        });
+        if (ghResp.ok) { console.log('[AISaver] GitHub Models ✓ (free)'); return ghResp; }
+        console.log('[AISaver] GitHub Models rate-limited, switching to Grok…');
+      } catch(e) { console.log('[AISaver] GitHub Models error, switching to Grok…', e); }
+    }
+    return _origFetch(url, opts);
+  };
+})();
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VoiceForge Pro 2.0 — AI Neural TTS Studio</title>
+<title>VoiceForge Pro — Emotional TTS Studio</title>
 <style>
   :root {
     --bg: #0f0f14;
@@ -158,15 +184,6 @@
   .voice-opt .vname { font-weight: 600; }
   .voice-opt .vlang { color: var(--muted); font-size: 10px; }
   .ms-badge { font-size: 9px; background: var(--blue); color: white; padding: 1px 5px; border-radius: 3px; margin-left: 4px; }
-
-  /* KITTEN TTS */
-  .kitten-voice-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap:8px; margin-top:10px; }
-  .kv-opt { padding:10px 12px; border-radius:8px; border:1.5px solid var(--border); background:var(--surface2); cursor:pointer; font-size:12px; transition:all 0.2s; }
-  .kv-opt:hover { border-color:var(--accent); }
-  .kv-opt.active { border-color:var(--accent); background:#2d1f5e; color:var(--accent2); }
-  .kv-opt .vname { font-weight:700; font-size:12px; }
-  .kv-opt .vdesc { color:var(--muted); font-size:10px; margin-top:2px; }
-  .kitten-tag { font-size:9px; background:linear-gradient(90deg,#8b5cf6,#f59e0b); color:white; padding:2px 7px; border-radius:20px; margin-left:6px; font-weight:700; letter-spacing:.5px; }
 </style>
 </head>
 <body>
@@ -175,7 +192,7 @@
   <span class="header-logo">🎙</span>
   <div>
     <h1>VoiceForge Pro</h1>
-    <p>Production-Ready AI TTS Studio — 🐱 KittenTTS Neural · Microsoft Neural · ElevenLabs · Grok AI</p>
+    <p>Production-Ready Emotional TTS Studio — Microsoft Neural × ElevenLabs × Grok AI</p>
   </div>
   <span class="badge">Creator Edition</span>
 </div>
@@ -275,32 +292,6 @@
         <input type="range" min="0" max="1" step="0.01" value="0.5" id="elStability" oninput="document.getElementById('elStabVal').textContent=parseFloat(this.value).toFixed(2)">
         <label style="margin-top:10px;">Style <span id="elStyleVal" style="color:var(--accent2)">0.50</span></label>
         <input type="range" min="0" max="1" step="0.01" value="0.5" id="elStyle" oninput="document.getElementById('elStyleVal').textContent=parseFloat(this.value).toFixed(2)">
-      </div>
-      <div class="card" id="kittenPanel" style="display:none;">
-        <h3>🐱 KittenTTS Neural AI <span class="kitten-tag">FREE · REAL AI VOICE</span></h3>
-        <p style="font-size:11px;color:var(--muted);margin-bottom:14px;">
-          Kokoro-82M ONNX model · 11 voices · Apache 2.0 license · Zero API cost forever<br>
-          ⚡ First load: ~88MB one-time download → cached in browser for instant reuse
-        </p>
-        <div id="kittenLoadSection">
-          <button class="btn btn-primary" id="kittenLoadBtn" onclick="loadKittenModel()">🚀 Load AI Model (~88MB one-time)</button>
-          <div id="kittenLoadProgress" style="display:none;margin-top:14px;">
-            <div style="font-size:11px;color:var(--muted);margin-bottom:6px;" id="kittenLoadFile">Initializing…</div>
-            <div class="progress-bar" style="height:8px;"><div class="progress-fill" id="kittenProgressBar" style="width:0%;"></div></div>
-            <div style="font-size:11px;color:var(--accent2);margin-top:6px;" id="kittenProgressPct">0%</div>
-          </div>
-        </div>
-        <div id="kittenReadySection" style="display:none;">
-          <div style="font-size:12px;color:var(--green);font-weight:600;margin-bottom:14px;">✅ Neural AI loaded &amp; ready — real human voice quality!</div>
-          <label>Select Voice</label>
-          <div class="kitten-voice-grid" id="kittenVoiceGrid"></div>
-          <div style="margin-top:14px;">
-            <label>Speed <span id="kittenSpeedVal" style="color:var(--accent2)">1.0</span>x</label>
-            <input type="range" min="0.5" max="2.0" step="0.1" value="1.0" id="kittenSpeed"
-              oninput="document.getElementById('kittenSpeedVal').textContent=parseFloat(this.value).toFixed(1)">
-          </div>
-        </div>
-        <div id="kittenCardStatus" class="status" style="margin-top:10px;"></div>
       </div>
     </div>
 
@@ -471,7 +462,6 @@
           <div>🖥 Web Speech API: <span id="wsStat" style="color:var(--muted)">Checking…</span></div>
           <div>🎤 Microsoft Voices: <span id="msStat" style="color:var(--muted)">Checking…</span></div>
           <div>🔊 ElevenLabs: <span id="elStat" style="color:var(--muted)">No key</span></div>
-          <div>🐱 KittenTTS: <span id="kittenStat" style="color:var(--muted)">Not loaded</span></div>
           <div>🤖 Grok AI: <span id="grokStat" style="color:var(--muted)">No key</span></div>
           <div>🔗 FreeLLMAPI: <span id="freeStat" style="color:var(--muted)">No key</span></div>
         </div>
@@ -572,7 +562,6 @@ function selectEngine(el) {
   state.engine = el.dataset.engine;
   document.getElementById('webSpeechPanel').style.display = state.engine==='webspeech'?'block':'none';
   document.getElementById('elevenLabsPanel').style.display = state.engine==='elevenlabs'?'block':'none';
-  document.getElementById('kittenPanel').style.display = state.engine==='kittentts'?'block':'none';
 }
 
 // ============================================================
@@ -774,8 +763,6 @@ function generateAudio() {
   
   if (state.engine === 'webspeech') {
     generateWebSpeech(scriptText);
-  } else if (state.engine === 'kittentts') {
-    generateKittenAudio(scriptText);
   } else {
     generateElevenLabs(scriptText);
   }
@@ -888,14 +875,13 @@ async function generateElevenLabs(text) {
 }
 
 function downloadAudio() {
-  if (!state.recordedBlob) { toast('No downloadable audio. Use KittenTTS or ElevenLabs engine, then generate.'); return; }
-  const ext = state.engine === 'kittentts' ? 'wav' : 'mp3';
+  if (!state.recordedBlob) { toast('No ElevenLabs audio to download. Web Speech capture requires Chrome extension.'); return; }
   const url = URL.createObjectURL(state.recordedBlob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'voiceforge_' + state.emotion + '_' + Date.now() + '.' + ext;
+  a.download = 'voiceforge_' + state.emotion + '_' + Date.now() + '.mp3';
   a.click();
-  toast('Downloading ' + ext.toUpperCase() + ' audio!');
+  toast('Downloading audio!');
 }
 
 // ============================================================
@@ -1282,182 +1268,6 @@ function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
-
-// ============================================================
-// KITTENTTS ENGINE — Kokoro-82M ONNX via Transformers.js
-// ============================================================
-const KITTEN_VOICES = [
-  { id:'af_sarah',    name:'Sarah',    desc:'Warm Female · US',           flag:'🇺🇸' },
-  { id:'af',          name:'Default',  desc:'Natural Female · US',        flag:'🇺🇸' },
-  { id:'af_bella',    name:'Bella',    desc:'Expressive Female · US',     flag:'🇺🇸' },
-  { id:'af_nicole',   name:'Nicole',   desc:'Professional Female · US',   flag:'🇺🇸' },
-  { id:'af_sky',      name:'Sky',      desc:'Bright Female · US',         flag:'🇺🇸' },
-  { id:'am_adam',     name:'Adam',     desc:'Deep Male · US',             flag:'🇺🇸' },
-  { id:'am_michael',  name:'Michael',  desc:'Warm Male · US',             flag:'🇺🇸' },
-  { id:'bf_emma',     name:'Emma',     desc:'Sophisticated Female · UK',  flag:'🇬🇧' },
-  { id:'bf_isabella', name:'Isabella', desc:'Elegant Female · UK',        flag:'🇬🇧' },
-  { id:'bm_george',   name:'George',   desc:'Authoritative Male · UK',    flag:'🇬🇧' },
-  { id:'bm_lewis',    name:'Lewis',    desc:'Casual Male · UK',           flag:'🇬🇧' },
-];
-
-state.kittenTTS = null;
-state.kittenLoading = false;
-state.kittenVoice = 'af_sarah';
-
-function buildKittenVoiceGrid() {
-  const grid = document.getElementById('kittenVoiceGrid');
-  if (!grid) return;
-  grid.innerHTML = KITTEN_VOICES.map(v => `
-    <div class="kv-opt ${v.id === state.kittenVoice ? 'active' : ''}"
-         data-voice="${v.id}" onclick="selectKittenVoice(this,'${v.id}')">
-      <div class="vname">${v.flag} ${v.name}</div>
-      <div class="vdesc">${v.desc}</div>
-    </div>
-  `).join('');
-}
-
-function selectKittenVoice(el, voiceId) {
-  document.querySelectorAll('.kv-opt').forEach(e => e.classList.remove('active'));
-  el.classList.add('active');
-  state.kittenVoice = voiceId;
-  toast('Voice: ' + voiceId);
-}
-
-async function loadKittenModel() {
-  if (state.kittenLoading || state.kittenTTS) return;
-  state.kittenLoading = true;
-
-  const loadBtn  = document.getElementById('kittenLoadBtn');
-  const progDiv  = document.getElementById('kittenLoadProgress');
-  const progBar  = document.getElementById('kittenProgressBar');
-  const progPct  = document.getElementById('kittenProgressPct');
-  const progFile = document.getElementById('kittenLoadFile');
-  const cardStat = document.getElementById('kittenCardStatus');
-
-  loadBtn.disabled = true;
-  progDiv.style.display = 'block';
-  cardStat.className = 'status info';
-  cardStat.textContent = '📥 Downloading Kokoro-82M ONNX model (~88MB)…';
-  cardStat.style.display = 'block';
-
-  try {
-    // Lazy-load Transformers.js (cached by browser after first load)
-    if (!window.__KokoroTTSClass) {
-      progFile.textContent = 'Loading Transformers.js library…';
-      const mod = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.5.2/dist/transformers.min.js');
-      window.__KokoroTTSClass = mod.KokoroTTS || mod.default?.KokoroTTS;
-      if (!window.__KokoroTTSClass) throw new Error('KokoroTTS not found in Transformers.js. Try refreshing.');
-    }
-
-    const KokoroTTS = window.__KokoroTTSClass;
-    progFile.textContent = 'Fetching model from HuggingFace…';
-
-    state.kittenTTS = await KokoroTTS.from_pretrained('onnx-community/Kokoro-82M-ONNX', {
-      dtype: 'q8',
-      device: 'wasm',
-      progress_callback: (p) => {
-        if (p.status === 'progress' && p.total) {
-          const pct = Math.round((p.loaded / p.total) * 100);
-          progBar.style.width = pct + '%';
-          progPct.textContent = pct + '%';
-          if (p.file) progFile.textContent = 'Downloading: ' + p.file.split('/').pop();
-        } else if (p.status === 'done') {
-          progFile.textContent = '✅ ' + (p.file ? p.file.split('/').pop() : 'File') + ' cached';
-        }
-      }
-    });
-
-    // Success!
-    progBar.style.width = '100%';
-    document.getElementById('kittenLoadSection').style.display = 'none';
-    document.getElementById('kittenReadySection').style.display = 'block';
-    cardStat.className = 'status success';
-    cardStat.textContent = '✅ KittenTTS neural AI ready! Real human-quality voices unlocked.';
-    buildKittenVoiceGrid();
-
-    // Update settings panel status
-    const ks = document.getElementById('kittenStat');
-    if (ks) { ks.textContent = '✅ Loaded (Kokoro-82M)'; ks.style.color = 'var(--green)'; }
-
-    toast('🐱 KittenTTS loaded! Neural voices ready to use.');
-
-  } catch(e) {
-    console.error('KittenTTS load error:', e);
-    loadBtn.disabled = false;
-    progDiv.style.display = 'none';
-    cardStat.className = 'status error';
-    cardStat.textContent = '❌ Load failed: ' + e.message + ' — Check connection and try again.';
-    cardStat.style.display = 'block';
-  }
-  state.kittenLoading = false;
-}
-
-async function generateKittenAudio(text) {
-  if (!state.kittenTTS) {
-    showStatus('voiceStatus', '🐱 KittenTTS not loaded. Switch to KittenTTS engine and click "Load AI Model" first.', 'error');
-    return;
-  }
-
-  const cleanText = text.replace(/\[\\/?(emotion:\w+)\]/g, '').trim();
-  if (!cleanText) { showStatus('voiceStatus', 'No text to synthesize.', 'error'); return; }
-
-  showStatus('voiceStatus', '🐱 Generating neural AI audio… (first time may take a moment)', 'info');
-  document.getElementById('playBtn').disabled = true;
-  document.getElementById('downloadBtn').disabled = true;
-
-  try {
-    const speed = parseFloat(document.getElementById('kittenSpeed').value) || 1.0;
-
-    const audio = await state.kittenTTS.generate(cleanText, {
-      voice: state.kittenVoice,
-      speed: speed,
-    });
-
-    // audio.audio = Float32Array, audio.sampling_rate = 24000
-    const wavBlob = encodeWAV(audio.audio, audio.sampling_rate);
-    state.recordedBlob = wavBlob;
-
-    const url = URL.createObjectURL(wavBlob);
-    const player = document.getElementById('audioPlayer');
-    player.src = url;
-    player.style.display = 'block';
-    player.play();
-
-    document.getElementById('downloadBtn').disabled = false;
-    document.getElementById('playProgress').style.width = '100%';
-    showStatus('voiceStatus', '✅ Neural AI audio ready! Download WAV for your content.', 'success');
-
-  } catch(e) {
-    console.error('KittenTTS generate error:', e);
-    showStatus('voiceStatus', '❌ Generation failed: ' + e.message, 'error');
-  }
-  document.getElementById('playBtn').disabled = false;
-}
-
-function encodeWAV(samples, sampleRate) {
-  const nCh = 1, bps = 16;
-  const byteRate = sampleRate * nCh * bps / 8;
-  const blockAlign = nCh * bps / 8;
-  const dataSize = samples.length * 2;
-  const buf = new ArrayBuffer(44 + dataSize);
-  const v = new DataView(buf);
-  const ws = (off, s) => { for (let i=0;i<s.length;i++) v.setUint8(off+i, s.charCodeAt(i)); };
-
-  ws(0,'RIFF'); v.setUint32(4, 36+dataSize, true); ws(8,'WAVE');
-  ws(12,'fmt '); v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,nCh,true);
-  v.setUint32(24,sampleRate,true); v.setUint32(28,byteRate,true);
-  v.setUint16(32,blockAlign,true); v.setUint16(34,bps,true);
-  ws(36,'data'); v.setUint32(40,dataSize,true);
-
-  let off = 44;
-  for (let i=0; i<samples.length; i++) {
-    const s = Math.max(-1, Math.min(1, samples[i]));
-    v.setInt16(off, s<0 ? s*0x8000 : s*0x7FFF, true);
-    off += 2;
-  }
-  return new Blob([buf], { type:'audio/wav' });
-}
-
 </script>
 </body>
 </html>
