@@ -374,6 +374,26 @@ header{position:sticky;top:0;z-index:100;background:rgba(10,15,30,0.92);backdrop
         <a id="verifyMonitorBtn" href="https://tlott12.gumroad.com/l/reputation-monitor" target="_blank" class="btn-ghost" style="padding:10px 18px;border-radius:10px;font-size:13px;text-decoration:none;display:inline-block">🔔 Monitor Monthly — $29.99/mo</a>
       </div>
     </div>
+
+    <!-- DEEP SCAN SECTION -->
+    <div id="verifyDeepScan" style="display:none;margin-top:14px;background:rgba(45,212,191,0.05);border:1px solid rgba(45,212,191,0.18);border-radius:14px;padding:16px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="font-size:20px">🤖</span>
+        <div style="font-size:15px;font-weight:800">FREE 3,000-Platform Deep Scan</div>
+      </div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px">Our AI runs a <strong style="color:var(--text)">real scan</strong> across 3,000+ platforms — social media, review sites, business directories, and more. Results delivered to your inbox within the hour. No credit card. Ever.</div>
+      <div id="deepScanForm">
+        <input type="email" id="deepScanEmail" placeholder="Enter email to receive your full scan results" style="width:100%;background:rgba(255,255,255,0.08);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:10px;outline:none;transition:.2s" onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='var(--border)'">
+        <button onclick="queueDeepScan()" id="deepScanBtn" class="btn-gold" style="width:100%;padding:11px;border-radius:10px;font-size:14px;font-weight:700">🚀 Run Free Deep Scan</button>
+      </div>
+      <div id="deepScanSuccess" style="display:none;text-align:center;padding:12px">
+        <div style="font-size:36px;margin-bottom:8px">✅</div>
+        <div style="font-weight:800;font-size:16px;color:var(--teal);margin-bottom:6px">Scan Queued!</div>
+        <div style="font-size:13px;color:var(--muted)">Your full 3,000-platform results will be emailed within the hour. Check your inbox (and spam folder just in case).</div>
+      </div>
+      <div id="deepScanError" style="display:none;text-align:center;padding:10px;color:#f87171;font-size:13px">❌ Something went wrong. Please try again.</div>
+    </div>
+
     <div style="text-align:center;margin-top:14px">
       <button class="btn-gold" id="verifyRunBtn" onclick="runVerification()" style="padding:11px 28px;border-radius:12px;font-size:14px">🚀 Start Verification</button>
     </div>
@@ -1154,8 +1174,40 @@ async function runVerification(){
   if(score >= 50) document.getElementById('verifyBadge').style.display = 'block';
 
   document.getElementById('verifyUpsell').style.display = 'block';
+  document.getElementById('verifyDeepScan').style.display = 'block';
   document.getElementById('verifyProgress').style.display = 'none';
   btn.style.display = 'none';
+}
+
+async function queueDeepScan(){
+  const email = document.getElementById('deepScanEmail').value.trim();
+  if(!email || !email.includes('@')){
+    document.getElementById('deepScanEmail').style.borderColor='#f87171';
+    document.getElementById('deepScanEmail').focus();
+    return;
+  }
+  const btn = document.getElementById('deepScanBtn');
+  btn.disabled = true;
+  btn.textContent = 'Queuing scan…';
+  const username = verifyBizName.toLowerCase().replace(/[^a-z0-9]/g,'').substring(0,30) || 'business';
+  try{
+    const res = await fetch(`${SB_URL}/rest/v1/maigret_scan_requests`, {
+      method:'POST',
+      headers:{...SB_HEADERS, 'Prefer':'return=minimal'},
+      body: JSON.stringify({business_name: verifyBizName, username, email, status:'pending'})
+    });
+    if(res.ok || res.status === 201){
+      document.getElementById('deepScanForm').style.display = 'none';
+      document.getElementById('deepScanSuccess').style.display = 'block';
+      document.getElementById('deepScanError').style.display = 'none';
+    } else {
+      throw new Error('Request failed');
+    }
+  }catch(e){
+    btn.disabled = false;
+    btn.textContent = '🚀 Run Free Deep Scan';
+    document.getElementById('deepScanError').style.display = 'block';
+  }
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
