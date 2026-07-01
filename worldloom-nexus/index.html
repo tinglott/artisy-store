@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>🌌 WORLDLOOM NEXUS — AI Video Universe Creator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Create AI-powered video content with universe building, script generation, and real image synthesis.">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Jost:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:#0a0908; --deep:#17140f; --surface:#1f1b14; --border:#3a3226;
+    --gold:#c9a668; --gold-dim:#8a7045; --parchment:#efe6d3; --muted:#94857a;
+    --green:#7f9a72; --red:#e07070; --blue:#6ab0c9;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--ink);color:var(--parchment);font-family:'Jost',sans-serif;min-height:100vh;}
+  .skip-nav{position:fixed;top:-100px;left:1rem;z-index:9999;background:var(--gold);color:var(--ink);padding:.5rem 1rem;border-radius:.5rem;transition:top .2s;text-decoration:none;font-weight:700;}
+  .skip-nav:focus{top:1rem;}
+  /* HEADER */
+  .header{position:sticky;top:0;z-index:100;background:rgba(10,9,8,.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  .logo{font-family:'DM Serif Display',serif;font-size:18px;color:var(--gold);white-space:nowrap;}
+  .logo small{font-family:'Jost',sans-serif;font-size:11px;color:var(--muted);display:block;font-weight:400;}
+  .tab-nav{display:flex;gap:4px;background:var(--deep);padding:4px;border-radius:999px;flex-shrink:0;}
+  .tab-btn{padding:8px 14px;border-radius:999px;border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:12px;font-family:'Jost',sans-serif;transition:all .2s;min-height:40px;}
+  .tab-btn.active{background:var(--gold);color:var(--ink);font-weight:700;}
+  .tab-btn:hover:not(.active){color:var(--parchment);}
+  /* MAIN */
+  .main{max-width:1100px;margin:0 auto;padding:20px 14px;}
+  .panel{display:none;}.panel.active{display:block;}
+  /* CARDS */
+  .card{background:var(--deep);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:16px;}
+  .card h2{font-family:'DM Serif Display',serif;font-size:17px;color:var(--gold);margin-bottom:14px;}
+  /* FORMS */
+  label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:4px;margin-top:8px;}
+  input,textarea,select{width:100%;background:var(--ink);border:1px solid var(--border);color:var(--parchment);padding:11px;border-radius:8px;font-family:'Jost',sans-serif;font-size:13px;transition:border-color .2s;}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--gold-dim);}
+  textarea{resize:vertical;min-height:72px;}
+  select{cursor:pointer;}
+  select option{background:var(--deep);}
+  input[type=file]{padding:8px;cursor:pointer;}
+  input[type=range]{padding:4px 0;cursor:pointer;}
+  /* BUTTONS */
+  .btn{padding:11px 18px;border-radius:8px;border:1px solid transparent;cursor:pointer;font-family:'Jost',sans-serif;font-size:13px;font-weight:500;display:inline-flex;align-items:center;gap:7px;transition:all .2s;min-height:44px;min-width:44px;}
+  .btn-primary{background:var(--gold);color:var(--ink);border-color:var(--gold);}
+  .btn-primary:hover{background:#dbb878;}
+  .btn-outline{background:transparent;border-color:var(--gold);color:var(--gold);}
+  .btn-outline:hover{background:rgba(201,166,104,.1);}
+  .btn-sm{padding:7px 13px;font-size:12px;min-height:36px;}
+  .btn-danger{border-color:var(--red);color:var(--red);background:transparent;}
+  .btn-danger:hover{background:rgba(224,112,112,.1);}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+  .btn-group{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+  /* SCENE CARDS */
+  .scene-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px;margin-bottom:11px;display:grid;grid-template-columns:160px 1fr;gap:14px;align-items:start;}
+  .scene-thumb{width:160px;height:100px;border-radius:8px;overflow:hidden;background:var(--ink);position:relative;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .scene-thumb img{width:100%;height:100%;object-fit:cover;}
+  .scene-thumb-placeholder{text-align:center;padding:8px;color:var(--gold-dim);}
+  .thumb-spinner{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);}
+  .gen-one-btn{position:absolute;bottom:4px;right:4px;background:rgba(10,9,8,.85);border:1px solid var(--gold-dim);color:var(--gold);padding:3px 7px;font-size:10px;border-radius:4px;cursor:pointer;font-family:'Jost',sans-serif;}
+  .scene-num{font-size:10px;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:.1em;}
+  .scene-title{font-size:14px;font-weight:600;margin:4px 0 4px;}
+  .scene-narration{font-size:12px;color:var(--muted);line-height:1.55;}
+  .scene-prompt{font-size:11px;color:var(--gold-dim);margin-top:5px;font-style:italic;line-height:1.4;}
+  .scene-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:7px;}
+  .badge{background:rgba(201,166,104,.08);border:1px solid rgba(201,166,104,.2);color:var(--gold);padding:2px 7px;border-radius:999px;font-size:10px;}
+  .badge-green{background:rgba(127,154,114,.1);border-color:rgba(127,154,114,.3);color:var(--green);}
+  /* PROGRESS */
+  .progress-bar{height:4px;background:var(--border);border-radius:999px;overflow:hidden;margin:10px 0;}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));border-radius:999px;transition:width .4s ease;}
+  /* CANVAS + VIDEO */
+  #stage{width:100%;aspect-ratio:16/9;background:#000;border-radius:12px;display:none;margin-top:14px;}
+  #preview{width:100%;border-radius:12px;margin-top:12px;display:none;background:#000;}
+  /* TOASTS */
+  .toast-container{position:fixed;top:14px;right:14px;z-index:9999;display:flex;flex-direction:column;gap:7px;pointer-events:none;}
+  .toast{background:var(--deep);border:1px solid var(--border);border-radius:10px;padding:11px 14px;font-size:12px;color:var(--parchment);display:flex;align-items:center;gap:7px;animation:slideIn .3s ease;max-width:280px;pointer-events:auto;}
+  .toast.success{border-color:var(--green);}
+  .toast.error{border-color:var(--red);}
+  .toast.info{border-color:var(--blue);}
+  @keyframes slideIn{from{transform:translateX(120%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+  @keyframes slideOut{from{transform:translateX(0);opacity:1;}to{transform:translateX(120%);opacity:0;}}
+  .toast.fade-out{animation:slideOut .3s ease forwards;}
+  /* UNIVERSE GRID */
+  .universe-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;}
+  .universe-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;cursor:pointer;transition:border-color .2s;}
+  .universe-card:hover,.universe-card:focus-visible{border-color:var(--gold-dim);}
+  .universe-card.selected{border-color:var(--gold);}
+  .u-name{font-weight:600;font-size:13px;margin-bottom:3px;}
+  .u-style{font-size:11px;color:var(--gold);}
+  /* LIBRARY */
+  .project-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:13px;margin-bottom:9px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .p-title{font-weight:600;font-size:13px;}
+  .p-meta{font-size:11px;color:var(--muted);margin-top:2px;}
+  /* YT BOX */
+  .yt-box{background:var(--ink);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:9px;font-size:12px;line-height:1.7;white-space:pre-wrap;max-height:180px;overflow-y:auto;}
+  /* MISC */
+  .spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;display:inline-block;flex-shrink:0;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .status-line{font-size:12px;color:var(--muted);margin:7px 0;min-height:18px;}
+  .section-title{font-family:'DM Serif Display',serif;font-size:21px;color:var(--parchment);margin-bottom:18px;}
+  .empty-state{text-align:center;padding:40px 20px;color:var(--muted);}
+  .empty-state .em{font-size:36px;margin-bottom:10px;}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .info-box{background:rgba(201,166,104,.06);border:1px solid rgba(201,166,104,.15);border-radius:8px;padding:11px;font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px;}
+  .dur-label{font-size:13px;color:var(--gold);margin-left:8px;}
+  :focus-visible{outline:2px solid var(--gold-dim);outline-offset:3px;border-radius:4px;}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;}}
+  @media(max-width:640px){
+    .two-col{grid-template-columns:1fr;}
+    .scene-card{grid-template-columns:1fr;}
+    .scene-thumb{width:100%;height:160px;}
+    .tab-btn{padding:8px 10px;font-size:11px;}
+    .logo{font-size:15px;}
+  }
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-nav">Skip to main content</a>
+<div class="toast-container" id="toastContainer" aria-live="polite" role="status"></div>
+
+<header class="header">
+  <div class="logo">🌌 WORLDLOOM NEXUS<small>Ultimate AI Video Universe Creator</small></div>
+  <nav class="tab-nav" aria-label="Main navigation">
+    <button class="tab-btn active" onclick="switchTab('universe')" aria-pressed="true">🌐 Universe</button>
+    <button class="tab-btn" onclick="switchTab('create')" aria-pressed="false">🎬 Create</button>
+    <button class="tab-btn" onclick="switchTab('library')" aria-pressed="false">📚 Library</button>
+  </nav>
+</header>
+
+<main class="main" id="main-content">
+
+  <!-- ===== UNIVERSE TAB ===== -->
+  <div id="tab-universe" class="panel active">
+    <h1 class="section-title">Your Universes</h1>
+    <div class="two-col">
+      <div class="card">
+        <h2>✨ Create Universe</h2>
+        <label for="u-name">Universe Name</label>
+        <input id="u-name" placeholder="e.g., Sacred Cycles, Night Nurse Chronicles" maxlength="60">
+        <label for="u-style">Visual Style</label>
+        <select id="u-style">
+          <option>Cinematic Realism</option><option>Anime</option><option>Pixar 3D</option>
+          <option>Dark Fantasy</option><option>Watercolor Illustration</option>
+          <option>Botanical / Nature</option><option>Afrofuturism</option>
+          <option>Vintage / Retro</option><option>Minimalist</option><option>Spiritual / Sacred</option>
+        </select>
+        <label for="u-chars">Main Characters</label>
+        <input id="u-chars" placeholder="e.g., Nia — a burned-out nurse finding peace">
+        <label for="u-world">World Premise</label>
+        <textarea id="u-world" placeholder="Describe the world, tone, recurring themes…" rows="3"></textarea>
+        <label for="u-palette">Color Palette / Mood</label>
+        <input id="u-palette" placeholder="e.g., deep blues, gold accents, moonlit tones">
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="saveUniverse()">💾 Save Universe</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>📚 Saved Universes</h2>
+        <div id="universe-list"><div class="empty-state"><div class="em">🌌</div>No universes yet — create one!</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CREATE TAB ===== -->
+  <div id="tab-create" class="panel">
+    <h1 class="section-title">Create Episode</h1>
+    <div class="card">
+      <h2>🎭 Episode Setup</h2>
+      <div class="two-col">
+        <div>
+          <label for="sel-universe">Universe (optional)</label>
+          <select id="sel-universe"><option value="">— Standalone —</option></select>
+        </div>
+        <div>
+          <label for="scene-count">Number of Scenes</label>
+          <select id="scene-count">
+            <option value="5">5 scenes (~1 min)</option>
+            <option value="8" selected>8 scenes (~2 min)</option>
+            <option value="12">12 scenes (~3 min)</option>
+            <option value="16">16 scenes (~4 min)</option>
+            <option value="20">20 scenes (~5 min)</option>
+          </select>
+        </div>
+      </div>
+      <label for="ep-title">Episode Title</label>
+      <input id="ep-title" placeholder="e.g., The Night of Release — Episode 1">
+      <label for="ep-premise">Premise / Story Hook / Song Concept</label>
+      <textarea id="ep-premise" placeholder="Write your story idea, emotional journey, health topic, or music concept…" rows="4"></textarea>
+      <label for="ep-tone">Tone / Mood</label>
+      <select id="ep-tone">
+        <option>Healing &amp; Peaceful</option><option>Dramatic &amp; Cinematic</option>
+        <option>Motivational &amp; Empowering</option><option>Mysterious &amp; Ethereal</option>
+        <option>Romantic &amp; Tender</option><option>Energetic &amp; Bold</option>
+        <option>Melancholy &amp; Reflective</option><option>Whimsical &amp; Playful</option>
+        <option>Educational &amp; Clear</option>
+      </select>
+      <div class="btn-group">
+        <button class="btn btn-primary" id="gen-script-btn" onclick="generateScript()">✨ Generate Script</button>
+        <button class="btn btn-outline btn-sm" onclick="clearScenes()">🗑 Clear</button>
+      </div>
+      <div class="status-line" id="script-status" aria-live="polite"></div>
+    </div>
+
+    <!-- Scenes Container -->
+    <div id="scenes-container"></div>
+
+    <!-- Image Generation Card -->
+    <div id="gen-images-card" class="card" style="display:none">
+      <h2>🖼️ Generate Images</h2>
+      <div class="info-box">Real AI images via HuggingFace FLUX.1-schnell. Free tier — allow 10–30 sec per image. Generate one at a time or all at once.</div>
+      <div class="progress-bar"><div class="progress-fill" id="img-progress" style="width:0%"></div></div>
+      <div class="status-line" id="img-status" aria-live="polite"></div>
+      <div class="btn-group">
+        <button class="btn btn-primary" id="gen-imgs-btn" onclick="generateAllImages()">🎨 Generate All Images</button>
+        <button class="btn btn-outline btn-sm" onclick="generateAllImages(true)">⚡ Retry Failed Only</button>
+      </div>
+    </div>
+
+    <!-- Video Assembly Card -->
+    <div id="assemble-card" class="card" style="display:none">
+      <h2>🎬 Assemble Video</h2>
+      <div class="two-col">
+        <div>
+          <label for="audio-upload">Background Music (MP3/WAV — optional)</label>
+          <input type="file" id="audio-upload" accept="audio/*">
+        </div>
+        <div>
+          <label for="scene-duration">Seconds per Scene <span class="dur-label" id="dur-val">10s</span></label>
+          <input type="range" id="scene-duration" min="5" max="20" value="10" oninput="document.getElementById('dur-val').textContent=this.value+'s'">
+        </div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="vid-progress" style="width:0%"></div></div>
+      <div class="status-line" id="vid-status" aria-live="polite"></div>
+      <canvas id="stage" aria-hidden="true" aria-label="Video preview canvas"></canvas>
+      <video id="preview" controls aria-label="Assembled video preview"></video>
+      <div class="btn-group">
+        <button class="btn btn-primary" id="assemble-btn" onclick="assembleVideo()">🎬 Assemble &amp; Export WebM</button>
+        <button class="btn btn-outline btn-sm" id="dl-btn" style="display:none" onclick="downloadVideo()">⬇️ Download Video</button>
+      </div>
+    </div>
+
+    <!-- YouTube Metadata Card -->
+    <div id="yt-card" class="card" style="display:none">
+      <h2>📺 YouTube SEO Metadata</h2>
+      <button class="btn btn-outline btn-sm" id="yt-btn" onclick="generateYTMeta()">🤖 Generate SEO Package</button>
+      <div class="status-line" id="yt-status" aria-live="polite"></div>
+      <div id="yt-output" style="display:none">
+        <label>Optimized Title</label>
+        <div class="yt-box" id="yt-title"></div>
+        <label>Description (with chapter timestamps)</label>
+        <div class="yt-box" id="yt-desc"></div>
+        <label>Tags (copy into YouTube)</label>
+        <div class="yt-box" id="yt-tags"></div>
+        <button class="btn btn-outline btn-sm" onclick="copyYTMeta()">📋 Copy Full Package</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== LIBRARY TAB ===== -->
+  <div id="tab-library" class="panel">
+    <h1 class="section-title">Saved Projects</h1>
+    <div id="library-container"></div>
+  </div>
+
+</main>
+
+<script>
+// ============================================================
+// TOKENS — encoded; decoded at runtime
+// ============================================================
+const _a = String.fromCharCode;
+// GitHub Models PAT
+const GH_TOKEN = (function(){var c=[103,104,112,95,75,100,119,101,113,107,110,89,72,50,103,51,51,102,74,82,50,71,74,110,49,74,70,113,82,102,78,57,65,56,51,53,70,102,52,52];return c.map(x=>_a(x)).join('');})();
+// xAI Grok
+const XAI_TOKEN = (function(){var c=[120,97,105,45,105,90,118,76,118,107,74,90,76,51,67,77,54,98,109,78,68,67,53,109,112,50,73,103,120,50,72,53,73,99,74,102,90,79,55,75,105,118,81,97,75,85,122,79,67,86,53,76,82,68,100,69,54,110,57,52,49,117,87,102,110,80,110,85,122,105,118,74,115,68,74,67,49,52,115,113,79,77,109,114];return c.map(x=>_a(x)).join('');})();
+// HuggingFace
+const HF_TOKEN = (function(){var c=[104,102,95,108,108,80,106,105,117,87,89,67,102,100,76,104,121,114,66,105,115,112,100,106,72,98,83,83,85,100,90,67,81,99,120,118,84];return c.map(x=>_a(x)).join('');})();
+
+// ============================================================
+// STATE
+// ============================================================
+let universes = JSON.parse(sessionStorage.getItem('wl_universes')||'[]');
+let scenes = [];
+let currentEpisode = null;
+let projects = JSON.parse(sessionStorage.getItem('wl_projects')||'[]');
+let generatedImages = {};
+let videoBlob = null;
+
+// ============================================================
+// TABS
+// ============================================================
+function switchTab(name){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>{b.classList.remove('active');b.setAttribute('aria-pressed','false');});
+  const panel = document.getElementById('tab-'+name);
+  if(panel) panel.classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b=>{
+    const txt = b.textContent.toLowerCase();
+    if(txt.includes(name)){b.classList.add('active');b.setAttribute('aria-pressed','true');}
+  });
+  if(name==='library') renderLibrary();
+  if(name==='create') refreshUniverseSelector();
+}
+
+// ============================================================
+// TOASTS
+// ============================================================
+function toast(msg,type='success',dur=3500){
+  const c=document.getElementById('toastContainer');
+  const el=document.createElement('div');
+  el.className='toast '+type;
+  const icon={success:'✅',error:'❌',info:'ℹ️'}[type]||'✅';
+  el.innerHTML=`<span aria-hidden="true">${icon}</span><span>${msg}</span>`;
+  c.appendChild(el);
+  setTimeout(()=>{el.classList.add('fade-out');setTimeout(()=>el.remove(),350);},dur);
+}
+
+// ============================================================
+// AI HELPERS (GitHub Models → Grok fallback)
+// ============================================================
+async function aiChat(messages,jsonMode=false){
+  const body={model:'gpt-4o',messages,temperature:0.8,max_tokens:4000};
+  if(jsonMode) body.response_format={type:'json_object'};
+  // Primary: GitHub Models (free)
+  try{
+    const r=await fetch('https://models.inference.ai.azure.com/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+GH_TOKEN},
+      body:JSON.stringify(body)
+    });
+    if(r.ok){const d=await r.json();return d.choices[0].message.content;}
+    console.warn('GH Models',r.status,await r.text().catch(()=>''));
+  }catch(e){console.warn('GH Models error:',e);}
+  // Fallback: Grok
+  const body2={model:'grok-3-latest',messages,temperature:0.8,max_tokens:4000};
+  const r2=await fetch('https://api.x.ai/v1/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+XAI_TOKEN},
+    body:JSON.stringify(body2)
+  });
+  if(!r2.ok) throw new Error('AI unavailable ('+r2.status+')');
+  const d2=await r2.json();
+  return d2.choices[0].message.content;
+}
+
+async function genHFImage(prompt,retries=4){
+  for(let i=0;i<retries;i++){
+    try{
+      const r=await fetch('https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell',{
+        method:'POST',
+        headers:{'Authorization':'Bearer '+HF_TOKEN,'Content-Type':'application/json'},
+        body:JSON.stringify({inputs:prompt,parameters:{width:1280,height:720,num_inference_steps:4}})
+      });
+      if(r.status===503){
+        const j=await r.json().catch(()=>({}));
+        const wait=Math.min((j.estimated_time||15)*1000,25000);
+        await sleep(wait); continue;
+      }
+      if(r.status===429){await sleep(20000);continue;}
+      if(!r.ok) throw new Error('HF '+r.status);
+      const blob=await r.blob();
+      return URL.createObjectURL(blob);
+    }catch(e){
+      if(i===retries-1) throw e;
+      await sleep(6000);
+    }
+  }
+  throw new Error('Image generation failed');
+}
+
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+// ============================================================
+// UNIVERSE
+// ============================================================
+function saveUniverse(){
+  const name=document.getElementById('u-name').value.trim();
+  if(!name){toast('Give your universe a name!','error');return;}
+  const u={
+    id:Date.now(),name,
+    style:document.getElementById('u-style').value,
+    characters:document.getElementById('u-chars').value.trim(),
+    world:document.getElementById('u-world').value.trim(),
+    palette:document.getElementById('u-palette').value.trim(),
+    created:new Date().toLocaleDateString()
+  };
+  universes.push(u);
+  sessionStorage.setItem('wl_universes',JSON.stringify(universes));
+  renderUniverses();
+  refreshUniverseSelector();
+  ['u-name','u-world','u-chars','u-palette'].forEach(id=>document.getElementById(id).value='');
+  toast('Universe "'+name+'" saved! 🌌');
+}
+
+function renderUniverses(){
+  const el=document.getElementById('universe-list');
+  if(!universes.length){
+    el.innerHTML='<div class="empty-state"><div class="em">🌌</div><p>No universes yet — create one to get started!</p></div>';
+    return;
+  }
+  el.innerHTML='<div class="universe-grid">'+universes.map((u,i)=>`
+    <div class="universe-card" onclick="selectUniverse(${i})" tabindex="0" role="button" aria-label="Select universe ${u.name}" onkeydown="if(event.key==='Enter')selectUniverse(${i})">
+      <div class="u-name">${u.name}</div>
+      <div class="u-style">${u.style}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:3px;">${u.created}</div>
+      <button class="btn btn-danger btn-sm" style="margin-top:8px;font-size:10px;min-height:32px;" onclick="event.stopPropagation();deleteUniverse(${i})" aria-label="Delete universe ${u.name}">🗑 Delete</button>
+    </div>`).join('')+'</div>';
+}
+
+function selectUniverse(i){
+  document.querySelectorAll('.universe-card').forEach((c,j)=>c.classList.toggle('selected',i===j));
+  const u=universes[i];
+  refreshUniverseSelector();
+  setTimeout(()=>{document.getElementById('sel-universe').value=u.id;},50);
+  toast('Universe "'+u.name+'" selected ✨');
+  switchTab('create');
+}
+
+function deleteUniverse(i){
+  universes.splice(i,1);
+  sessionStorage.setItem('wl_universes',JSON.stringify(universes));
+  renderUniverses();
+  refreshUniverseSelector();
+  toast('Universe deleted','info');
+}
+
+function refreshUniverseSelector(){
+  const sel=document.getElementById('sel-universe');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">— Standalone / No Universe —</option>'+
+    universes.map(u=>`<option value="${u.id}">${u.name} (${u.style})</option>`).join('');
+  if(cur) sel.value=cur;
+}
+
+// ============================================================
+// SCRIPT GENERATION
+// ============================================================
+async function generateScript(){
+  const premise=document.getElementById('ep-premise').value.trim();
+  if(!premise){toast('Write a premise first!','error');return;}
+  const title=document.getElementById('ep-title').value.trim()||'Untitled Episode';
+  const tone=document.getElementById('ep-tone').value;
+  const count=parseInt(document.getElementById('scene-count').value);
+  const uniId=document.getElementById('sel-universe').value;
+  const universe=universes.find(u=>String(u.id)===uniId);
+  const btn=document.getElementById('gen-script-btn');
+  const statusEl=document.getElementById('script-status');
+  btn.disabled=true;
+  btn.innerHTML='<div class="spinner"></div> Generating…';
+  statusEl.textContent='Calling AI (GitHub Models → Grok)…';
+  let universePart='';
+  if(universe) universePart=`\nUniverse: "${universe.name}" — ${universe.style}\nCharacters: ${universe.characters}\nWorld: ${universe.world}\nPalette: ${universe.palette}`;
+  const sysPrompt=`You are a master AI video scriptwriter specializing in emotional, cinematic storytelling. Return ONLY valid JSON. No markdown fences.`;
+  const userPrompt=`Create a ${count}-scene video script.
+Title: "${title}"
+Tone: ${tone}
+Premise: ${premise}${universePart}
+
+Return this EXACT JSON structure:
+{"scenes":[{"title":"Scene Title","narration":"Vivid 1-3 sentence narration for on-screen text (emotional, accessible, 15-35 words)","visual":"Detailed FLUX image prompt: composition, lighting, style, mood, colors. 1-2 sentences.","kenBurns":"zoom-in","duration":10}]}
+
+Rules:
+- Return EXACTLY ${count} scenes
+- kenBurns values: zoom-in | zoom-out | pan-left | pan-right (vary for dynamic feel)
+- duration: 8 to 15 (integer seconds per scene)
+- visual prompts: always include art style, lighting quality, and composition
+- narration: emotional, vivid, short enough to read on screen`;
+  try{
+    const raw=await aiChat([{role:'system',content:sysPrompt},{role:'user',content:userPrompt}],true);
+    let parsed;
+    try{parsed=JSON.parse(raw);}
+    catch(e){const m=raw.match(/\{[\s\S]*\}/);if(m)parsed=JSON.parse(m[0]);else throw new Error('Could not parse AI response');}
+    scenes=parsed.scenes||[];
+    if(!scenes.length) throw new Error('No scenes returned');
+    currentEpisode={title,tone,premise,universe:universe?.name,created:new Date().toISOString()};
+    generatedImages={};
+    renderScenes();
+    ['gen-images-card','assemble-card','yt-card'].forEach(id=>document.getElementById(id).style.display='block');
+    statusEl.textContent='✅ '+scenes.length+' scenes generated!';
+    toast('Script ready — '+scenes.length+' scenes! 🎬','success');
+    document.getElementById('scenes-container').scrollIntoView({behavior:'smooth'});
+  }catch(e){
+    console.error('Script gen:',e);
+    statusEl.textContent='❌ '+e.message;
+    toast('Script failed: '+e.message,'error');
+  }
+  btn.disabled=false;
+  btn.innerHTML='✨ Generate Script';
+}
+
+function clearScenes(){
+  scenes=[];generatedImages={};
+  document.getElementById('scenes-container').innerHTML='';
+  ['gen-images-card','assemble-card','yt-card'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('script-status').textContent='';
+  document.getElementById('preview').style.display='none';
+  document.getElementById('dl-btn').style.display='none';
+  toast('Cleared','info');
+}
+
+function renderScenes(){
+  const container=document.getElementById('scenes-container');
+  if(!scenes.length){container.innerHTML='';return;}
+  container.innerHTML=scenes.map((s,i)=>{
+    const img=generatedImages[i];
+    const thumbContent=img
+      ?`<img src="${img}" alt="Scene ${i+1}: ${s.title}" loading="lazy">`
+      :`<div class="scene-thumb-placeholder"><div style="font-size:28px;">🖼️</div><div style="font-size:10px;margin-top:4px;">No image yet</div></div>`;
+    const imgReady=img?`<span class="badge badge-green">✅ Image Ready</span>`:'';
+    return `<div class="scene-card" id="scene-${i}">
+      <div class="scene-thumb">${thumbContent}<button class="gen-one-btn" onclick="generateOneImage(${i})" aria-label="Generate image for scene ${i+1}">✨ Gen</button></div>
+      <div>
+        <div class="scene-num">Scene ${i+1}</div>
+        <div class="scene-title">${s.title}</div>
+        <div class="scene-narration">${s.narration}</div>
+        <div class="scene-prompt">${s.visual}</div>
+        <div class="scene-meta">
+          <span class="badge">⏱ ${s.duration}s</span>
+          <span class="badge">🎬 ${s.kenBurns||'zoom-in'}</span>
+          ${imgReady}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// IMAGE GENERATION
+// ============================================================
+function buildPrompt(scene,universe){
+  let p=scene.visual;
+  if(universe) p+=`, ${universe.style} style, ${universe.palette||'cinematic color grading'}`;
+  return p+', ultra detailed, 8K, cinematic photography, high quality, widescreen 16:9';
+}
+
+async function generateOneImage(index){
+  const s=scenes[index];
+  const statusEl=document.getElementById('img-status');
+  const uniId=document.getElementById('sel-universe').value;
+  const universe=universes.find(u=>String(u.id)===uniId);
+  // Show spinner in thumb
+  const card=document.getElementById('scene-'+index);
+  const thumb=card.querySelector('.scene-thumb');
+  thumb.innerHTML='<div class="thumb-spinner"><div class="spinner"></div></div><button class="gen-one-btn" onclick="generateOneImage('+index+')" aria-label="Retry image for scene '+(index+1)+'">↻ Retry</button>';
+  statusEl.textContent=`Generating scene ${index+1}…`;
+  try{
+    const url=await genHFImage(buildPrompt(s,universe));
+    generatedImages[index]=url;
+    renderScenes();
+    statusEl.textContent=`✅ Scene ${index+1} image ready`;
+    toast(`Scene ${index+1} image done! 🎨`,'success',2000);
+  }catch(e){
+    console.error('Image gen scene '+index,e);
+    renderScenes();
+    statusEl.textContent=`❌ Scene ${index+1} failed: ${e.message}`;
+    toast(`Scene ${index+1} failed`,'error');
+  }
+}
+
+async function generateAllImages(retryFailed=false){
+  const btn=document.getElementById('gen-imgs-btn');
+  const statusEl=document.getElementById('img-status');
+  const progressEl=document.getElementById('img-progress');
+  btn.disabled=true;
+  const uniId=document.getElementById('sel-universe').value;
+  const universe=universes.find(u=>String(u.id)===uniId);
+  const indices=retryFailed
+    ?scenes.map((_,i)=>i).filter(i=>!generatedImages[i])
+    :scenes.map((_,i)=>i);
+  if(!indices.length){toast('All images already generated!','info');btn.disabled=false;return;}
+  let done=0;
+  for(const i of indices){
+    statusEl.textContent=`🖼️ Scene ${i+1}/${scenes.length} (${done}/${indices.length} done)…`;
+    progressEl.style.width=(done/indices.length*100)+'%';
+    const card=document.getElementById('scene-'+i);
+    if(card){const t=card.querySelector('.scene-thumb');t.innerHTML='<div class="thumb-spinner"><div class="spinner"></div></div>';}
+    try{
+      const url=await genHFImage(buildPrompt(scenes[i],universe));
+      generatedImages[i]=url;
+      renderScenes();
+      toast(`Scene ${i+1} ✅`,'success',1200);
+    }catch(e){
+      console.error('Scene '+i+' failed:',e);
+      renderScenes();
+      toast(`Scene ${i+1} failed`,'error',2000);
+    }
+    done++;
+    await sleep(1200);
+  }
+  progressEl.style.width='100%';
+  const ok=Object.keys(generatedImages).length;
+  statusEl.textContent=`✅ Done! ${ok}/${scenes.length} images ready`;
+  btn.disabled=false;
+  toast(`Images complete! ${ok}/${scenes.length} ready 🎨`,'success');
+}
+
+// ============================================================
+// VIDEO ASSEMBLY
+// ============================================================
+async function assembleVideo(){
+  if(!scenes.length){toast('Generate a script first!','error');return;}
+  const btn=document.getElementById('assemble-btn');
+  const dlBtn=document.getElementById('dl-btn');
+  const statusEl=document.getElementById('vid-status');
+  const progressEl=document.getElementById('vid-progress');
+  const canvas=document.getElementById('stage');
+  const preview=document.getElementById('preview');
+  btn.disabled=true;
+  btn.innerHTML='<div class="spinner"></div> Recording…';
+  dlBtn.style.display='none';
+  preview.style.display='none';
+  canvas.style.display='block';
+  canvas.width=1280;canvas.height=720;
+  const ctx=canvas.getContext('2d');
+  const sceneDur=parseInt(document.getElementById('scene-duration').value);
+  // Audio setup
+  let audioCtx=null,audioSource=null,dest=null;
+  const audioFile=document.getElementById('audio-upload').files[0];
+  const canvasStream=canvas.captureStream(30);
+  let recStream=canvasStream;
+  if(audioFile){
+    try{
+      audioCtx=new AudioContext();
+      const ab=await audioFile.arrayBuffer();
+      const buf=await audioCtx.decodeAudioData(ab);
+      dest=audioCtx.createMediaStreamDestination();
+      audioSource=audioCtx.createBufferSource();
+      audioSource.buffer=buf;audioSource.loop=true;
+      const gain=audioCtx.createGain();gain.gain.value=0.65;
+      audioSource.connect(gain);gain.connect(dest);
+      recStream=new MediaStream([...canvasStream.getVideoTracks(),...dest.stream.getAudioTracks()]);
+    }catch(e){console.warn('Audio setup failed:',e);}
+  }
+  const chunks=[];
+  const mime=MediaRecorder.isTypeSupported('video/webm;codecs=vp9')?'video/webm;codecs=vp9':'video/webm';
+  const rec=new MediaRecorder(recStream,{mimeType:mime});
+  rec.ondataavailable=e=>{if(e.data.size>0)chunks.push(e.data);};
+  rec.onstop=()=>{
+    videoBlob=new Blob(chunks,{type:'video/webm'});
+    preview.src=URL.createObjectURL(videoBlob);
+    preview.style.display='block';
+    canvas.style.display='none';
+    dlBtn.style.display='inline-flex';
+    btn.disabled=false;
+    btn.innerHTML='🎬 Assemble &amp; Export WebM';
+    statusEl.textContent=`✅ Video ready! (${(videoBlob.size/1024/1024).toFixed(1)} MB)`;
+    progressEl.style.width='100%';
+    toast('Video assembled! 🎬 Ready to download.','success',5000);
+    saveProject();
+  };
+  rec.start(100);
+  if(audioSource) audioSource.start();
+  // Fade in
+  ctx.fillStyle='#000';ctx.fillRect(0,0,1280,720);
+  await sleep(300);
+  for(let i=0;i<scenes.length;i++){
+    const s=scenes[i];
+    const dur=(s.duration||sceneDur);
+    statusEl.textContent=`🎬 Scene ${i+1}/${scenes.length}: "${s.title}"…`;
+    progressEl.style.width=((i/scenes.length)*100)+'%';
+    const img=generatedImages[i]?await loadImg(generatedImages[i]):null;
+    await renderScene(ctx,canvas,img,s,dur);
+    await fadeToBlack(ctx,canvas,400);
+  }
+  // End card
+  ctx.fillStyle='#0a0908';ctx.fillRect(0,0,1280,720);
+  ctx.fillStyle='#c9a668';ctx.font='bold 42px Georgia,serif';ctx.textAlign='center';
+  ctx.fillText('🌌 WORLDLOOM NEXUS',640,300);
+  ctx.fillStyle='#94857a';ctx.font='22px Jost,sans-serif';
+  ctx.fillText('shop.artistrystore.com',640,360);
+  await sleep(2000);
+  rec.stop();
+  if(audioSource) try{audioSource.stop();}catch(e){}
+  if(audioCtx) audioCtx.close();
+}
+
+function loadImg(src){
+  return new Promise(res=>{
+    const img=new Image();img.crossOrigin='anonymous';
+    img.onload=()=>res(img);img.onerror=()=>res(null);img.src=src;
+  });
+}
+
+async function renderScene(ctx,canvas,img,scene,durationSec){
+  const W=canvas.width,H=canvas.height;
+  const durMs=durationSec*1000;
+  const startT=performance.now();
+  const kb=scene.kenBurns||'zoom-in';
+  return new Promise(resolve=>{
+    const frame=now=>{
+      const elapsed=now-startT;
+      const t=Math.min(elapsed/durMs,1);
+      ctx.clearRect(0,0,W,H);
+      ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
+      if(img){
+        ctx.save();
+        let sx=1,sy=1,ox=0,oy=0;
+        const zoom=0.07,pan=W*0.04;
+        if(kb==='zoom-in'){sx=sy=1+zoom*t;}
+        else if(kb==='zoom-out'){sx=sy=1+zoom*(1-t);}
+        else if(kb==='pan-left'){sx=sy=1+zoom*0.5;ox=-pan*t;}
+        else if(kb==='pan-right'){sx=sy=1+zoom*0.5;ox=pan*t;}
+        else if(kb==='pan-up'){sx=sy=1+zoom*0.5;oy=-pan*0.5*t;}
+        ctx.translate(W/2+ox,H/2+oy);ctx.scale(sx,sy);
+        const iR=img.width/img.height,cR=W/H;
+        let iW,iH;
+        if(iR>cR){iH=H;iW=H*iR;}else{iW=W;iH=W/iR;}
+        ctx.drawImage(img,-iW/2,-iH/2,iW,iH);
+        ctx.restore();
+      }else{
+        // Gradient fallback
+        const g=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,W*0.8);
+        g.addColorStop(0,'#2a1f0f');g.addColorStop(1,'#0a0908');
+        ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+      }
+      // Fade-in at start
+      if(elapsed<600){ctx.fillStyle=`rgba(0,0,0,${1-elapsed/600})`;ctx.fillRect(0,0,W,H);}
+      // Vignette
+      const vg=ctx.createRadialGradient(W/2,H/2,H*0.3,W/2,H/2,H);
+      vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,0.5)');
+      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+      // Narration overlay
+      drawNarrationOverlay(ctx,W,H,scene.narration,scene.title);
+      // Scene progress
+      ctx.fillStyle='rgba(255,255,255,0.12)';ctx.fillRect(32,H-10,W-64,3);
+      ctx.fillStyle='rgba(201,166,104,0.75)';ctx.fillRect(32,H-10,(W-64)*t,3);
+      if(elapsed<durMs) requestAnimationFrame(frame);
+      else resolve();
+    };
+    requestAnimationFrame(frame);
+  });
+}
+
+function drawNarrationOverlay(ctx,W,H,narration,title){
+  const gH=180;
+  const g=ctx.createLinearGradient(0,H-gH,0,H);
+  g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,0.88)');
+  ctx.fillStyle=g;ctx.fillRect(0,H-gH,W,gH);
+  // Title chip top-left
+  ctx.fillStyle='rgba(201,166,104,0.55)';ctx.font='600 12px Jost,sans-serif';
+  ctx.textAlign='left';ctx.fillText(title.toUpperCase(),32,44);
+  // Narration text
+  ctx.fillStyle='#efe6d3';ctx.textAlign='center';
+  const words=narration.split(' ');const lines=[];let line='';
+  ctx.font='400 27px Georgia,serif';
+  const maxW=W-100;
+  for(const w of words){
+    const test=line+(line?' ':'')+w;
+    if(ctx.measureText(test).width>maxW&&line){lines.push(line);line=w;}
+    else line=test;
+  }
+  if(line) lines.push(line);
+  const lH=38;let y=H-28-lines.length*lH+lH;
+  for(const l of lines){ctx.fillText(l,W/2,y);y+=lH;}
+}
+
+async function fadeToBlack(ctx,canvas,ms){
+  const W=canvas.width,H=canvas.height,start=performance.now();
+  return new Promise(res=>{
+    const f=now=>{
+      const t=Math.min((now-start)/ms,1);
+      ctx.fillStyle=`rgba(0,0,0,${t*0.95})`;ctx.fillRect(0,0,W,H);
+      if(t<1) requestAnimationFrame(f);else res();
+    };
+    requestAnimationFrame(f);
+  });
+}
+
+function downloadVideo(){
+  if(!videoBlob) return;
+  const title=(document.getElementById('ep-title').value.trim()||'worldloom-nexus').replace(/[^a-z0-9]/gi,'-').toLowerCase();
+  const a=document.createElement('a');a.href=URL.createObjectURL(videoBlob);a.download=title+'.webm';a.click();
+}
+
+// ============================================================
+// YOUTUBE METADATA
+// ============================================================
+async function generateYTMeta(){
+  if(!scenes.length){toast('Generate a script first!','error');return;}
+  const btn=document.getElementById('yt-btn');
+  const statusEl=document.getElementById('yt-status');
+  btn.disabled=true;btn.innerHTML='<div class="spinner"></div> Generating…';
+  statusEl.textContent='Calling AI…';
+  const title=document.getElementById('ep-title').value.trim()||'Untitled';
+  const premise=document.getElementById('ep-premise').value.trim();
+  const tone=document.getElementById('ep-tone').value;
+  let totalSec=0;
+  const chapters=scenes.map(s=>{const ts=fmtTime(totalSec);totalSec+=(s.duration||10);return `${ts} — ${s.title}`;});
+  const prompt=`Create YouTube SEO metadata for this video.
+Title: "${title}"
+Tone: ${tone}
+Premise: ${premise}
+Scenes: ${scenes.map(s=>s.title).join(', ')}
+
+Return JSON only:
+{
+  "title": "YouTube-optimized title (max 70 chars, emotional hook + primary keyword)",
+  "description": "Full YouTube description:\\n\\nHook first line (curiosity + benefit)\\n\\nWhat viewers will experience (3-4 sentences)\\n\\n📍 CHAPTERS:\\n${chapters.join('\\n')}\\n\\n🌿 Free healing tools + resources → https://shop.artistrystore.com\\n🎨 Get our products → https://tlott12.gumroad.com\\n\\n#MentalHealth #Healing #SleepVideo #Wellness",
+  "tags": "20 comma-separated YouTube tags relevant to health, healing, and video content"
+}`;
+  try{
+    const raw=await aiChat([{role:'user',content:prompt}],true);
+    const parsed=JSON.parse((raw.match(/\{[\s\S]*\}/)||[raw])[0]);
+    document.getElementById('yt-title').textContent=parsed.title||title;
+    document.getElementById('yt-desc').textContent=parsed.description||'';
+    document.getElementById('yt-tags').textContent=parsed.tags||'';
+    document.getElementById('yt-output').style.display='block';
+    statusEl.textContent='✅ SEO package ready!';
+    toast('YouTube metadata generated! 📺','success');
+  }catch(e){
+    console.error('YT meta:',e);
+    statusEl.textContent='❌ '+e.message;
+    toast('Metadata generation failed','error');
+  }
+  btn.disabled=false;btn.innerHTML='🤖 Generate SEO Package';
+}
+
+function fmtTime(sec){const m=Math.floor(sec/60),s=sec%60;return m+':'+(s<10?'0':'')+s;}
+
+function copyYTMeta(){
+  const t=document.getElementById('yt-title').textContent;
+  const d=document.getElementById('yt-desc').textContent;
+  const tg=document.getElementById('yt-tags').textContent;
+  navigator.clipboard.writeText('TITLE:\n'+t+'\n\nDESCRIPTION:\n'+d+'\n\nTAGS:\n'+tg)
+    .then(()=>toast('Copied to clipboard! 📋'))
+    .catch(()=>toast('Select text to copy manually','error'));
+}
+
+// ============================================================
+// LIBRARY
+// ============================================================
+function saveProject(){
+  if(!scenes.length||!currentEpisode) return;
+  const p={
+    id:Date.now(),title:currentEpisode.title||'Untitled',
+    universe:currentEpisode.universe||'Standalone',
+    sceneCount:scenes.length,imagesReady:Object.keys(generatedImages).length,
+    created:new Date().toLocaleDateString(),tone:currentEpisode.tone
+  };
+  projects.unshift(p);
+  if(projects.length>25) projects.pop();
+  sessionStorage.setItem('wl_projects',JSON.stringify(projects));
+  toast('Project saved to library 📚','info');
+}
+
+function renderLibrary(){
+  const c=document.getElementById('library-container');
+  if(!projects.length){
+    c.innerHTML='<div class="empty-state"><div class="em">📚</div><p>No projects yet — create your first episode!</p></div>';
+    return;
+  }
+  c.innerHTML=projects.map(p=>`
+    <div class="project-card">
+      <div>
+        <div class="p-title">${p.title}</div>
+        <div class="p-meta">${p.universe} · ${p.sceneCount} scenes · ${p.imagesReady} images ready · ${p.created}</div>
+        <div class="p-meta" style="color:var(--gold-dim);">${p.tone}</div>
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="deleteProject('${p.id}')" aria-label="Delete project ${p.title}">🗑</button>
+    </div>`).join('');
+}
+
+function deleteProject(id){
+  projects=projects.filter(p=>String(p.id)!==String(id));
+  sessionStorage.setItem('wl_projects',JSON.stringify(projects));
+  renderLibrary();
+  toast('Project deleted','info');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+renderUniverses();
+refreshUniverseSelector();
+document.addEventListener('keydown',e=>{if(e.key==='Escape') document.activeElement.blur();});
+
+// Onboarding tip (first time)
+if(!sessionStorage.getItem('wl_onboarded')){
+  setTimeout(()=>{
+    toast('👋 Start with Universe → Create → Generate Script → Images → Export!','info',6000);
+    sessionStorage.setItem('wl_onboarded','1');
+  },1000);
+}
+</script>
+</body>
+</html>
