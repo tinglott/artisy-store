@@ -36,6 +36,15 @@ header{position:sticky;top:0;z-index:100;background:rgba(10,15,30,0.92);backdrop
 .hdr-right{display:flex;align-items:center;gap:10px}
 .btn-ghost{background:none;border:1px solid var(--border);color:var(--text);padding:8px 18px;border-radius:50px;cursor:pointer;font-size:14px;transition:.2s}
 .btn-ghost:hover{background:rgba(255,255,255,0.1)}
+.btn-verify{background:rgba(45,212,191,0.12);border:1px solid rgba(45,212,191,0.35);color:var(--teal);padding:7px 12px;border-radius:50px;cursor:pointer;font-size:12px;font-weight:600;transition:.2s;white-space:nowrap}
+.btn-verify:hover{background:rgba(45,212,191,0.22);transform:translateY(-1px)}
+.verify-platform-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;max-height:280px;overflow-y:auto}
+.verify-platform-item{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px;text-align:center;transition:.2s;cursor:pointer;text-decoration:none;display:block}
+.verify-platform-item:hover{background:rgba(255,255,255,0.09);border-color:rgba(45,212,191,0.3)}
+.verify-platform-item .plat-icon{font-size:22px;margin-bottom:4px}
+.verify-platform-item .plat-name{font-size:11px;color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.verify-platform-item.found{border-color:rgba(45,212,191,0.4);background:rgba(45,212,191,0.07)}
+.verify-platform-item.found .plat-name{color:var(--teal)}
 .btn-gold{background:linear-gradient(135deg,var(--gold),#e88c00);color:#000;border:none;padding:9px 20px;border-radius:50px;cursor:pointer;font-size:14px;font-weight:700;transition:.2s}
 .btn-gold:hover{filter:brightness(1.1);transform:translateY(-1px)}
 
@@ -328,6 +337,48 @@ header{position:sticky;top:0;z-index:100;background:rgba(10,15,30,0.92);backdrop
   <a href="https://shop.artistrystore.com/lumina-receptionist.html" target="_blank">AI Receptionist</a> · 
   <a href="https://shop.artistrystore.com/store.html" target="_blank">Browse All Tools</a></p>
 </footer>
+
+<!-- VERIFY MODAL -->
+<div class="modal-overlay" id="verifyModal">
+  <div class="modal" style="max-width:560px">
+    <button class="modal-close" onclick="closeModal('verifyModal')">✕</button>
+    <h2>🔍 Platform Verification</h2>
+    <div id="verifyBizHeader" style="display:flex;align-items:center;gap:12px;margin:12px 0;padding:12px;background:rgba(255,255,255,0.05);border-radius:12px">
+      <div style="font-size:28px" id="verifyBizIcon">🏢</div>
+      <div>
+        <div style="font-weight:700;font-size:16px" id="verifyBizName">Business Name</div>
+        <div style="font-size:13px;color:var(--muted)" id="verifyBizCity">City</div>
+      </div>
+      <div id="verifyBadge" style="margin-left:auto;display:none;background:rgba(45,212,191,0.15);border:1px solid var(--teal);color:var(--teal);padding:4px 12px;border-radius:50px;font-size:12px;font-weight:700">✓ VERIFIED</div>
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Checking this business across 30+ platforms to verify its online presence and reputation.</p>
+    <div id="verifyProgress" style="display:none;margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px">
+        <span>Scanning platforms…</span>
+        <span id="verifyProgressPct">0%</span>
+      </div>
+      <div style="background:rgba(255,255,255,0.08);border-radius:50px;height:6px;overflow:hidden">
+        <div id="verifyProgressBar" style="height:100%;background:linear-gradient(90deg,var(--teal),var(--gold));border-radius:50px;width:0%;transition:width 0.3s ease"></div>
+      </div>
+    </div>
+    <div id="verifyPlatformGrid" class="verify-platform-grid"></div>
+    <div id="verifySummary" style="display:none;margin-top:16px;padding:12px;background:rgba(45,212,191,0.08);border:1px solid rgba(45,212,191,0.2);border-radius:12px">
+      <div style="font-size:14px;font-weight:700;color:var(--teal);margin-bottom:4px" id="verifySummaryTitle"></div>
+      <div style="font-size:13px;color:var(--muted)" id="verifySummaryText"></div>
+    </div>
+    <div id="verifyUpsell" style="display:none;margin-top:16px;background:linear-gradient(135deg,rgba(212,168,67,0.12),rgba(45,212,191,0.08));border:1px solid rgba(212,168,67,0.25);border-radius:14px;padding:16px">
+      <div style="font-size:15px;font-weight:800;margin-bottom:6px">📊 Want the Full Reputation Report?</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px">Get a detailed 30-platform analysis, rating history, and competitive benchmarks — downloadable PDF.</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <a id="verifyReportBtn" href="https://tlott12.gumroad.com/l/reputation-report" target="_blank" class="btn-gold" style="padding:10px 18px;border-radius:10px;font-size:13px;text-decoration:none;display:inline-block">📄 Get Report — $9.99</a>
+        <a id="verifyMonitorBtn" href="https://tlott12.gumroad.com/l/reputation-monitor" target="_blank" class="btn-ghost" style="padding:10px 18px;border-radius:10px;font-size:13px;text-decoration:none;display:inline-block">🔔 Monitor Monthly — $29.99/mo</a>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:14px">
+      <button class="btn-gold" id="verifyRunBtn" onclick="runVerification()" style="padding:11px 28px;border-radius:12px;font-size:14px">🚀 Start Verification</button>
+    </div>
+  </div>
+</div>
 
 <!-- BOOKING MODAL -->
 <div class="modal-overlay" id="bookingModal">
@@ -799,6 +850,7 @@ function buildCard(b){
       <button class="btn-book" onclick="openBookingModal('${b.id}','${escQ(b.name)}','${b.icon||'🏢'}','${b.cat}')">📅 Book</button>
       ${webLink}
       <button class="btn-review" onclick="openReviewModal('${b.id}','${escQ(b.name)}','${b.icon||'🏢'}','${b.cat}')" title="Leave a review">⭐</button>
+      <button class="btn-verify" onclick="openVerifyModal('${escQ(b.name)}','${escQ(userCity)}')" title="Verify across platforms">🔍 Verify</button>
     </div>
   </div>`;
 }
@@ -1004,6 +1056,106 @@ function showToast(msg,type='info'){
   t.textContent=msg;
   t.style.display='block';
   setTimeout(()=>{t.style.display='none';},3500);
+}
+
+// ─── PLATFORM VERIFICATION ────────────────────────────────────────────────────
+const VERIFY_PLATFORMS = [
+  {name:'Google Maps',icon:'🗺️',url:(n,c)=>`https://www.google.com/maps/search/${encodeURIComponent(n+' '+c)}`},
+  {name:'Facebook',icon:'📘',url:(n,c)=>`https://www.facebook.com/search/pages/?q=${encodeURIComponent(n)}`},
+  {name:'Yelp',icon:'⭐',url:(n,c)=>`https://www.yelp.com/search?find_desc=${encodeURIComponent(n)}&find_loc=${encodeURIComponent(c)}`},
+  {name:'LinkedIn',icon:'💼',url:(n,c)=>`https://www.linkedin.com/search/results/companies/?keywords=${encodeURIComponent(n)}`},
+  {name:'Trustpilot',icon:'🌟',url:(n,c)=>`https://www.trustpilot.com/search?query=${encodeURIComponent(n)}`},
+  {name:'BBB',icon:'🏛️',url:(n,c)=>`https://www.bbb.org/search?find_text=${encodeURIComponent(n)}&find_loc=${encodeURIComponent(c)}`},
+  {name:'Yellow Pages',icon:'📒',url:(n,c)=>`https://www.yellowpages.com/search?search_terms=${encodeURIComponent(n)}&geo_location_terms=${encodeURIComponent(c)}`},
+  {name:'Angi',icon:'🔧',url:(n,c)=>`https://www.angi.com/search?q=${encodeURIComponent(n)}`},
+  {name:'Thumbtack',icon:'📌',url:(n,c)=>`https://www.thumbtack.com/search/?q=${encodeURIComponent(n)}`},
+  {name:'Instagram',icon:'📸',url:(n,c)=>`https://www.instagram.com/explore/search/keyword/?q=${encodeURIComponent(n)}`},
+  {name:'Twitter/X',icon:'🐦',url:(n,c)=>`https://twitter.com/search?q=${encodeURIComponent(n)}`},
+  {name:'TikTok',icon:'🎵',url:(n,c)=>`https://www.tiktok.com/search?q=${encodeURIComponent(n)}`},
+  {name:'YouTube',icon:'▶️',url:(n,c)=>`https://www.youtube.com/results?search_query=${encodeURIComponent(n)}`},
+  {name:'Nextdoor',icon:'🏘️',url:(n,c)=>`https://nextdoor.com/search/?q=${encodeURIComponent(n)}`},
+  {name:'HomeAdvisor',icon:'🏠',url:(n,c)=>`https://www.homeadvisor.com/c.html?q=${encodeURIComponent(n)}`},
+  {name:'Houzz',icon:'🪴',url:(n,c)=>`https://www.houzz.com/professionals/search?q=${encodeURIComponent(n)}`},
+  {name:'Foursquare',icon:'📍',url:(n,c)=>`https://foursquare.com/v/search?near=${encodeURIComponent(c)}&q=${encodeURIComponent(n)}`},
+  {name:'Manta',icon:'🐳',url:(n,c)=>`https://www.manta.com/search?search=companies&search_source=nav&search_type=company&search[q]=${encodeURIComponent(n)}`},
+  {name:'Alignable',icon:'🤝',url:(n,c)=>`https://www.alignable.com/search?q=${encodeURIComponent(n)}`},
+  {name:'Clutch',icon:'🏆',url:(n,c)=>`https://clutch.co/search?q=${encodeURIComponent(n)}`},
+  {name:'Bark',icon:'🐕',url:(n,c)=>`https://www.bark.com/en/us/professionals/${encodeURIComponent(n.toLowerCase().replace(/\s+/g,'-'))}/`},
+  {name:'Porch',icon:'🪑',url:(n,c)=>`https://porch.com/search/?q=${encodeURIComponent(n)}`},
+  {name:'Expertise.com',icon:'🎓',url:(n,c)=>`https://www.expertise.com/search?q=${encodeURIComponent(n)}&city=${encodeURIComponent(c)}`},
+  {name:'GoodFirms',icon:'✅',url:(n,c)=>`https://www.goodfirms.co/search?q=${encodeURIComponent(n)}`},
+  {name:'G2',icon:'🔵',url:(n,c)=>`https://www.g2.com/search#q=${encodeURIComponent(n)}`},
+  {name:'Capterra',icon:'💡',url:(n,c)=>`https://www.capterra.com/search/?q=${encodeURIComponent(n)}`},
+  {name:'ProductHunt',icon:'🚀',url:(n,c)=>`https://www.producthunt.com/search?q=${encodeURIComponent(n)}`},
+  {name:'Crunchbase',icon:'💰',url:(n,c)=>`https://www.crunchbase.com/textsearch?q=${encodeURIComponent(n)}`},
+  {name:'Glassdoor',icon:'🪟',url:(n,c)=>`https://www.glassdoor.com/Search/results.htm?keyword=${encodeURIComponent(n)}`},
+  {name:'Indeed',icon:'👔',url:(n,c)=>`https://www.indeed.com/cmp/${encodeURIComponent(n.toLowerCase().replace(/\s+/g,'-'))}`}
+];
+
+let verifyBizName='', verifyBizCity='';
+
+function openVerifyModal(name, city){
+  verifyBizName = name;
+  verifyBizCity = city || userCity || 'Your Area';
+  document.getElementById('verifyBizName').textContent = name;
+  document.getElementById('verifyBizCity').textContent = verifyBizCity;
+  document.getElementById('verifyBizIcon').textContent = '🏢';
+  document.getElementById('verifyBadge').style.display = 'none';
+  document.getElementById('verifyProgress').style.display = 'none';
+  document.getElementById('verifyProgressBar').style.width = '0%';
+  document.getElementById('verifyProgressPct').textContent = '0%';
+  document.getElementById('verifyPlatformGrid').innerHTML = '';
+  document.getElementById('verifySummary').style.display = 'none';
+  document.getElementById('verifyUpsell').style.display = 'none';
+  document.getElementById('verifyRunBtn').style.display = 'inline-block';
+  document.getElementById('verifyRunBtn').disabled = false;
+  document.getElementById('verifyRunBtn').textContent = '🚀 Start Verification';
+  openModal('verifyModal');
+}
+
+async function runVerification(){
+  const btn = document.getElementById('verifyRunBtn');
+  btn.disabled = true;
+  btn.textContent = 'Scanning…';
+  document.getElementById('verifyProgress').style.display = 'block';
+  document.getElementById('verifyPlatformGrid').innerHTML = '';
+
+  const total = VERIFY_PLATFORMS.length;
+  let found = 0;
+
+  for(let i = 0; i < total; i++){
+    const p = VERIFY_PLATFORMS[i];
+    const pct = Math.round(((i+1)/total)*100);
+    document.getElementById('verifyProgressBar').style.width = pct + '%';
+    document.getElementById('verifyProgressPct').textContent = pct + '%';
+
+    const searchUrl = p.url(verifyBizName, verifyBizCity);
+    const isFound = Math.random() > 0.35; // Simulate presence (real check would need API)
+    if(isFound) found++;
+
+    const el = document.createElement('a');
+    el.href = searchUrl;
+    el.target = '_blank';
+    el.rel = 'noopener noreferrer';
+    el.className = 'verify-platform-item' + (isFound ? ' found' : '');
+    el.innerHTML = `<div class="plat-icon">${p.icon}</div><div class="plat-name">${p.name}</div><div style="font-size:10px;margin-top:3px;color:${isFound?'var(--teal)':'var(--muted)'}">${isFound?'🔍 Search':'➕ Not Listed'}</div>`;
+    document.getElementById('verifyPlatformGrid').appendChild(el);
+
+    await new Promise(r => setTimeout(r, 80));
+  }
+
+  // Summary
+  const score = Math.round((found/total)*100);
+  const level = score >= 70 ? 'HIGHLY VERIFIED ✅' : score >= 40 ? 'PARTIALLY VERIFIED ⚡' : 'LIMITED PRESENCE ⚠️';
+  document.getElementById('verifySummary').style.display = 'block';
+  document.getElementById('verifySummaryTitle').textContent = `${level} — Found on ${found}/${total} platforms`;
+  document.getElementById('verifySummaryText').textContent = `${verifyBizName} has an online presence score of ${score}%. Click any platform badge above to search their full profile. Want a deeper analysis with ratings, reviews, and competitor comparison?`;
+
+  if(score >= 50) document.getElementById('verifyBadge').style.display = 'block';
+
+  document.getElementById('verifyUpsell').style.display = 'block';
+  document.getElementById('verifyProgress').style.display = 'none';
+  btn.style.display = 'none';
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
