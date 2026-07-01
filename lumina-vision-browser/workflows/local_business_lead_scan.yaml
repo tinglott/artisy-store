@@ -1,0 +1,27 @@
+name: local_business_lead_scan
+description: >
+  LocalBotPro-style workflow: search a business directory site through
+  its normal web UI (no API), open each result, and pull contact info.
+  Swap search_url / search_term for whichever directory you're targeting.
+
+variables:
+  search_url: "https://www.google.com/maps"
+  search_term: "plumbers near Valdosta GA"
+
+steps:
+  - type: goto
+    url: "{{search_url}}"
+
+  - type: wait
+    ms: 1500
+
+  - type: ai_task
+    goal: >
+      Find the search box on this page, type in "{{search_term}}", submit the
+      search, and wait for results to load. Then list the first 5 business
+      names you can see along with any visible phone numbers or websites.
+      Return that list as your final "done" result, one business per line.
+    save_as: lead_list
+
+  - type: extract
+    save_as: raw_results_text
