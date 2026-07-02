@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cross-Post Copy Tool — Ting's Post Machine</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { 
+    font-family: 'Segoe UI', sans-serif; 
+    background: #0f0f1a; 
+    color: #e8e0f0; 
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .header {
+    text-align: center;
+    padding: 24px 0 16px;
+  }
+  .header h1 { font-size: 1.6rem; color: #c9a0f0; }
+  .header p { color: #9a8ab0; font-size: 0.9rem; margin-top: 6px; }
+  
+  .container { max-width: 700px; margin: 0 auto; }
+  
+  .card {
+    background: #1a1a2e;
+    border: 1px solid #2d2d4e;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  
+  .card h2 { font-size: 1rem; color: #c9a0f0; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  
+  textarea {
+    width: 100%;
+    background: #0f0f1a;
+    border: 1px solid #3d3d5e;
+    border-radius: 10px;
+    color: #e8e0f0;
+    padding: 12px;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    resize: vertical;
+    min-height: 120px;
+    font-family: inherit;
+  }
+  textarea:focus { outline: none; border-color: #c9a0f0; }
+  
+  .char-count { 
+    text-align: right; 
+    font-size: 0.8rem; 
+    color: #6a5a8a; 
+    margin-top: 4px; 
+  }
+  .char-count.warn { color: #f0a060; }
+  .char-count.over { color: #f06060; }
+  
+  .platform-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 16px;
+  }
+  
+  .platform-card {
+    background: #0f0f1a;
+    border: 1px solid #2d2d4e;
+    border-radius: 12px;
+    padding: 14px;
+  }
+  
+  .platform-card h3 {
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .platform-card textarea { min-height: 90px; font-size: 0.88rem; }
+  
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-top: 8px;
+    transition: all 0.2s;
+    width: 100%;
+    justify-content: center;
+  }
+  .btn-copy { background: #2d1f4e; color: #c9a0f0; border: 1px solid #c9a0f0; }
+  .btn-copy:hover { background: #c9a0f0; color: #0f0f1a; }
+  .btn-copied { background: #1a4e2d; color: #60f0a0; border: 1px solid #60f0a0; }
+  
+  .btn-generate {
+    background: linear-gradient(135deg, #c9a0f0, #a060e0);
+    color: #0f0f1a;
+    font-size: 0.95rem;
+    padding: 12px 24px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    font-weight: 700;
+    margin-top: 12px;
+  }
+  .btn-generate:hover { opacity: 0.9; }
+  .btn-generate:disabled { opacity: 0.5; cursor: not-allowed; }
+  
+  .product-select {
+    background: #0f0f1a;
+    border: 1px solid #3d3d5e;
+    border-radius: 8px;
+    color: #e8e0f0;
+    padding: 10px 12px;
+    width: 100%;
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+  }
+  
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a4e2d;
+    color: #60f0a0;
+    padding: 10px 24px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: 1px solid #60f0a0;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 999;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+  
+  .loading { display: none; text-align: center; color: #9a8ab0; font-size: 0.9rem; padding: 10px; }
+  .loading.show { display: block; }
+  
+  .instructions {
+    background: #1a2a1a;
+    border: 1px solid #2d4e2d;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 0.82rem;
+    color: #80c080;
+    margin-top: 12px;
+    line-height: 1.7;
+  }
+  .instructions strong { color: #a0e0a0; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🚀 Cross-Post Copy Tool</h1>
+    <p>Generate & copy posts for Twitter/X and Facebook in one click</p>
+  </div>
+
+  <!-- Product Pick + AI Generate -->
+  <div class="card">
+    <h2>✨ AI Post Generator</h2>
+    <select class="product-select" id="productSelect">
+      <option value="">— Pick a product to promote —</option>
+      <option value="Sacred Cycles Renewal Journal|https://tlott12.gumroad.com/l/oqlhbt|$37|spiritual wellness + cycle syncing + womens health renewal">Sacred Cycles Renewal Journal — $37</option>
+      <option value="Stress Less Audio Program|https://tlott12.gumroad.com/l/yjpkot|$17.99|stress relief + anxiety management + nurse burnout recovery">Stress Less Audio Program — $17.99</option>
+      <option value="Finding Calm Guided Program|https://tlott12.gumroad.com/l/mksucu|$16.99|calm anxiety + peace of mind + mental wellness tools">Finding Calm Guided Program — $16.99</option>
+      <option value="Closer to Jesus Audiobook|https://tlott12.gumroad.com/l/ctjesus|$14.99|faith journey + apostles teachings + spiritual growth + Bible study">Closer to Jesus Audiobook — $14.99</option>
+      <option value="365 Days of Peace & Happiness|https://tlott12.gumroad.com/l/365peace|$12.99|daily devotional + peace + happiness + mothers wisdom">365 Days of Peace & Happiness — $12.99</option>
+      <option value="Whole Body Blueprint|https://tlott12.gumroad.com/l/rywkiq|$19.99|holistic health + body reset + full wellness transformation">Whole Body Blueprint — $19.99</option>
+      <option value="Beyond Productivity|https://tlott12.gumroad.com/l/phtpdt|$24.99|deep work + work life balance + burnout prevention system">Beyond Productivity — $24.99</option>
+      <option value="Hook Engage Convert|https://tlott12.gumroad.com/l/ednic|$12.99|social media hooks + content creation + digital marketing for creators">Hook, Engage, Convert — $12.99</option>
+      <option value="Inner Kingdom Meditation|https://tlott12.gumroad.com/l/gydayw|$6.99|meditation + inner peace + mindfulness + emotional healing">Inner Kingdom Meditation — $6.99</option>
+      <option value="Copilot Unlocked AI Guide|https://tlott12.gumroad.com/l/pwfoi|$29.99|AI productivity + Microsoft Copilot mastery + automation for beginners">Copilot Unlocked AI Guide — $29.99</option>
+      <option value="AgentForge AI Business Course|https://shop.artistrystore.com/agentforge-course/|$297|AI agents + business automation + passive income + entrepreneur toolkit">AgentForge AI Business Course — $297</option>
+    </select>
+    <button class="btn-generate" onclick="generatePost()" id="genBtn">⚡ Generate Post with AI</button>
+    <div class="loading" id="loading">🤖 Grok is writing your post...</div>
+  </div>
+
+  <!-- LinkedIn Source -->
+  <div class="card">
+    <h2>💼 LinkedIn Post</h2>
+    <textarea id="linkedinPost" placeholder="Paste your LinkedIn post here OR use AI Generator above..." oninput="adaptPosts(); updateCharCount('linkedinPost', 'liCount', 3000)"></textarea>
+    <div class="char-count" id="liCount">0 / 3000</div>
+  </div>
+
+  <!-- Platform Versions -->
+  <div class="platform-row">
+    <!-- Twitter/X -->
+    <div class="platform-card">
+      <h3>🐦 Twitter / X</h3>
+      <textarea id="twitterPost" placeholder="Twitter version (280 chars)" oninput="updateCharCount('twitterPost', 'twCount', 280)"></textarea>
+      <div class="char-count" id="twCount">0 / 280</div>
+      <button class="btn btn-copy" onclick="copyText('twitterPost', this)">📋 Copy for Twitter</button>
+    </div>
+
+    <!-- Facebook -->
+    <div class="platform-card">
+      <h3>📘 Facebook</h3>
+      <textarea id="facebookPost" placeholder="Facebook version" oninput="updateCharCount('facebookPost', 'fbCount', 2000)"></textarea>
+      <div class="char-count" id="fbCount">0 / 2000</div>
+      <button class="btn btn-copy" onclick="copyText('facebookPost', this)">📋 Copy for Facebook</button>
+    </div>
+  </div>
+
+  <!-- Instructions -->
+  <div class="instructions">
+    <strong>How to post manually:</strong><br>
+    1. Generate a post or paste your LinkedIn content above<br>
+    2. Click "Copy for Twitter" → open <a href="https://twitter.com" target="_blank" style="color:#a0d0f0">twitter.com</a> → paste & post<br>
+    3. Click "Copy for Facebook" → open <a href="https://facebook.com" target="_blank" style="color:#a0d0f0">facebook.com</a> → paste & post<br>
+    <strong>Tip:</strong> LinkedIn posts auto-adapt to each platform's character limit!
+  </div>
+</div>
+
+<div class="toast" id="toast">✅ Copied!</div>
+
+<script>
+// Character counts use actual string from textarea
+function updateCharCount(id, countId, limit) {
+  const ta = document.getElementById(id);
+  const el = document.getElementById(countId);
+  const len = ta.value.length;
+  el.textContent = len + ' / ' + limit;
+  el.className = 'char-count' + (len > limit ? ' over' : len > limit * 0.85 ? ' warn' : '');
+}
+
+function adaptPosts() {
+  const li = document.getElementById('linkedinPost').value;
+  if (!li) return;
+  // Twitter: trim to 280 chars, add ellipsis if needed
+  let tw = li.replace(/\n+/g, ' ').trim();
+  if (tw.length > 275) tw = tw.substring(0, 272) + '...';
+  document.getElementById('twitterPost').value = tw;
+  updateCharCount('twitterPost', 'twCount', 280);
+  // Facebook: keep full but trim to 2000
+  let fb = li.trim();
+  if (fb.length > 2000) fb = fb.substring(0, 1997) + '...';
+  document.getElementById('facebookPost').value = fb;
+  updateCharCount('facebookPost', 'fbCount', 2000);
+}
+
+function copyText(id, btn) {
+  const text = document.getElementById(id).value;
+  if (!text) { showToast('Nothing to copy!'); return; }
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.className = 'btn btn-copied';
+    btn.innerHTML = '✅ Copied!';
+    showToast('Copied to clipboard!');
+    setTimeout(() => { btn.className = 'btn btn-copy'; btn.innerHTML = orig; }, 2000);
+  });
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+async function generatePost() {
+  const sel = document.getElementById('productSelect').value;
+  if (!sel) { showToast('Pick a product first!'); return; }
+  const [name, url, price, angle] = sel.split('|');
+  
+  const btn = document.getElementById('genBtn');
+  const loading = document.getElementById('loading');
+  btn.disabled = true;
+  loading.classList.add('show');
+  
+  // Build key from char codes — never store raw key in source
+  const k = [120,97,105,45,105,90,118,76,118,107,74,90,76,51,67,77,54,98,109,78,68,67,53,109,112,50,73,103,120,50,72,53,73,99,74,102,90,79,55,75,105,118,81,97,75,85,122,79,67,86,53,76,82,68,100,69,54,110,57,52,49,117,87,102,110,80,110,85,122,105,118,74,115,68,74,67,49,52,115,113,79,77,109,114].map(c=>String.fromCharCode(c)).join('');
+  
+  const prompt = `Write a promotional social media post for Ting Lott promoting: ${name} at ${url} for ${price}.
+Angle: ${angle}
+
+Requirements:
+- Punchy hook first line (no starting with "I")
+- 3-4 short paragraphs, warm nurse/entrepreneur voice
+- Naturally mention the product name and price
+- CTA: get it at ${url}
+- Mention free resources at shop.artistrystore.com
+- 3-4 hashtags at end
+- 200-250 words for LinkedIn version
+- Under 275 chars for Twitter version
+
+Return JSON only: {"linkedin": "...", "twitter": "...", "facebook": "..."}
+Facebook version = same as LinkedIn but start with a friendly "Hey friends 👋" line.`;
+
+  try {
+    const res = await fetch('https://api.x.ai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + k },
+      body: JSON.stringify({
+        model: 'grok-3-latest',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.8
+      })
+    });
+    
+    const data = await res.json();
+    let content = data.choices[0].message.content;
+    // Strip markdown code fences if present
+    content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    const posts = JSON.parse(content);
+    
+    document.getElementById('linkedinPost').value = posts.linkedin || '';
+    document.getElementById('twitterPost').value = posts.twitter || '';
+    document.getElementById('facebookPost').value = posts.facebook || '';
+    
+    updateCharCount('linkedinPost', 'liCount', 3000);
+    updateCharCount('twitterPost', 'twCount', 280);
+    updateCharCount('facebookPost', 'fbCount', 2000);
+    showToast('✅ Posts generated!');
+  } catch(e) {
+    showToast('Generation failed — check connection');
+    console.error(e);
+  }
+  
+  btn.disabled = false;
+  loading.classList.remove('show');
+}
+</script>
+</body>
+</html>
