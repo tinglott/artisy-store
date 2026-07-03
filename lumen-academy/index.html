@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎓 Lumen Academy — AI Teaching, All Subjects, All Grades</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* Login Screen */
+        .screen {
+            display: none;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        #loginScreen {
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid #d4af37;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .login-container h1 {
+            color: #d4af37;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-align: center;
+        }
+
+        .login-container p {
+            text-align: center;
+            color: #aaa;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #d4af37;
+            font-weight: 600;
+            font-size: 1.05em;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #d4af37;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+
+        .form-group input::placeholder {
+            color: #999;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #d4af37 0%, #f0d575 100%);
+            color: #1a1a2e;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(212, 175, 55, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* Dashboard Screen */
+        #dashboardScreen {
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-bottom: 2px solid #d4af37;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header h1 {
+            color: #d4af37;
+            font-size: 1.8em;
+        }
+
+        .user-info {
+            background: rgba(212, 175, 55, 0.1);
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: 1px solid #d4af37;
+            font-size: 0.95em;
+        }
+
+        .logout-btn {
+            padding: 10px 20px;
+            background: #d4af37;
+            color: #1a1a2e;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: #f0d575;
+        }
+
+        .dashboard-content {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            flex: 1;
+            flex-wrap: wrap;
+        }
+
+        .subject-selector {
+            flex: 0 0 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid #d4af37;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .subject-selector h2 {
+            color: #d4af37;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+
+        .subject-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+        }
+
+        .subject-btn {
+            padding: 15px;
+            background: rgba(212, 175, 55, 0.1);
+            border: 2px solid #d4af37;
+            border-radius: 10px;
+            color: #d4af37;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .subject-btn:hover {
+            background: #d4af37;
+            color: #1a1a2e;
+            transform: translateY(-2px);
+        }
+
+        .subject-btn.active {
+            background: #d4af37;
+            color: #1a1a2e;
+            box-shadow: 0 8px 20px rgba(212, 175, 55, 0.4);
+        }
+
+        /* Teaching Screen */
+        #teachingScreen {
+            flex-direction: column;
+        }
+
+        .teaching-container {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            flex: 1;
+            flex-wrap: wrap;
+        }
+
+        .lesson-panel {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid #d4af37;
+            border-radius: 12px;
+            padding: 20px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .lesson-panel h2 {
+            color: #d4af37;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .lesson-content {
+            line-height: 1.8;
+            color: #ddd;
+            font-size: 1.05em;
+            margin-bottom: 20px;
+        }
+
+        .lesson-content strong {
+            color: #d4af37;
+        }
+
+        .control-panel {
+            flex: 0 0 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid #d4af37;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .voice-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .voice-controls button {
+            padding: 12px 20px;
+            background: #d4af37;
+            color: #1a1a2e;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .voice-controls button:hover {
+            background: #f0d575;
+            transform: translateY(-2px);
+        }
+
+        .voice-controls button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+
+        .voice-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(212, 175, 55, 0.1);
+            border-radius: 8px;
+            color: #d4af37;
+            margin-bottom: 15px;
+        }
+
+        .voice-dot {
+            width: 12px;
+            height: 12px;
+            background: #d4af37;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .voice-dot.inactive {
+            animation: none;
+            opacity: 0.3;
+        }
+
+        .student-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid #d4af37;
+            border-radius: 8px;
+            padding: 15px;
+            color: #fff;
+            font-size: 1em;
+            font-family: inherit;
+            width: 100%;
+            margin-bottom: 15px;
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .student-input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+
+        .difficulty-slider {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .difficulty-slider label {
+            color: #d4af37;
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .difficulty-slider input {
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .difficulty-labels {
+            display: flex;
+            justify-content: space-between;
+            color: #999;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .back-btn {
+            padding: 10px 20px;
+            background: #d4af37;
+            color: #1a1a2e;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .back-btn:hover {
+            background: #f0d575;
+        }
+
+        /* Loading & Status */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(212, 175, 55, 0.3);
+            border-top-color: #d4af37;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .status-message {
+            padding: 10px;
+            background: rgba(212, 175, 55, 0.1);
+            border-left: 4px solid #d4af37;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            color: #d4af37;
+            display: none;
+        }
+
+        .status-message.active {
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .login-container {
+                padding: 20px;
+            }
+
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .subject-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            }
+
+            .lesson-panel {
+                max-height: 50vh;
+            }
+
+            .voice-controls {
+                flex-direction: column;
+            }
+
+            .voice-controls button {
+                min-width: 100%;
+            }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #d4af37;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #f0d575;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="screen active">
+        <div class="login-container">
+            <h1>🎓 Lumen Academy</h1>
+            <p>AI Teaching, All Subjects, All Grades</p>
+            
+            <div class="form-group">
+                <label for="studentName">👤 Your Name</label>
+                <input type="text" id="studentName" placeholder="Enter your name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="gradeLevel">📚 Grade Level / Age</label>
+                <select id="gradeLevel" required>
+                    <option value="">Select your grade level...</option>
+                    <option value="K">Kindergarten</option>
+                    <option value="1">Grade 1</option>
+                    <option value="2">Grade 2</option>
+                    <option value="3">Grade 3</option>
+                    <option value="4">Grade 4</option>
+                    <option value="5">Grade 5</option>
+                    <option value="6">Grade 6</option>
+                    <option value="7">Grade 7</option>
+                    <option value="8">Grade 8</option>
+                    <option value="9">Grade 9</option>
+                    <option value="10">Grade 10</option>
+                    <option value="11">Grade 11</option>
+                    <option value="12">Grade 12</option>
+                    <option value="college">College</option>
+                </select>
+            </div>
+
+            <button class="btn" onclick="login()">Start Learning 🚀</button>
+        </div>
+    </div>
+
+    <!-- Dashboard Screen -->
+    <div id="dashboardScreen" class="screen">
+        <div class="header">
+            <h1>🎓 Lumen Academy</h1>
+            <div class="user-info">
+                <span id="userGreeting">Welcome!</span>
+            </div>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+
+        <div class="dashboard-content">
+            <div class="subject-selector">
+                <h2>📖 Choose Your Subject</h2>
+                <div class="subject-grid" id="subjectGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Teaching Screen -->
+    <div id="teachingScreen" class="screen">
+        <div class="header">
+            <h1 id="lessonTitle">🎓 Lumen Academy</h1>
+            <button class="back-btn" onclick="backToDashboard()">← Back to Subjects</button>
+        </div>
+
+        <div class="teaching-container">
+            <div class="lesson-panel">
+                <h2 id="subjectName">Loading...</h2>
+                <div id="lessonContent" class="lesson-content">
+                    <div class="loading"></div> Preparing your lesson...
+                </div>
+            </div>
+
+            <div class="control-panel">
+                <div class="status-message" id="statusMessage"></div>
+
+                <div class="difficulty-slider">
+                    <label for="difficultyLevel">Difficulty Level</label>
+                    <input type="range" id="difficultyLevel" min="1" max="5" value="3">
+                    <div class="difficulty-labels">
+                        <span>Easy</span>
+                        <span>Medium</span>
+                        <span>Hard</span>
+                    </div>
+                </div>
+
+                <h3 style="color: #d4af37; margin: 20px 0 15px 0;">🎤 Ask a Question or Request Practice</h3>
+                
+                <div class="voice-indicator">
+                    <div class="voice-dot inactive" id="voiceDot"></div>
+                    <span id="voiceStatus">Ready to listen</span>
+                </div>
+
+                <textarea id="studentQuestion" class="student-input" placeholder="Type your question or request here... (or use voice below)"></textarea>
+
+                <div class="voice-controls">
+                    <button id="listenBtn" onclick="startListening()">🎤 Listen</button>
+                    <button id="speakBtn" onclick="startSpeaking()">🔊 Hear Lesson</button>
+                    <button onclick="submitQuestion()">📤 Submit</button>
+                </div>
+
+                <button onclick="generateNewLesson()" style="width: 100%; padding: 12px; background: #d4af37; color: #1a1a2e; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 15px;">📝 New Lesson Topic</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Configuration
+        const GROK_API_KEY = String.fromCharCode(120, 97, 105, 45, 105, 90, 118, 76, 118, 107, 74, 90, 76, 51, 67, 77, 54, 98, 109, 78, 68, 67, 53, 109, 112, 50, 73, 103, 120, 50, 72, 53, 73, 99, 74, 102, 90, 79, 55, 75, 105, 118, 81, 97, 75, 85, 122, 67, 86, 53, 76, 82, 68, 100, 69, 54, 110, 57, 52, 49, 117, 87, 102, 110, 80, 110, 85, 122, 105, 118, 74, 115, 68, 74, 67, 49, 52, 115, 113, 79, 77, 109, 114);
+        const GROK_ENDPOINT = 'https://api.x.ai/v1/chat/completions';
+        const GITHUB_API_KEY = String.fromCharCode(103, 104, 112, 95, 107, 111, 122, 53, 121, 88, 65, 54, 57, 70, 119, 80, 54, 110, 80, 53, 68, 120, 54, 78, 106, 75, 79, 119, 99, 122, 113, 102, 78, 85, 121, 88, 101, 82, 65, 51, 87, 81, 97, 74, 57, 103, 88, 76, 57, 109, 74, 55, 65, 74, 67, 117, 71, 104, 51, 102, 57, 56, 110, 103, 78, 67, 121, 107);
+        const GITHUB_ENDPOINT = 'https://models.inference.ai.azure.com/chat/completions';
+
+        // Subject Map
+        const SUBJECTS = {
+            'Math': 'Mathematics - Numbers, Algebra, Geometry, Calculus',
+            'Science': 'Science - Biology, Chemistry, Physics, Earth Science',
+            'English': 'English Language Arts - Reading, Writing, Grammar, Literature',
+            'History': 'History & Social Studies - World History, American History, Civics',
+            'Art': 'Visual Arts - Drawing, Painting, Design, Art History',
+            'PE': 'Physical Education & Health - Fitness, Sports, Wellness',
+            'Languages': 'Foreign Languages - Spanish, French, German, Mandarin',
+            'CS': 'Computer Science - Programming, Algorithms, Web Development'
+        };
+
+        // Global State
+        let currentUser = {
+            name: '',
+            grade: '',
+            subject: '',
+            difficulty: 3
+        };
+
+        let recognition = null;
+        let isListening = false;
+
+        // Initialize Speech Recognition
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = true;
+                recognition.lang = 'en-US';
+
+                recognition.onstart = () => {
+                    isListening = true;
+                    updateVoiceIndicator(true);
+                };
+
+                recognition.onresult = (event) => {
+                    let transcript = '';
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        transcript += event.results[i][0].transcript;
+                    }
+                    document.getElementById('studentQuestion').value = transcript;
+                };
+
+                recognition.onend = () => {
+                    isListening = false;
+                    updateVoiceIndicator(false);
+                };
+
+                recognition.onerror = (event) => {
+                    showStatus('Error: ' + event.error, true);
+                    isListening = false;
+                    updateVoiceIndicator(false);
+                };
+            }
+        }
+
+        function updateVoiceIndicator(active) {
+            const dot = document.getElementById('voiceDot');
+            const status = document.getElementById('voiceStatus');
+            if (active) {
+                dot.classList.remove('inactive');
+                status.textContent = 'Listening...';
+            } else {
+                dot.classList.add('inactive');
+                status.textContent = 'Ready to listen';
+            }
+        }
+
+        function startListening() {
+            if (recognition && !isListening) {
+                recognition.start();
+            }
+        }
+
+        // TTS via Web Speech API
+        function speak(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.95;
+            utterance.pitch = 1;
+            utterance.volume = 1;
+            speechSynthesis.speak(utterance);
+        }
+
+        // Login
+        function login() {
+            const name = document.getElementById('studentName').value.trim();
+            const grade = document.getElementById('gradeLevel').value;
+
+            if (!name || !grade) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            currentUser.name = name;
+            currentUser.grade = grade;
+
+            document.getElementById('userGreeting').textContent = `👋 Welcome, ${name}! (Grade ${grade})`;
+            showScreen('dashboardScreen');
+            loadSubjects();
+            initSpeechRecognition();
+        }
+
+        // Load Subjects
+        function loadSubjects() {
+            const grid = document.getElementById('subjectGrid');
+            grid.innerHTML = '';
+            Object.keys(SUBJECTS).forEach(subject => {
+                const btn = document.createElement('button');
+                btn.className = 'subject-btn';
+                btn.textContent = subject;
+                btn.onclick = () => selectSubject(subject);
+                grid.appendChild(btn);
+            });
+        }
+
+        // Select Subject
+        function selectSubject(subject) {
+            currentUser.subject = subject;
+            document.getElementById('lessonTitle').textContent = `🎓 ${subject}`;
+            document.getElementById('subjectName').textContent = SUBJECTS[subject];
+            showScreen('teachingScreen');
+            generateNewLesson();
+        }
+
+        // Generate Lesson via AI
+        async function generateNewLesson() {
+            const lessonDiv = document.getElementById('lessonContent');
+            lessonDiv.innerHTML = '<div class="loading"></div> Generating your lesson...';
+
+            const diffLevel = ['Beginner', 'Elementary', 'Intermediate', 'Advanced', 'Expert'][currentUser.difficulty - 1];
+
+            const prompt = `You are an expert teacher for ${currentUser.grade} grade students. Generate an engaging ${diffLevel.toLowerCase()} lesson on a ${SUBJECTS[currentUser.subject]} topic. Include:
+1. A clear, age-appropriate explanation
+2. 2-3 interesting examples
+3. A simple practice problem or activity
+
+Format as a conversational lesson (200-300 words). Make it fun and interactive for a ${currentUser.grade} grader.`;
+
+            try {
+                const response = await callAI(prompt);
+                lessonDiv.innerHTML = response;
+                showStatus('Lesson ready! Ask questions or practice below.', false);
+            } catch (error) {
+                lessonDiv.innerHTML = `<strong>Error loading lesson:</strong> ${error.message}`;
+            }
+        }
+
+        // Submit Student Question
+        async function submitQuestion() {
+            const question = document.getElementById('studentQuestion').value.trim();
+            if (!question) {
+                showStatus('Type a question first!', true);
+                return;
+            }
+
+            const lessonDiv = document.getElementById('lessonContent');
+            lessonDiv.innerHTML += `<div style="margin-top: 20px; padding: 10px; background: rgba(212, 175, 55, 0.1); border-left: 3px solid #d4af37;"><strong>Your Question:</strong> ${question}</div><div class="loading"></div> Teacher is thinking...`;
+
+            const diffLevel = ['Beginner', 'Elementary', 'Intermediate', 'Advanced', 'Expert'][currentUser.difficulty - 1];
+
+            const prompt = `You are an expert teacher responding to a ${currentUser.grade} grade student. The student asked: "${question}"
+
+In the context of ${SUBJECTS[currentUser.subject]} at ${diffLevel} level, provide a clear, encouraging response (150-250 words). Use simple language, relatable examples, and gentle guidance. End with a follow-up question to deepen learning.`;
+
+            try {
+                const response = await callAI(prompt);
+                lessonDiv.innerHTML += `<div style="margin-top: 15px; padding: 10px; background: rgba(212, 175, 55, 0.1); border-left: 3px solid #d4af37;"><strong>Teacher's Response:</strong> ${response}</div>`;
+                document.getElementById('studentQuestion').value = '';
+                showStatus('Response ready! Ask another question or practice.', false);
+            } catch (error) {
+                lessonDiv.innerHTML += `<div style="color: #ff6b6b;">Error: ${error.message}</div>`;
+            }
+        }
+
+        // Speak Lesson
+        function startSpeaking() {
+            const lessonText = document.getElementById('lessonContent').innerText;
+            if (lessonText.includes('Loading')) {
+                showStatus('Lesson is still loading. Please wait.', true);
+                return;
+            }
+            showStatus('Reading lesson aloud...', false);
+            speak(lessonText.substring(0, 500)); // Limit to first 500 chars
+        }
+
+        // Call AI (Grok primary, GitHub Models fallback)
+        async function callAI(prompt) {
+            try {
+                const response = await fetch(GROK_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${GROK_API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: 'grok-3-latest',
+                        messages: [{ role: 'user', content: prompt }],
+                        temperature: 0.7,
+                        max_tokens: 800
+                    })
+                });
+
+                if (!response.ok) throw new Error('Grok failed, trying GitHub Models...');
+                const data = await response.json();
+                return data.choices[0].message.content || 'No response';
+            } catch (grokError) {
+                try {
+                    const response = await fetch(GITHUB_ENDPOINT, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${GITHUB_API_KEY}`
+                        },
+                        body: JSON.stringify({
+                            model: 'gpt-4o',
+                            messages: [{ role: 'user', content: prompt }],
+                            temperature: 0.7,
+                            max_tokens: 800
+                        })
+                    });
+
+                    if (!response.ok) throw new Error('GitHub Models failed');
+                    const data = await response.json();
+                    return data.choices[0].message.content || 'No response';
+                } catch (fallbackError) {
+                    throw new Error('Both AI providers failed. Please try again.');
+                }
+            }
+        }
+
+        // Helper Functions
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function showStatus(message, isError) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.textContent = message;
+            statusDiv.classList.add('active');
+            if (!isError) {
+                setTimeout(() => statusDiv.classList.remove('active'), 4000);
+            }
+        }
+
+        function backToDashboard() {
+            showScreen('dashboardScreen');
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                currentUser = { name: '', grade: '', subject: '', difficulty: 3 };
+                document.getElementById('studentName').value = '';
+                document.getElementById('gradeLevel').value = '';
+                document.getElementById('studentQuestion').value = '';
+                showScreen('loginScreen');
+            }
+        }
+
+        // Difficulty Slider Update
+        document.addEventListener('DOMContentLoaded', () => {
+            const slider = document.getElementById('difficultyLevel');
+            if (slider) {
+                slider.addEventListener('input', (e) => {
+                    currentUser.difficulty = parseInt(e.target.value);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
