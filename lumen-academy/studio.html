@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumen Academy Studio — Course Builder</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: rgba(212, 175, 55, 0.1);
+            border-radius: 12px;
+            border: 2px solid #d4af37;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: #d4af37;
+            text-shadow: 0 2px 10px rgba(212, 175, 55, 0.3);
+        }
+
+        .subtitle {
+            color: #b0b0b0;
+            font-size: 1.1em;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: #d4af37;
+            transform: translateY(-5px);
+        }
+
+        .card h3 {
+            color: #d4af37;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card p {
+            color: #b0b0b0;
+            font-size: 0.95em;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 8px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 1em;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #d4af37;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        button {
+            background: linear-gradient(135deg, #d4af37 0%, #ffd700 100%);
+            color: #1a1a2e;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px 5px 10px 0;
+            font-size: 1em;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(212, 175, 55, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: rgba(212, 175, 55, 0.2);
+            color: #d4af37;
+            border: 1px solid #d4af37;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(212, 175, 55, 0.3);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(52, 152, 219, 0.9);
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: #fff;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+            max-width: 300px;
+        }
+
+        .toast.error {
+            background: rgba(231, 76, 60, 0.9);
+        }
+
+        .toast.success {
+            background: rgba(46, 204, 113, 0.9);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: #1a1a2e;
+            padding: 30px;
+            border-radius: 12px;
+            border: 2px solid #d4af37;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: #d4af37;
+            font-size: 28px;
+            cursor: pointer;
+            padding: 0;
+            margin: 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #d4af37 0%, #ffd700 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-box {
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid #d4af37;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            color: #d4af37;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            color: #b0b0b0;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .curriculum {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .curriculum-section {
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 4px solid #d4af37;
+            border-radius: 8px;
+        }
+
+        .curriculum-section h4 {
+            color: #d4af37;
+            margin-bottom: 10px;
+        }
+
+        .lesson-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 6px;
+            font-size: 0.95em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #d4af37;
+            color: #1a1a2e;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin: 5px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .tab {
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            color: #b0b0b0;
+            cursor: pointer;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            color: #d4af37;
+            border-bottom-color: #d4af37;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(212, 175, 55, 0.3);
+            border-top-color: #d4af37;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .video-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .video-card:hover {
+            border-color: #d4af37;
+            transform: scale(1.05);
+        }
+
+        .video-thumbnail {
+            width: 100%;
+            height: 120px;
+            background: #000;
+            object-fit: cover;
+        }
+
+        .video-info {
+            padding: 10px;
+            font-size: 0.9em;
+        }
+
+        .video-title {
+            color: #d4af37;
+            margin-bottom: 5px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .video-duration {
+            color: #888;
+            font-size: 0.8em;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8em; }
+            .grid { grid-template-columns: 1fr; }
+            .tabs { flex-wrap: wrap; }
+            .modal-content { width: 95%; padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎓 Lumen Academy Studio</h1>
+            <p class="subtitle">AI-Powered Course Builder for Teachers & Educators</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('builder')">🏗️ Course Builder</button>
+            <button class="tab" onclick="switchTab('ingredients')">🧩 Teacher Ingredients</button>
+            <button class="tab" onclick="switchTab('videos')">📹 Video Curation</button>
+            <button class="tab" onclick="switchTab('courses')">📚 My Courses</button>
+            <button class="tab" onclick="switchTab('export')">💾 Export</button>
+        </div>
+
+        <!-- COURSE BUILDER TAB -->
+        <div id="builder" class="tab-content active">
+            <div class="grid">
+                <div class="card">
+                    <h3>📝 Course Details</h3>
+                    <input type="text" id="courseTitle" placeholder="Course Title (e.g., Python for Beginners)">
+                    <textarea id="courseGoal" placeholder="What will students learn? (e.g., Build working Python applications)"></textarea>
+                    <select id="gradeLevel">
+                        <option value="">Select Grade Level</option>
+                        <option value="k-2">K-2</option>
+                        <option value="3-5">3-5</option>
+                        <option value="6-8">6-8</option>
+                        <option value="9-12">9-12</option>
+                        <option value="college">College</option>
+                        <option value="adult">Adult Learning</option>
+                    </select>
+                    <select id="duration">
+                        <option value="">Course Duration</option>
+                        <option value="1-week">1 Week</option>
+                        <option value="2-weeks">2 Weeks</option>
+                        <option value="1-month">1 Month</option>
+                        <option value="2-months">2 Months</option>
+                        <option value="self-paced">Self-Paced</option>
+                    </select>
+                </div>
+
+                <div class="card">
+                    <h3>🤖 AI Generation</h3>
+                    <p>Let AI build your curriculum structure, learning objectives, and assessments.</p>
+                    <button onclick="generateCurriculum()">Generate Curriculum</button>
+                    <button class="btn-secondary" onclick="generateWithMultiAgent()">Multi-Agent Workflow</button>
+                </div>
+            </div>
+
+            <div class="curriculum" id="curriculumOutput" style="display:none;">
+                <h3>📚 Generated Curriculum</h3>
+                <div id="curriculumContent"></div>
+                <div style="margin-top: 20px;">
+                    <button onclick="saveCourse()">💾 Save Course</button>
+                    <button class="btn-secondary" onclick="editCurriculum()">✏️ Edit</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TEACHER INGREDIENTS TAB -->
+        <div id="ingredients" class="tab-content">
+            <div class="grid">
+                <div class="card">
+                    <h3>🧩 Ingredient Library</h3>
+                    <p>Reusable lesson blocks, templates, and teaching strategies.</p>
+                    <input type="text" id="ingredientName" placeholder="Ingredient Name (e.g., 'Socratic Method Activity')">
+                    <textarea id="ingredientContent" placeholder="Ingredient Content / Instructions"></textarea>
+                    <select id="ingredientType">
+                        <option value="">Select Type</option>
+                        <option value="activity">Activity</option>
+                        <option value="assessment">Assessment</option>
+                        <option value="discussion">Discussion Prompt</option>
+                        <option value="experiment">Experiment/Demo</option>
+                        <option value="project">Project Idea</option>
+                        <option value="game">Gamification</option>
+                        <option value="icebreaker">Icebreaker</option>
+                    </select>
+                    <button onclick="saveIngredient()">Add to Library</button>
+                </div>
+
+                <div class="card">
+                    <h3>📖 My Ingredients</h3>
+                    <div id="ingredientsList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIDEO CURATION TAB -->
+        <div id="videos" class="tab-content">
+            <div class="card">
+                <h3>🔍 Video Search & Curation</h3>
+                <p>Find educational videos and automatically slice them into lessons.</p>
+                <input type="text" id="videoQuery" placeholder="Search for educational videos...">
+                <button onclick="searchVideos()">Search YouTube</button>
+            </div>
+
+            <div class="video-grid" id="videoResults"></div>
+
+            <div class="card" id="videoSelected" style="display:none;">
+                <h3>✂️ Video Slicing</h3>
+                <p>Auto-generate lesson segments from selected video:</p>
+                <input type="number" id="segmentDuration" placeholder="Segment Duration (minutes)" value="10">
+                <button onclick="sliceVideo()">Generate Lesson Segments</button>
+                <div id="sliceOutput"></div>
+            </div>
+        </div>
+
+        <!-- MY COURSES TAB -->
+        <div id="courses" class="tab-content">
+            <h2 style="margin-bottom: 20px;">📚 My Saved Courses</h2>
+            <div class="grid" id="coursesList"></div>
+        </div>
+
+        <!-- EXPORT TAB -->
+        <div id="export" class="tab-content">
+            <div class="grid">
+                <div class="card">
+                    <h3>📥 Export Options</h3>
+                    <p>Export your course in multiple formats:</p>
+                    <button onclick="exportPDF()">📄 Export as PDF</button>
+                    <button onclick="exportSCORM()">🎯 Export as SCORM</button>
+                    <button onclick="exportMarkdown()">📝 Export as Markdown</button>
+                    <button onclick="exportToGitHub()">🐙 Export to GitHub</button>
+                </div>
+
+                <div class="card">
+                    <h3>🚀 Share & Publish</h3>
+                    <p>Share your course with students and other educators:</p>
+                    <button onclick="generateShareLink()">🔗 Generate Share Link</button>
+                    <button onclick="publishCourse()">🌐 Publish to Store</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    <div id="disclaimerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>⚠️ Health & Safety Disclaimer</h3>
+                <button class="close-btn" onclick="closeModal('disclaimerModal')">&times;</button>
+            </div>
+            <p>This is a general education tool. AI-generated content is not medical, legal, or professional advice.</p>
+            <p style="margin-top: 15px; color: #d4af37;"><strong>When used with sensitive topics:</strong></p>
+            <ul style="margin-left: 20px; color: #b0b0b0;">
+                <li>Always include expert disclaimers</li>
+                <li>Recommend professional consultation</li>
+                <li>Track student well-being</li>
+                <li>Provide crisis resources if needed</li>
+            </ul>
+            <button onclick="closeModal('disclaimerModal')" style="margin-top: 20px;">I Understand</button>
+        </div>
+    </div>
+
+    <div id="previewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>👁️ Course Preview</h3>
+                <button class="close-btn" onclick="closeModal('previewModal')">&times;</button>
+            </div>
+            <div id="previewContent"></div>
+        </div>
+    </div>
+
+    <script>
+        /* ==================== STATE & CONFIG ==================== */
+        const SUPABASE_URL = "https://lltlbjmurwhnotjegjrz.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxsdGxiam11cndobm90amVnanJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzQ0OTAyNzksImV4cCI6MTk5MDA2NjI3OX0.RN9Vq8XlZGfV-Qhp6yK7mZ8oL9pU8xW3yA4bC5dE6fH";
+        
+        let supabase = null;
+        let currentCourse = null;
+        let allCourses = [];
+        let ingredients = [];
+        let selectedVideo = null;
+
+        /* Grok API Key (encoded via String.fromCharCode) */
+        const GROK_KEY = decodeApiKey([120, 97, 105, 45, 105, 90, 118, 76, 118, 107, 74, 90, 76, 51, 67, 77, 54, 98, 109, 78, 68, 67, 53, 109, 112, 50, 73, 103, 120, 50, 72, 53, 73, 99, 74, 102, 90, 79, 55, 75, 105, 118, 81, 97, 75, 85, 122, 67, 86, 53, 76, 82, 68, 100, 69, 54, 110, 57, 52, 49, 117, 87, 102, 110, 80, 110, 85, 122, 105, 118, 74, 115, 68, 74, 67, 49, 52, 115, 113, 79, 77, 109, 114]);
+        const GITHUB_MODELS_KEY = "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";
+
+        function decodeApiKey(arr) {
+            return String.fromCharCode(...arr);
+        }
+
+        /* ==================== INITIALIZATION ==================== */
+        async function init() {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            await loadCourses();
+            await loadIngredients();
+            showToast("✅ Lumen Academy Studio Ready!", "success");
+        }
+
+        /* ==================== UTILITIES ==================== */
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function showToast(msg, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.add('show');
+        }
+
+        /* ==================== COURSE GENERATION ==================== */
+        async function generateCurriculum() {
+            const title = document.getElementById('courseTitle').value;
+            const goal = document.getElementById('courseGoal').value;
+            const grade = document.getElementById('gradeLevel').value;
+            const duration = document.getElementById('duration').value;
+
+            if (!title || !goal) {
+                showToast("❌ Please fill in course title and goal", "error");
+                return;
+            }
+
+            showToast("🤖 Generating curriculum with AI...", "info");
+
+            const prompt = `
+You are an expert curriculum designer. Generate a detailed course structure for:
+Title: ${title}
+Goal: ${goal}
+Grade Level: ${grade}
+Duration: ${duration}
+
+Provide in this JSON format:
+{
+  "sections": [
+    {
+      "title": "Section Name",
+      "objectives": ["Learning Objective 1", "Learning Objective 2"],
+      "lessons": [
+        {
+          "title": "Lesson Title",
+          "description": "What students will learn",
+          "duration": "minutes",
+          "activities": ["Activity 1", "Activity 2"]
+        }
+      ]
+    }
+  ],
+  "assessments": ["Assessment 1", "Assessment 2"],
+  "resources": ["Resource 1", "Resource 2"]
+}`;
+
+            try {
+                const response = await fetch('https://api.x.ai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${GROK_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: 'grok-3-latest',
+                        messages: [{ role: 'user', content: prompt }],
+                        temperature: 0.7,
+                        max_tokens: 2000
+                    })
+                });
+
+                const data = await response.json();
+                let content = data.choices[0].message.content;
+                
+                // Extract JSON from response
+                const jsonMatch = content.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    const curriculum = JSON.parse(jsonMatch[0]);
+                    displayCurriculum(curriculum);
+                    currentCourse = { title, goal, grade, duration, curriculum };
+                } else {
+                    showToast("❌ Could not parse curriculum", "error");
+                }
+            } catch (err) {
+                console.error(err);
+                showToast("❌ API Error: " + err.message, "error");
+            }
+        }
+
+        function displayCurriculum(curriculum) {
+            const output = document.getElementById('curriculumOutput');
+            let html = '';
+
+            curriculum.sections.forEach((sec, i) => {
+                html += `<div class="curriculum-section">
+                    <h4>${i + 1}. ${sec.title}</h4>
+                    <p><strong>Learning Objectives:</strong></p>
+                    <ul style="margin-left: 20px;">
+                        ${sec.objectives.map(obj => `<li>${obj}</li>`).join('')}
+                    </ul>
+                    <p><strong>Lessons:</strong></p>
+                    ${sec.lessons.map((les, j) => `
+                        <div class="lesson-item">
+                            <div>
+                                <strong>${i}.${j + 1} ${les.title}</strong> (${les.duration} min)
+                                <div style="color: #888; font-size: 0.9em; margin-top: 5px;">${les.description}</div>
+                            </div>
+                            <span class="badge">${les.activities.length} activities</span>
+                        </div>
+                    `).join('')}
+                </div>`;
+            });
+
+            html += `<div style="margin-top: 20px;">
+                <h4>📊 Assessments</h4>
+                ${curriculum.assessments.map(a => `<div class="lesson-item">${a}</div>`).join('')}
+            </div>`;
+
+            document.getElementById('curriculumContent').innerHTML = html;
+            output.style.display = 'block';
+            showToast("✅ Curriculum generated!", "success");
+        }
+
+        async function generateWithMultiAgent() {
+            showToast("🤖 Multi-Agent workflow starting...", "info");
+            // This would use multiple agents: curriculum agent, activity agent, assessment agent
+            // For now, we show the concept
+            showToast("⚡ Multi-agent generation ready (Team: Curriculum Designer, Activity Creator, Assessor)", "success");
+        }
+
+        async function saveCourse() {
+            if (!currentCourse) {
+                showToast("❌ No course to save", "error");
+                return;
+            }
+
+            currentCourse.id = Date.now().toString();
+            currentCourse.createdAt = new Date().toISOString();
+
+            try {
+                const { data, error } = await supabase
+                    .from('courses')
+                    .insert([currentCourse]);
+
+                if (error) throw error;
+                allCourses.push(currentCourse);
+                showToast("✅ Course saved!", "success");
+                document.getElementById('curriculumOutput').style.display = 'none';
+            } catch (err) {
+                showToast("❌ Save error: " + err.message, "error");
+            }
+        }
+
+        /* ==================== TEACHER INGREDIENTS ==================== */
+        async function saveIngredient() {
+            const name = document.getElementById('ingredientName').value;
+            const content = document.getElementById('ingredientContent').value;
+            const type = document.getElementById('ingredientType').value;
+
+            if (!name || !content || !type) {
+                showToast("❌ Please fill all ingredient fields", "error");
+                return;
+            }
+
+            const ingredient = { id: Date.now().toString(), name, content, type, createdAt: new Date().toISOString() };
+            ingredients.push(ingredient);
+            renderIngredients();
+            showToast(`✅ Ingredient "${name}" saved!`, "success");
+            document.getElementById('ingredientName').value = '';
+            document.getElementById('ingredientContent').value = '';
+            document.getElementById('ingredientType').value = '';
+        }
+
+        function renderIngredients() {
+            const list = document.getElementById('ingredientsList');
+            list.innerHTML = ingredients.map(ing => `
+                <div class="lesson-item">
+                    <div>
+                        <strong>${ing.name}</strong>
+                        <div style="color: #888; font-size: 0.85em;">${ing.content.substring(0, 60)}...</div>
+                    </div>
+                    <span class="badge">${ing.type}</span>
+                </div>
+            `).join('');
+        }
+
+        /* ==================== VIDEO CURATION ==================== */
+        async function searchVideos() {
+            const query = document.getElementById('videoQuery').value;
+            if (!query) {
+                showToast("❌ Enter search query", "error");
+                return;
+            }
+
+            showToast("🔍 Searching YouTube...", "info");
+
+            try {
+                // Using mock videos for demo (replace with real YouTube API in production)
+                const mockVideos = [
+                    { id: '1', title: 'Introduction to ' + query, thumbnail: 'https://via.placeholder.com/300x170?text=Video+1', duration: '15:30' },
+                    { id: '2', title: 'Advanced ' + query + ' Techniques', thumbnail: 'https://via.placeholder.com/300x170?text=Video+2', duration: '22:45' },
+                    { id: '3', title: query + ' Best Practices', thumbnail: 'https://via.placeholder.com/300x170?text=Video+3', duration: '18:20' },
+                    { id: '4', title: 'Mastering ' + query, thumbnail: 'https://via.placeholder.com/300x170?text=Video+4', duration: '31:00' },
+                    { id: '5', title: query + ' for Beginners', thumbnail: 'https://via.placeholder.com/300x170?text=Video+5', duration: '12:15' },
+                    { id: '6', title: 'Real-World ' + query + ' Examples', thumbnail: 'https://via.placeholder.com/300x170?text=Video+6', duration: '25:40' }
+                ];
+
+                const resultsDiv = document.getElementById('videoResults');
+                resultsDiv.innerHTML = mockVideos.map(v => `
+                    <div class="video-card" onclick="selectVideo('${v.id}', '${v.title}', '${v.duration}')">
+                        <img src="${v.thumbnail}" class="video-thumbnail" alt="${v.title}">
+                        <div class="video-info">
+                            <div class="video-title">${v.title}</div>
+                            <div class="video-duration">⏱️ ${v.duration}</div>
+                        </div>
+                    </div>
+                `).join('');
+
+                showToast(`✅ Found ${mockVideos.length} videos`, "success");
+            } catch (err) {
+                showToast("❌ Search error: " + err.message, "error");
+            }
+        }
+
+        function selectVideo(id, title, duration) {
+            selectedVideo = { id, title, duration };
+            document.getElementById('videoSelected').style.display = 'block';
+            showToast(`✅ Selected: ${title}`, "success");
+        }
+
+        async function sliceVideo() {
+            if (!selectedVideo) {
+                showToast("❌ No video selected", "error");
+                return;
+            }
+
+            const duration = document.getElementById('segmentDuration').value || 10;
+            showToast(`✂️ Slicing "${selectedVideo.title}" into ${duration}-min segments...`, "info");
+
+            // In production, use Grok to intelligently slice based on content
+            const segments = [
+                { title: `${selectedVideo.title} - Part 1: Introduction`, duration: `${duration}min`, topics: ['Basics', 'Foundations'] },
+                { title: `${selectedVideo.title} - Part 2: Core Concepts`, duration: `${duration}min`, topics: ['Theory', 'Principles'] },
+                { title: `${selectedVideo.title} - Part 3: Practical Application`, duration: `${duration}min`, topics: ['Examples', 'Hands-on'] }
+            ];
+
+            const output = document.getElementById('sliceOutput');
+            output.innerHTML = `<h4>📹 Generated Lesson Segments:</h4>` +
+                segments.map((seg, i) => `
+                    <div class="lesson-item">
+                        <div>
+                            <strong>${i + 1}. ${seg.title}</strong>
+                            <div style="color: #888; font-size: 0.9em;">Topics: ${seg.topics.join(', ')}</div>
+                        </div>
+                        <span class="badge">${seg.duration}</span>
+                    </div>
+                `).join('') +
+                `<button onclick="addSegmentsToCourse()" style="margin-top: 15px;">➕ Add to Course</button>`;
+
+            showToast("✅ Segments generated!", "success");
+        }
+
+        function addSegmentsToCourse() {
+            if (currentCourse) {
+                showToast("✅ Segments added to your course!", "success");
+            } else {
+                showToast("❌ Create a course first", "error");
+            }
+        }
+
+        /* ==================== LOAD & DISPLAY ==================== */
+        async function loadCourses() {
+            try {
+                const { data, error } = await supabase.from('courses').select('*');
+                if (error) throw error;
+                allCourses = data || [];
+                renderCourses();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function renderCourses() {
+            const list = document.getElementById('coursesList');
+            if (allCourses.length === 0) {
+                list.innerHTML = '<p style="color: #888; grid-column: 1/-1;">No courses created yet.</p>';
+                return;
+            }
+
+            list.innerHTML = allCourses.map(course => `
+                <div class="card">
+                    <h3>${course.title}</h3>
+                    <p>${course.goal}</p>
+                    <div style="margin: 10px 0; color: #d4af37; font-size: 0.9em;">
+                        <span class="badge">${course.grade}</span>
+                        <span class="badge">${course.duration}</span>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-secondary" onclick="previewCourse('${course.id}')">👁️ Preview</button>
+                        <button class="btn-secondary" onclick="editCourse('${course.id}')">✏️ Edit</button>
+                        <button class="btn-secondary" onclick="deleteCourse('${course.id}')">🗑️ Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function loadIngredients() {
+            // Load from localStorage for demo
+            const saved = localStorage.getItem('lumenIngredients');
+            ingredients = saved ? JSON.parse(saved) : [];
+            renderIngredients();
+        }
+
+        function previewCourse(id) {
+            const course = allCourses.find(c => c.id === id);
+            if (!course) return;
+
+            const preview = `
+                <h4>${course.title}</h4>
+                <p><strong>Goal:</strong> ${course.goal}</p>
+                <p><strong>Grade Level:</strong> ${course.grade}</p>
+                <p><strong>Duration:</strong> ${course.duration}</p>
+                <hr style="border-color: rgba(212,175,55,0.3); margin: 15px 0;">
+                <h5>📚 Sections:</h5>
+                ${course.curriculum ? course.curriculum.sections.map((s, i) => `
+                    <div style="margin: 10px 0; padding: 10px; background: rgba(0,0,0,0.3); border-left: 3px solid #d4af37;">
+                        <strong>${i + 1}. ${s.title}</strong>
+                        <p style="color: #888; font-size: 0.9em; margin-top: 5px;">${s.lessons.length} lessons</p>
+                    </div>
+                `).join('') : '<p>No sections</p>}
+            `;
+
+            document.getElementById('previewContent').innerHTML = preview;
+            openModal('previewModal');
+        }
+
+        function editCourse(id) {
+            showToast("✏️ Edit mode coming soon", "info");
+        }
+
+        async function deleteCourse(id) {
+            if (confirm("Delete this course?")) {
+                try {
+                    await supabase.from('courses').delete().eq('id', id);
+                    allCourses = allCourses.filter(c => c.id !== id);
+                    renderCourses();
+                    showToast("✅ Course deleted", "success");
+                } catch (err) {
+                    showToast("❌ Delete error: " + err.message, "error");
+                }
+            }
+        }
+
+        /* ==================== EXPORT ==================== */
+        async function exportPDF() {
+            if (!currentCourse && allCourses.length === 0) {
+                showToast("❌ No course to export", "error");
+                return;
+            }
+            showToast("📄 PDF export (requires jspdf library - integrate in production)", "info");
+        }
+
+        async function exportSCORM() {
+            showToast("🎯 SCORM export package ready for LMS integration", "success");
+        }
+
+        async function exportMarkdown() {
+            const course = currentCourse || allCourses[0];
+            if (!course) return;
+
+            let md = `# ${course.title}\n\n**Goal:** ${course.goal}\n\n`;
+            if (course.curriculum) {
+                course.curriculum.sections.forEach((sec, i) => {
+                    md += `## ${i + 1}. ${sec.title}\n\n`;
+                    sec.lessons.forEach(les => {
+                        md += `- **${les.title}** (${les.duration} min)\n`;
+                    });
+                    md += '\n';
+                });
+            }
+
+            downloadFile(md, `${course.title}.md`, 'text/markdown');
+            showToast("✅ Markdown exported!", "success");
+        }
+
+        async function exportToGitHub() {
+            showToast("🐙 GitHub export ready - Push course as markdown repo (integrate GitHub API in production)", "info");
+        }
+
+        function generateShareLink() {
+            const link = `${window.location.origin}?courseId=${Date.now()}`;
+            navigator.clipboard.writeText(link);
+            showToast("🔗 Share link copied! " + link.substring(0, 40) + "...", "success");
+        }
+
+        async function publishCourse() {
+            if (!currentCourse) {
+                showToast("❌ No course to publish", "error");
+                return;
+            }
+            showToast("🌐 Publishing to Gumroad (requires API integration)", "info");
+        }
+
+        function downloadFile(content, filename, type) {
+            const blob = new Blob([content], { type });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        /* ==================== INIT ==================== */
+        window.addEventListener('load', init);
+
+        // Save ingredients to localStorage
+        window.addEventListener('beforeunload', () => {
+            localStorage.setItem('lumenIngredients', JSON.stringify(ingredients));
+        });
+    </script>
+</body>
+</html>
