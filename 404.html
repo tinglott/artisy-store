@@ -7,15 +7,35 @@
   <script>
     // GitHub Pages SPA 404 redirect hack
     // Captures the requested path and redirects to root with path as query param
-    var segmentCount = 0;
+    // WHITELIST: /lumen-academy/* paths are NOT redirected
     var l = window.location;
-    l.replace(
-      l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
-      l.pathname.split('/').slice(0, 1 + segmentCount).join('/') + '/?p=/' +
-      l.pathname.slice(1).split('/').slice(segmentCount).join('/').replace(/&/g, '~and~') +
-      (l.search ? '&q=' + l.search.slice(1).replace(/&/g, '~and~') : '') +
-      l.hash
-    );
+    
+    // Whitelist paths that should NOT be redirected
+    var whitelistPatterns = [
+      /^\/lumen-academy\//,
+      /^\/lumen-academy\/index\.html/,
+      /^\/lumen-academy\/studio\.html/
+    ];
+    
+    // Check if current path matches any whitelist pattern
+    var shouldRedirect = true;
+    for (var i = 0; i < whitelistPatterns.length; i++) {
+      if (whitelistPatterns[i].test(l.pathname)) {
+        shouldRedirect = false;
+        break;
+      }
+    }
+    
+    if (shouldRedirect) {
+      var segmentCount = 0;
+      l.replace(
+        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+        l.pathname.split('/').slice(0, 1 + segmentCount).join('/') + '/?p=/' +
+        l.pathname.slice(1).split('/').slice(segmentCount).join('/').replace(/&/g, '~and~') +
+        (l.search ? '&q=' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+        l.hash
+      );
+    }
   </script>
   <style>
     body { 
