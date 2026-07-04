@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Variance B2B SaaS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 800px;
+            padding: 40px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        input[type="file"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+        }
+        
+        textarea {
+            min-height: 100px;
+            font-size: 12px;
+        }
+        
+        input[type="file"] {
+            cursor: pointer;
+        }
+        
+        .file-label {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .file-label:hover {
+            background: #764ba2;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: background 0.3s;
+            width: 100%;
+        }
+        
+        button:hover {
+            background: #764ba2;
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .results {
+            background: #f5f5f5;
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .results.show {
+            display: block;
+        }
+        
+        .result-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: white;
+            border-left: 4px solid #667eea;
+            border-radius: 4px;
+        }
+        
+        .result-label {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .result-value {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .po-section {
+            background: #e8f4f8;
+            border-left: 4px solid #0288d1;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        
+        .download-btn {
+            background: #28a745;
+            display: inline-block;
+            width: auto;
+            margin-top: 10px;
+        }
+        
+        .download-btn:hover {
+            background: #218838;
+        }
+        
+        .loading {
+            text-align: center;
+            display: none;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .error-message.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Invoice Variance B2B</h1>
+        <p class="subtitle">AI-powered invoice extraction + inventory matching + PO generation</p>
+        
+        <form id="invoiceForm">
+            <!-- Invoice Upload -->
+            <div class="section">
+                <div class="section-title">Step 1: Upload Invoice</div>
+                <div class="form-group">
+                    <label for="invoiceFile">Invoice PDF</label>
+                    <label class="file-label">
+                        Choose File
+                        <input type="file" id="invoiceFile" accept=".pdf" style="display: none;">
+                    </label>
+                    <div id="fileName" style="margin-top: 5px; color: #666; font-size: 13px;"></div>
+                </div>
+            </div>
+            
+            <!-- Inventory Database -->
+            <div class="section">
+                <div class="section-title">Step 2: Enter Inventory</div>
+                <div class="form-group">
+                    <label for="inventoryDb">Inventory (JSON)</label>
+                    <textarea id="inventoryDb" placeholder='[{"sku": "DESK-001", "item_name": "Office Desk", "current_quantity": 5, "unit_cost": 140}]'></textarea>
+                </div>
+            </div>
+            
+            <!-- Business Info -->
+            <div class="section">
+                <div class="section-title">Step 3: Enter Business Info</div>
+                <div class="form-group">
+                    <label for="businessInfo">Business Information (JSON)</label>
+                    <textarea id="businessInfo" placeholder='{"name": "Your Company", "address": "123 Main St", "email": "contact@company.com", "phone": "(555) 123-4567"}'></textarea>
+                </div>
+            </div>
+            
+            <!-- Submit -->
+            <div class="section">
+                <button type="submit" id="submitBtn">Process Invoice</button>
+            </div>
+        </form>
+        
+        <!-- Loading Indicator -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 15px; color: #666;">Processing invoice...</p>
+        </div>
+        
+        <!-- Error Message -->
+        <div class="error-message" id="errorMessage"></div>
+        
+        <!-- Results -->
+        <div class="results" id="results">
+            <h3 style="color: #333; margin-bottom: 15px;">Results</h3>
+            
+            <div class="result-item">
+                <div class="result-label">Invoice Status</div>
+                <div class="result-value"><span id="statusBadge" class="status-badge"></span></div>
+            </div>
+            
+            <div class="result-item">
+                <div class="result-label">Vendor Name</div>
+                <div class="result-value" id="vendorName">-</div>
+            </div>
+            
+            <div class="result-item">
+                <div class="result-label">Invoice Number</div>
+                <div class="result-value" id="invoiceNumber">-</div>
+            </div>
+            
+            <div class="result-item">
+                <div class="result-label">Extracted Items</div>
+                <div class="result-value" id="extractedCount">0</div>
+            </div>
+            
+            <div class="result-item">
+                <div class="result-label">Inventory Analysis</div>
+                <div class="result-value" id="analysisResult">-</div>
+            </div>
+            
+            <div id="poResult"></div>
+        </div>
+    </div>
+    
+    <script>
+        const form = document.getElementById('invoiceForm');
+        const fileInput = document.getElementById('invoiceFile');
+        const fileNameDiv = document.getElementById('fileName');
+        const submitBtn = document.getElementById('submitBtn');
+        const loading = document.getElementById('loading');
+        const resultsDiv = document.getElementById('results');
+        const errorMessage = document.getElementById('errorMessage');
+        
+        // File input handler
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                fileNameDiv.textContent = `Selected: ${e.target.files[0].name}`;
+            }
+        });
+        
+        // Form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const file = fileInput.files[0];
+            if (!file) {
+                showError('Please select an invoice PDF');
+                return;
+            }
+            
+            // Get form data
+            const inventoryDb = document.getElementById('inventoryDb').value.trim();
+            const businessInfo = document.getElementById('businessInfo').value.trim();
+            
+            if (!inventoryDb || !businessInfo) {
+                showError('Please fill in inventory and business information');
+                return;
+            }
+            
+            // Validate JSON
+            try {
+                JSON.parse(inventoryDb);
+                JSON.parse(businessInfo);
+            } catch (err) {
+                showError('Invalid JSON format: ' + err.message);
+                return;
+            }
+            
+            // Show loading
+            loading.style.display = 'block';
+            resultsDiv.classList.remove('show');
+            errorMessage.classList.remove('show');
+            submitBtn.disabled = true;
+            
+            try {
+                // Prepare form data
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('inventory_db', inventoryDb);
+                formData.append('business_info', businessInfo);
+                
+                // Send request
+                const response = await fetch('/api/full-pipeline', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    showError(data.detail || 'Error processing invoice');
+                    return;
+                }
+                
+                // Display results
+                displayResults(data);
+                
+            } catch (err) {
+                showError('Network error: ' + err.message);
+            } finally {
+                loading.style.display = 'none';
+                submitBtn.disabled = false;
+            }
+        });
+        
+        function displayResults(data) {
+            // Status
+            const invoice = data.invoice || {};
+            const analysis = data.inventory_analysis || {};
+            const po = data.purchase_order;
+            
+            // Status badge
+            const statusBadge = document.getElementById('statusBadge');
+            statusBadge.textContent = data.status.toUpperCase();
+            statusBadge.className = 'status-badge status-' + (data.status === 'success' ? 'success' : 'warning');
+            
+            // Vendor
+            document.getElementById('vendorName').textContent = invoice.vendor_name || 'Unknown';
+            document.getElementById('invoiceNumber').textContent = invoice.invoice_number || 'Unknown';
+            
+            // Extracted items count
+            const itemsCount = (invoice.items || []).length;
+            document.getElementById('extractedCount').textContent = `${itemsCount} items found`;
+            
+            // Analysis
+            const matched = (analysis.matched || []).length;
+            const missing = (analysis.missing || []).length;
+            const shortages = (analysis.shortages || []).length;
+            
+            const analysisHtml = `
+                Matched: ${matched} | Missing: ${missing} | Shortages: ${shortages}
+            `;
+            document.getElementById('analysisResult').innerHTML = analysisHtml;
+            
+            // PO section
+            const poResultDiv = document.getElementById('poResult');
+            if (po) {
+                poResultDiv.innerHTML = `
+                    <div class="po-section">
+                        <div style="font-weight: bold; color: #0288d1; margin-bottom: 10px;">✓ Purchase Order Generated</div>
+                        <div style="margin-bottom: 8px;"><strong>PO Number:</strong> ${po.po_number}</div>
+                        <div style="margin-bottom: 8px;"><strong>Items to Order:</strong> ${po.po_items_count}</div>
+                        <div style="margin-bottom: 10px;"><strong>Total:</strong> $${po.po_total.toFixed(2)}</div>
+                        <button class="download-btn" onclick="downloadPO('${po.po_file}')">📥 Download PO PDF</button>
+                    </div>
+                `;
+            } else {
+                poResultDiv.innerHTML = '<div class="result-item"><div class="result-label">Purchase Order</div><div class="result-value">No PO needed (all items in stock)</div></div>';
+            }
+            
+            resultsDiv.classList.add('show');
+        }
+        
+        function showError(msg) {
+            errorMessage.textContent = msg;
+            errorMessage.classList.add('show');
+        }
+        
+        function downloadPO(filepath) {
+            window.open(`/api/download-po/${filepath.split('_')[1]}`, '_blank');
+        }
+    </script>
+</body>
+</html>
