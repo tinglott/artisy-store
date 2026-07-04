@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Invoice Variance AI — Smart Invoice Automation</title>
+<style>
+  :root {
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --dark: #0d0d0d;
+    --dark2: #1a1a1a;
+    --dark3: #242424;
+    --dark4: #2e2e2e;
+    --text: #f0f0f0;
+    --text2: #aaa;
+    --green: #4caf7d;
+    --red: #e05555;
+    --blue: #5599ff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--dark); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+  /* NAV */
+  nav { background: var(--dark2); border-bottom: 1px solid #2a2a2a; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 100; }
+  .logo { font-size: 1.3rem; font-weight: 700; color: var(--gold); letter-spacing: 1px; }
+  .logo span { color: var(--text); font-weight: 300; }
+  .nav-links { display: flex; gap: 24px; align-items: center; }
+  .nav-links a { color: var(--text2); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--gold); }
+  .btn-nav { background: var(--gold); color: var(--dark); padding: 8px 20px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer; border: none; transition: background 0.2s; }
+  .btn-nav:hover { background: var(--gold-light); }
+
+  /* HERO */
+  .hero { text-align: center; padding: 80px 24px 60px; background: linear-gradient(160deg, #111 0%, #0d0d0d 60%, #141008 100%); }
+  .hero-badge { display: inline-block; background: rgba(201,168,76,0.15); border: 1px solid rgba(201,168,76,0.3); color: var(--gold); padding: 6px 16px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 24px; }
+  .hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 800; line-height: 1.15; margin-bottom: 20px; }
+  .hero h1 .accent { color: var(--gold); }
+  .hero p { color: var(--text2); font-size: 1.1rem; max-width: 580px; margin: 0 auto 40px; line-height: 1.7; }
+  .hero-stats { display: flex; gap: 40px; justify-content: center; flex-wrap: wrap; margin-bottom: 48px; }
+  .stat { text-align: center; }
+  .stat-num { font-size: 2rem; font-weight: 800; color: var(--gold); }
+  .stat-label { font-size: 0.8rem; color: var(--text2); margin-top: 4px; }
+
+  /* MAIN APP */
+  .app-container { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 4px; background: var(--dark2); border-radius: 10px; padding: 6px; margin-bottom: 32px; }
+  .tab { flex: 1; text-align: center; padding: 10px; border-radius: 7px; cursor: pointer; font-size: 0.9rem; color: var(--text2); font-weight: 500; transition: all 0.2s; }
+  .tab.active { background: var(--dark4); color: var(--gold); font-weight: 600; }
+  .tab:hover:not(.active) { color: var(--text); }
+
+  /* UPLOAD ZONE */
+  .upload-section { margin-bottom: 32px; }
+  .upload-zone { border: 2px dashed #3a3a3a; border-radius: 16px; padding: 60px 24px; text-align: center; transition: all 0.3s; cursor: pointer; background: var(--dark2); }
+  .upload-zone:hover, .upload-zone.drag-over { border-color: var(--gold); background: rgba(201,168,76,0.05); }
+  .upload-icon { font-size: 3rem; margin-bottom: 16px; }
+  .upload-zone h3 { font-size: 1.2rem; margin-bottom: 8px; }
+  .upload-zone p { color: var(--text2); font-size: 0.85rem; line-height: 1.6; }
+  .file-types { display: flex; gap: 8px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+  .file-badge { background: var(--dark4); border: 1px solid #3a3a3a; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; color: var(--text2); font-weight: 600; }
+  #fileInput { display: none; }
+  .btn-upload { background: var(--gold); color: var(--dark); border: none; padding: 12px 32px; border-radius: 8px; font-size: 0.95rem; font-weight: 700; cursor: pointer; margin-top: 20px; transition: background 0.2s; }
+  .btn-upload:hover { background: var(--gold-light); }
+
+  /* INVENTORY INPUT */
+  .inventory-section { background: var(--dark2); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+  .inventory-section h3 { font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
+  .inventory-section p { color: var(--text2); font-size: 0.82rem; margin-bottom: 16px; }
+  .inventory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .inventory-item { background: var(--dark3); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .inv-field { display: flex; flex-direction: column; gap: 3px; }
+  .inv-field label { font-size: 0.7rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
+  .inv-field input { background: var(--dark4); border: 1px solid #3a3a3a; color: var(--text); padding: 7px 10px; border-radius: 6px; font-size: 0.85rem; }
+  .inv-field input:focus { outline: none; border-color: var(--gold); }
+  .btn-add-item { background: transparent; border: 1px dashed #3a3a3a; color: var(--text2); padding: 8px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; width: 100%; transition: all 0.2s; }
+  .btn-add-item:hover { border-color: var(--gold); color: var(--gold); }
+  .btn-remove { background: none; border: none; color: var(--red); cursor: pointer; font-size: 1rem; align-self: flex-end; opacity: 0.7; }
+  .btn-remove:hover { opacity: 1; }
+
+  /* BUSINESS INFO */
+  .business-section { background: var(--dark2); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+  .business-section h3 { font-size: 1rem; font-weight: 600; margin-bottom: 16px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-field { display: flex; flex-direction: column; gap: 4px; }
+  .form-field label { font-size: 0.75rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
+  .form-field input { background: var(--dark3); border: 1px solid #3a3a3a; color: var(--text); padding: 10px 12px; border-radius: 8px; font-size: 0.9rem; }
+  .form-field input:focus { outline: none; border-color: var(--gold); }
+
+  /* RUN BUTTON */
+  .btn-run { width: 100%; background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: var(--dark); border: none; padding: 16px; border-radius: 10px; font-size: 1.05rem; font-weight: 800; cursor: pointer; transition: all 0.3s; letter-spacing: 0.5px; margin-top: 8px; }
+  .btn-run:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(201,168,76,0.3); }
+  .btn-run:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* PROCESSING */
+  .processing { display: none; text-align: center; padding: 40px; }
+  .spinner { width: 48px; height: 48px; border: 3px solid #333; border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 20px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .processing-steps { display: flex; flex-direction: column; gap: 8px; margin-top: 24px; text-align: left; max-width: 320px; margin-left: auto; margin-right: auto; }
+  .step { padding: 10px 16px; border-radius: 8px; font-size: 0.85rem; background: var(--dark2); color: var(--text2); transition: all 0.3s; }
+  .step.active { background: rgba(201,168,76,0.15); color: var(--gold); border-left: 3px solid var(--gold); }
+  .step.done { background: rgba(76,175,125,0.1); color: var(--green); border-left: 3px solid var(--green); }
+
+  /* RESULTS */
+  .results { display: none; }
+  .result-header { background: linear-gradient(135deg, rgba(201,168,76,0.1), rgba(201,168,76,0.05)); border: 1px solid rgba(201,168,76,0.2); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+  .result-header h2 { font-size: 1.3rem; margin-bottom: 8px; }
+  .result-meta { display: flex; gap: 24px; flex-wrap: wrap; }
+  .meta-item { font-size: 0.85rem; color: var(--text2); }
+  .meta-item span { color: var(--gold); font-weight: 600; }
+
+  .result-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .result-card { background: var(--dark2); border-radius: 12px; padding: 20px; border: 1px solid #2a2a2a; }
+  .result-card .card-val { font-size: 2rem; font-weight: 800; margin: 8px 0; }
+  .result-card .card-label { font-size: 0.8rem; color: var(--text2); }
+  .result-card.warning .card-val { color: #ff9944; }
+  .result-card.success .card-val { color: var(--green); }
+  .result-card.danger .card-val { color: var(--red); }
+
+  /* TABLES */
+  .result-table-wrap { background: var(--dark2); border-radius: 12px; padding: 20px; margin-bottom: 20px; overflow-x: auto; }
+  .result-table-wrap h3 { font-size: 1rem; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  th { background: var(--dark3); padding: 10px 14px; text-align: left; color: var(--text2); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #333; }
+  td { padding: 10px 14px; border-bottom: 1px solid #1e1e1e; }
+  tr:last-child td { border-bottom: none; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+  .badge-missing { background: rgba(224,85,85,0.15); color: var(--red); }
+  .badge-ok { background: rgba(76,175,125,0.15); color: var(--green); }
+  .badge-partial { background: rgba(255,153,68,0.15); color: #ff9944; }
+
+  /* PO DOWNLOAD */
+  .po-box { background: linear-gradient(135deg, rgba(76,175,125,0.1), rgba(76,175,125,0.05)); border: 1px solid rgba(76,175,125,0.3); border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 20px; }
+  .po-box h3 { color: var(--green); margin-bottom: 8px; }
+  .po-box p { color: var(--text2); font-size: 0.85rem; margin-bottom: 20px; }
+  .btn-download { background: var(--green); color: white; border: none; padding: 12px 32px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.95rem; transition: all 0.2s; text-decoration: none; display: inline-block; }
+  .btn-download:hover { background: #5bc88e; transform: translateY(-1px); }
+  .btn-reset { background: transparent; border: 1px solid #3a3a3a; color: var(--text2); padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; margin-left: 12px; transition: all 0.2s; }
+  .btn-reset:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* ERROR */
+  .error-box { background: rgba(224,85,85,0.1); border: 1px solid rgba(224,85,85,0.3); border-radius: 10px; padding: 16px; margin-bottom: 16px; color: var(--red); font-size: 0.9rem; display: none; }
+
+  /* HISTORY TAB */
+  .history-list { display: flex; flex-direction: column; gap: 12px; }
+  .history-item { background: var(--dark2); border-radius: 10px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #2a2a2a; }
+  .history-item:hover { border-color: #3a3a3a; }
+  .hist-info h4 { font-size: 0.9rem; margin-bottom: 4px; }
+  .hist-info p { font-size: 0.78rem; color: var(--text2); }
+  .hist-actions { display: flex; gap: 8px; }
+  .btn-small { padding: 6px 14px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; border: none; }
+  .btn-small-gold { background: rgba(201,168,76,0.15); color: var(--gold); }
+  .btn-small-green { background: rgba(76,175,125,0.15); color: var(--green); }
+
+  /* HOW IT WORKS */
+  .how-section { background: var(--dark2); border-radius: 16px; padding: 40px; margin-top: 16px; }
+  .how-section h2 { text-align: center; margin-bottom: 36px; }
+  .steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; }
+  .how-step { text-align: center; }
+  .how-num { width: 48px; height: 48px; border-radius: 50%; background: rgba(201,168,76,0.15); border: 2px solid var(--gold); color: var(--gold); font-weight: 800; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+  .how-step h4 { margin-bottom: 8px; font-size: 0.95rem; }
+  .how-step p { color: var(--text2); font-size: 0.82rem; line-height: 1.6; }
+
+  /* FILE PREVIEW */
+  .file-preview { background: var(--dark2); border-radius: 10px; padding: 14px 18px; display: flex; align-items: center; gap: 14px; margin-bottom: 16px; border: 1px solid #2a2a2a; }
+  .file-icon { font-size: 1.8rem; }
+  .file-details h4 { font-size: 0.9rem; margin-bottom: 2px; }
+  .file-details p { font-size: 0.78rem; color: var(--text2); }
+  .btn-remove-file { margin-left: auto; background: none; border: none; color: var(--text2); cursor: pointer; font-size: 1.2rem; transition: color 0.2s; }
+  .btn-remove-file:hover { color: var(--red); }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    nav { padding: 0 16px; }
+    .nav-links { display: none; }
+    .form-grid { grid-template-columns: 1fr; }
+    .hero-stats { gap: 24px; }
+    .hero { padding: 50px 16px 40px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Invoice<span>Variance</span> AI</div>
+  <div class="nav-links">
+    <a href="#how">How It Works</a>
+    <a href="https://shop.artistrystore.com" target="_blank">Store</a>
+    <a href="mailto:support@artistrystore.com">Support</a>
+  </div>
+  <button class="btn-nav" onclick="document.querySelector('.app-container').scrollIntoView({behavior:'smooth'})">Get Started Free</button>
+</nav>
+
+<section class="hero">
+  <div class="hero-badge">🤖 AI-Powered Invoice Automation</div>
+  <h1>Stop Losing Money<br>to <span class="accent">Invoice Discrepancies</span></h1>
+  <p>Upload your invoices in any format. Our AI cross-references your inventory, flags missing items, and auto-generates purchase orders — in seconds.</p>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-num">40+</div><div class="stat-label">Hours Saved / Month</div></div>
+    <div class="stat"><div class="stat-num">99%</div><div class="stat-label">Accuracy Rate</div></div>
+    <div class="stat"><div class="stat-num">$0</div><div class="stat-label">To Get Started</div></div>
+    <div class="stat"><div class="stat-num">5min</div><div class="stat-label">Setup Time</div></div>
+  </div>
+</section>
+
+<div class="app-container">
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('upload')">📤 Upload & Process</div>
+    <div class="tab" onclick="switchTab('history')">📋 History</div>
+    <div class="tab" id="how-tab" onclick="switchTab('how')">💡 How It Works</div>
+  </div>
+
+  <!-- UPLOAD TAB -->
+  <div id="tab-upload">
+    <div class="error-box" id="errorBox"></div>
+
+    <!-- UPLOAD ZONE -->
+    <div class="upload-section" id="uploadSection">
+      <div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <div class="upload-icon">📄</div>
+        <h3>Drop your invoice here</h3>
+        <p>Drag and drop or click to browse<br>Works with any invoice format your vendors send</p>
+        <div class="file-types">
+          <span class="file-badge">PDF</span>
+          <span class="file-badge">CSV</span>
+          <span class="file-badge">Excel (.xlsx)</span>
+          <span class="file-badge">Image (JPG/PNG)</span>
+        </div>
+        <button class="btn-upload" onclick="event.stopPropagation()">Choose Invoice File</button>
+      </div>
+      <input type="file" id="fileInput" accept=".pdf,.csv,.xlsx,.xls,.jpg,.jpeg,.png" onchange="handleFileSelect(event)">
+    </div>
+
+    <!-- FILE PREVIEW -->
+    <div id="filePreview" style="display:none"></div>
+
+    <!-- BUSINESS INFO -->
+    <div class="business-section">
+      <h3>🏢 Your Business Info</h3>
+      <div class="form-grid">
+        <div class="form-field">
+          <label>Company Name</label>
+          <input type="text" id="bizName" placeholder="Acme Hardware Co." />
+        </div>
+        <div class="form-field">
+          <label>Address</label>
+          <input type="text" id="bizAddress" placeholder="123 Main St, City, State" />
+        </div>
+        <div class="form-field">
+          <label>Contact Email</label>
+          <input type="email" id="bizEmail" placeholder="orders@yourcompany.com" />
+        </div>
+        <div class="form-field">
+          <label>Phone</label>
+          <input type="tel" id="bizPhone" placeholder="(555) 000-0000" />
+        </div>
+      </div>
+    </div>
+
+    <!-- INVENTORY -->
+    <div class="inventory-section">
+      <h3>📦 Your Current Inventory</h3>
+      <p>Add items from your inventory system so we can detect what's missing from the invoice.</p>
+      <div class="inventory-grid" id="inventoryGrid">
+        <!-- Items added dynamically -->
+      </div>
+      <button class="btn-add-item" onclick="addInventoryItem()">+ Add Inventory Item</button>
+    </div>
+
+    <button class="btn-run" id="runBtn" onclick="runPipeline()" disabled>
+      ⚡ Analyze Invoice & Generate Report
+    </button>
+  </div>
+
+  <!-- PROCESSING -->
+  <div class="processing" id="processingView">
+    <div class="spinner"></div>
+    <h3>AI is processing your invoice...</h3>
+    <p style="color:var(--text2);font-size:0.85rem;margin-top:8px">This usually takes 10–20 seconds</p>
+    <div class="processing-steps">
+      <div class="step" id="step1">📤 Uploading invoice file...</div>
+      <div class="step" id="step2">🔍 Extracting line items with AI...</div>
+      <div class="step" id="step3">📊 Comparing against your inventory...</div>
+      <div class="step" id="step4">📝 Generating purchase order...</div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results" id="resultsView">
+    <div class="result-header">
+      <h2>✅ Invoice Analysis Complete</h2>
+      <div class="result-meta" id="resultMeta"></div>
+    </div>
+    <div class="result-cards" id="resultCards"></div>
+    <div class="result-table-wrap">
+      <h3>📋 Extracted Invoice Items</h3>
+      <table id="invoiceTable">
+        <thead><tr><th>SKU/Item</th><th>Description</th><th>Qty</th><th>Unit Price</th><th>Total</th><th>Status</th></tr></thead>
+        <tbody id="invoiceTbody"></tbody>
+      </table>
+    </div>
+    <div class="result-table-wrap" id="missingSection" style="display:none">
+      <h3>⚠️ Missing from Inventory</h3>
+      <table id="missingTable">
+        <thead><tr><th>SKU/Item</th><th>Invoice Qty</th><th>Your Stock</th><th>Shortage</th><th>Est. Cost</th></tr></thead>
+        <tbody id="missingTbody"></tbody>
+      </table>
+    </div>
+    <div class="po-box" id="poBox" style="display:none">
+      <h3>🎯 Purchase Order Ready</h3>
+      <p>We've automatically generated a PO for all missing/short items. Send it directly to your vendor.</p>
+      <div>
+        <a href="#" class="btn-download" id="downloadPoBtn" onclick="downloadPO(event)">⬇️ Download Purchase Order PDF</a>
+        <button class="btn-reset" onclick="resetForm()">Start New Analysis</button>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:12px" id="noPoBox" style="display:none">
+      <button class="btn-reset" onclick="resetForm()">Analyze Another Invoice</button>
+    </div>
+  </div>
+
+  <!-- HISTORY TAB -->
+  <div id="tab-history" style="display:none">
+    <div class="history-list" id="historyList">
+      <p style="color:var(--text2);text-align:center;padding:40px">No processed invoices yet. Upload your first invoice to get started.</p>
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS TAB -->
+  <div id="tab-how" style="display:none">
+    <div class="how-section" id="how">
+      <h2>How Invoice Variance AI Works</h2>
+      <div class="steps-grid">
+        <div class="how-step">
+          <div class="how-num">1</div>
+          <h4>Upload Any Invoice</h4>
+          <p>Drop in a PDF, scan, Excel spreadsheet, or CSV export. Our AI reads any format your vendors send.</p>
+        </div>
+        <div class="how-step">
+          <div class="how-num">2</div>
+          <h4>AI Extracts Line Items</h4>
+          <p>GPT-4o reads the invoice and pulls every item, SKU, quantity, and price into a clean structured format.</p>
+        </div>
+        <div class="how-step">
+          <div class="how-num">3</div>
+          <h4>Cross-Reference Inventory</h4>
+          <p>We compare the invoice against your current stock levels and flag anything that's missing or short.</p>
+        </div>
+        <div class="how-step">
+          <div class="how-num">4</div>
+          <h4>Auto-Generate PO</h4>
+          <p>A purchase order is instantly created for all missing items — ready to send to your vendor in one click.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // === STATE ===
+  let selectedFile = null;
+  let currentResult = null;
+  let currentPOPath = null;
+  let history = JSON.parse(localStorage.getItem('iv_history') || '[]');
+  let inventoryItems = [];
+
+  // API base URL — auto-detect
+  const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:8000'
+    : window.location.origin;
+
+  // === TABS ===
+  function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('[id^="tab-"]').forEach(t => t.style.display = 'none');
+    document.getElementById('processingView').style.display = 'none';
+    document.getElementById('resultsView').style.display = 'none';
+    event.target.classList.add('active');
+    document.getElementById('tab-' + tab).style.display = 'block';
+    if (tab === 'history') renderHistory();
+  }
+
+  // === DRAG & DROP ===
+  const dropZone = document.getElementById('dropZone');
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) processFileSelection(file);
+  });
+
+  function handleFileSelect(e) {
+    const file = e.target.files[0];
+    if (file) processFileSelection(file);
+  }
+
+  function processFileSelection(file) {
+    const allowed = ['application/pdf', 'text/csv', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel', 'image/jpeg', 'image/png', 'image/jpg'];
+    const ext = file.name.split('.').pop().toLowerCase();
+    const allowedExts = ['pdf', 'csv', 'xlsx', 'xls', 'jpg', 'jpeg', 'png'];
+    if (!allowedExts.includes(ext)) {
+      showError('Please upload a PDF, CSV, Excel, JPG, or PNG file.');
+      return;
+    }
+    selectedFile = file;
+    const icons = { pdf: '📄', csv: '📊', xlsx: '📊', xls: '📊', jpg: '🖼️', jpeg: '🖼️', png: '🖼️' };
+    const icon = icons[ext] || '📄';
+    const sizeKB = (file.size / 1024).toFixed(1);
+    document.getElementById('filePreview').style.display = 'block';
+    document.getElementById('filePreview').innerHTML = `
+      <div class="file-preview">
+        <div class="file-icon">${icon}</div>
+        <div class="file-details">
+          <h4>${file.name}</h4>
+          <p>${sizeKB} KB • ${ext.toUpperCase()} format</p>
+        </div>
+        <button class="btn-remove-file" onclick="removeFile()">✕</button>
+      </div>`;
+    document.getElementById('uploadSection').style.display = 'none';
+    document.getElementById('runBtn').disabled = false;
+    hideError();
+  }
+
+  function removeFile() {
+    selectedFile = null;
+    document.getElementById('filePreview').style.display = 'none';
+    document.getElementById('uploadSection').style.display = 'block';
+    document.getElementById('runBtn').disabled = true;
+    document.getElementById('fileInput').value = '';
+  }
+
+  // === INVENTORY ===
+  function addInventoryItem() {
+    const id = Date.now();
+    inventoryItems.push(id);
+    const grid = document.getElementById('inventoryGrid');
+    const div = document.createElement('div');
+    div.className = 'inventory-item';
+    div.id = 'inv-' + id;
+    div.innerHTML = `
+      <div class="inv-field"><label>SKU / Item Code</label><input type="text" id="sku-${id}" placeholder="e.g. A001" /></div>
+      <div class="inv-field"><label>Product Name</label><input type="text" id="name-${id}" placeholder="e.g. Widget A" /></div>
+      <div class="inv-field"><label>Qty in Stock</label><input type="number" id="qty-${id}" placeholder="25" min="0" /></div>
+      <div class="inv-field"><label>Unit Price ($)</label><input type="number" id="price-${id}" placeholder="9.99" step="0.01" /></div>
+      <button class="btn-remove" onclick="removeInventoryItem(${id})">✕</button>`;
+    grid.appendChild(div);
+  }
+
+  function removeInventoryItem(id) {
+    inventoryItems = inventoryItems.filter(i => i !== id);
+    document.getElementById('inv-' + id).remove();
+  }
+
+  function getInventoryData() {
+    return inventoryItems.map(id => ({
+      sku: document.getElementById('sku-' + id)?.value || '',
+      name: document.getElementById('name-' + id)?.value || '',
+      quantity: parseFloat(document.getElementById('qty-' + id)?.value || 0),
+      unit_price: parseFloat(document.getElementById('price-' + id)?.value || 0)
+    })).filter(i => i.sku || i.name);
+  }
+
+  function getBusinessInfo() {
+    return {
+      name: document.getElementById('bizName').value || 'My Business',
+      address: document.getElementById('bizAddress').value || '',
+      email: document.getElementById('bizEmail').value || '',
+      phone: document.getElementById('bizPhone').value || ''
+    };
+  }
+
+  // === PIPELINE ===
+  async function runPipeline() {
+    if (!selectedFile) return;
+    hideError();
+
+    // Show processing
+    document.getElementById('tab-upload').style.display = 'none';
+    document.getElementById('processingView').style.display = 'block';
+    animateSteps();
+
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      const inventory = getInventoryData();
+      if (inventory.length > 0) formData.append('inventory_db', JSON.stringify(inventory));
+
+      const bizInfo = getBusinessInfo();
+      formData.append('business_info', JSON.stringify(bizInfo));
+
+      const response = await fetch(`${API_BASE}/api/full-pipeline`, {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({ detail: 'Unknown error' }));
+        throw new Error(err.detail || `Server error ${response.status}`);
+      }
+
+      const result = await response.json();
+      currentResult = result;
+
+      // Save to history
+      saveHistory(result, selectedFile.name);
+
+      // Show results
+      setTimeout(() => showResults(result), 500);
+
+    } catch (err) {
+      document.getElementById('processingView').style.display = 'none';
+      document.getElementById('tab-upload').style.display = 'block';
+      showError('Processing failed: ' + err.message);
+    }
+  }
+
+  function animateSteps() {
+    const steps = ['step1', 'step2', 'step3', 'step4'];
+    steps.forEach((s, i) => {
+      const el = document.getElementById(s);
+      el.className = 'step';
+    });
+    let current = 0;
+    const interval = setInterval(() => {
+      if (current > 0) document.getElementById(steps[current - 1]).className = 'step done';
+      if (current < steps.length) {
+        document.getElementById(steps[current]).className = 'step active';
+        current++;
+      } else {
+        clearInterval(interval);
+      }
+    }, 3000);
+  }
+
+  function showResults(result) {
+    document.getElementById('processingView').style.display = 'none';
+    document.getElementById('resultsView').style.display = 'block';
+
+    const invoice = result.invoice || {};
+    const analysis = result.inventory_analysis || {};
+    const po = result.purchase_order;
+
+    // Meta
+    document.getElementById('resultMeta').innerHTML = `
+      <div class="meta-item">Invoice #: <span>${invoice.invoice_number || 'N/A'}</span></div>
+      <div class="meta-item">Vendor: <span>${invoice.vendor_name || 'N/A'}</span></div>
+      <div class="meta-item">Date: <span>${invoice.invoice_date || 'N/A'}</span></div>
+      <div class="meta-item">Total: <span>$${(invoice.total_amount || 0).toFixed(2)}</span></div>`;
+
+    // Cards
+    const items = invoice.items || [];
+    const missing = analysis.missing_items || [];
+    const total = invoice.total_amount || 0;
+    document.getElementById('resultCards').innerHTML = `
+      <div class="result-card success"><div class="card-label">Items Found</div><div class="card-val">${items.length}</div><div class="card-label">in this invoice</div></div>
+      <div class="result-card ${missing.length > 0 ? 'danger' : 'success'}"><div class="card-label">Missing Items</div><div class="card-val">${missing.length}</div><div class="card-label">need restocking</div></div>
+      <div class="result-card warning"><div class="card-label">Invoice Total</div><div class="card-val">$${total.toFixed(2)}</div><div class="card-label">from vendor</div></div>
+      <div class="result-card ${po ? 'success' : ''}"><div class="card-label">PO Generated</div><div class="card-val">${po ? 'Yes' : 'No'}</div><div class="card-label">${po ? `${po.po_items_count} items` : 'all items in stock'}</div></div>`;
+
+    // Invoice table
+    const tbody = document.getElementById('invoiceTbody');
+    tbody.innerHTML = '';
+    if (items.length > 0) {
+      items.forEach(item => {
+        const qty = item.quantity || 0;
+        const price = item.unit_price || 0;
+        const lineTotal = qty * price;
+        const isMissing = missing.some(m => m.sku === item.sku || m.name === item.name);
+        tbody.innerHTML += `<tr>
+          <td>${item.sku || '—'}</td>
+          <td>${item.name || item.description || '—'}</td>
+          <td>${qty}</td>
+          <td>$${price.toFixed(2)}</td>
+          <td>$${lineTotal.toFixed(2)}</td>
+          <td><span class="badge ${isMissing ? 'badge-missing' : 'badge-ok'}">${isMissing ? 'Missing' : 'OK'}</span></td>
+        </tr>`;
+      });
+    } else {
+      tbody.innerHTML = '<tr><td colspan="6" style="color:var(--text2);text-align:center">No line items extracted — try a clearer scan or typed invoice</td></tr>';
+    }
+
+    // Missing table
+    if (missing.length > 0) {
+      document.getElementById('missingSection').style.display = 'block';
+      const mbody = document.getElementById('missingTbody');
+      mbody.innerHTML = '';
+      missing.forEach(m => {
+        mbody.innerHTML += `<tr>
+          <td>${m.sku || '—'}</td>
+          <td>${m.invoice_quantity || '—'}</td>
+          <td>${m.current_stock ?? '0'}</td>
+          <td style="color:var(--red);font-weight:600">${m.shortage || m.invoice_quantity || '—'}</td>
+          <td>$${((m.shortage || m.invoice_quantity || 0) * (m.unit_price || 0)).toFixed(2)}</td>
+        </tr>`;
+      });
+    }
+
+    // PO box
+    if (po) {
+      document.getElementById('poBox').style.display = 'block';
+      currentPOPath = po.po_file;
+    } else {
+      document.getElementById('noPoBox').style.display = 'block';
+    }
+  }
+
+  async function downloadPO(e) {
+    e.preventDefault();
+    if (!currentPOPath) return;
+    const poId = currentPOPath.split('/').pop().replace('PO_', '').replace('.pdf', '');
+    window.open(`${API_BASE}/api/download-po/${poId}`, '_blank');
+  }
+
+  function resetForm() {
+    selectedFile = null;
+    currentResult = null;
+    currentPOPath = null;
+    document.getElementById('resultsView').style.display = 'none';
+    document.getElementById('tab-upload').style.display = 'block';
+    document.getElementById('filePreview').style.display = 'none';
+    document.getElementById('uploadSection').style.display = 'block';
+    document.getElementById('runBtn').disabled = true;
+    document.getElementById('fileInput').value = '';
+    document.getElementById('missingSection').style.display = 'none';
+    document.getElementById('poBox').style.display = 'none';
+    document.getElementById('noPoBox').style.display = 'none';
+    hideError();
+  }
+
+  // === HISTORY ===
+  function saveHistory(result, filename) {
+    const entry = {
+      id: Date.now(),
+      filename,
+      date: new Date().toLocaleString(),
+      vendor: result.invoice?.vendor_name || 'Unknown',
+      total: result.invoice?.total_amount || 0,
+      missing: (result.inventory_analysis?.missing_items || []).length,
+      hasPO: !!result.purchase_order
+    };
+    history.unshift(entry);
+    if (history.length > 50) history.pop();
+    localStorage.setItem('iv_history', JSON.stringify(history));
+  }
+
+  function renderHistory() {
+    const list = document.getElementById('historyList');
+    if (history.length === 0) {
+      list.innerHTML = '<p style="color:var(--text2);text-align:center;padding:40px">No processed invoices yet. Upload your first invoice to get started.</p>';
+      return;
+    }
+    list.innerHTML = history.map(h => `
+      <div class="history-item">
+        <div class="hist-info">
+          <h4>📄 ${h.filename}</h4>
+          <p>${h.date} • Vendor: ${h.vendor} • Total: $${h.total.toFixed(2)} • ${h.missing} missing items</p>
+        </div>
+        <div class="hist-actions">
+          ${h.hasPO ? '<span class="btn-small btn-small-green">PO Generated ✓</span>' : ''}
+        </div>
+      </div>`).join('');
+  }
+
+  // === UTILS ===
+  function showError(msg) {
+    const box = document.getElementById('errorBox');
+    box.textContent = '⚠️ ' + msg;
+    box.style.display = 'block';
+  }
+  function hideError() { document.getElementById('errorBox').style.display = 'none'; }
+
+  // Init — add 2 default inventory items as examples
+  addInventoryItem();
+  addInventoryItem();
+</script>
+</body>
+</html>
