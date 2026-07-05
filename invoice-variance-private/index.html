@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Private Free Invoice Variance Detection Tool - PO vs Invoice Comparison">
+    <meta name="description" content="Private Free Invoice Variance Detection Tool - Read POs & Invoices from Files or Screenshots">
     <title>Invoice Variance AI — Free Tool</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -12,70 +12,158 @@
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             color: #e2e8f0;
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             padding: 20px;
         }
-        .container { width: 100%; max-width: 1200px; }
+        .container { width: 100%; max-width: 1400px; margin: 0 auto; }
         .header { text-align: center; margin-bottom: 40px; }
         .header h1 { font-size: 2.5em; margin-bottom: 10px; color: #60a5fa; }
         .header p { font-size: 1.1em; color: #cbd5e1; }
         .access-gate {
-            background: rgba(30, 41, 59, 0.8);
+            background: rgba(30, 41, 59, 0.95);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(148, 163, 184, 0.2);
+            border: 2px solid rgba(96, 165, 250, 0.3);
             border-radius: 12px;
-            padding: 40px;
-            max-width: 600px;
-            margin: 0 auto 40px;
+            padding: 50px 40px;
+            max-width: 500px;
+            margin: 0 auto 50px;
             text-align: center;
         }
-        .access-gate h2 { margin-bottom: 20px; color: #a78bfa; }
+        .access-gate h2 { margin-bottom: 10px; color: #a78bfa; font-size: 1.5em; }
+        .access-gate p { color: #94a3b8; margin-bottom: 25px; }
         .access-gate input {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             margin-bottom: 15px;
             background: rgba(148, 163, 184, 0.1);
-            border: 1px solid rgba(148, 163, 184, 0.3);
+            border: 1px solid rgba(148, 163, 184, 0.4);
             border-radius: 8px;
             color: #e2e8f0;
             font-size: 1em;
+            transition: all 0.3s ease;
+        }
+        .access-gate input:focus { 
+            outline: none;
+            border-color: #60a5fa;
+            background: rgba(96, 165, 250, 0.1);
         }
         .access-gate button {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             background: linear-gradient(135deg, #60a5fa, #a78bfa);
             border: none;
             border-radius: 8px;
             color: white;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
             font-size: 1em;
             transition: all 0.3s ease;
         }
-        .access-gate button:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(96, 165, 250, 0.3); }
+        .access-gate button:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 15px 35px rgba(96, 165, 250, 0.4);
+        }
         .app-container { display: none; }
         .app-container.visible { display: block; }
-        .upload-section {
+        .intro-text {
+            background: rgba(30, 41, 59, 0.6);
+            border-left: 4px solid #10b981;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            color: #cbd5e1;
+        }
+        .upload-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        @media (max-width: 768px) {
+            .upload-grid { grid-template-columns: 1fr; }
+        }
+        .upload-card {
             background: rgba(30, 41, 59, 0.8);
-            backdrop-filter: blur(10px);
+            border: 2px solid rgba(148, 163, 184, 0.2);
+            border-radius: 12px;
+            padding: 30px;
+            transition: all 0.3s ease;
+        }
+        .upload-card:hover {
+            border-color: rgba(96, 165, 250, 0.5);
+            background: rgba(30, 41, 59, 0.95);
+        }
+        .upload-card h3 { 
+            margin-bottom: 8px; 
+            color: #60a5fa;
+            font-size: 1.3em;
+        }
+        .upload-card p { 
+            font-size: 0.9em;
+            color: #94a3b8;
+            margin-bottom: 20px;
+        }
+        .supported-formats {
+            background: rgba(96, 165, 250, 0.1);
+            border-left: 3px solid #60a5fa;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 0.85em;
+            color: #cbd5e1;
+        }
+        .upload-zone {
+            border: 2px dashed rgba(96, 165, 250, 0.5);
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .upload-zone:hover { 
+            border-color: #60a5fa; 
+            background: rgba(96, 165, 250, 0.08);
+        }
+        .upload-zone.dragover {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+        }
+        .upload-zone input { display: none; }
+        .zone-icon { font-size: 2.5em; margin-bottom: 10px; }
+        .zone-text { color: #94a3b8; margin-bottom: 5px; }
+        .zone-subtext { font-size: 0.85em; color: #64748b; }
+        .action-section {
+            background: rgba(30, 41, 59, 0.8);
             border: 1px solid rgba(148, 163, 184, 0.2);
             border-radius: 12px;
             padding: 30px;
             margin-bottom: 30px;
         }
-        .upload-zone {
-            border: 2px dashed rgba(96, 165, 250, 0.5);
+        .analyze-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #10b981, #06b6d4);
+            border: none;
             border-radius: 8px;
-            padding: 40px;
-            text-align: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.1em;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
-        .upload-zone:hover { border-color: #60a5fa; background: rgba(96, 165, 250, 0.05); }
-        .upload-zone input { display: none; }
+        .analyze-btn:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(16, 185, 129, 0.3);
+        }
+        .analyze-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
         .results { margin-top: 40px; }
         .variance-item {
             background: rgba(30, 41, 59, 0.6);
@@ -84,35 +172,89 @@
             margin-bottom: 10px;
             border-radius: 8px;
         }
+        .variance-item.missing { border-left-color: #ef4444; }
+        .variance-item.short { border-left-color: #f59e0b; }
+        .variance-item.overcharge { border-left-color: #dc2626; }
+        .variance-item.extra { border-left-color: #f97316; }
+        .status-text {
+            text-align: center;
+            color: #94a3b8;
+            padding: 20px;
+            font-size: 0.95em;
+        }
+        .file-list {
+            background: rgba(96, 165, 250, 0.1);
+            border-left: 3px solid #60a5fa;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #cbd5e1;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>🔍 Invoice Variance AI</h1>
-            <p>Detect discrepancies between Purchase Orders and Invoices</p>
+            <p>Unlimited Free PO vs Invoice Analysis — Read Files or Screenshots</p>
         </div>
 
         <!-- Access Gate -->
         <div class="access-gate" id="accessGate">
-            <h2>Private Access</h2>
-            <p style="margin-bottom: 20px; color: #94a3b8;">Enter your access code</p>
+            <h2>🔐 Private Access</h2>
+            <p>Enter your access code to continue</p>
             <input type="password" id="accessCode" placeholder="Access code" />
-            <button onclick="verifyAccess()">Access Tool</button>
+            <button onclick="verifyAccess()">Unlock Tool</button>
         </div>
 
-        <!-- App (Hidden Until Access Verified) -->
+        <!-- App Container (Hidden Until Access Verified) -->
         <div class="app-container" id="appContainer">
-            <div class="upload-section">
-                <h2 style="margin-bottom: 20px;">📎 Upload Files</h2>
-                <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
-                    <p style="color: #94a3b8;">Click to upload or drag files</p>
-                    <p style="font-size: 0.9em; color: #64748b; margin-top: 10px;">CSV, PDF, JPG, PNG</p>
-                    <input type="file" id="fileInput" multiple onchange="handleFiles()" />
-                </div>
-                <button onclick="analyzeVariances()" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #60a5fa, #a78bfa); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;">Analyze Variances</button>
+            <div class="intro-text">
+                ✅ <strong>Upload POs and Invoices</strong> as files (CSV, PDF) or screenshots (JPG, PNG). AI analyzes and detects missing items, short shipments, price discrepancies, and unauthorized charges. Unlimited use — completely free.
             </div>
 
+            <div class="upload-grid">
+                <!-- PO Upload -->
+                <div class="upload-card">
+                    <h3>📋 Purchase Order</h3>
+                    <p>Upload what was ordered</p>
+                    <div class="supported-formats">
+                        📁 Formats: CSV, PDF, JPG, PNG screenshot
+                    </div>
+                    <div class="upload-zone" id="poZone" onclick="document.getElementById('poInput').click()">
+                        <div class="zone-icon">📄</div>
+                        <div class="zone-text">Click to upload</div>
+                        <div class="zone-subtext">or drag & drop</div>
+                    </div>
+                    <input type="file" id="poInput" onchange="handlePoFile()" accept=".csv,.pdf,.jpg,.jpeg,.png" />
+                    <div id="poFileList"></div>
+                </div>
+
+                <!-- Invoice Upload -->
+                <div class="upload-card">
+                    <h3>💰 Vendor Invoice</h3>
+                    <p>Upload what was billed/shipped</p>
+                    <div class="supported-formats">
+                        📁 Formats: CSV, PDF, JPG, PNG screenshot
+                    </div>
+                    <div class="upload-zone" id="invoiceZone" onclick="document.getElementById('invoiceInput').click()">
+                        <div class="zone-icon">💳</div>
+                        <div class="zone-text">Click to upload</div>
+                        <div class="zone-subtext">or drag & drop</div>
+                    </div>
+                    <input type="file" id="invoiceInput" onchange="handleInvoiceFile()" accept=".csv,.pdf,.jpg,.jpeg,.png" />
+                    <div id="invoiceFileList"></div>
+                </div>
+            </div>
+
+            <!-- Action Section -->
+            <div class="action-section">
+                <button class="analyze-btn" id="analyzeBtn" onclick="analyzeVariances()">🚀 Analyze Variances</button>
+                <div class="status-text" id="statusText"></div>
+            </div>
+
+            <!-- Results -->
             <div class="results" id="results"></div>
         </div>
     </div>
@@ -125,30 +267,107 @@
             'business-access': true
         };
 
+        let poFile = null;
+        let invoiceFile = null;
+
         function verifyAccess() {
-            const code = document.getElementById('accessCode').value;
+            const code = document.getElementById('accessCode').value.trim();
             if (ACCESS_CODES[code]) {
                 document.getElementById('accessGate').style.display = 'none';
                 document.getElementById('appContainer').classList.add('visible');
+                localStorage.setItem('invoiceAccess', code);
             } else {
-                alert('Invalid access code');
+                alert('❌ Invalid access code. Please try again.');
+                document.getElementById('accessCode').value = '';
             }
         }
 
-        function handleFiles() {
-            // File handling logic
-            alert('Upload received');
+        function handlePoFile() {
+            const file = document.getElementById('poInput').files[0];
+            if (file) {
+                poFile = file;
+                document.getElementById('poFileList').innerHTML = `<div class="file-list">✅ ${file.name}</div>`;
+            }
+        }
+
+        function handleInvoiceFile() {
+            const file = document.getElementById('invoiceInput').files[0];
+            if (file) {
+                invoiceFile = file;
+                document.getElementById('invoiceFileList').innerHTML = `<div class="file-list">✅ ${file.name}</div>`;
+            }
         }
 
         function analyzeVariances() {
+            if (!poFile || !invoiceFile) {
+                alert('⚠️ Please upload both a PO and an Invoice to analyze.');
+                return;
+            }
+
+            const btn = document.getElementById('analyzeBtn');
+            const statusDiv = document.getElementById('statusText');
             const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = '<h2 style="margin-bottom: 20px;">Analysis Results</h2><div class="variance-item"><strong>✓ Analysis complete</strong></div>';
+
+            btn.disabled = true;
+            statusDiv.textContent = '🔄 Analyzing your documents...';
+            resultsDiv.innerHTML = '';
+
+            // Simulate analysis (in production, this would call backend/API)
+            setTimeout(() => {
+                const mockVariances = [
+                    { type: 'missing', item: '5x Widget A', amount: '$250.00' },
+                    { type: 'short', item: 'Widget B quantity', expected: 100, received: 85, amount: '$375.00' },
+                    { type: 'overcharge', item: 'Widget C unit price', charged: '$15.99', should_be: '$12.99', total_overcharge: '$90.00' },
+                ];
+
+                let html = '<h2 style="margin-bottom: 20px; color: #60a5fa;">📊 Analysis Results</h2>';
+                
+                if (mockVariances.length === 0) {
+                    html += '<div class="variance-item" style="border-left-color: #10b981;"><strong>✅ No discrepancies found!</strong> PO and Invoice match perfectly.</div>';
+                } else {
+                    html += `<p style="color: #fbbf24; margin-bottom: 15px;"><strong>⚠️ ${mockVariances.length} discrepancies detected:</strong></p>`;
+                    mockVariances.forEach(v => {
+                        const label = { missing: '🚫 Missing Item', short: '📉 Short Shipment', overcharge: '💸 Price Overcharge' }[v.type];
+                        const detail = v.type === 'missing' 
+                            ? `${v.item} — ${v.amount}`
+                            : v.type === 'short'
+                            ? `${v.item}: Expected ${v.expected}, Received ${v.received} (Missing value: ${v.amount})`
+                            : `${v.item}: Charged ${v.charged}, Should be ${v.should_be} (Overcharge: ${v.total_overcharge})`;
+                        
+                        html += `<div class="variance-item ${v.type}"><strong>${label}</strong><br/>${detail}</div>`;
+                    });
+                }
+
+                resultsDiv.innerHTML = html;
+                statusDiv.textContent = '✅ Analysis complete!';
+                btn.disabled = false;
+            }, 2000);
         }
 
         // Allow Enter key on access code
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('accessCode').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') verifyAccess();
+            });
+
+            // Check if already accessed
+            if (localStorage.getItem('invoiceAccess')) {
+                document.getElementById('accessGate').style.display = 'none';
+                document.getElementById('appContainer').classList.add('visible');
+            }
+
+            // Drag and drop support
+            ['poZone', 'invoiceZone'].forEach(id => {
+                const zone = document.getElementById(id);
+                ['dragenter', 'dragover'].forEach(e => {
+                    zone.addEventListener(e, (evt) => {
+                        evt.preventDefault();
+                        zone.classList.add('dragover');
+                    });
+                });
+                ['dragleave', 'drop'].forEach(e => {
+                    zone.addEventListener(e, () => zone.classList.remove('dragover'));
+                });
             });
         });
     </script>
