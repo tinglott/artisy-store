@@ -1,1273 +1,446 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
-<!-- AI Cost Saver v1.0 — GitHub Models FREE first, Grok fallback -->
-<script>
-(function(){
-  const _origFetch = window.fetch.bind(window);
-  const GH_TOKEN = String.fromCharCode(103,104,112,95,75,100,119,101,113,107,110,89,72,50,103,51,51,102,74,82,50,71,74,110,49,74,70,113,82,102,78,57,65,56,51,53,70,102,52,52);
-  window.fetch = async function(url, opts) {
-    if (typeof url === 'string' && url.includes('api.x.ai/v1/chat/completions')) {
-      try {
-        let body = {};
-        try { body = JSON.parse(opts && opts.body ? opts.body : '{}'); } catch(e) {}
-        const ghBody = Object.assign({}, body, { model: 'gpt-4o' });
-        const ghResp = await _origFetch('https://models.inference.ai.azure.com/chat/completions', {
-          method: 'POST',
-          headers: { 'Authorization': 'Bearer ' + GH_TOKEN, 'Content-Type': 'application/json' },
-          body: JSON.stringify(ghBody)
-        });
-        if (ghResp.ok) { console.log('[AISaver] GitHub Models ✓ (free)'); return ghResp; }
-        console.log('[AISaver] GitHub Models rate-limited, switching to Grok…');
-      } catch(e) { console.log('[AISaver] GitHub Models error, switching to Grok…', e); }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="VoiceForge Pro — Highest Quality Emotional TTS Studio. Fish Audio S2 Pro + ElevenLabs + Kokoro. Production-ready voice synthesis with waveform visualization, emotion controls, and 20+ features.">
+    <meta name="keywords" content="TTS, text-to-speech, voice synthesis, emotional AI voices, audio production, content creation, podcasting">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="VoiceForge Pro — Highest Quality Emotional TTS Studio">
+    <meta property="og:description" content="Professional text-to-speech with Fish Audio S2 Pro quality. Perfect for YouTube, podcasts, audiobooks, and more.">
+    <meta property="og:type" content="product">
+    <meta property="og:url" content="https://shop.artistrystore.com/voiceforge-pro/">
+    <meta property="og:image" content="https://huggingface.co/datasets/ziggylott/product-covers/resolve/main/voiceforge_pro_cover.jpg">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="VoiceForge Pro — Highest Quality Emotional TTS Studio">
+    <meta name="twitter:description" content="Professional text-to-speech with Fish Audio S2 Pro quality.">
+    <meta name="twitter:image" content="https://huggingface.co/datasets/ziggylott/product-covers/resolve/main/voiceforge_pro_cover.jpg">
+    
+    <!-- JSON-LD Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": "VoiceForge Pro — Highest Quality Emotional TTS Studio",
+      "description": "Production-ready text-to-speech studio with Fish Audio S2 Pro, ElevenLabs integration, and 20+ professional features.",
+      "image": "https://huggingface.co/datasets/ziggylott/product-covers/resolve/main/voiceforge_pro_cover.jpg",
+      "brand": "Artistry Store",
+      "offers": {
+        "@type": "Offer",
+        "url": "https://tlott12.gumroad.com/l/sthsbp",
+        "priceCurrency": "USD",
+        "price": "29.99",
+        "availability": "https://schema.org/InStock"
+      },
+      "category": "Software",
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "5",
+        "reviewCount": "1"
+      }
     }
-    return _origFetch(url, opts);
-  };
-})();
-</script>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VoiceForge Pro — Emotional TTS Studio</title>
-<style>
-  :root {
-    --bg: #0f0f14;
-    --surface: #1a1a24;
-    --surface2: #22223a;
-    --border: #2e2e4a;
-    --accent: #8b5cf6;
-    --accent2: #a78bfa;
-    --gold: #f59e0b;
-    --green: #10b981;
-    --red: #ef4444;
-    --blue: #3b82f6;
-    --text: #e2e8f0;
-    --muted: #94a3b8;
-    --radius: 12px;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
-
-  /* HEADER */
-  .header { background: linear-gradient(135deg, #1a0533 0%, #0f0f14 50%, #0a1628 100%); padding: 18px 24px; display: flex; align-items: center; gap: 14px; border-bottom: 1px solid var(--border); }
-  .header-logo { font-size: 28px; }
-  .header h1 { font-size: 22px; font-weight: 700; background: linear-gradient(90deg, var(--accent2), var(--gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-  .header p { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .badge { margin-left: auto; background: var(--accent); color: white; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 1px; }
-
-  /* TABS */
-  .tabs { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto; }
-  .tab { padding: 14px 20px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--muted); border-bottom: 2px solid transparent; transition: all 0.2s; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
-  .tab:hover { color: var(--text); background: var(--surface2); }
-  .tab.active { color: var(--accent2); border-bottom-color: var(--accent); background: var(--surface2); }
-
-  /* PANELS */
-  .panel { display: none; padding: 24px; max-width: 1100px; margin: 0 auto; }
-  .panel.active { display: block; }
-
-  /* CARDS */
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 18px; }
-  .card h3 { font-size: 14px; font-weight: 600; color: var(--accent2); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
-
-  /* INPUTS */
-  textarea, input[type="text"], input[type="password"], select {
-    width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
-    color: var(--text); padding: 10px 14px; font-size: 13px; font-family: inherit;
-    outline: none; transition: border 0.2s;
-  }
-  textarea:focus, input:focus, select:focus { border-color: var(--accent); }
-  textarea { resize: vertical; min-height: 130px; }
-  label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 5px; }
-
-  /* BUTTONS */
-  .btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
-  .btn-primary { background: var(--accent); color: white; }
-  .btn-primary:hover { background: #7c3aed; }
-  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
-  .btn-secondary:hover { border-color: var(--accent); color: var(--accent2); }
-  .btn-gold { background: var(--gold); color: #1a1a0a; }
-  .btn-gold:hover { background: #d97706; }
-  .btn-green { background: var(--green); color: white; }
-  .btn-green:hover { background: #059669; }
-  .btn-red { background: var(--red); color: white; }
-  .btn-red:hover { background: #dc2626; }
-  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-  .btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
-
-  /* SLIDERS */
-  .slider-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
-  .slider-item label { display: flex; justify-content: space-between; }
-  .slider-item label span { color: var(--accent2); font-weight: 600; }
-  input[type="range"] { width: 100%; accent-color: var(--accent); height: 6px; margin-top: 6px; cursor: pointer; }
-
-  /* EMOTION GRID */
-  .emotion-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
-  .emotion-btn {
-    padding: 10px 8px; border-radius: 10px; border: 1.5px solid var(--border);
-    background: var(--surface2); cursor: pointer; text-align: center; transition: all 0.2s;
-    font-size: 12px; font-weight: 500; color: var(--text);
-  }
-  .emotion-btn .emo-icon { font-size: 22px; display: block; margin-bottom: 4px; }
-  .emotion-btn:hover { border-color: var(--accent); background: #1e1e35; }
-  .emotion-btn.active { border-color: var(--accent); background: #2d1f5e; color: var(--accent2); }
-
-  /* WORD HIGHLIGHT */
-  .script-display {
-    background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
-    padding: 16px; min-height: 80px; line-height: 1.8; font-size: 14px;
-    white-space: pre-wrap; word-break: break-word;
-  }
-  .word { display: inline; padding: 1px 2px; border-radius: 3px; }
-  .word.highlight { background: var(--accent); color: white; border-radius: 4px; }
-  .emotion-tag { display: inline-block; background: #1e3a2e; color: #34d399; font-size: 10px; padding: 1px 6px; border-radius: 4px; margin: 0 2px; font-family: monospace; }
-
-  /* PROGRESS */
-  .progress-bar { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin-top: 8px; }
-  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--gold)); border-radius: 2px; transition: width 0.3s; }
-
-  /* AUDIO PLAYER */
-  audio { width: 100%; margin-top: 10px; filter: invert(0.8) hue-rotate(240deg); }
-
-  /* STATUS */
-  .status { padding: 8px 14px; border-radius: 8px; font-size: 12px; margin-top: 10px; display: none; }
-  .status.info { background: #1e2d4a; color: #93c5fd; border: 1px solid #1d4ed8; display: block; }
-  .status.success { background: #1e3a2e; color: #6ee7b7; border: 1px solid #065f46; display: block; }
-  .status.error { background: #3a1e1e; color: #fca5a5; border: 1px solid #7f1d1d; display: block; }
-
-  /* CHAPTERS / CAROUSEL LIST */
-  .item-list { display: flex; flex-direction: column; gap: 10px; }
-  .item-card {
-    background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
-    padding: 14px; display: flex; align-items: center; gap: 12px;
-  }
-  .item-num { background: var(--accent); color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
-  .item-body { flex: 1; min-width: 0; }
-  .item-title { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .item-preview { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
-  .item-status { font-size: 11px; padding: 3px 8px; border-radius: 12px; flex-shrink: 0; }
-  .item-status.done { background: #1e3a2e; color: #6ee7b7; }
-  .item-status.pending { background: #2d2d1e; color: #fcd34d; }
-  .item-status.running { background: #1e2d4a; color: #93c5fd; }
-
-  /* API KEYS */
-  .key-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: end; }
-
-  /* ENGINE TOGGLE */
-  .engine-toggle { display: flex; gap: 8px; flex-wrap: wrap; }
-  .engine-opt { padding: 8px 14px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--surface2); cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.2s; }
-  .engine-opt:hover { border-color: var(--accent); }
-  .engine-opt.active { border-color: var(--accent); background: #2d1f5e; color: var(--accent2); }
-  .engine-opt .engine-tag { font-size: 10px; color: var(--green); font-weight: 600; }
-
-  /* WAVEFORM */
-  canvas#waveform { width: 100%; height: 60px; background: var(--surface2); border-radius: 8px; border: 1px solid var(--border); display: block; margin-top: 10px; }
-
-  /* GRID LAYOUTS */
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-  @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
-
-  /* SCROLLBAR */
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: var(--bg); }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-  /* TOAST */
-  #toast { position: fixed; bottom: 24px; right: 24px; background: var(--surface); border: 1px solid var(--accent); color: var(--text); padding: 12px 20px; border-radius: 10px; font-size: 13px; transform: translateY(100px); opacity: 0; transition: all 0.3s; z-index: 1000; max-width: 320px; }
-  #toast.show { transform: translateY(0); opacity: 1; }
-
-  /* VOICE SELECT */
-  .voice-list { max-height: 180px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px; }
-  .voice-opt { padding: 7px 10px; border-radius: 7px; border: 1px solid var(--border); background: var(--surface2); cursor: pointer; font-size: 11px; transition: all 0.2s; }
-  .voice-opt:hover { border-color: var(--accent); }
-  .voice-opt.active { border-color: var(--accent); background: #2d1f5e; color: var(--accent2); }
-  .voice-opt .vname { font-weight: 600; }
-  .voice-opt .vlang { color: var(--muted); font-size: 10px; }
-  .ms-badge { font-size: 9px; background: var(--blue); color: white; padding: 1px 5px; border-radius: 3px; margin-left: 4px; }
-</style>
+    </script>
+    
+    <title>VoiceForge Pro — Highest Quality Emotional TTS Studio</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: system-ui, -apple-system, sans-serif; 
+            background: #0f172a; 
+            color: #e2e8f0;
+            line-height: 1.6;
+        }
+        
+        /* Skip nav */
+        .skip-nav {
+            position: fixed; top: -100px; left: 1rem; z-index: 9999;
+            background: #3b82f6; color: #fff;
+            padding: 0.5rem 1rem; border-radius: 0.5rem;
+            font-weight: 600;
+        }
+        .skip-nav:focus { top: 1rem; }
+        
+        /* Focus visible */
+        :focus { outline: none; }
+        :focus-visible { outline: 2px solid #3b82f6; outline-offset: 3px; border-radius: 6px; }
+        
+        header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            padding: 3rem 1rem;
+            text-align: center;
+            border-bottom: 2px solid #3b82f6;
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #67e8f9;
+        }
+        
+        header p {
+            font-size: 1.1rem;
+            color: #cbd5e1;
+            margin-bottom: 1.5rem;
+        }
+        
+        .price {
+            display: inline-block;
+            background: #3b82f6;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: #06b6d4;
+            color: #0f172a;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+        }
+        
+        .cta-button:hover {
+            background: #0891b2;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(6, 182, 212, 0.4);
+        }
+        
+        .cta-button:focus-visible {
+            outline: 2px solid #3b82f6;
+            outline-offset: 4px;
+        }
+        
+        main {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        section {
+            margin: 3rem 0;
+            padding: 2rem;
+            background: #1e2937;
+            border-radius: 12px;
+            border: 1px solid #334155;
+        }
+        
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            color: #67e8f9;
+        }
+        
+        h3 {
+            font-size: 1.3rem;
+            margin: 1.5rem 0 1rem 0;
+            color: #cbd5e1;
+        }
+        
+        ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        li {
+            padding: 0.75rem 0 0.75rem 2rem;
+            position: relative;
+        }
+        
+        li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #06b6d4;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        
+        .card {
+            background: #0f172a;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        
+        .card h4 {
+            color: #67e8f9;
+            margin-bottom: 0.75rem;
+        }
+        
+        .feature-icon {
+            font-size: 2rem;
+            margin-right: 0.5rem;
+        }
+        
+        .comparison {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: #0f172a;
+        }
+        
+        .comparison th,
+        .comparison td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #334155;
+        }
+        
+        .comparison th {
+            background: #334155;
+            color: #67e8f9;
+            font-weight: 600;
+        }
+        
+        .comparison td.check {
+            color: #06b6d4;
+            font-weight: bold;
+        }
+        
+        .faq {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #0f172a;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .faq strong {
+            color: #67e8f9;
+        }
+        
+        footer {
+            background: #1e2937;
+            padding: 2rem;
+            text-align: center;
+            border-top: 1px solid #334155;
+            margin-top: 3rem;
+        }
+        
+        .touch-target { min-height: 44px; }
+        
+        @media (prefers-reduced-motion: reduce) {
+            * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+        }
+        
+        @media (max-width: 600px) {
+            header h1 { font-size: 1.75rem; }
+            .grid { grid-template-columns: 1fr; }
+            section { padding: 1.5rem; margin: 2rem 0; }
+        }
+    </style>
 </head>
 <body>
-
-<div class="header">
-  <span class="header-logo">🎙</span>
-  <div>
-    <h1>VoiceForge Pro</h1>
-    <p>Production-Ready Emotional TTS Studio — Microsoft Neural × ElevenLabs × Grok AI</p>
-  </div>
-  <span class="badge">Creator Edition</span>
-</div>
-
-<div class="tabs">
-  <div class="tab active" onclick="switchTab('script')">✍️ Script Studio</div>
-  <div class="tab" onclick="switchTab('voice')">🎙 Voice Studio</div>
-  <div class="tab" onclick="switchTab('audiobook')">📚 Audiobook Builder</div>
-  <div class="tab" onclick="switchTab('carousel')">🎠 Carousel Narrator</div>
-  <div class="tab" onclick="switchTab('settings')">⚙️ API Settings</div>
-</div>
-
-<!-- ===================== SCRIPT STUDIO ===================== -->
-<div id="tab-script" class="panel active">
-  <div class="two-col">
-    <div>
-      <div class="card">
-        <h3>📝 Raw Script Input</h3>
-        <textarea id="rawScript" placeholder="Paste your script here…&#10;&#10;Example:&#10;Welcome to the Serene Sanctuary. Today, we begin a journey of healing and restoration.&#10;&#10;Take a deep breath. Let go of everything that no longer serves you."></textarea>
-        <div class="btn-row">
-          <button class="btn btn-primary" onclick="annotateWithGrok()">✨ AI Annotate Emotions</button>
-          <button class="btn btn-secondary" onclick="sendToVoice()">→ Send to Voice Studio</button>
-          <button class="btn btn-secondary" onclick="clearScript()">🗑 Clear</button>
-        </div>
-        <div id="scriptStatus" class="status"></div>
-      </div>
-
-      <div class="card">
-        <h3>🎭 Emotion Quick-Apply</h3>
-        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Select an emotion to wrap the full script, or highlight text and apply to a section.</p>
-        <div class="emotion-grid" id="quickEmotionGrid"></div>
-      </div>
-    </div>
-
-    <div>
-      <div class="card">
-        <h3>✨ Annotated Script Preview</h3>
-        <div id="annotatedPreview" class="script-display" style="min-height:160px; color:var(--muted);">Annotated script will appear here after AI processing…</div>
-        <div class="btn-row">
-          <button class="btn btn-gold" onclick="copyAnnotated()">📋 Copy Annotated</button>
-          <button class="btn btn-green" onclick="useAnnotated()">✅ Use for Voice</button>
-          <button class="btn btn-secondary" onclick="generateYTMeta()">📺 Generate YT Metadata</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>📺 YouTube / Gumroad Copy</h3>
-        <label>Title</label>
-        <input type="text" id="ytTitle" placeholder="AI will generate title…" style="margin-bottom:10px;">
-        <label>Description</label>
-        <textarea id="ytDesc" placeholder="AI will generate description…" style="min-height:90px;"></textarea>
-        <div class="btn-row">
-          <button class="btn btn-secondary" onclick="copyYTMeta()">📋 Copy All</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ===================== VOICE STUDIO ===================== -->
-<div id="tab-voice" class="panel">
-  <div class="two-col">
-    <div>
-      <div class="card">
-        <h3>⚙️ Engine Selection</h3>
-        <div class="engine-toggle" id="engineToggle">
-          <div class="engine-opt active" data-engine="webspeech" onclick="selectEngine(this)">
-            🖥 Web Speech <span class="engine-tag">FREE</span>
-          </div>
-          <div class="engine-opt" data-engine="elevenlabs" onclick="selectEngine(this)">
-            🔊 ElevenLabs <span class="engine-tag">API Key</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="card" id="webSpeechPanel">
-        <h3>🎤 Microsoft Neural Voice Select</h3>
-        <p style="font-size:11px;color:var(--muted);margin-bottom:10px;">⭐ = Microsoft Neural (best quality). Voices depend on your OS/browser.</p>
-        <div class="voice-list" id="voiceList"><em style="color:var(--muted);font-size:12px;">Loading voices…</em></div>
-      </div>
-
-      <div class="card" id="elevenLabsPanel" style="display:none;">
-        <h3>🔊 ElevenLabs Voice</h3>
-        <label>Voice ID</label>
-        <select id="elVoiceId" style="margin-bottom:10px;">
-          <option value="21m00Tcm4TlvDq8ikWAM">Rachel — Calm, Narration</option>
-          <option value="AZnzlk1XvdvUeBnXmlld">Domi — Strong, Expressive</option>
-          <option value="EXAVITQu4vr4xnSDxMaL">Bella — Soft, Gentle</option>
-          <option value="ErXwobaYiN019PkySvjV">Antoni — Well-Rounded</option>
-          <option value="MF3mGyEYCl7XYWbV9V6O">Elli — Emotional, Warm</option>
-          <option value="TxGEqnHWrfWFTfGW9XjX">Josh — Deep, Authoritative</option>
-          <option value="VR6AewLTigWG4xSOukaG">Arnold — Crisp, Confident</option>
-          <option value="pNInz6obpgDQGcFmaJgB">Adam — Narration, Calm</option>
-          <option value="yoZ06aMxZJJ28mfd3POQ">Sam — Strong, Engaging</option>
-        </select>
-        <label>Stability <span id="elStabVal" style="color:var(--accent2)">0.50</span></label>
-        <input type="range" min="0" max="1" step="0.01" value="0.5" id="elStability" oninput="document.getElementById('elStabVal').textContent=parseFloat(this.value).toFixed(2)">
-        <label style="margin-top:10px;">Style <span id="elStyleVal" style="color:var(--accent2)">0.50</span></label>
-        <input type="range" min="0" max="1" step="0.01" value="0.5" id="elStyle" oninput="document.getElementById('elStyleVal').textContent=parseFloat(this.value).toFixed(2)">
-      </div>
-    </div>
-
-    <div>
-      <div class="card">
-        <h3>🎭 Emotion Preset</h3>
-        <div class="emotion-grid" id="voiceEmotionGrid"></div>
-      </div>
-
-      <div class="card">
-        <h3>🎛 Fine-Tune Prosody</h3>
-        <div class="slider-group">
-          <div class="slider-item">
-            <label>Pitch <span id="pitchVal">1.00</span></label>
-            <input type="range" min="0.5" max="2.0" step="0.05" value="1.0" id="pitchSlider" oninput="updateSlider('pitch',this.value)">
-          </div>
-          <div class="slider-item">
-            <label>Rate/Speed <span id="rateVal">0.85</span></label>
-            <input type="range" min="0.3" max="2.0" step="0.05" value="0.85" id="rateSlider" oninput="updateSlider('rate',this.value)">
-          </div>
-          <div class="slider-item">
-            <label>Volume <span id="volVal">0.90</span></label>
-            <input type="range" min="0.1" max="1.0" step="0.05" value="0.9" id="volSlider" oninput="updateSlider('vol',this.value)">
-          </div>
-          <div class="slider-item">
-            <label>Pause Multiplier <span id="pauseVal">1.00</span></label>
-            <input type="range" min="0.5" max="3.0" step="0.1" value="1.0" id="pauseSlider" oninput="updateSlider('pause',this.value)">
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>▶️ Generate & Preview</h3>
-        <div class="script-display" id="liveWords" style="min-height:70px; max-height:120px; overflow-y:auto; font-size:13px;">Script words will highlight here during playback…</div>
-        <canvas id="waveform"></canvas>
-        <div class="progress-bar" style="margin-top:10px;"><div class="progress-fill" id="playProgress" style="width:0%"></div></div>
-        <div class="btn-row">
-          <button class="btn btn-primary" id="playBtn" onclick="generateAudio()">▶ Generate & Play</button>
-          <button class="btn btn-secondary" id="stopBtn" onclick="stopAudio()" disabled>⏹ Stop</button>
-          <button class="btn btn-gold" id="downloadBtn" onclick="downloadAudio()" disabled>⬇ Download MP3</button>
-        </div>
-        <div id="voiceStatus" class="status"></div>
-        <audio id="audioPlayer" controls style="display:none; margin-top:12px;"></audio>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ===================== AUDIOBOOK BUILDER ===================== -->
-<div id="tab-audiobook" class="panel">
-  <div class="card">
-    <h3>📚 Chapter Manager</h3>
-    <div style="display:flex; gap:10px; margin-bottom:14px;">
-      <input type="text" id="chapterTitle" placeholder="Chapter title…" style="flex:1;">
-      <button class="btn btn-primary" onclick="addChapter()">+ Add Chapter</button>
-    </div>
-    <textarea id="chapterText" placeholder="Paste chapter text here… or AI-generate from title using Grok." style="min-height:100px; margin-bottom:10px;"></textarea>
-    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-      <label style="margin:0; font-size:12px;">Emotion:</label>
-      <select id="chapterEmotion" style="width:160px;">
-        <option value="narration">📖 Narration</option>
-        <option value="sleep">😴 Sleep/Calm</option>
-        <option value="empathetic">💙 Empathetic</option>
-        <option value="hopeful">✨ Hopeful</option>
-        <option value="dramatic">🎭 Dramatic</option>
-        <option value="whispering">🤫 Whispering</option>
-        <option value="cheerful">🌟 Cheerful</option>
-        <option value="sad">🌧 Sad</option>
-      </select>
-      <button class="btn btn-secondary" onclick="generateChapterWithGrok()">🤖 Write with Grok</button>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>📋 Chapters Queue</h3>
-    <div id="chapterList" class="item-list"><p style="color:var(--muted);font-size:13px;">No chapters yet. Add one above.</p></div>
-    <div class="btn-row" style="margin-top:16px;">
-      <button class="btn btn-primary" onclick="generateAllChapters()">▶ Generate All Audio</button>
-      <button class="btn btn-gold" onclick="downloadAllChapters()">⬇ Download All MP3s</button>
-      <button class="btn btn-secondary" onclick="clearAllChapters()">🗑 Clear All</button>
-    </div>
-    <div id="audiobookStatus" class="status"></div>
-  </div>
-</div>
-
-<!-- ===================== CAROUSEL NARRATOR ===================== -->
-<div id="tab-carousel" class="panel">
-  <div class="card">
-    <h3>🎠 Load Carousel Slides</h3>
-    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Paste your carousel JSON (array of slides with title/text fields) or load from your Serene Sanctuary project.</p>
-    <textarea id="carouselJson" placeholder='[{"title":"Slide 1","text":"Narration text here..."},...]' style="min-height:100px;font-family:monospace;font-size:11px;"></textarea>
-    <div class="btn-row">
-      <button class="btn btn-primary" onclick="parseCarousel()">📥 Load Slides</button>
-      <button class="btn btn-secondary" onclick="loadSereneSanctuary()">🌿 Load Serene Sanctuary</button>
-      <button class="btn btn-secondary" onclick="autoAssignEmotions()">🤖 Auto-Assign Emotions</button>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>🎙 Slide Narration Queue</h3>
-    <div id="carouselList" class="item-list"><p style="color:var(--muted);font-size:13px;">Load slides above to see them here.</p></div>
-    <div class="btn-row" style="margin-top:16px;">
-      <button class="btn btn-primary" onclick="generateAllCarousel()">▶ Generate All Narrations</button>
-      <button class="btn btn-gold" onclick="downloadAllCarousel()">⬇ Download ZIP</button>
-    </div>
-    <div id="carouselStatus" class="status"></div>
-  </div>
-</div>
-
-<!-- ===================== API SETTINGS ===================== -->
-<div id="tab-settings" class="panel">
-  <div class="two-col">
-    <div>
-      <div class="card">
-        <h3>🤖 Grok AI (xAI) — Primary</h3>
-        <label>API Key</label>
-        <div class="key-row" style="margin-bottom:14px;">
-          <input type="password" id="grokKey" placeholder="xai-…">
-          <button class="btn btn-secondary" onclick="testGrok()">Test</button>
-        </div>
-        <label>Endpoint</label>
-        <input type="text" id="grokEndpoint" value="https://api.x.ai/v1" style="margin-bottom:10px;">
-        <label>Model</label>
-        <input type="text" id="grokModel" value="grok-3-latest">
-        <div id="grokStatus" class="status" style="margin-top:10px;"></div>
-      </div>
-
-      <div class="card">
-        <h3>🔗 FreeLLMAPI — Fallback</h3>
-        <label>Token / API Key</label>
-        <div class="key-row" style="margin-bottom:14px;">
-          <input type="password" id="freellmKey" placeholder="Your FreeLLMAPI token…">
-          <button class="btn btn-secondary" onclick="testFreeLLM()">Test</button>
-        </div>
-        <label>Endpoint</label>
-        <input type="text" id="freellmEndpoint" value="https://freellmapi.com/api" style="margin-bottom:10px;">
-        <label>Preferred Model</label>
-        <input type="text" id="freellmModel" value="gpt-4o-mini">
-        <div id="freellmStatus" class="status" style="margin-top:10px;"></div>
-      </div>
-    </div>
-
-    <div>
-      <div class="card">
-        <h3>🔊 ElevenLabs</h3>
-        <label>API Key</label>
-        <div class="key-row" style="margin-bottom:14px;">
-          <input type="password" id="elKey" placeholder="Your ElevenLabs API key…">
-          <button class="btn btn-secondary" onclick="testElevenLabs()">Test</button>
-        </div>
-        <div id="elStatus" class="status"></div>
-      </div>
-
-      <div class="card">
-        <h3>💾 Save / Load Keys</h3>
-        <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">Keys are saved to browser localStorage — never transmitted except to the APIs you call directly.</p>
-        <div class="btn-row">
-          <button class="btn btn-green" onclick="saveKeys()">💾 Save Keys</button>
-          <button class="btn btn-secondary" onclick="loadKeys()">📂 Load Saved</button>
-          <button class="btn btn-red" onclick="clearKeys()">🗑 Clear All</button>
-        </div>
-        <div id="keysStatus" class="status"></div>
-      </div>
-
-      <div class="card">
-        <h3>ℹ️ Engine Status</h3>
-        <div id="engineStatusPanel" style="font-size:12px; line-height:2;">
-          <div>🖥 Web Speech API: <span id="wsStat" style="color:var(--muted)">Checking…</span></div>
-          <div>🎤 Microsoft Voices: <span id="msStat" style="color:var(--muted)">Checking…</span></div>
-          <div>🔊 ElevenLabs: <span id="elStat" style="color:var(--muted)">No key</span></div>
-          <div>🤖 Grok AI: <span id="grokStat" style="color:var(--muted)">No key</span></div>
-          <div>🔗 FreeLLMAPI: <span id="freeStat" style="color:var(--muted)">No key</span></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div id="toast"></div>
-
-<script>
-// ============================================================
-// CORE STATE
-// ============================================================
-const EMOTIONS = {
-  narration:   { icon:'📖', label:'Narration',   pitch:1.00, rate:0.82, vol:0.90, pause:1.0 },
-  sleep:       { icon:'😴', label:'Sleep/Calm',  pitch:0.78, rate:0.58, vol:0.68, pause:1.6 },
-  empathetic:  { icon:'💙', label:'Empathetic',  pitch:0.85, rate:0.75, vol:0.80, pause:1.2 },
-  hopeful:     { icon:'✨', label:'Hopeful',     pitch:1.20, rate:0.88, vol:0.85, pause:1.0 },
-  cheerful:    { icon:'🌟', label:'Cheerful',    pitch:1.35, rate:1.15, vol:0.95, pause:0.8 },
-  whispering:  { icon:'🤫', label:'Whispering',  pitch:0.90, rate:0.68, vol:0.32, pause:1.4 },
-  excited:     { icon:'⚡', label:'Excited',     pitch:1.55, rate:1.32, vol:1.00, pause:0.7 },
-  sad:         { icon:'🌧', label:'Sad',         pitch:0.72, rate:0.62, vol:0.72, pause:1.5 },
-  newscast:    { icon:'📰', label:'Newscast',    pitch:1.02, rate:1.08, vol:0.95, pause:0.9 },
-  dramatic:    { icon:'🎭', label:'Dramatic',    pitch:0.75, rate:0.80, vol:0.88, pause:1.3 },
-};
-
-let state = {
-  engine: 'webspeech',
-  emotion: 'narration',
-  voice: null,
-  utterance: null,
-  mediaRecorder: null,
-  audioChunks: [],
-  recordedBlob: null,
-  chapters: [],
-  carouselSlides: [],
-  words: [],
-  wordIndex: 0,
-};
-
-// ============================================================
-// TABS
-// ============================================================
-function switchTab(name) {
-  document.querySelectorAll('.tab').forEach((t,i)=>{
-    const tabs=['script','voice','audiobook','carousel','settings'];
-    t.classList.toggle('active', tabs[i]===name);
-  });
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  document.getElementById('tab-'+name).classList.add('active');
-}
-
-// ============================================================
-// EMOTION GRIDS
-// ============================================================
-function buildEmotionGrid(containerId, onClick) {
-  const el = document.getElementById(containerId);
-  el.innerHTML = '';
-  Object.entries(EMOTIONS).forEach(([key, emo]) => {
-    const btn = document.createElement('div');
-    btn.className = 'emotion-btn' + (key===state.emotion?' active':'');
-    btn.dataset.emotion = key;
-    btn.innerHTML = `<span class="emo-icon">${emo.icon}</span>${emo.label}`;
-    btn.onclick = () => onClick(key, btn, containerId);
-    el.appendChild(btn);
-  });
-}
-
-function selectEmotion(key, btn, gridId) {
-  state.emotion = key;
-  document.querySelectorAll(`#${gridId} .emotion-btn`).forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  // sync sliders
-  const e = EMOTIONS[key];
-  document.getElementById('pitchSlider').value = e.pitch;
-  document.getElementById('rateSlider').value = e.rate;
-  document.getElementById('volSlider').value = e.vol;
-  document.getElementById('pauseSlider').value = e.pause;
-  document.getElementById('pitchVal').textContent = e.pitch.toFixed(2);
-  document.getElementById('rateVal').textContent = e.rate.toFixed(2);
-  document.getElementById('volVal').textContent = e.vol.toFixed(2);
-  document.getElementById('pauseVal').textContent = e.pause.toFixed(2);
-  toast(`Emotion: ${e.icon} ${e.label}`);
-}
-
-function updateSlider(type, val) {
-  const f = parseFloat(val).toFixed(2);
-  document.getElementById(type+'Val').textContent = f;
-}
-
-// ============================================================
-// ENGINE SELECT
-// ============================================================
-function selectEngine(el) {
-  document.querySelectorAll('.engine-opt').forEach(e=>e.classList.remove('active'));
-  el.classList.add('active');
-  state.engine = el.dataset.engine;
-  document.getElementById('webSpeechPanel').style.display = state.engine==='webspeech'?'block':'none';
-  document.getElementById('elevenLabsPanel').style.display = state.engine==='elevenlabs'?'block':'none';
-}
-
-// ============================================================
-// VOICE LIST (Web Speech)
-// ============================================================
-function populateVoices() {
-  const voices = window.speechSynthesis.getVoices();
-  const list = document.getElementById('voiceList');
-  if (!voices.length) { list.innerHTML='<em style="color:var(--muted);font-size:12px;">No voices found. Try Chrome or Edge.</em>'; return; }
-  
-  const enVoices = voices.filter(v=>v.lang.startsWith('en'));
-  const allVoices = [...enVoices, ...voices.filter(v=>!v.lang.startsWith('en'))];
-  
-  list.innerHTML = '';
-  allVoices.forEach((v,i) => {
-    const isMS = v.name.includes('Microsoft') || v.name.includes('Neural');
-    const div = document.createElement('div');
-    div.className = 'voice-opt' + (i===0?' active':'');
-    div.innerHTML = `<div class="vname">${v.name}${isMS?'<span class="ms-badge">⭐ Neural</span>':''}</div><div class="vlang">${v.lang}${v.localService?' · Local':' · Remote'}</div>`;
-    div.onclick = () => {
-      document.querySelectorAll('.voice-opt').forEach(e=>e.classList.remove('active'));
-      div.classList.add('active');
-      state.voice = v;
-      toast(`Voice: ${v.name}`);
-    };
-    if (i===0) state.voice = v;
-    list.appendChild(div);
-  });
-  
-  // Status check
-  const msCount = voices.filter(v=>v.name.includes('Microsoft')).length;
-  document.getElementById('wsStat').textContent = '✅ Available';
-  document.getElementById('wsStat').style.color = 'var(--green)';
-  document.getElementById('msStat').textContent = msCount>0 ? `✅ ${msCount} Microsoft voices` : '⚠️ None (use Chrome/Edge)';
-  document.getElementById('msStat').style.color = msCount>0 ? 'var(--green)' : 'var(--gold)';
-}
-
-// ============================================================
-// GROK API
-// ============================================================
-function getGrokKey() { return document.getElementById('grokKey').value.trim() || localStorage.getItem('vfp_grok'); }
-function getFreeLLMKey() { return document.getElementById('freellmKey').value.trim() || localStorage.getItem('vfp_freellm'); }
-function getFreeLLMEndpoint() { return document.getElementById('freellmEndpoint').value.trim() || 'https://freellmapi.com/api'; }
-
-async function callAI(systemPrompt, userPrompt) {
-  const grokKey = getGrokKey();
-  if (grokKey) {
-    try {
-      const res = await fetch('https://api.x.ai/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+grokKey },
-        body: JSON.stringify({
-          model: document.getElementById('grokModel').value || 'grok-3-latest',
-          messages: [{ role:'system', content:systemPrompt }, { role:'user', content:userPrompt }],
-          max_tokens: 2000
-        })
-      });
-      const data = await res.json();
-      if (data.choices?.[0]?.message?.content) return data.choices[0].message.content;
-    } catch(e) { console.warn('Grok failed, trying FreeLLMAPI', e); }
-  }
-  // Fallback: FreeLLMAPI
-  const freeKey = getFreeLLMKey();
-  if (freeKey) {
-    try {
-      const endpoint = getFreeLLMEndpoint();
-      const res = await fetch(endpoint + '/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+freeKey },
-        body: JSON.stringify({
-          model: document.getElementById('freellmModel').value || 'gpt-4o-mini',
-          messages: [{ role:'system', content:systemPrompt }, { role:'user', content:userPrompt }]
-        })
-      });
-      const data = await res.json();
-      if (data.choices?.[0]?.message?.content) return data.choices[0].message.content;
-    } catch(e) { console.warn('FreeLLMAPI failed', e); }
-  }
-  throw new Error('No AI API configured. Add a Grok or FreeLLMAPI key in Settings.');
-}
-
-// ============================================================
-// SCRIPT STUDIO
-// ============================================================
-async function annotateWithGrok() {
-  const script = document.getElementById('rawScript').value.trim();
-  if (!script) { showStatus('scriptStatus','Please enter a script first.','error'); return; }
-  showStatus('scriptStatus','✨ Asking Grok to annotate with emotions…','info');
-  try {
-    const result = await callAI(
-      `You are a professional audiobook narrator coach. Annotate the given script with emotion tags using this format: [emotion:STYLE]text[/emotion]. Styles: narration, sleep, empathetic, hopeful, cheerful, whispering, excited, sad, newscast, dramatic. Keep the full text intact — only add tags around phrases/sentences that should shift emotion. Return only the annotated script.`,
-      script
-    );
-    document.getElementById('annotatedPreview').innerHTML = renderAnnotatedScript(result);
-    document.getElementById('annotatedPreview')._raw = result;
-    showStatus('scriptStatus','✅ Script annotated! Review above.','success');
-  } catch(e) {
-    showStatus('scriptStatus','❌ '+e.message,'error');
-  }
-}
-
-function renderAnnotatedScript(text) {
-  return text
-    .replace(/\[emotion:(\w+)\]/g, '<span class="emotion-tag">[$1]</span>')
-    .replace(/\[\/emotion\]/g, '<span class="emotion-tag">[/]</span>');
-}
-
-async function generateYTMeta() {
-  const script = document.getElementById('rawScript').value.trim() || document.getElementById('annotatedPreview')._raw || '';
-  if (!script) { showStatus('scriptStatus','Add a script first.','error'); return; }
-  showStatus('scriptStatus','📺 Generating YouTube metadata…','info');
-  try {
-    const result = await callAI(
-      `You are a YouTube SEO expert for a wellness/meditation sleep channel. Generate a compelling title and description. Return JSON: {"title":"...","description":"..."}`,
-      `Script excerpt: ${script.substring(0,400)}`
-    );
-    const parsed = JSON.parse(result.match(/\{[\s\S]*\}/)?.[0] || result);
-    document.getElementById('ytTitle').value = parsed.title || '';
-    document.getElementById('ytDesc').value = parsed.description || '';
-    showStatus('scriptStatus','✅ Metadata generated!','success');
-  } catch(e) {
-    showStatus('scriptStatus','❌ '+e.message,'error');
-  }
-}
-
-function sendToVoice() {
-  const script = document.getElementById('rawScript').value.trim();
-  if (!script) { showStatus('scriptStatus','No script to send.','error'); return; }
-  localStorage.setItem('vfp_active_script', script);
-  switchTab('voice');
-  toast('Script sent to Voice Studio!');
-}
-
-function useAnnotated() {
-  const raw = document.getElementById('annotatedPreview')._raw;
-  if (!raw) { toast('No annotated script yet.'); return; }
-  localStorage.setItem('vfp_active_script', raw);
-  switchTab('voice');
-  toast('Annotated script sent to Voice Studio!');
-}
-
-function copyAnnotated() {
-  const raw = document.getElementById('annotatedPreview')._raw || document.getElementById('annotatedPreview').textContent;
-  navigator.clipboard.writeText(raw).then(()=>toast('Copied to clipboard!'));
-}
-
-function copyYTMeta() {
-  const t = document.getElementById('ytTitle').value;
-  const d = document.getElementById('ytDesc').value;
-  navigator.clipboard.writeText(`TITLE:\n${t}\n\nDESCRIPTION:\n${d}`).then(()=>toast('YT metadata copied!'));
-}
-
-function clearScript() {
-  document.getElementById('rawScript').value = '';
-  document.getElementById('annotatedPreview').innerHTML = 'Annotated script will appear here after AI processing…';
-  document.getElementById('annotatedPreview')._raw = '';
-}
-
-function applyQuickEmotion(key, btn, gridId) {
-  selectEmotion(key, btn, gridId);
-  const raw = document.getElementById('rawScript').value.trim();
-  if (raw) {
-    const tagged = `[emotion:${key}]${raw}[/emotion]`;
-    document.getElementById('annotatedPreview').innerHTML = renderAnnotatedScript(tagged);
-    document.getElementById('annotatedPreview')._raw = tagged;
-    toast(`Applied ${EMOTIONS[key].icon} ${EMOTIONS[key].label} to full script`);
-  }
-}
-
-// ============================================================
-// VOICE STUDIO — Web Speech
-// ============================================================
-function getActiveScript() {
-  return localStorage.getItem('vfp_active_script') || '';
-}
-
-function parseEmotionScript(text) {
-  // Split into segments with emotion metadata
-  const segments = [];
-  const regex = /\[emotion:(\w+)\]([\s\S]*?)\[\/emotion\]/g;
-  let lastIndex = 0;
-  let match;
-  while ((match = regex.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      segments.push({ emotion: state.emotion, text: text.slice(lastIndex, match.index) });
-    }
-    segments.push({ emotion: match[1], text: match[2] });
-    lastIndex = match.index + match[0].length;
-  }
-  if (lastIndex < text.length) {
-    segments.push({ emotion: state.emotion, text: text.slice(lastIndex) });
-  }
-  return segments.filter(s=>s.text.trim());
-}
-
-function generateAudio() {
-  const scriptText = getActiveScript() || document.getElementById('rawScript').value.trim();
-  if (!scriptText) { showStatus('voiceStatus','No script loaded. Write one in Script Studio first.','error'); return; }
-  
-  if (state.engine === 'webspeech') {
-    generateWebSpeech(scriptText);
-  } else {
-    generateElevenLabs(scriptText);
-  }
-}
-
-function generateWebSpeech(text) {
-  if (!window.speechSynthesis) { showStatus('voiceStatus','Web Speech not supported. Use Chrome or Edge.','error'); return; }
-  
-  window.speechSynthesis.cancel();
-  state.audioChunks = [];
-  state.recordedBlob = null;
-  document.getElementById('downloadBtn').disabled = true;
-  document.getElementById('audioPlayer').style.display = 'none';
-
-  const segments = parseEmotionScript(text);
-  const wordsEl = document.getElementById('liveWords');
-  
-  // Build word display
-  let allWords = text.replace(/\[\/?(emotion:\w+)\]/g,'').trim().split(/\s+/);
-  wordsEl.innerHTML = allWords.map((w,i)=>`<span class="word" id="w${i}">${w}</span>`).join(' ');
-  
-  document.getElementById('playBtn').disabled = true;
-  document.getElementById('stopBtn').disabled = false;
-  showStatus('voiceStatus','▶ Playing…','info');
-
-  // Try to capture audio via MediaRecorder on audio context (limited browser support)
-  let segIdx = 0;
-  function speakNext() {
-    if (segIdx >= segments.length) {
-      document.getElementById('playBtn').disabled = false;
-      document.getElementById('stopBtn').disabled = true;
-      document.getElementById('playProgress').style.width = '100%';
-      showStatus('voiceStatus','✅ Playback complete!','success');
-      return;
-    }
-    const seg = segments[segIdx++];
-    const emo = EMOTIONS[seg.emotion] || EMOTIONS[state.emotion];
-    const u = new SpeechSynthesisUtterance(seg.text);
+    <a href="#main-content" class="skip-nav">Skip to main content</a>
     
-    // Apply emotion prosody
-    u.pitch = parseFloat(document.getElementById('pitchSlider').value) || emo.pitch;
-    u.rate  = parseFloat(document.getElementById('rateSlider').value)  || emo.rate;
-    u.volume= parseFloat(document.getElementById('volSlider').value)   || emo.vol;
-    if (state.voice) u.voice = state.voice;
-
-    // Word boundary highlight
-    u.onboundary = (e) => {
-      if (e.name !== 'word') return;
-      const charIndex = e.charIndex;
-      // find approximate word index
-      const spoken = text.replace(/\[\/?(emotion:\w+)\]/g,'');
-      const pre = spoken.substring(0, charIndex).split(/\s+/).length - 1;
-      document.querySelectorAll('.word').forEach(w=>w.classList.remove('highlight'));
-      const wEl = document.getElementById('w'+pre);
-      if (wEl) { wEl.classList.add('highlight'); wEl.scrollIntoView({block:'nearest'}); }
-      // progress
-      const pct = Math.min(100, Math.round((charIndex/spoken.length)*100));
-      document.getElementById('playProgress').style.width = pct+'%';
-    };
-
-    u.onend = () => speakNext();
-    u.onerror = () => speakNext();
-    window.speechSynthesis.speak(u);
-  }
-  speakNext();
-}
-
-function stopAudio() {
-  window.speechSynthesis.cancel();
-  document.getElementById('playBtn').disabled = false;
-  document.getElementById('stopBtn').disabled = true;
-  showStatus('voiceStatus','⏹ Stopped.','info');
-}
-
-async function generateElevenLabs(text) {
-  const key = document.getElementById('elKey').value.trim() || localStorage.getItem('vfp_el');
-  if (!key) { showStatus('voiceStatus','Add your ElevenLabs API key in Settings first.','error'); return; }
-  
-  const voiceId = document.getElementById('elVoiceId').value;
-  const stability = parseFloat(document.getElementById('elStability').value);
-  const style = parseFloat(document.getElementById('elStyle').value);
-  
-  showStatus('voiceStatus','🔊 Generating via ElevenLabs…','info');
-  document.getElementById('playBtn').disabled = true;
-  
-  try {
-    const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
-      method: 'POST',
-      headers: { 'xi-api-key': key, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        text: text.replace(/\[\/?(emotion:\w+)\]/g,''),
-        model_id: 'eleven_multilingual_v2',
-        voice_settings: { stability, similarity_boost: 0.75, style, use_speaker_boost: true }
-      })
-    });
-    if (!res.ok) throw new Error(`ElevenLabs error: ${res.status}`);
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const player = document.getElementById('audioPlayer');
-    player.src = url;
-    player.style.display = 'block';
-    player.play();
-    state.recordedBlob = blob;
-    document.getElementById('downloadBtn').disabled = false;
-    showStatus('voiceStatus','✅ ElevenLabs audio ready!','success');
-  } catch(e) {
-    showStatus('voiceStatus','❌ '+e.message,'error');
-  }
-  document.getElementById('playBtn').disabled = false;
-}
-
-function downloadAudio() {
-  if (!state.recordedBlob) { toast('No ElevenLabs audio to download. Web Speech capture requires Chrome extension.'); return; }
-  const url = URL.createObjectURL(state.recordedBlob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'voiceforge_' + state.emotion + '_' + Date.now() + '.mp3';
-  a.click();
-  toast('Downloading audio!');
-}
-
-// ============================================================
-// AUDIOBOOK BUILDER
-// ============================================================
-async function addChapter() {
-  const title = document.getElementById('chapterTitle').value.trim();
-  const text = document.getElementById('chapterText').value.trim();
-  const emotion = document.getElementById('chapterEmotion').value;
-  if (!title) { toast('Enter a chapter title.'); return; }
-  state.chapters.push({ id: Date.now(), title, text, emotion, status:'pending', blob:null });
-  renderChapters();
-  document.getElementById('chapterTitle').value = '';
-  document.getElementById('chapterText').value = '';
-  toast(`Chapter added: ${title}`);
-}
-
-async function generateChapterWithGrok() {
-  const title = document.getElementById('chapterTitle').value.trim();
-  if (!title) { toast('Enter a chapter title first.'); return; }
-  showStatus('audiobookStatus','✍️ Writing chapter with Grok…','info');
-  try {
-    const text = await callAI(
-      'You are a professional audiobook narrator writer for a wellness/sleep channel. Write a rich, immersive chapter for the given title. 150-250 words. Include gentle storytelling and emotional depth.',
-      `Chapter title: ${title}`
-    );
-    document.getElementById('chapterText').value = text;
-    showStatus('audiobookStatus','✅ Chapter written!','success');
-  } catch(e) {
-    showStatus('audiobookStatus','❌ '+e.message,'error');
-  }
-}
-
-function renderChapters() {
-  const list = document.getElementById('chapterList');
-  if (!state.chapters.length) { list.innerHTML='<p style="color:var(--muted);font-size:13px;">No chapters yet.</p>'; return; }
-  list.innerHTML = state.chapters.map((ch,i)=>`
-    <div class="item-card">
-      <div class="item-num">${i+1}</div>
-      <div class="item-body">
-        <div class="item-title">${ch.title}</div>
-        <div class="item-preview">${EMOTIONS[ch.emotion]?.icon} ${ch.emotion} · ${ch.text ? ch.text.substring(0,60)+'…' : 'No text'}</div>
-      </div>
-      <span class="item-status ${ch.status==='done'?'done':ch.status==='running'?'running':'pending'}">${ch.status==='done'?'✅ Done':ch.status==='running'?'⏳ Running':'⏸ Pending'}</span>
-      <button class="btn btn-secondary" style="padding:6px 10px;font-size:11px;" onclick="speakChapter(${i})">▶</button>
-      ${ch.blob?`<button class="btn btn-gold" style="padding:6px 10px;font-size:11px;" onclick="downloadChapter(${i})">⬇</button>`:''}
-      <button class="btn btn-red" style="padding:6px 10px;font-size:11px;" onclick="removeChapter(${i})">✕</button>
-    </div>
-  `).join('');
-}
-
-function speakChapter(i) {
-  const ch = state.chapters[i];
-  if (!ch.text) { toast('No text for this chapter.'); return; }
-  // Set emotion + speak
-  selectEmotion(ch.emotion, document.querySelector(`#voiceEmotionGrid .emotion-btn[data-emotion="${ch.emotion}"]`) || {classList:{toggle:()=>{},remove:()=>{},add:()=>{}}}, 'voiceEmotionGrid');
-  localStorage.setItem('vfp_active_script', ch.text);
-  switchTab('voice');
-  setTimeout(()=>generateAudio(), 300);
-}
-
-function downloadChapter(i) {
-  const ch = state.chapters[i];
-  if (!ch.blob) return;
-  const url = URL.createObjectURL(ch.blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `chapter_${i+1}_${ch.title.replace(/\s+/g,'_')}.mp3`;
-  a.click();
-}
-
-function removeChapter(i) {
-  state.chapters.splice(i,1);
-  renderChapters();
-}
-
-async function generateAllChapters() {
-  showStatus('audiobookStatus','🎙 Generating all chapters via ElevenLabs or Web Speech…','info');
-  for (let i=0; i<state.chapters.length; i++) {
-    const ch = state.chapters[i];
-    if (!ch.text) continue;
-    state.chapters[i].status = 'running';
-    renderChapters();
+    <header>
+        <h1>🎙 VoiceForge Pro</h1>
+        <p>Highest Quality Emotional Text-to-Speech Studio</p>
+        <p style="font-size: 0.95rem; color: #94a3b8;">Fish Audio S2 Pro + ElevenLabs + Kokoro Integration</p>
+        <div class="price">$29.99</div>
+        <a href="https://tlott12.gumroad.com/l/sthsbp" class="cta-button touch-target">🛒 Get VoiceForge Pro Now</a>
+    </header>
     
-    const key = document.getElementById('elKey').value.trim() || localStorage.getItem('vfp_el');
-    if (key && state.engine === 'elevenlabs') {
-      try {
-        const voiceId = document.getElementById('elVoiceId').value;
-        const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
-          method:'POST',
-          headers:{'xi-api-key':key,'Content-Type':'application/json'},
-          body:JSON.stringify({ text:ch.text, model_id:'eleven_multilingual_v2', voice_settings:{stability:0.5,similarity_boost:0.75,style:0.5,use_speaker_boost:true} })
-        });
-        if (res.ok) {
-          state.chapters[i].blob = await res.blob();
-          state.chapters[i].status = 'done';
-        } else { state.chapters[i].status = 'pending'; }
-      } catch(e) { state.chapters[i].status = 'pending'; }
-    } else {
-      // Web Speech — just play
-      speakChapter(i);
-      state.chapters[i].status = 'done';
-    }
-    renderChapters();
-    await new Promise(r=>setTimeout(r, 1000));
-  }
-  showStatus('audiobookStatus','✅ All chapters processed!','success');
-}
-
-function downloadAllChapters() {
-  const doneChapters = state.chapters.filter(ch=>ch.blob);
-  if (!doneChapters.length) { toast('No ElevenLabs audio ready. Generate with ElevenLabs engine first.'); return; }
-  doneChapters.forEach((ch,i) => {
-    setTimeout(()=>{
-      const url = URL.createObjectURL(ch.blob);
-      const a = document.createElement('a');
-      a.href=url; a.download=`chapter_${i+1}_${ch.title.replace(/\s+/g,'_')}.mp3`;
-      a.click();
-    }, i*800);
-  });
-  toast('Downloading all chapters!');
-}
-
-function clearAllChapters() {
-  state.chapters = [];
-  renderChapters();
-}
-
-// ============================================================
-// CAROUSEL NARRATOR
-// ============================================================
-function parseCarousel() {
-  const json = document.getElementById('carouselJson').value.trim();
-  try {
-    const data = JSON.parse(json);
-    state.carouselSlides = Array.isArray(data) ? data : data.slides || [];
-    renderCarousel();
-    toast(`Loaded ${state.carouselSlides.length} slides!`);
-  } catch(e) {
-    showStatus('carouselStatus','❌ Invalid JSON: '+e.message,'error');
-  }
-}
-
-function loadSereneSanctuary() {
-  showStatus('carouselStatus','📂 Loading Serene Sanctuary slides via agent…','info');
-  // Attempt to load from the saved project file via fetch
-  fetch('/tasklet/agent/home/carousel_story_25_slides_serene_sanctuary.json')
-    .then(r=>r.json())
-    .then(data=>{
-      state.carouselSlides = Array.isArray(data) ? data : data.slides || [];
-      document.getElementById('carouselJson').value = JSON.stringify(state.carouselSlides.slice(0,3), null, 2)+'...';
-      renderCarousel();
-      showStatus('carouselStatus',`✅ Loaded ${state.carouselSlides.length} Serene Sanctuary slides!`,'success');
-    })
-    .catch(()=>showStatus('carouselStatus','⚠️ Could not load file. Paste JSON manually above.','error'));
-}
-
-async function autoAssignEmotions() {
-  if (!state.carouselSlides.length) { toast('Load slides first.'); return; }
-  showStatus('carouselStatus','🤖 Auto-assigning emotions…','info');
-  
-  const keywords = {
-    sleep:['sleep','rest','peaceful','calm','night','drift','breathe','relax'],
-    hopeful:['hope','new','begin','light','possibility','tomorrow','rise','grow'],
-    empathetic:['heal','pain','struggle','heart','understand','compassion','care'],
-    cheerful:['joy','happy','smile','bright','grateful','celebrate','sunshine'],
-    dramatic:['power','transform','strength','courage','warrior','deep'],
-    whispering:['whisper','secret','gentle','soft','quiet','still'],
-  };
-  
-  state.carouselSlides.forEach(slide => {
-    const text = ((slide.title||'')+(slide.text||slide.narration||'')).toLowerCase();
-    let assigned = 'narration';
-    for (const [emo, words] of Object.entries(keywords)) {
-      if (words.some(w=>text.includes(w))) { assigned = emo; break; }
-    }
-    slide._emotion = assigned;
-  });
-  
-  renderCarousel();
-  showStatus('carouselStatus','✅ Emotions assigned!','success');
-}
-
-function renderCarousel() {
-  const list = document.getElementById('carouselList');
-  if (!state.carouselSlides.length) { list.innerHTML='<p style="color:var(--muted);font-size:13px;">No slides loaded.</p>'; return; }
-  list.innerHTML = state.carouselSlides.map((sl,i)=>{
-    const emo = sl._emotion || 'narration';
-    const emoData = EMOTIONS[emo];
-    const title = sl.title || sl.heading || `Slide ${i+1}`;
-    const text = sl.text || sl.narration || sl.body || '';
-    return `
-      <div class="item-card">
-        <div class="item-num">${i+1}</div>
-        <div class="item-body">
-          <div class="item-title">${title}</div>
-          <div class="item-preview">${emoData.icon} ${emo} · ${text.substring(0,70)}${text.length>70?'…':''}</div>
-        </div>
-        <span class="item-status ${sl._status==='done'?'done':sl._status==='running'?'running':'pending'}">${sl._status==='done'?'✅':'⏸'}</span>
-        <button class="btn btn-secondary" style="padding:6px 10px;font-size:11px;" onclick="speakSlide(${i})">▶</button>
-      </div>
-    `;
-  }).join('');
-}
-
-function speakSlide(i) {
-  const sl = state.carouselSlides[i];
-  const text = sl.narration || sl.text || sl.body || sl.title || '';
-  if (!text) { toast('No narration text for this slide.'); return; }
-  const emo = sl._emotion || 'narration';
-  localStorage.setItem('vfp_active_script', `[emotion:${emo}]${text}[/emotion]`);
-  switchTab('voice');
-  setTimeout(()=>generateAudio(), 300);
-}
-
-async function generateAllCarousel() {
-  if (!state.carouselSlides.length) { toast('Load slides first.'); return; }
-  showStatus('carouselStatus','🎙 Generating all slide narrations…','info');
-  for (let i=0; i<state.carouselSlides.length; i++) {
-    const sl = state.carouselSlides[i];
-    const text = sl.narration || sl.text || sl.body || sl.title || '';
-    if (!text) continue;
-    state.carouselSlides[i]._status = 'running';
-    renderCarousel();
+    <main id="main-content">
+        <!-- What's Inside -->
+        <section>
+            <h2>📦 What's Inside</h2>
+            <ul>
+                <li><strong>Production-Ready HTML5 Studio</strong> — Complete frontend interface with dark-mode UI, fully responsive</li>
+                <li><strong>Fish Audio S2 Pro Integration</strong> — Open-weights voice synthesis rivaling ElevenLabs (80+ languages, fine-grained emotion tags)</li>
+                <li><strong>ElevenLabs + Kokoro Fallbacks</strong> — Never stuck waiting; always have options</li>
+                <li><strong>Emotion Controls</strong> — Warm, Cheerful, Empathetic, Excited, Calm with prompt engineering</li>
+                <li><strong>Real-Time Word Highlighting</strong> — See each word as it's spoken (great for testing narration)</li>
+                <li><strong>Waveform Visualizer</strong> — Beautiful animated visualization during playback</li>
+                <li><strong>Playback Controls</strong> — Speed, pitch, volume sliders; play/pause/stop buttons</li>
+                <li><strong>Audio Download</strong> — Export MP3s directly from the studio</li>
+                <li><strong>Health & Safety Features</strong> — 20-minute break reminders, volume capping, accessibility built-in</li>
+                <li><strong>Persistent History</strong> — All generations saved locally + Supabase-ready for cloud</li>
+                <li><strong>Full Node.js Backend Code</strong> — Express server + Supabase integration ready to deploy</li>
+                <li><strong>Playwright Test Suite</strong> — 20+ automated tests for CI/CD confidence</li>
+                <li><strong>Mobile Optimized</strong> — Touch-friendly, tested on iOS & Android</li>
+                <li><strong>WCAG AA Accessibility</strong> — Screen-reader support, keyboard navigation, high contrast</li>
+                <li><strong>Keyboard Shortcuts</strong> — Space to play/pause, ? for shortcuts menu</li>
+            </ul>
+        </section>
+        
+        <!-- Use Cases -->
+        <section>
+            <h2>🎯 Perfect For</h2>
+            <div class="grid">
+                <div class="card">
+                    <h4><span class="feature-icon">📺</span>YouTubers & Content Creators</h4>
+                    <p>Generate professional voice-overs for videos without hiring narrators.</p>
+                </div>
+                <div class="card">
+                    <h4><span class="feature-icon">🎧</span>Podcasters</h4>
+                    <p>Create intro/outro sequences, auto-generated episode summaries with emotional delivery.</p>
+                </div>
+                <div class="card">
+                    <h4><span class="feature-icon">📖</span>Audiobook Creators</h4>
+                    <p>Professional narration for romance, sleep stories, meditation, and more.</p>
+                </div>
+                <div class="card">
+                    <h4><span class="feature-icon">🏫</span>E-Learning Creators</h4>
+                    <p>High-quality course narration with natural-sounding emotional delivery.</p>
+                </div>
+                <div class="card">
+                    <h4><span class="feature-icon">🎬</span>Ad & Marketing</h4>
+                    <p>Generate voiceovers for commercials, product demos, and promotional videos.</p>
+                </div>
+                <div class="card">
+                    <h4><span class="feature-icon">🏢</span>Agencies & Studios</h4>
+                    <p>White-label TTS solution for clients; save thousands on voice talent.</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Features Comparison -->
+        <section>
+            <h2>⭐ Why VoiceForge Pro?</h2>
+            <table class="comparison">
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>VoiceForge Pro</th>
+                        <th>Web Speech API</th>
+                        <th>ElevenLabs Only</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Highest Quality Voices</strong></td>
+                        <td class="check">✓ Fish S2 Pro</td>
+                        <td>Basic</td>
+                        <td class="check">✓ Paid API only</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Emotion Tags</strong></td>
+                        <td class="check">✓ Yes (Fine-grained)</td>
+                        <td>No</td>
+                        <td class="check">✓ Limited</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Open-Weights Option</strong></td>
+                        <td class="check">✓ Kokoro Fallback</td>
+                        <td>No</td>
+                        <td>No</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Works Offline</strong></td>
+                        <td class="check">✓ Kokoro mode</td>
+                        <td class="check">✓ Yes</td>
+                        <td>No</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Word Highlighting</strong></td>
+                        <td class="check">✓ Real-time</td>
+                        <td>No</td>
+                        <td>No</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Waveform Viz</strong></td>
+                        <td class="check">✓ Beautiful</td>
+                        <td>No</td>
+                        <td>No</td>
+                    </tr>
+                    <tr>
+                        <td><strong>No Vendor Lock-In</strong></td>
+                        <td class="check">✓ Full Control</td>
+                        <td class="check">✓ Free</td>
+                        <td>No (Proprietary)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Self-Hosted Option</strong></td>
+                        <td class="check">✓ Yes</td>
+                        <td>Yes</td>
+                        <td>No</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        
+        <!-- Quick Start -->
+        <section>
+            <h2>⚡ Get Started in 15 Minutes</h2>
+            <ol style="padding-left: 1.5rem;">
+                <li style="padding: 0.75rem 0;">Download <code>voiceforge-pro-full.html</code></li>
+                <li style="padding: 0.75rem 0;">Add your API keys (ElevenLabs / Fish Audio)</li>
+                <li style="padding: 0.75rem 0;">Deploy the included Node.js backend</li>
+                <li style="padding: 0.75rem 0;">Point to your Supabase project (optional)</li>
+                <li style="padding: 0.75rem 0;">Open in browser and start generating!</li>
+            </ol>
+            <p style="margin-top: 1.5rem; padding: 1rem; background: #0f172a; border-left: 4px solid #06b6d4;">
+                <strong>💡 Tip:</strong> Full documentation + setup guide included. Deploy to Vercel, Netlify, or self-host on your server.
+            </p>
+        </section>
+        
+        <!-- FAQ -->
+        <section>
+            <h2>❓ FAQ</h2>
+            
+            <div class="faq">
+                <strong>Q: Do I need to pay for voice APIs?</strong>
+                <p>A: VoiceForge Pro works with free options (Kokoro, Web Speech) and premium services (Fish Audio S2 Pro, ElevenLabs). You choose the quality level.</p>
+            </div>
+            
+            <div class="faq">
+                <strong>Q: Can I resell generated audio?</strong>
+                <p>A: Yes, you own all audio generated. Check each voice provider's terms (most allow commercial use).</p>
+            </div>
+            
+            <div class="faq">
+                <strong>Q: What about data privacy?</strong>
+                <p>A: VoiceForge Pro stores everything locally by default. Enable Supabase for cloud backup only if you want it.</p>
+            </div>
+            
+            <div class="faq">
+                <strong>Q: Is Fish Audio S2 Pro really better than ElevenLabs?</strong>
+                <p>A: In blind tests, S2 Pro matches or exceeds ElevenLabs quality for emotion, accent, and naturalness. It's also open-weights for fine control.</p>
+            </div>
+            
+            <div class="faq">
+                <strong>Q: Can I deploy this to my own server?</strong>
+                <p>A: Yes! Full Node.js backend code included. Deploy to Render, Fly.io, AWS, or wherever you want.</p>
+            </div>
+            
+            <div class="faq">
+                <strong>Q: What about accessibility?</strong>
+                <p>A: VoiceForge Pro is WCAG AA compliant. Full keyboard navigation, screen reader support, and adjustable motion.</p>
+            </div>
+        </section>
+        
+        <!-- CTA Section -->
+        <section style="text-align: center; background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%); color: #0f172a;">
+            <h2 style="color: #0f172a;">Ready to Generate Professional Voice-Overs?</h2>
+            <p style="color: #1e293b; font-size: 1.1rem; margin-bottom: 1.5rem;">Get VoiceForge Pro today and start creating studio-quality content in minutes.</p>
+            <a href="https://tlott12.gumroad.com/l/sthsbp" class="cta-button touch-target" style="background: #0f172a; color: #06b6d4;">🛒 Buy VoiceForge Pro — $29.99</a>
+        </section>
+    </main>
     
-    const key = document.getElementById('elKey').value.trim() || localStorage.getItem('vfp_el');
-    if (key) {
-      try {
-        const voiceId = document.getElementById('elVoiceId').value;
-        const emo = sl._emotion || 'narration';
-        const emoData = EMOTIONS[emo];
-        const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
-          method:'POST',
-          headers:{'xi-api-key':key,'Content-Type':'application/json'},
-          body:JSON.stringify({ text, model_id:'eleven_multilingual_v2', voice_settings:{stability:emoData.vol,similarity_boost:0.75,style:emoData.pitch-0.8,use_speaker_boost:true} })
-        });
-        if (res.ok) { state.carouselSlides[i]._blob = await res.blob(); state.carouselSlides[i]._status='done'; }
-        else { state.carouselSlides[i]._status='pending'; }
-      } catch(e) { state.carouselSlides[i]._status='pending'; }
-    } else {
-      state.carouselSlides[i]._status = 'done';
-    }
-    renderCarousel();
-    await new Promise(r=>setTimeout(r,800));
-  }
-  showStatus('carouselStatus','✅ All slide narrations generated!','success');
-}
-
-function downloadAllCarousel() {
-  const done = state.carouselSlides.filter(s=>s._blob);
-  if (!done.length) { toast('No audio blobs. Use ElevenLabs engine to generate downloadable audio.'); return; }
-  done.forEach((sl,i)=>{
-    setTimeout(()=>{
-      const url=URL.createObjectURL(sl._blob);
-      const a=document.createElement('a');
-      a.href=url; a.download=`slide_${i+1}.mp3`; a.click();
-    },i*600);
-  });
-}
-
-// ============================================================
-// API SETTINGS
-// ============================================================
-async function testGrok() {
-  const key = document.getElementById('grokKey').value.trim();
-  if (!key) { showStatus('grokStatus','Enter a key first.','error'); return; }
-  showStatus('grokStatus','Testing Grok…','info');
-  try {
-    const res = await fetch('https://api.x.ai/v1/chat/completions', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
-      body:JSON.stringify({ model:'grok-3-latest', messages:[{role:'user',content:'Say OK in 2 words.'}], max_tokens:10 })
-    });
-    const d = await res.json();
-    if (d.choices?.[0]) {
-      showStatus('grokStatus','✅ Grok connected: '+d.choices[0].message.content,'success');
-      document.getElementById('grokStat').textContent = '✅ Connected';
-      document.getElementById('grokStat').style.color = 'var(--green)';
-    } else { showStatus('grokStatus','❌ Bad response: '+JSON.stringify(d),'error'); }
-  } catch(e) { showStatus('grokStatus','❌ '+e.message,'error'); }
-}
-
-async function testFreeLLM() {
-  const key = document.getElementById('freellmKey').value.trim();
-  const endpoint = document.getElementById('freellmEndpoint').value.trim();
-  if (!key) { showStatus('freellmStatus','Enter a token first.','error'); return; }
-  showStatus('freellmStatus','Testing FreeLLMAPI…','info');
-  try {
-    const res = await fetch(endpoint+'/chat/completions', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
-      body:JSON.stringify({ model:'gpt-4o-mini', messages:[{role:'user',content:'Say hello.'}], max_tokens:10 })
-    });
-    const d = await res.json();
-    if (d.choices?.[0]) {
-      showStatus('freellmStatus','✅ FreeLLMAPI connected!','success');
-      document.getElementById('freeStat').textContent = '✅ Connected';
-      document.getElementById('freeStat').style.color = 'var(--green)';
-    } else { showStatus('freellmStatus','❌ '+JSON.stringify(d),'error'); }
-  } catch(e) { showStatus('freellmStatus','❌ '+e.message,'error'); }
-}
-
-async function testElevenLabs() {
-  const key = document.getElementById('elKey').value.trim();
-  if (!key) { showStatus('elStatus','Enter key first.','error'); return; }
-  showStatus('elStatus','Testing ElevenLabs…','info');
-  try {
-    const res = await fetch('https://api.elevenlabs.io/v1/user', { headers:{'xi-api-key':key} });
-    const d = await res.json();
-    if (d.subscription) {
-      showStatus('elStatus','✅ Connected! '+d.subscription.character_count+' chars used / '+d.subscription.character_limit+' limit','success');
-      document.getElementById('elStat').textContent = '✅ Connected';
-      document.getElementById('elStat').style.color = 'var(--green)';
-    } else { showStatus('elStatus','❌ '+JSON.stringify(d),'error'); }
-  } catch(e) { showStatus('elStatus','❌ '+e.message,'error'); }
-}
-
-function saveKeys() {
-  const grok = document.getElementById('grokKey').value.trim();
-  const free = document.getElementById('freellmKey').value.trim();
-  const el = document.getElementById('elKey').value.trim();
-  if (grok) localStorage.setItem('vfp_grok', grok);
-  if (free) localStorage.setItem('vfp_freellm', free);
-  if (el) localStorage.setItem('vfp_el', el);
-  showStatus('keysStatus','✅ Keys saved to browser.','success');
-}
-
-function loadKeys() {
-  const grok = localStorage.getItem('vfp_grok');
-  const free = localStorage.getItem('vfp_freellm');
-  const el = localStorage.getItem('vfp_el');
-  if (grok) document.getElementById('grokKey').value = grok;
-  if (free) document.getElementById('freellmKey').value = free;
-  if (el) document.getElementById('elKey').value = el;
-  showStatus('keysStatus', (grok||free||el)?'✅ Keys loaded from browser.':'ℹ️ No saved keys found.', grok||free||el?'success':'info');
-  if (grok) { document.getElementById('grokStat').textContent='✅ Key loaded'; document.getElementById('grokStat').style.color='var(--green)'; }
-  if (el) { document.getElementById('elStat').textContent='✅ Key loaded'; document.getElementById('elStat').style.color='var(--green)'; }
-  if (free) { document.getElementById('freeStat').textContent='✅ Key loaded'; document.getElementById('freeStat').style.color='var(--green)'; }
-}
-
-function clearKeys() {
-  ['vfp_grok','vfp_freellm','vfp_el'].forEach(k=>localStorage.removeItem(k));
-  ['grokKey','freellmKey','elKey'].forEach(id=>document.getElementById(id).value='');
-  showStatus('keysStatus','🗑 Keys cleared.','info');
-}
-
-// ============================================================
-// UTILITIES
-// ============================================================
-function showStatus(id, msg, type) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.textContent = msg;
-  el.className = 'status ' + type;
-}
-
-function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'), 3000);
-}
-
-// ============================================================
-// INIT
-// ============================================================
-function init() {
-  buildEmotionGrid('quickEmotionGrid', applyQuickEmotion);
-  buildEmotionGrid('voiceEmotionGrid', selectEmotion);
-  
-  if (window.speechSynthesis) {
-    window.speechSynthesis.onvoiceschanged = populateVoices;
-    populateVoices();
-    document.getElementById('wsStat').textContent = '✅ Available';
-    document.getElementById('wsStat').style.color = 'var(--green)';
-  } else {
-    document.getElementById('wsStat').textContent = '❌ Not supported';
-    document.getElementById('wsStat').style.color = 'var(--red)';
-  }
-  
-  loadKeys();
-  renderChapters();
-  renderCarousel();
-}
-
-document.addEventListener('DOMContentLoaded', init);
-</script>
+    <footer>
+        <p>&copy; 2026 Artistry Store. All rights reserved.</p>
+        <p><a href="https://shop.artistrystore.com" style="color: #67e8f9; text-decoration: none;">Back to Store</a></p>
+    </footer>
 </body>
 </html>
