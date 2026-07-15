@@ -47,3 +47,11 @@ Move or mirror only after individual product, source, rights, cover, delivery, a
 - GitHub Pages: https://tinglott.github.io/artisy-store/sacred-cycles-b2b.html
 - Consumer front door: https://shop.artistrystore.com/store.html
 - Intended B2B custom domain: https://sacredcycles.sbs/ (not yet verified as the B2B page)
+
+## Business Studio separation (July 15, 2026)
+
+- Business directory: `https://tinglott.github.io/artisy-store/business/`
+- Consumer store remains: `https://shop.artistrystore.com/store.html`
+- Business-only storefront blocks are retained in the repository but hidden from the family-facing page for reversibility.
+- The family-facing page has one explicit doorway to Business Studio; Business Studio links back to the family-facing store.
+- This is a GitHub Pages project microsite under the verified Pages subdomain; no new domain or paid service was added.
