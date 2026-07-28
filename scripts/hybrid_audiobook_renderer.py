@@ -11,7 +11,9 @@ from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).parent))
-import produce_verified_audiobooks as booklib
+# The protected manuscript adapter is loaded only for production runs. This keeps
+# the public CI self-test independent of private source files.
+booklib = None
 
 DEFAULT_ROOT = Path(os.environ.get("AUDIOBOOK_HYBRID_ROOT", "/tasklet/agent/home/audiobooks/hybrid"))
 EDGE_VOICE = os.environ.get("EDGE_VOICE", "en-US-AvaMultilingualNeural")
@@ -126,12 +128,19 @@ def split_text(text: str, n=8500):
 
 
 def main():
-    ap=argparse.ArgumentParser(); ap.add_argument("slug", choices=[x[0] for x in booklib.BOOKS]); ap.add_argument("--start",type=int,default=0); ap.add_argument("--root",type=Path,default=DEFAULT_ROOT); ap.add_argument("--providers",default="kokoro,edge,piper", help="Ordered providers; add espeak explicitly only for diagnostic use"); ap.add_argument("--max-tracks",type=int,default=0); ap.add_argument("--self-test",action="store_true")
+    ap=argparse.ArgumentParser(); ap.add_argument("slug"); ap.add_argument("--start",type=int,default=0); ap.add_argument("--root",type=Path,default=DEFAULT_ROOT); ap.add_argument("--providers",default="kokoro,edge,piper", help="Ordered providers; add espeak explicitly only for diagnostic use"); ap.add_argument("--max-tracks",type=int,default=0); ap.add_argument("--self-test",action="store_true")
     a=ap.parse_args(); available=discover(); order=[x for x in a.providers.split(",") if x in available]
     if not order: raise SystemExit("No usable TTS providers detected. Install Kokoro or configure a fallback provider.")
     print(json.dumps({"event":"hybrid_start","slug":a.slug,"available":available,"order":order,"root":str(a.root)}),flush=True)
     if a.self_test:
         h=Hybrid(a.root/"self_test",order); out=h.work/"self_test.mp3"; out.parent.mkdir(parents=True,exist_ok=True); p=h.render("This is a short audiobook rendering test.",out,"self-test"); print(json.dumps({"status":"ok","provider":p,"file":str(out),"sha256":sha256(out)})); return
+    global booklib
+    if booklib is None:
+        try:
+            import produce_verified_audiobooks as booklib_module
+            booklib = booklib_module
+        except Exception as exc:
+            raise SystemExit(f"Protected manuscript adapter unavailable: {exc}")
     row=next(x for x in booklib.BOOKS if x[0]==a.slug); slug,source,title,kind=row
     sourcep=Path(source); paragraphs=booklib.paras(sourcep); tracks=booklib.stop_tracks(paragraphs) if kind=="stop" else booklib.stay_tracks(paragraphs)
     bookdir=a.root/slug; bookdir.mkdir(parents=True,exist_ok=True); h=Hybrid(bookdir,order)
