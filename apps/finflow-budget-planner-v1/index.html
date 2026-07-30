@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A private, offline-first budget and cash-flow planner that stores data in your browser.">
+  <title>FinFlow Budget &amp; Cash-Flow Planner</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <header class="site-header">
+    <div><p class="eyebrow">PRIVATE, BROWSER-ONLY ORGANIZATION</p><h1>FinFlow <span>Budget &amp; Cash-Flow Planner</span></h1></div>
+    <div class="header-actions"><button class="button button-quiet" id="privacyButton" type="button">Privacy &amp; limits</button><button class="button button-quiet" id="backupButton" type="button">Backup &amp; restore</button></div>
+  </header>
+  <div id="status" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+  <noscript><p class="noscript">FinFlow needs JavaScript enabled to store and calculate your entries locally.</p></noscript>
+  <main id="main-content" class="page-shell">
+    <section class="notice" aria-labelledby="notice-title"><div aria-hidden="true">●</div><div><h2 id="notice-title">Your information stays on this device</h2><p>FinFlow stores entries only in this browser’s local storage. It does not connect to banks, request credentials, or send information anywhere. Export a backup yourself if you want a copy.</p></div></section>
+    <nav class="tabs" aria-label="Planner sections" role="tablist">
+      <button class="tab is-active" role="tab" aria-selected="true" aria-controls="dashboard" id="tab-dashboard" data-view="dashboard">Dashboard</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="transactions" id="tab-transactions" data-view="transactions">Transactions</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="budgets" id="tab-budgets" data-view="budgets">Budgets</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="goals" id="tab-goals" data-view="goals">Savings goals</button>
+    </nav>
+
+    <section id="dashboard" class="view" role="tabpanel" aria-labelledby="tab-dashboard">
+      <div class="view-heading"><div><p class="eyebrow">MONTHLY OVERVIEW</p><h2 id="monthHeading">This month</h2></div><label class="month-picker">Month <input id="monthPicker" type="month" aria-label="Choose month for dashboard"></label></div>
+      <div class="summary-grid" aria-label="Monthly totals">
+        <article class="metric income"><p>Income recorded</p><strong id="incomeTotal">$0.00</strong><span id="incomeHint">for this month</span></article>
+        <article class="metric expense"><p>Expenses recorded</p><strong id="expenseTotal">$0.00</strong><span id="expenseHint">for this month</span></article>
+        <article class="metric balance"><p>Cash flow</p><strong id="cashFlowTotal">$0.00</strong><span>income minus expenses</span></article>
+        <article class="metric budget"><p>Remaining budget</p><strong id="remainingBudget">Not set</strong><span id="budgetHint">add category budgets to track it</span></article>
+      </div>
+      <div class="two-column">
+        <section class="panel" aria-labelledby="recent-title"><div class="panel-heading"><div><h3 id="recent-title">Recent transactions</h3><p>Your latest manually entered activity.</p></div><button class="text-button" data-go-to="transactions" type="button">View all</button></div><div id="recentTransactions" class="list-region"></div></section>
+        <section class="panel" aria-labelledby="goal-snapshot-title"><div class="panel-heading"><div><h3 id="goal-snapshot-title">Savings goals</h3><p>Track progress from your own contributions.</p></div><button class="text-button" data-go-to="goals" type="button">Manage</button></div><div id="goalSnapshot" class="list-region"></div></section>
+      </div>
+    </section>
+
+    <section id="transactions" class="view" role="tabpanel" aria-labelledby="tab-transactions" hidden>
+      <div class="view-heading"><div><p class="eyebrow">MANUAL CASH-FLOW LOG</p><h2>Transactions</h2></div><button class="button button-primary" id="showTransactionForm" type="button">Add transaction</button></div>
+      <div class="panel controls"><label>Search <input id="transactionSearch" type="search" placeholder="Description or category"></label><label>Type <select id="transactionType"><option value="all">All types</option><option value="income">Income</option><option value="expense">Expense</option></select></label><div><p class="field-label">CSV</p><button class="button button-secondary" id="csvImportButton" type="button">Import CSV</button><button class="button button-quiet" id="csvExportButton" type="button">Export CSV</button></div></div>
+      <section class="panel table-panel" aria-labelledby="transaction-list-title"><div class="panel-heading"><div><h3 id="transaction-list-title">All transactions</h3><p id="transactionCount">0 entries</p></div></div><div class="table-wrap"><table><thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th class="number">Amount</th><th><span class="sr-only">Actions</span></th></tr></thead><tbody id="transactionTable"></tbody></table></div><div id="transactionEmpty" class="empty-state" hidden><p aria-hidden="true">◎</p><h3>No transactions yet</h3><p>Add income and expenses manually to see your cash flow here.</p><button class="button button-primary" data-open-transaction type="button">Add first transaction</button></div></section>
+      <section class="help-card"><h3>CSV import format</h3><p>Use a UTF-8 CSV with these headers in any order: <code>date, description, amount, category, type</code>. Type must be <code>income</code> or <code>expense</code>; amount must be a positive number. The first row is treated as headers. <button id="downloadTemplate" class="text-button" type="button">Download template CSV</button></p></section>
+    </section>
+
+    <section id="budgets" class="view" role="tabpanel" aria-labelledby="tab-budgets" hidden>
+      <div class="view-heading"><div><p class="eyebrow">SPENDING PLAN</p><h2>Monthly budgets</h2></div><label class="month-picker">Month <input id="budgetMonthPicker" type="month" aria-label="Choose month for budgets"></label></div>
+      <section class="panel"><div class="panel-heading"><div><h3>Budget by expense category</h3><p>Set an optional spending limit for each category. Income categories are not shown here.</p></div><button class="button button-secondary" id="showCategoryForm" type="button">Manage categories</button></div><div id="budgetRows" class="budget-rows"></div><div id="budgetEmpty" class="empty-state" hidden><p aria-hidden="true">◎</p><h3>No expense categories</h3><p>Create a category to set your first monthly budget.</p><button class="button button-primary" data-open-category type="button">Manage categories</button></div></section>
+    </section>
+
+    <section id="goals" class="view" role="tabpanel" aria-labelledby="tab-goals" hidden>
+      <div class="view-heading"><div><p class="eyebrow">INTENTIONAL SAVING</p><h2>Savings goals</h2></div><button class="button button-primary" id="showGoalForm" type="button">Add savings goal</button></div><div id="goalsGrid" class="goals-grid"></div><div id="goalsEmpty" class="empty-state panel" hidden><p aria-hidden="true">◎</p><h3>No savings goals yet</h3><p>Create a goal and record contributions as you go.</p><button class="button button-primary" data-open-goal type="button">Create a goal</button></div>
+    </section>
+  </main>
+
+  <footer><p><strong>FinFlow is an organizational tool, not financial advice.</strong> It never requests or uses bank credentials. Calculations are based only on the information you enter and may be incomplete or inaccurate.</p></footer>
+  <dialog id="transactionDialog"><form id="transactionForm" method="dialog"><div class="dialog-heading"><h2 id="transactionDialogTitle">Add transaction</h2><button class="icon-button" type="button" data-close-dialog="transactionDialog" aria-label="Close transaction form">×</button></div><input id="transactionId" type="hidden"><div class="form-grid"><label>Date <input id="transactionDate" required type="date"></label><label>Type <select id="entryType" required><option value="expense">Expense</option><option value="income">Income</option></select></label><label class="wide">Description <input id="transactionDescription" required maxlength="120" placeholder="e.g., Grocery shopping"></label><label>Amount <input id="transactionAmount" required type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00"></label><label>Category <select id="transactionCategory" required></select></label></div><p class="form-note">Amounts are entered as positive numbers. The type determines whether it is income or an expense.</p><div class="dialog-actions"><button class="button button-quiet" type="button" data-close-dialog="transactionDialog">Cancel</button><button class="button button-primary" type="submit">Save transaction</button></div></form></dialog>
+  <dialog id="categoryDialog"><form id="categoryForm" method="dialog"><div class="dialog-heading"><h2>Manage categories</h2><button class="icon-button" type="button" data-close-dialog="categoryDialog" aria-label="Close category manager">×</button></div><p class="form-note">Categories organize your own entries. Categories with transactions cannot be deleted.</p><div class="add-category"><label>New category <input id="newCategoryName" maxlength="40" placeholder="e.g., Utilities"></label><label>Category type <select id="newCategoryType"><option value="expense">Expense</option><option value="income">Income</option></select></label><button class="button button-primary" type="submit">Add category</button></div><div id="categoryList" class="category-list" aria-live="polite"></div><div class="dialog-actions"><button class="button button-quiet" type="button" data-close-dialog="categoryDialog">Done</button></div></form></dialog>
+  <dialog id="goalDialog"><form id="goalForm" method="dialog"><div class="dialog-heading"><h2 id="goalDialogTitle">Add savings goal</h2><button class="icon-button" type="button" data-close-dialog="goalDialog" aria-label="Close savings goal form">×</button></div><input id="goalId" type="hidden"><div class="form-grid"><label class="wide">Goal name <input id="goalName" required maxlength="80" placeholder="e.g., Emergency fund"></label><label>Target amount <input id="goalTarget" required type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00"></label><label>Current saved <input id="goalCurrent" required type="number" min="0" step="0.01" inputmode="decimal" value="0.00"></label></div><div class="dialog-actions"><button class="button button-quiet" type="button" data-close-dialog="goalDialog">Cancel</button><button class="button button-primary" type="submit">Save goal</button></div></form></dialog>
+  <dialog id="backupDialog"><div class="dialog-heading"><h2>Backup &amp; restore</h2><button class="icon-button" type="button" data-close-dialog="backupDialog" aria-label="Close backup and restore panel">×</button></div><div class="backup-actions"><section><h3>Export a complete backup</h3><p>Download your FinFlow data as a JSON file. Keep it somewhere secure; FinFlow cannot recover a lost backup.</p><button class="button button-primary" id="jsonExportButton" type="button">Download JSON backup</button></section><section><h3>Restore a JSON backup</h3><p>Choose a backup exported by FinFlow. Restoring replaces all current FinFlow data in this browser after confirmation.</p><label class="button button-secondary" for="jsonImportInput">Choose JSON backup</label><input id="jsonImportInput" type="file" accept="application/json,.json" hidden></section><section><h3>Clear all data</h3><p>This permanently removes FinFlow data from this browser only. It cannot be undone without a backup.</p><button class="button button-danger" id="resetButton" type="button">Clear all browser data</button></section></div></dialog>
+  <dialog id="privacyDialog"><div class="dialog-heading"><h2>Privacy, storage &amp; limits</h2><button class="icon-button" type="button" data-close-dialog="privacyDialog" aria-label="Close privacy notice">×</button></div><div class="prose"><p><strong>FinFlow is offline-first:</strong> it runs from these files and does not make network requests. Your entries are saved in this browser using <code>localStorage</code>, under the key <code>finflowBudgetPlannerV1</code>.</p><p><strong>Limits:</strong> browser storage can be erased when you clear browser/site data, use private browsing, switch browsers/devices, or if storage is unavailable. It does not sync, encrypt, or automatically back up your data. Export JSON backups regularly and keep them securely.</p><p><strong>No financial accounts:</strong> FinFlow has no bank connection, no Plaid integration, no bank branding, and no account login or credential collection. It is an organizational tool—not financial, tax, legal, investment, or credit advice.</p></div><div class="dialog-actions"><button class="button button-primary" type="button" data-close-dialog="privacyDialog">I understand</button></div></dialog>
+  <input id="csvImportInput" type="file" accept="text/csv,.csv" hidden>
+  <script src="app.js"></script>
+</body>
+</html>
