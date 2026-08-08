@@ -1,1432 +1,572 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Book Nook — Ting Lott's Digital Library</title>
-<style>
-  :root {
-    --bg: #faf7f2;
-    --card-bg: #ffffff;
-    --accent: #b5834d;
-    --accent-dark: #8a6238;
-    --text: #2b2320;
-    --muted: #6b5f56;
-    --border: #e8ddd0;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: 'Georgia', 'Segoe UI', serif;
-    background: var(--bg);
-    color: var(--text);
-  }
-  header.hero {
-    text-align: center;
-    padding: 48px 20px 28px;
-    background: linear-gradient(135deg, #f3e7d8, #faf7f2);
-    border-bottom: 1px solid var(--border);
-  }
-  header.hero h1 {
-    font-size: 2.6rem;
-    margin: 0 0 8px;
-    color: var(--accent-dark);
-  }
-  header.hero p {
-    color: var(--muted);
-    font-size: 1.05rem;
-    max-width: 640px;
-    margin: 0 auto;
-  }
-  .perks-bar {
-    display: flex;
-    justify-content: center;
-    gap: 28px;
-    flex-wrap: wrap;
-    padding: 16px 20px;
-    background: #fff;
-    border-bottom: 1px solid var(--border);
-    font-size: 0.95rem;
-    color: var(--muted);
-  }
-  .filter-bar {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    padding: 20px;
-  }
-  .filter-btn {
-    border: 1px solid var(--accent);
-    background: transparent;
-    color: var(--accent-dark);
-    padding: 8px 18px;
-    border-radius: 999px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  .filter-btn:hover, .filter-btn.active {
-    background: var(--accent);
-    color: #fff;
-  }
-  section {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px 24px 40px;
-  }
-  section h2 {
-    font-size: 1.6rem;
-    color: var(--accent-dark);
-    border-bottom: 2px solid var(--accent);
-    display: inline-block;
-    padding-bottom: 6px;
-    margin-bottom: 20px;
-  }
-  .book-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 22px;
-  }
-  .book-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-  }
-  .book-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-  }
-  .cover-wrap {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 2/3;
-    background: #eee;
-  }
-  .cover-wrap img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-  .cover-fallback {
-    position: absolute;
-    inset: 0;
-    align-items: center;
-    justify-content: center;
-    font-size: 3.5rem;
-    font-weight: bold;
-    color: #fff;
-    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
-  }
-  .book-info {
-    padding: 14px 14px 16px;
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-  }
-  .book-title {
-    font-size: 1.02rem;
-    margin: 0 0 4px;
-    line-height: 1.3;
-    color: var(--text);
-  }
-  .book-genre {
-    font-size: 0.82rem;
-    color: var(--muted);
-    margin: 0 0 8px;
-  }
-  .badge {
-    font-size: 0.75rem;
-    color: var(--accent-dark);
-    background: #f6ead9;
-    border-radius: 6px;
-    padding: 4px 8px;
-    display: inline-block;
-    margin-bottom: 12px;
-    width: fit-content;
-  }
-  .book-footer {
-    margin-top: auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-  }
-  .price {
-    font-weight: bold;
-    color: var(--accent-dark);
-  }
-  .buy-btn {
-    background: var(--accent);
-    color: #fff !important;
-    text-decoration: none;
-    padding: 8px 14px;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    white-space: nowrap;
-  }
-  .buy-btn:hover { background: var(--accent-dark); }
-  .buy-btn.coming-soon {
-    background: #ccc;
-    color: #555 !important;
-    cursor: default;
-  }
-  .hidden { display: none !important; }
-  footer {
-    text-align: center;
-    padding: 24px;
-    color: var(--muted);
-    font-size: 0.85rem;
-    border-top: 1px solid var(--border);
-  }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="The Book Nook: digital books and audiobooks to uplift, heal, and transform your life.">
+  <title>The Book Nook | Digital Books & Audiobooks</title>
+  <style>
+    :root { --navy:#071c2a; --navy2:#0d2d3d; --teal:#1c8e8a; --mint:#b9ebe1; --cream:#f5f1e8; --ink:#11212a; --muted:#62717a; --gold:#f2c66d; }
+    * { box-sizing:border-box; } body { margin:0; background:var(--cream); color:var(--ink); font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; line-height:1.45; }
+    .hero { background:radial-gradient(circle at 18% 0%,#17696b 0,transparent 35%),linear-gradient(135deg,var(--navy),var(--navy2)); color:white; padding:4rem 1.25rem 2.25rem; text-align:center; }
+    .eyebrow { color:var(--gold); font-weight:750; letter-spacing:.09em; text-transform:uppercase; font-size:.76rem; margin:0 0 .6rem; }
+    h1 { font-family:Georgia,serif; font-size:clamp(2.3rem,6vw,4.4rem); margin:0; line-height:1.05; } .subtitle { max-width:43rem; margin:1rem auto 1.7rem; color:#d7eeee; font-size:clamp(1rem,2.2vw,1.18rem); }
+    .filters { display:flex; flex-wrap:wrap; justify-content:center; gap:.55rem; } .filter-btn { appearance:none; border:1px solid #6db5b2; border-radius:999px; background:transparent; color:white; cursor:pointer; padding:.56rem .9rem; font:inherit; font-size:.9rem; transition:.2s ease; } .filter-btn:hover,.filter-btn:focus-visible,.filter-btn.active { background:var(--mint); border-color:var(--mint); color:var(--navy); outline:none; }
+    .perks { background:#d8f0e9; padding:.85rem 1rem; color:#164441; text-align:center; font-weight:650; font-size:.95rem; letter-spacing:.01em; }
+    main { max-width:1370px; margin:auto; padding:2.5rem 1.25rem 4rem; } section+section { margin-top:3.25rem; } .section-heading { display:flex; align-items:end; justify-content:space-between; gap:1rem; margin-bottom:1.15rem; } h2 { font-family:Georgia,serif; color:var(--navy); font-size:clamp(1.7rem,3.2vw,2.4rem); margin:0; } .section-heading p { margin:0; color:var(--muted); }
+    .book-grid { display:grid; gap:1.3rem; grid-template-columns:repeat(4,minmax(0,1fr)); } .arrivals { grid-template-columns:repeat(4,minmax(0,1fr)); }
+    .book-card { display:flex; flex-direction:column; overflow:hidden; background:#fff; border:1px solid #dce3e1; border-radius:16px; box-shadow:0 5px 17px rgba(7,28,42,.08); transition:transform .2s ease,box-shadow .2s ease; } .book-card:hover { transform:translateY(-6px); box-shadow:0 14px 27px rgba(7,28,42,.18); }
+    .cover-wrap { padding:.65rem .65rem 0; background:linear-gradient(145deg,#e7eeee,#d7e4e0); } .cover { width:100%; aspect-ratio:2/3; object-fit:cover; display:block; border-radius:10px; box-shadow:0 6px 14px rgba(5,21,32,.24); background:#cbd3d1; } .placeholder { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.75rem; color:#e9f4f0; background:linear-gradient(145deg,#61717b,#2f4653); box-shadow:none; } .placeholder span { font-size:3rem; } .placeholder small { text-transform:uppercase; letter-spacing:.09em; font-weight:700; }
+    .card-body { padding:1rem; display:flex; flex:1; flex-direction:column; } h3 { font-family:Georgia,serif; color:var(--navy); font-size:1.15rem; line-height:1.22; margin:.65rem 0 1rem; } .card-meta { min-height:1.65rem; } .badge { display:inline-block; border-radius:999px; background:#d9f3ed; color:#0a625c; padding:.25rem .55rem; font-size:.72rem; font-weight:750; } .soon-badge { background:#e7e8eb; color:#46515a; } .card-footer { margin-top:auto; display:flex; align-items:center; justify-content:space-between; gap:.7rem; } .price { color:#0c726e; font-size:1.12rem; white-space:nowrap; } .cta { display:inline-flex; align-items:center; justify-content:center; gap:.15rem; background:var(--navy); color:white; border-radius:8px; padding:.54rem .63rem; text-decoration:none; font-size:.79rem; font-weight:720; transition:background .2s; } .cta:hover,.cta:focus-visible { background:var(--teal); outline:none; } .cta.disabled { background:#aab4b8; cursor:not-allowed; }
+    .hidden { display:none; } footer { background:var(--navy); color:#cae2df; text-align:center; padding:1.6rem; font-size:.92rem; }
+    @media (max-width:1000px) { .book-grid,.arrivals { grid-template-columns:repeat(2,minmax(0,1fr)); } } @media (max-width:560px) { .hero { padding-top:3rem; } .book-grid,.arrivals { grid-template-columns:1fr; } .section-heading { align-items:flex-start; flex-direction:column; } .perks { line-height:1.8; } }
+  </style>
 </head>
 <body>
-
-<header class="hero">
-  <h1>📚 The Book Nook</h1>
-  <p>Faceless-creator audiobooks &amp; guides for real life — wellness, faith, finance, and fiction. Instant download, yours forever.</p>
-</header>
-
-<div class="perks-bar">
-  <span>🎧 MP3 Audiobook</span>
-  <span>🖼️ Cover Art PDF</span>
-  <span>⚡ Instant Download</span>
-  <span>♾️ Yours Forever</span>
-</div>
-
-<div class="filter-bar">
-  <button class="filter-btn active" data-filter="all">All</button>
-  <button class="filter-btn" data-filter="Health & Wellness">Health &amp; Wellness</button>
-  <button class="filter-btn" data-filter="Finance & Business">Finance &amp; Business</button>
-  <button class="filter-btn" data-filter="Fiction & Romance">Fiction &amp; Romance</button>
-  <button class="filter-btn" data-filter="Faith & Inspiration">Faith &amp; Inspiration</button>
-  <button class="filter-btn" data-filter="New Arrivals">New Arrivals</button>
-</div>
-
-<!-- NEW ARRIVALS: statically pre-rendered, always visible regardless of JS -->
-<section id="new-arrivals-section">
-  <h2>🆕 New Arrivals</h2>
-  <div class="book-grid" id="new-arrivals-grid">
-<div class="book-card new-arrival-card" data-category="Finance &amp; Business">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/productivity_powerhouse_cover.jpg" alt="Productivity Powerhouse cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">P</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Productivity Powerhouse</h3>
-    <p class="book-genre">Business/Productivity</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$12.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/fbnhmw" target="_blank" rel="noopener">Buy Now $12.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card new-arrival-card" data-category="Health &amp; Wellness">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/bendable_not_broken_the_eds_hsd_survival_handbook_cover.jpg" alt="Bendable, Not Broken: The EDS/HSD Survival Handbook cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">B</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Bendable, Not Broken: The EDS/HSD Survival Handbook</h3>
-    <p class="book-genre">Chronic Illness/Health Guide</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/cmzfjx" target="_blank" rel="noopener">Buy Now $14.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card new-arrival-card" data-category="Faith &amp; Inspiration">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/50_modern_hymns_the_complete_book_cover.jpg" alt="50 Modern Hymns: The Complete Book cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">5</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">50 Modern Hymns: The Complete Book</h3>
-    <p class="book-genre">Christian/Hymns</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$9.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/fymjey" target="_blank" rel="noopener">Buy Now $9.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card new-arrival-card" data-category="Faith &amp; Inspiration">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/27_modern_hymns_classic_style_edition_cover.jpg" alt="27 Modern Hymns: Classic Style Edition cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">2</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">27 Modern Hymns: Classic Style Edition</h3>
-    <p class="book-genre">Christian/Hymns</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$9.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/idvkev" target="_blank" rel="noopener">Buy Now $9.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card new-arrival-card" data-category="Finance &amp; Business">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/bulletproof_ownership_trusts_holding_companies_and_the_real_estate_asset_protection_strategy_cover.jpg" alt="Bulletproof Ownership: Trusts, Holding Companies, and the Real Estate Asset Protection Strategy cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">B</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Bulletproof Ownership: Trusts, Holding Companies, and the Real Estate Asset Protection Strategy</h3>
-    <p class="book-genre">Finance/Asset Protection</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <span class="buy-btn coming-soon">Coming Soon</span>
-    </div>
-  </div>
-</div>
-<div class="book-card new-arrival-card" data-category="Finance &amp; Business">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/get_found_first_the_local_seo_and_visibility_playbook_cover.jpg" alt="Get Found First: The Local SEO and Visibility Playbook cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">G</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Get Found First: The Local SEO and Visibility Playbook</h3>
-    <p class="book-genre">Business/Marketing</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <span class="buy-btn coming-soon">Coming Soon</span>
-    </div>
-  </div>
-</div>
-<div class="book-card new-arrival-card" data-category="Finance &amp; Business">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/understanding_section_8_a_practical_guide_cover.jpg" alt="Understanding Section 8: A Practical Guide cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">U</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Understanding Section 8: A Practical Guide</h3>
-    <p class="book-genre">Finance/Real Estate</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <span class="buy-btn coming-soon">Coming Soon</span>
-    </div>
-  </div>
-</div>
-<div class="book-card new-arrival-card" data-category="Finance &amp; Business">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/the_vanishing_4_400_cover.jpg" alt="The Vanishing $4,400 cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">T</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">The Vanishing $4,400</h3>
-    <p class="book-genre">Finance/True Crime</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <span class="buy-btn coming-soon">Coming Soon</span>
-    </div>
-  </div>
-</div>
-<div class="book-card new-arrival-card" data-category="Health &amp; Wellness">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/clearer_a_sacred_cycles_companion_guide_to_understanding_and_treating_acne_audiobook_cover.jpg" alt="Clearer: A Sacred Cycles Companion Guide to Understanding and Treating Acne (Audiobook) cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">C</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Clearer: A Sacred Cycles Companion Guide to Understanding and Treating Acne (Audiobook)</h3>
-    <p class="book-genre">Health Guide/Skin Health</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/bbaffx" target="_blank" rel="noopener">Buy Now $14.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card new-arrival-card" data-category="Health &amp; Wellness">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/beyond_the_ache_a_chronic_migraine_companion_guide_audiobook_cover.jpg" alt="Beyond the Ache: A Chronic Migraine Companion Guide (Audiobook) cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">B</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Beyond the Ache: A Chronic Migraine Companion Guide (Audiobook)</h3>
-    <p class="book-genre">Chronic Illness/Health Guide</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/lwrhs" target="_blank" rel="noopener">Buy Now $14.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card new-arrival-card" data-category="Health &amp; Wellness">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/the_endo_patient_s_survival_guide_audiobook_cover.jpg" alt="The Endo Patient&#x27;s Survival Guide (Audiobook) cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">T</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">The Endo Patient&#x27;s Survival Guide (Audiobook)</h3>
-    <p class="book-genre">Chronic Illness/Health Guide</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/kjbzs" target="_blank" rel="noopener">Buy Now $14.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card new-arrival-card" data-category="Health &amp; Wellness">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/strength_through_the_storm_audiobook_cover.jpg" alt="Strength Through the Storm (Audiobook) cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">S</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Strength Through the Storm (Audiobook)</h3>
-    <p class="book-genre">Inspirational/Health Guide</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/gaxwco" target="_blank" rel="noopener">Buy Now $14.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card new-arrival-card" data-category="Health &amp; Wellness">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/the_fibromyalgia_compass_a_survival_guide_audiobook_cover.jpg" alt="The Fibromyalgia Compass: A Survival Guide (Audiobook) cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">T</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">The Fibromyalgia Compass: A Survival Guide (Audiobook)</h3>
-    <p class="book-genre">Chronic Illness/Health Guide</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/sxlhdr" target="_blank" rel="noopener">Buy Now $14.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card new-arrival-card" data-category="Health &amp; Wellness">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/within_the_envelope_an_me_cfs_long_covid_survival_guide_audiobook_cover.jpg" alt="Within the Envelope: An ME/CFS &amp; Long COVID Survival Guide (Audiobook) cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">W</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Within the Envelope: An ME/CFS &amp; Long COVID Survival Guide (Audiobook)</h3>
-    <p class="book-genre">Chronic Illness/Health Guide</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/zgxfju" target="_blank" rel="noopener">Buy Now $14.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card new-arrival-card" data-category="Health &amp; Wellness">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/the_autoimmune_compass_a_survival_guide_audiobook_cover.jpg" alt="The Autoimmune Compass: A Survival Guide (Audiobook) cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">T</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">The Autoimmune Compass: A Survival Guide (Audiobook)</h3>
-    <p class="book-genre">Chronic Illness/Health Guide</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/otddlw" target="_blank" rel="noopener">Buy Now $14.99</a>
-    </div>
-  </div>
-</div>
-  </div>
-</section>
-
-<section id="all-books-section">
-  <h2>📖 The Full Library</h2>
-  <div class="book-grid" id="book-grid">
-<div class="book-card" data-category="Fiction &amp; Romance">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/sea_glass_heart_cover.jpg" alt="Sea Glass Heart cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">S</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Sea Glass Heart</h3>
-    <p class="book-genre">Women&#x27;s Fiction</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$24.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/lzezx" target="_blank" rel="noopener">Buy Now $24.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Health &amp; Wellness">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/365_days_of_peace_happiness_cover.jpg" alt="365 Days of Peace &amp; Happiness cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">3</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">365 Days of Peace &amp; Happiness</h3>
-    <p class="book-genre">Wellness/Inspirational</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$24.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/nozlmu" target="_blank" rel="noopener">Buy Now $24.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Fiction &amp; Romance">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/potions_pretenses_cover.jpg" alt="Potions &amp; Pretenses cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">P</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Potions &amp; Pretenses</h3>
-    <p class="book-genre">Fantasy Fiction</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$24.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/embwog" target="_blank" rel="noopener">Buy Now $24.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Fiction &amp; Romance">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/extraordinary_adventures_cover.jpg" alt="Extraordinary Adventures cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">E</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Extraordinary Adventures</h3>
-    <p class="book-genre">Adventure Fiction</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$24.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/lzhnlu" target="_blank" rel="noopener">Buy Now $24.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Fiction &amp; Romance">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/redline_cover.jpg" alt="Redline cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">R</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Redline</h3>
-    <p class="book-genre">Thriller</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$24.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/basjhpp" target="_blank" rel="noopener">Buy Now $24.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Fiction &amp; Romance">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/the_whispering_compass_cover.jpg" alt="The Whispering Compass cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">T</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">The Whispering Compass</h3>
-    <p class="book-genre">Women&#x27;s Adventure Fiction</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$24.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/zorkxwf" target="_blank" rel="noopener">Buy Now $24.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Finance &amp; Business">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/smart_college_choices_cover.jpg" alt="Smart College Choices cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">S</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Smart College Choices</h3>
-    <p class="book-genre">Education/Parenting</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$24.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/wzmijr" target="_blank" rel="noopener">Buy Now $24.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Finance &amp; Business">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/ai_powered_business_transformation_cover.jpg" alt="AI Powered Business Transformation cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">A</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">AI Powered Business Transformation</h3>
-    <p class="book-genre">Business/Technology</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$24.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/alhny" target="_blank" rel="noopener">Buy Now $24.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Finance &amp; Business">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/beyond_productivity_cover.jpg" alt="Beyond Productivity cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">B</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Beyond Productivity</h3>
-    <p class="book-genre">Business/Self-Help</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$22.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/hxoubh" target="_blank" rel="noopener">Buy Now $22.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Finance &amp; Business">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/parenting_with_purpose_cover.jpg" alt="Parenting with Purpose cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">P</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Parenting with Purpose</h3>
-    <p class="book-genre">Parenting</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$24.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/djxhqx" target="_blank" rel="noopener">Buy Now $24.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Fiction &amp; Romance">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/haunting_america_cover.jpg" alt="Haunting America cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">H</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Haunting America</h3>
-    <p class="book-genre">Horror/Paranormal</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$19.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/vqnqmo" target="_blank" rel="noopener">Buy Now $19.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Fiction &amp; Romance">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/an_american_quilt_cover.jpg" alt="An American Quilt cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">A</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">An American Quilt</h3>
-    <p class="book-genre">Historical Fiction</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$19.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/fjcdj" target="_blank" rel="noopener">Buy Now $19.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Health &amp; Wellness">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/inspirational_stories_for_every_season_cover.jpg" alt="Inspirational Stories for Every Season cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">I</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Inspirational Stories for Every Season</h3>
-    <p class="book-genre">Inspirational/Self-Help</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$19.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/sqmlnf" target="_blank" rel="noopener">Buy Now $19.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Fiction &amp; Romance">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/a_midnight_summer_dream_cover.jpg" alt="A Midnight Summer Dream cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">A</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">A Midnight Summer Dream</h3>
-    <p class="book-genre">Mystery/Romance</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$19.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/xqbmn" target="_blank" rel="noopener">Buy Now $19.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Fiction &amp; Romance">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/the_modern_castaway_s_voyage_cover.jpg" alt="The Modern Castaway&#x27;s Voyage cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">T</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">The Modern Castaway&#x27;s Voyage</h3>
-    <p class="book-genre">Adventure Fiction</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$19.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/ofzeuk" target="_blank" rel="noopener">Buy Now $19.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Health &amp; Wellness">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/transform_your_habits_cover.jpg" alt="Transform Your Habits cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">T</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Transform Your Habits</h3>
-    <p class="book-genre">Self-Help</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$19.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/cvfzfm" target="_blank" rel="noopener">Buy Now $19.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Fiction &amp; Romance">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/pedal_to_the_pacific_cover.jpg" alt="Pedal to the Pacific cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">P</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Pedal to the Pacific</h3>
-    <p class="book-genre">Adventure Memoir</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$19.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/lbosmq" target="_blank" rel="noopener">Buy Now $19.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Finance &amp; Business">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/ai_consulting_mastery_cover.jpg" alt="AI Consulting Mastery cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">A</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">AI Consulting Mastery</h3>
-    <p class="book-genre">Business</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$19.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/lmexvx" target="_blank" rel="noopener">Buy Now $19.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Health &amp; Wellness">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/yoga_nidra_the_complete_study_guide_cover.jpg" alt="Yoga Nidra: The Complete Study Guide cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">Y</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Yoga Nidra: The Complete Study Guide</h3>
-    <p class="book-genre">Wellness/Spirituality</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$19.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/pyhzr" target="_blank" rel="noopener">Buy Now $19.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Health &amp; Wellness">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/unlock_your_mindset_potential_cover.jpg" alt="Unlock Your Mindset Potential cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">U</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Unlock Your Mindset Potential</h3>
-    <p class="book-genre">Self-Help/Psychology</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$17.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/xejkku" target="_blank" rel="noopener">Buy Now $17.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Health &amp; Wellness">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/maintain_it_sustainable_weight_management_cover.jpg" alt="Maintain It: Sustainable Weight Management cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">M</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Maintain It: Sustainable Weight Management</h3>
-    <p class="book-genre">Health/Wellness</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$17.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/jcysnd" target="_blank" rel="noopener">Buy Now $17.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Health &amp; Wellness">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/ancient_wisdom_for_modern_living_cover.jpg" alt="Ancient Wisdom for Modern Living cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">A</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Ancient Wisdom for Modern Living</h3>
-    <p class="book-genre">Non-Fiction/Philosophy</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$17.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/hifpa" target="_blank" rel="noopener">Buy Now $17.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Finance &amp; Business">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/overtime_work_less_earn_more_cover.jpg" alt="OVERTIME: Work Less, Earn More cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">O</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">OVERTIME: Work Less, Earn More</h3>
-    <p class="book-genre">Business/Productivity</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$17.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/fzriakz" target="_blank" rel="noopener">Buy Now $17.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Fiction &amp; Romance">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/the_mermaid_clause_cover.jpg" alt="The Mermaid Clause cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">T</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">The Mermaid Clause</h3>
-    <p class="book-genre">Fantasy Romance</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$17.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/tvpvr" target="_blank" rel="noopener">Buy Now $17.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Fiction &amp; Romance">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/spooktacular_halloween_stories_cover.jpg" alt="Spooktacular Halloween Stories cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">S</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Spooktacular Halloween Stories</h3>
-    <p class="book-genre">Horror/Halloween</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$17.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/lbzuah" target="_blank" rel="noopener">Buy Now $17.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Fiction &amp; Romance">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/grounds_for_haunting_cover.jpg" alt="Grounds For Haunting cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">G</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Grounds For Haunting</h3>
-    <p class="book-genre">Paranormal Mystery</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$17.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/ijccdx" target="_blank" rel="noopener">Buy Now $17.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Fiction &amp; Romance">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/love_potion_cover.jpg" alt="Love Potion cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">L</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Love Potion</h3>
-    <p class="book-genre">Romance</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$17.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/ktcxb" target="_blank" rel="noopener">Buy Now $17.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Fiction &amp; Romance">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/the_whispering_willow_chronicles_cover.jpg" alt="The Whispering Willow Chronicles cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">T</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">The Whispering Willow Chronicles</h3>
-    <p class="book-genre">Magical Fiction</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$17.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/pltcb" target="_blank" rel="noopener">Buy Now $17.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Health &amp; Wellness">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/the_women_s_morning_routine_cover.jpg" alt="The Women&#x27;s Morning Routine cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">T</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">The Women&#x27;s Morning Routine</h3>
-    <p class="book-genre">Self-Help/Wellness</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$17.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/frjgpe" target="_blank" rel="noopener">Buy Now $17.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Finance &amp; Business">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/every_ten_minutes_cover.jpg" alt="Every Ten Minutes cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">E</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Every Ten Minutes</h3>
-    <p class="book-genre">Business/Time Management</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$17.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/tuvaai" target="_blank" rel="noopener">Buy Now $17.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Fiction &amp; Romance">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/wild_and_free_a_love_beyond_boundaries_cover.jpg" alt="Wild and Free: A Love Beyond Boundaries cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">W</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Wild and Free: A Love Beyond Boundaries</h3>
-    <p class="book-genre">Romance</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$17.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/gmymy" target="_blank" rel="noopener">Buy Now $17.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Health &amp; Wellness">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/morning_routine_mastery_cover.jpg" alt="Morning Routine Mastery cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">M</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Morning Routine Mastery</h3>
-    <p class="book-genre">Self-Help/Productivity</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$17.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/zgdvg" target="_blank" rel="noopener">Buy Now $17.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Finance &amp; Business">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/studio_on_a_shoestring_diy_photography_guide_cover.jpg" alt="Studio on a Shoestring: DIY Photography Guide cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">S</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Studio on a Shoestring: DIY Photography Guide</h3>
-    <p class="book-genre">Business/Photography</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$17.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/afxwdm" target="_blank" rel="noopener">Buy Now $17.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Finance &amp; Business">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/funnel_your_way_to_freedom_cover.jpg" alt="Funnel Your Way to Freedom cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">F</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Funnel Your Way to Freedom</h3>
-    <p class="book-genre">Business/Marketing</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$19.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/inlelx" target="_blank" rel="noopener">Buy Now $19.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Finance &amp; Business">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/the_invisible_investor_cover.jpg" alt="The Invisible Investor cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">T</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">The Invisible Investor</h3>
-    <p class="book-genre">Finance/Investing</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$17.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/xnonu" target="_blank" rel="noopener">Buy Now $17.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Fiction &amp; Romance">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/evergreen_cover.jpg" alt="EVERGREEN cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">E</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">EVERGREEN</h3>
-    <p class="book-genre">Romance</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$17.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/iuuaid" target="_blank" rel="noopener">Buy Now $17.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Health &amp; Wellness">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/harmonize_your_flow_cover.jpg" alt="Harmonize Your Flow cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">H</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Harmonize Your Flow</h3>
-    <p class="book-genre">Wellness/Women&#x27;s Health</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/cqhqsh" target="_blank" rel="noopener">Buy Now $14.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Health &amp; Wellness">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/the_magnesium_miracle_cover.jpg" alt="The Magnesium Miracle cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">T</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">The Magnesium Miracle</h3>
-    <p class="book-genre">Health/Nutrition</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/ojbraw" target="_blank" rel="noopener">Buy Now $14.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Fiction &amp; Romance">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/love_in_disguise_cover.jpg" alt="Love In Disguise cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">L</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Love In Disguise</h3>
-    <p class="book-genre">Romance</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/lnahnu" target="_blank" rel="noopener">Buy Now $14.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Fiction &amp; Romance">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/stranger_in_the_night_cover.jpg" alt="Stranger In The Night cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">S</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Stranger In The Night</h3>
-    <p class="book-genre">Thriller/Suspense</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/nwclr" target="_blank" rel="noopener">Buy Now $14.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Health &amp; Wellness">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/90_days_to_calm_cover.jpg" alt="90 Days to Calm cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">9</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">90 Days to Calm</h3>
-    <p class="book-genre">Mental Health/Wellness</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/lqppi" target="_blank" rel="noopener">Buy Now $14.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Faith &amp; Inspiration">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/peace_in_his_presence_cover.jpg" alt="Peace In His Presence cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">P</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Peace In His Presence</h3>
-    <p class="book-genre">Christian/Spiritual</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/kcpzak" target="_blank" rel="noopener">Buy Now $14.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Health &amp; Wellness">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/sacred_cycles_mind_body_renewal_cover.jpg" alt="Sacred Cycles: Mind-Body Renewal cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">S</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Sacred Cycles: Mind-Body Renewal</h3>
-    <p class="book-genre">Wellness/Spirituality</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/oyrihg" target="_blank" rel="noopener">Buy Now $14.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Health &amp; Wellness">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/the_longevity_revolution_cover.jpg" alt="The Longevity Revolution cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">T</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">The Longevity Revolution</h3>
-    <p class="book-genre">Health/Longevity</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/rsycq" target="_blank" rel="noopener">Buy Now $14.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Fiction &amp; Romance">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/the_blue_place_cover.jpg" alt="The Blue Place cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">T</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">The Blue Place</h3>
-    <p class="book-genre">Adventure Fiction</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/bcnkmx" target="_blank" rel="noopener">Buy Now $14.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Finance &amp; Business">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/the_irreplaceable_human_cover.jpg" alt="The Irreplaceable Human cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">T</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">The Irreplaceable Human</h3>
-    <p class="book-genre">Non-Fiction/Future of Work</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/pfbjw" target="_blank" rel="noopener">Buy Now $14.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Fiction &amp; Romance">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/the_art_of_true_love_cover.jpg" alt="The Art of True Love cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">T</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">The Art of True Love</h3>
-    <p class="book-genre">Romance/Relationships</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$12.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/gkvted" target="_blank" rel="noopener">Buy Now $12.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Fiction &amp; Romance">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/ordinary_grace_cover.jpg" alt="Ordinary Grace cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">O</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Ordinary Grace</h3>
-    <p class="book-genre">Drama/Literary Fiction</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$12.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/hhfvyr" target="_blank" rel="noopener">Buy Now $12.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Finance &amp; Business">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/productivity_powerhouse_cover.jpg" alt="Productivity Powerhouse cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">P</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Productivity Powerhouse</h3>
-    <p class="book-genre">Business/Productivity</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$12.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/fbnhmw" target="_blank" rel="noopener">Buy Now $12.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Health &amp; Wellness">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/bendable_not_broken_the_eds_hsd_survival_handbook_cover.jpg" alt="Bendable, Not Broken: The EDS/HSD Survival Handbook cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">B</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Bendable, Not Broken: The EDS/HSD Survival Handbook</h3>
-    <p class="book-genre">Chronic Illness/Health Guide</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/cmzfjx" target="_blank" rel="noopener">Buy Now $14.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Faith &amp; Inspiration">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/50_modern_hymns_the_complete_book_cover.jpg" alt="50 Modern Hymns: The Complete Book cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">5</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">50 Modern Hymns: The Complete Book</h3>
-    <p class="book-genre">Christian/Hymns</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$9.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/fymjey" target="_blank" rel="noopener">Buy Now $9.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Faith &amp; Inspiration">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/27_modern_hymns_classic_style_edition_cover.jpg" alt="27 Modern Hymns: Classic Style Edition cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">2</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">27 Modern Hymns: Classic Style Edition</h3>
-    <p class="book-genre">Christian/Hymns</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$9.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/idvkev" target="_blank" rel="noopener">Buy Now $9.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Finance &amp; Business">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/bulletproof_ownership_trusts_holding_companies_and_the_real_estate_asset_protection_strategy_cover.jpg" alt="Bulletproof Ownership: Trusts, Holding Companies, and the Real Estate Asset Protection Strategy cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">B</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Bulletproof Ownership: Trusts, Holding Companies, and the Real Estate Asset Protection Strategy</h3>
-    <p class="book-genre">Finance/Asset Protection</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <span class="buy-btn coming-soon">Coming Soon</span>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Finance &amp; Business">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/get_found_first_the_local_seo_and_visibility_playbook_cover.jpg" alt="Get Found First: The Local SEO and Visibility Playbook cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">G</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Get Found First: The Local SEO and Visibility Playbook</h3>
-    <p class="book-genre">Business/Marketing</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <span class="buy-btn coming-soon">Coming Soon</span>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Finance &amp; Business">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/understanding_section_8_a_practical_guide_cover.jpg" alt="Understanding Section 8: A Practical Guide cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">U</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Understanding Section 8: A Practical Guide</h3>
-    <p class="book-genre">Finance/Real Estate</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <span class="buy-btn coming-soon">Coming Soon</span>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Finance &amp; Business">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/the_vanishing_4_400_cover.jpg" alt="The Vanishing $4,400 cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">T</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">The Vanishing $4,400</h3>
-    <p class="book-genre">Finance/True Crime</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <span class="buy-btn coming-soon">Coming Soon</span>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Health &amp; Wellness">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/clearer_a_sacred_cycles_companion_guide_to_understanding_and_treating_acne_audiobook_cover.jpg" alt="Clearer: A Sacred Cycles Companion Guide to Understanding and Treating Acne (Audiobook) cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">C</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Clearer: A Sacred Cycles Companion Guide to Understanding and Treating Acne (Audiobook)</h3>
-    <p class="book-genre">Health Guide/Skin Health</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/bbaffx" target="_blank" rel="noopener">Buy Now $14.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Health &amp; Wellness">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/beyond_the_ache_a_chronic_migraine_companion_guide_audiobook_cover.jpg" alt="Beyond the Ache: A Chronic Migraine Companion Guide (Audiobook) cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">B</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Beyond the Ache: A Chronic Migraine Companion Guide (Audiobook)</h3>
-    <p class="book-genre">Chronic Illness/Health Guide</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/lwrhs" target="_blank" rel="noopener">Buy Now $14.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Health &amp; Wellness">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/the_endo_patient_s_survival_guide_audiobook_cover.jpg" alt="The Endo Patient&#x27;s Survival Guide (Audiobook) cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">T</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">The Endo Patient&#x27;s Survival Guide (Audiobook)</h3>
-    <p class="book-genre">Chronic Illness/Health Guide</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/kjbzs" target="_blank" rel="noopener">Buy Now $14.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Health &amp; Wellness">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/strength_through_the_storm_audiobook_cover.jpg" alt="Strength Through the Storm (Audiobook) cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">S</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Strength Through the Storm (Audiobook)</h3>
-    <p class="book-genre">Inspirational/Health Guide</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/gaxwco" target="_blank" rel="noopener">Buy Now $14.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Health &amp; Wellness">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/the_fibromyalgia_compass_a_survival_guide_audiobook_cover.jpg" alt="The Fibromyalgia Compass: A Survival Guide (Audiobook) cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">T</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">The Fibromyalgia Compass: A Survival Guide (Audiobook)</h3>
-    <p class="book-genre">Chronic Illness/Health Guide</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/sxlhdr" target="_blank" rel="noopener">Buy Now $14.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Health &amp; Wellness">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/within_the_envelope_an_me_cfs_long_covid_survival_guide_audiobook_cover.jpg" alt="Within the Envelope: An ME/CFS &amp; Long COVID Survival Guide (Audiobook) cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">W</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">Within the Envelope: An ME/CFS &amp; Long COVID Survival Guide (Audiobook)</h3>
-    <p class="book-genre">Chronic Illness/Health Guide</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/zgxfju" target="_blank" rel="noopener">Buy Now $14.99</a>
-    </div>
-  </div>
-</div>
-<div class="book-card" data-category="Health &amp; Wellness">
-  <div class="cover-wrap">
-    <img src="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/the_autoimmune_compass_a_survival_guide_audiobook_cover.jpg" alt="The Autoimmune Compass: A Survival Guide (Audiobook) cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
-    <div class="cover-fallback" style="display:none;">T</div>
-  </div>
-  <div class="book-info">
-    <h3 class="book-title">The Autoimmune Compass: A Survival Guide (Audiobook)</h3>
-    <p class="book-genre">Chronic Illness/Health Guide</p>
-    <div class="badge">🎧 MP3 Audiobook &middot; 🖼️ Cover PDF</div>
-    <div class="book-footer">
-      <span class="price">$14.99</span>
-      <a class="buy-btn" href="https://tlott12.gumroad.com/l/otddlw" target="_blank" rel="noopener">Buy Now $14.99</a>
-    </div>
-  </div>
-</div>
-  </div>
-</section>
-
-<footer>
-  &copy; 2026 Ting Lott — The Book Nook. All titles available exclusively on Gumroad.
-</footer>
-
-<script>
-(function() {
-  var buttons = document.querySelectorAll('.filter-btn');
-  var allGrid = document.getElementById('book-grid');
-  var newArrivalsSection = document.getElementById('new-arrivals-section');
-  var allBooksCards = allGrid ? allGrid.querySelectorAll('.book-card') : [];
-
-  buttons.forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      buttons.forEach(function(b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-      var filter = btn.getAttribute('data-filter');
-
-      if (filter === 'New Arrivals') {
-        newArrivalsSection.classList.remove('hidden');
-        allBooksCards.forEach(function(card) { card.classList.add('hidden'); });
-        return;
-      }
-
-      newArrivalsSection.classList.remove('hidden');
-      allBooksCards.forEach(function(card) {
-        if (filter === 'all' || card.getAttribute('data-category') === filter) {
-          card.classList.remove('hidden');
-        } else {
-          card.classList.add('hidden');
-        }
-      });
-    });
-  });
-})();
-</script>
-
+  <header class="hero"><p class="eyebrow">Read · Listen · Grow</p><h1>📚 The Book Nook</h1><p class="subtitle">Digital books to uplift, heal, and transform your life</p><nav class="filters" aria-label="Filter the book catalog"><button type="button" class="filter-btn active" data-filter="All">All</button><button type="button" class="filter-btn" data-filter="Health & Wellness">Health & Wellness</button><button type="button" class="filter-btn" data-filter="Finance & Business">Finance & Business</button><button type="button" class="filter-btn" data-filter="Fiction & Romance">Fiction & Romance</button><button type="button" class="filter-btn" data-filter="Faith & Inspiration">Faith & Inspiration</button><button type="button" class="filter-btn" data-filter="Coming Soon">Coming Soon</button></nav></header>
+  <div class="perks">✅ Instant Download &nbsp;·&nbsp; 🎧 Audiobook Included &nbsp;·&nbsp; 📄 Cover Art PDF &nbsp;·&nbsp; 💳 Secure Checkout</div>
+  <main>
+    <section aria-labelledby="arrivals-title"><div class="section-heading"><div><h2 id="arrivals-title">New Arrivals</h2><p>Fresh stories and guides for your next chapter.</p></div></div><div class="book-grid arrivals"><article class="book-card arrival-card" data-category="Coming Soon">
+  <div class="cover-wrap"><div class="cover placeholder" role="img" aria-label="The Lucky Swing cover coming soon"><span>📚</span><small>Cover coming soon</small></div></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge soon-badge">Coming Soon</span></div>
+    <h3>The Lucky Swing</h3>
+    <div class="card-footer"><strong class="price">Coming Soon</strong><span class="cta disabled" aria-disabled="true">Coming Soon</span></div>
+  </div>
+</article>
+<article class="book-card arrival-card" data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/67v38khbn49ze7ud4cly31gzle4w" alt="Cover of The Endo Patient&#x27;s Survival Guide (Audiobook)" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>The Endo Patient&#x27;s Survival Guide (Audiobook)</h3>
+    <div class="card-footer"><strong class="price">$14.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/kjbzs" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card arrival-card" data-category="Health &amp; Wellness">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/aqpvlqnnohyfi9c0ympcv9adyflv" alt="Cover of The Women&#x27;s Morning Routine" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Health &amp; Wellness</span></div>
+    <h3>The Women&#x27;s Morning Routine</h3>
+    <div class="card-footer"><strong class="price">$17.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/frjgpe" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card arrival-card" data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/zxfmuhj4agwou4bmcdxgs8odqpph" alt="Cover of The Modern Castaway&#x27;s Voyage" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>The Modern Castaway&#x27;s Voyage</h3>
+    <div class="card-footer"><strong class="price">$19.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/ofzeuk" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article></div></section>
+    <section aria-labelledby="catalog-title"><div class="section-heading"><div><h2 id="catalog-title">Browse the Collection</h2><p><span id="visible-count">63</span> titles waiting for you.</p></div></div><div id="catalog" class="book-grid"><article class="book-card " data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/wt13riwsfad3jfp54hkdbjp0rqf0" alt="Cover of 27 Modern Hymns: Classic Style Edition" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>27 Modern Hymns: Classic Style Edition</h3>
+    <div class="card-footer"><strong class="price">$9.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/idvkev" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Health &amp; Wellness">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/sdoqpdwac3bv0isra9yp7qjoae3v" alt="Cover of 365 Days of Peace &amp; Happiness" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Health &amp; Wellness</span></div>
+    <h3>365 Days of Peace &amp; Happiness</h3>
+    <div class="card-footer"><strong class="price">$24.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/nozlmu" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/m3iklx46twls7etr4821xxhsash1" alt="Cover of 50 Modern Hymns: The Complete Book" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>50 Modern Hymns: The Complete Book</h3>
+    <div class="card-footer"><strong class="price">$9.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/fymjey" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Health &amp; Wellness">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/s83oez0qg2zp1g91jyacya13p1rp" alt="Cover of 90 Days to Calm" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Health &amp; Wellness</span></div>
+    <h3>90 Days to Calm</h3>
+    <div class="card-footer"><strong class="price">$14.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/lqppi" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/cycr27e46uo5vuux7suhjz0ej6wr" alt="Cover of A Midnight Summer Dream" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>A Midnight Summer Dream</h3>
+    <div class="card-footer"><strong class="price">$19.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/xqbmn" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Finance &amp; Business">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/eb33mf867d3fj0gvh6b3cg1t6acy" alt="Cover of AI Consulting Mastery" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Finance &amp; Business</span></div>
+    <h3>AI Consulting Mastery</h3>
+    <div class="card-footer"><strong class="price">$19.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/lmexvx" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Finance &amp; Business">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/if36888hb4t340h6cbuk5dbdaw9t" alt="Cover of AI Powered Business Transformation" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Finance &amp; Business</span></div>
+    <h3>AI Powered Business Transformation</h3>
+    <div class="card-footer"><strong class="price">$24.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/alhny" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/jlzbrakl46gvlkpmmmh19hsbr0ku" alt="Cover of An American Quilt" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>An American Quilt</h3>
+    <div class="card-footer"><strong class="price">$19.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/fjcdj" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Health &amp; Wellness">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/mxkcwtw1fd6tpkacz88avrlunfol" alt="Cover of Ancient Wisdom for Modern Living" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Health &amp; Wellness</span></div>
+    <h3>Ancient Wisdom for Modern Living</h3>
+    <div class="card-footer"><strong class="price">$17.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/hifpa" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/vqsfha1eh2puypzsxaakilwy6iyt" alt="Cover of Bendable, Not Broken: The EDS/HSD Survival Handbook" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>Bendable, Not Broken: The EDS/HSD Survival Handbook</h3>
+    <div class="card-footer"><strong class="price">$14.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/cmzfjx" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Finance &amp; Business">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/h69cu1lrfooiuzciuwgg8ck3vpk6" alt="Cover of Beyond Productivity" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Finance &amp; Business</span></div>
+    <h3>Beyond Productivity</h3>
+    <div class="card-footer"><strong class="price">$22.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/hxoubh" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/kr77gqrp3iu1dk1ntg4yjea7yfk2" alt="Cover of Beyond the Ache: A Chronic Migraine Companion Guide (Audiobook)" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>Beyond the Ache: A Chronic Migraine Companion Guide (Audiobook)</h3>
+    <div class="card-footer"><strong class="price">$14.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/lwrhs" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/4kvjbzpu16z02u4opqktnnak1qil" alt="Cover of Clearer: A Sacred Cycles Companion Guide to Understanding and Treating Acne (Audiobook)" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>Clearer: A Sacred Cycles Companion Guide to Understanding and Treating Acne (Audiobook)</h3>
+    <div class="card-footer"><strong class="price">$14.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/bbaffx" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/aeyyylm87cfnn1f40qmgujbyuk6y" alt="Cover of EVERGREEN" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>EVERGREEN</h3>
+    <div class="card-footer"><strong class="price">$17.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/iuuaid" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Finance &amp; Business">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/gnw49w9xnaevmdew7fvlrs6an157" alt="Cover of Every Ten Minutes" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Finance &amp; Business</span></div>
+    <h3>Every Ten Minutes</h3>
+    <div class="card-footer"><strong class="price">$17.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/tuvaai" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/fnzz0msx02e909t3a2hyricfq5gc" alt="Cover of Extraordinary Adventures" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>Extraordinary Adventures</h3>
+    <div class="card-footer"><strong class="price">$24.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/lzhnlu" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Finance &amp; Business">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/3c56inqxzqnp3g8guci7tcz4fl00" alt="Cover of Funnel Your Way to Freedom" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Finance &amp; Business</span></div>
+    <h3>Funnel Your Way to Freedom</h3>
+    <div class="card-footer"><strong class="price">$19.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/inlelx" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/u4sm91okk7txv90w8r4wr18at50y" alt="Cover of Grounds For Haunting" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>Grounds For Haunting</h3>
+    <div class="card-footer"><strong class="price">$17.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/ijccdx" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Health &amp; Wellness">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/lw3uodkrefzhk3zj57f6o9j5za6y" alt="Cover of Harmonize Your Flow" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Health &amp; Wellness</span></div>
+    <h3>Harmonize Your Flow</h3>
+    <div class="card-footer"><strong class="price">$14.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/cqhqsh" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/aydus7f3ethw3sne6u97c4m1p4kj" alt="Cover of Haunting America" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>Haunting America</h3>
+    <div class="card-footer"><strong class="price">$19.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/vqnqmo" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Health &amp; Wellness">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/m3gah2f45mgi5zo9m1v6253d991i" alt="Cover of Inspirational Stories for Every Season" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Health &amp; Wellness</span></div>
+    <h3>Inspirational Stories for Every Season</h3>
+    <div class="card-footer"><strong class="price">$19.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/sqmlnf" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/l5nj6ykvwehv2nd8doqv503pyw9b" alt="Cover of Love In Disguise" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>Love In Disguise</h3>
+    <div class="card-footer"><strong class="price">$14.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/lnahnu" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/1sp2vjpjblchqv3b4mrwedardy0g" alt="Cover of Love Potion" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>Love Potion</h3>
+    <div class="card-footer"><strong class="price">$17.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/ktcxb" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Health &amp; Wellness">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/ihf2wpginu4nityejxrddu3s5lzz" alt="Cover of Maintain It: Sustainable Weight Management" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Health &amp; Wellness</span></div>
+    <h3>Maintain It: Sustainable Weight Management</h3>
+    <div class="card-footer"><strong class="price">$17.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/jcysnd" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Health &amp; Wellness">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/01hr1ssaf4inlq1kk702sjvhojny" alt="Cover of Morning Routine Mastery" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Health &amp; Wellness</span></div>
+    <h3>Morning Routine Mastery</h3>
+    <div class="card-footer"><strong class="price">$17.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/zgdvg" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/dkdr4dqbrovxoqwnwpb2gx2f8n4g" alt="Cover of Ordinary Grace" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>Ordinary Grace</h3>
+    <div class="card-footer"><strong class="price">$12.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/hhfvyr" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Finance &amp; Business">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/9y7sol87k02w6pwrincz1k8ciffu" alt="Cover of OVERTIME: Work Less, Earn More" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Finance &amp; Business</span></div>
+    <h3>OVERTIME: Work Less, Earn More</h3>
+    <div class="card-footer"><strong class="price">$17.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/fzriakz" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Health &amp; Wellness">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/96cdbo8yscnl4189dfiu2tluglsq" alt="Cover of Parenting with Purpose" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Health &amp; Wellness</span></div>
+    <h3>Parenting with Purpose</h3>
+    <div class="card-footer"><strong class="price">$24.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/djxhqx" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Faith &amp; Inspiration">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/6shrfj4tt90vof18xe5loy25omtg" alt="Cover of Peace In His Presence" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Faith &amp; Inspiration</span></div>
+    <h3>Peace In His Presence</h3>
+    <div class="card-footer"><strong class="price">$14.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/kcpzak" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/vghp7eex79hg8gyi23ftxz600erz" alt="Cover of Pedal to the Pacific" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>Pedal to the Pacific</h3>
+    <div class="card-footer"><strong class="price">$19.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/lbosmq" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/y98d1yua0n1zfh9keulnqlk2fqxo" alt="Cover of Potions &amp; Pretenses" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>Potions &amp; Pretenses</h3>
+    <div class="card-footer"><strong class="price">$24.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/embwog" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Finance &amp; Business">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/wmf7jxrbryx0uujildj9112h2j3d" alt="Cover of Productivity Powerhouse" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Finance &amp; Business</span></div>
+    <h3>Productivity Powerhouse</h3>
+    <div class="card-footer"><strong class="price">$12.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/fbnhmw" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/3voyn02p1v94nw4su40e38vhwxkv" alt="Cover of Redline" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>Redline</h3>
+    <div class="card-footer"><strong class="price">$24.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/basjhpp" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Health &amp; Wellness">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/22ff5d2lit2wtvwmm7zlpyrhbfo3" alt="Cover of Sacred Cycles: Mind-Body Renewal" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Health &amp; Wellness</span></div>
+    <h3>Sacred Cycles: Mind-Body Renewal</h3>
+    <div class="card-footer"><strong class="price">$14.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/oyrihg" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/d8wdzsd5qu04q47u3mejc0ftpnix" alt="Cover of Sea Glass Heart" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>Sea Glass Heart</h3>
+    <div class="card-footer"><strong class="price">$24.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/lzezx" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Finance &amp; Business">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/mmtli1d7vcf8u399u5sko6ygtyun" alt="Cover of Smart College Choices" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Finance &amp; Business</span></div>
+    <h3>Smart College Choices</h3>
+    <div class="card-footer"><strong class="price">$24.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/wzmijr" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/zpaxkibba2odz4x9qoznxguri564" alt="Cover of Spooktacular Halloween Stories" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>Spooktacular Halloween Stories</h3>
+    <div class="card-footer"><strong class="price">$17.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/lbzuah" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/ljd7upt6lpq6v1u6masxnw3xi0vy" alt="Cover of Stranger In The Night" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>Stranger In The Night</h3>
+    <div class="card-footer"><strong class="price">$14.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/nwclr" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/l8k9owehxnzxtsmviuxmhgmdv8ug" alt="Cover of Strength Through the Storm (Audiobook)" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>Strength Through the Storm (Audiobook)</h3>
+    <div class="card-footer"><strong class="price">$14.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/gaxwco" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Finance &amp; Business">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/3pnl1b8ni6evbtehhgo7vi6dvwwa" alt="Cover of Studio on a Shoestring: DIY Photography Guide" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Finance &amp; Business</span></div>
+    <h3>Studio on a Shoestring: DIY Photography Guide</h3>
+    <div class="card-footer"><strong class="price">$17.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/afxwdm" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/pxqm8pk9b22kctr2jkfgaycwvb8p" alt="Cover of The Art of True Love" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>The Art of True Love</h3>
+    <div class="card-footer"><strong class="price">$12.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/gkvted" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/h7tqibpac3muvjzitnsa2pbc5kym" alt="Cover of The Autoimmune Compass: A Survival Guide (Audiobook)" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>The Autoimmune Compass: A Survival Guide (Audiobook)</h3>
+    <div class="card-footer"><strong class="price">$14.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/otddlw" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/p995juxli3seyxmu9r4bkgzfjsto" alt="Cover of The Blue Place" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>The Blue Place</h3>
+    <div class="card-footer"><strong class="price">$14.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/bcnkmx" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/67v38khbn49ze7ud4cly31gzle4w" alt="Cover of The Endo Patient&#x27;s Survival Guide (Audiobook)" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>The Endo Patient&#x27;s Survival Guide (Audiobook)</h3>
+    <div class="card-footer"><strong class="price">$14.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/kjbzs" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/s6q33oi6i0b1egtlhzhrkwizpxd0" alt="Cover of The Fibromyalgia Compass: A Survival Guide (Audiobook)" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>The Fibromyalgia Compass: A Survival Guide (Audiobook)</h3>
+    <div class="card-footer"><strong class="price">$14.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/sxlhdr" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Finance &amp; Business">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/puoq0kycsq34gk8q2zpn1yorhnzq" alt="Cover of The Invisible Investor" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Finance &amp; Business</span></div>
+    <h3>The Invisible Investor</h3>
+    <div class="card-footer"><strong class="price">$17.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/xnonu" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Finance &amp; Business">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/x3tfmq0s4ni8aaxbhuqg84dbow0c" alt="Cover of The Irreplaceable Human" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Finance &amp; Business</span></div>
+    <h3>The Irreplaceable Human</h3>
+    <div class="card-footer"><strong class="price">$14.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/pfbjw" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Health &amp; Wellness">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/fhlsc8shcqlsvx0if1mygae1znlk" alt="Cover of The Longevity Revolution" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Health &amp; Wellness</span></div>
+    <h3>The Longevity Revolution</h3>
+    <div class="card-footer"><strong class="price">$14.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/rsycq" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Health &amp; Wellness">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/clzkiywimxy0ubnuqki6qrkyjzns" alt="Cover of The Magnesium Miracle" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Health &amp; Wellness</span></div>
+    <h3>The Magnesium Miracle</h3>
+    <div class="card-footer"><strong class="price">$14.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/ojbraw" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/zzo4aly797cwyqj73oglr89wg649" alt="Cover of The Mermaid Clause" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>The Mermaid Clause</h3>
+    <div class="card-footer"><strong class="price">$17.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/tvpvr" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/zxfmuhj4agwou4bmcdxgs8odqpph" alt="Cover of The Modern Castaway&#x27;s Voyage" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>The Modern Castaway&#x27;s Voyage</h3>
+    <div class="card-footer"><strong class="price">$19.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/ofzeuk" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/g5o7rswfxox2tq44ib1gime5hz6z" alt="Cover of The Whispering Compass" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>The Whispering Compass</h3>
+    <div class="card-footer"><strong class="price">$24.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/zorkxwf" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/4krw9z4hceyyp2xdz1ise01gbrbs" alt="Cover of The Whispering Willow Chronicles" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>The Whispering Willow Chronicles</h3>
+    <div class="card-footer"><strong class="price">$17.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/pltcb" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Health &amp; Wellness">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/aqpvlqnnohyfi9c0ympcv9adyflv" alt="Cover of The Women&#x27;s Morning Routine" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Health &amp; Wellness</span></div>
+    <h3>The Women&#x27;s Morning Routine</h3>
+    <div class="card-footer"><strong class="price">$17.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/frjgpe" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Health &amp; Wellness">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/8ox6fcvj96d855j0jld6mnnpquxj" alt="Cover of Transform Your Habits" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Health &amp; Wellness</span></div>
+    <h3>Transform Your Habits</h3>
+    <div class="card-footer"><strong class="price">$19.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/cvfzfm" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Health &amp; Wellness">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/z3m8hoxqiqv2i3lel0sk8gi9teyy" alt="Cover of Unlock Your Mindset Potential" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Health &amp; Wellness</span></div>
+    <h3>Unlock Your Mindset Potential</h3>
+    <div class="card-footer"><strong class="price">$17.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/xejkku" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/xq129m6y03fmm4iyaqontmi3bhou" alt="Cover of Wild and Free: A Love Beyond Boundaries" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>Wild and Free: A Love Beyond Boundaries</h3>
+    <div class="card-footer"><strong class="price">$17.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/gmymy" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Fiction &amp; Romance">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/tsxl8lqngmc898p5b6dxooqgipub" alt="Cover of Within the Envelope: An ME/CFS &amp; Long COVID Survival Guide (Audiobook)" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Fiction &amp; Romance</span></div>
+    <h3>Within the Envelope: An ME/CFS &amp; Long COVID Survival Guide (Audiobook)</h3>
+    <div class="card-footer"><strong class="price">$14.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/zgxfju" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Health &amp; Wellness">
+  <div class="cover-wrap"><img class="cover" src="https://public-files.gumroad.com/z8snks9ddt5xey7f9ytgi48uyg5n" alt="Cover of Yoga Nidra: The Complete Study Guide" loading="lazy"></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge">Health &amp; Wellness</span></div>
+    <h3>Yoga Nidra: The Complete Study Guide</h3>
+    <div class="card-footer"><strong class="price">$19.99</strong><a class="cta" href="https://tlott12.gumroad.com/l/pyhzr" target="_blank" rel="noopener">Get It Now <span aria-hidden="true">→</span></a></div>
+  </div>
+</article>
+<article class="book-card " data-category="Coming Soon">
+  <div class="cover-wrap"><div class="cover placeholder" role="img" aria-label="Bulletproof Ownership: Trusts, Holding Companies, and the Real Estate Asset Protection Strategy cover coming soon"><span>📚</span><small>Cover coming soon</small></div></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge soon-badge">Coming Soon</span></div>
+    <h3>Bulletproof Ownership: Trusts, Holding Companies, and the Real Estate Asset Protection Strategy</h3>
+    <div class="card-footer"><strong class="price">Coming Soon</strong><span class="cta disabled" aria-disabled="true">Coming Soon</span></div>
+  </div>
+</article>
+<article class="book-card " data-category="Coming Soon">
+  <div class="cover-wrap"><div class="cover placeholder" role="img" aria-label="Get Found First: The Local SEO and Visibility Playbook cover coming soon"><span>📚</span><small>Cover coming soon</small></div></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge soon-badge">Coming Soon</span></div>
+    <h3>Get Found First: The Local SEO and Visibility Playbook</h3>
+    <div class="card-footer"><strong class="price">Coming Soon</strong><span class="cta disabled" aria-disabled="true">Coming Soon</span></div>
+  </div>
+</article>
+<article class="book-card " data-category="Coming Soon">
+  <div class="cover-wrap"><div class="cover placeholder" role="img" aria-label="The Vanishing $4,400 cover coming soon"><span>📚</span><small>Cover coming soon</small></div></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge soon-badge">Coming Soon</span></div>
+    <h3>The Vanishing $4,400</h3>
+    <div class="card-footer"><strong class="price">Coming Soon</strong><span class="cta disabled" aria-disabled="true">Coming Soon</span></div>
+  </div>
+</article>
+<article class="book-card " data-category="Coming Soon">
+  <div class="cover-wrap"><div class="cover placeholder" role="img" aria-label="Understanding Section 8: A Practical Guide cover coming soon"><span>📚</span><small>Cover coming soon</small></div></div>
+  <div class="card-body">
+    <div class="card-meta"><span class="badge soon-badge">Coming Soon</span></div>
+    <h3>Understanding Section 8: A Practical Guide</h3>
+    <div class="card-footer"><strong class="price">Coming Soon</strong><span class="cta disabled" aria-disabled="true">Coming Soon</span></div>
+  </div>
+</article></div></section>
+  </main>
+  <footer>© 2026 The Book Nook · Find the book that meets you where you are.</footer>
+  <script>
+    const buttons = document.querySelectorAll('.filter-btn'); const cards = document.querySelectorAll('#catalog .book-card'); const count = document.getElementById('visible-count');
+    buttons.forEach(button => button.addEventListener('click', () => { const filter=button.dataset.filter; buttons.forEach(b=>b.classList.toggle('active',b===button)); let visible=0; cards.forEach(card => { const show=filter==='All'||card.dataset.category===filter; card.classList.toggle('hidden',!show); if(show) visible++; }); count.textContent=visible; }));
+  </script>
 </body>
 </html>
