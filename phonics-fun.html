@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phonics Fun — ARTISY Kids</title>
+<style>
+  :root {
+    --crimson: #8B1A1A;
+    --gold: #D4AF37;
+    --cream: #FDF6E3;
+    --sky: #4FC3F7;
+    --mint: #4CAF50;
+    --orange: #FF7043;
+    --purple: #9C27B0;
+    --pink: #E91E63;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+  header {
+    text-align: center;
+    color: white;
+    margin-bottom: 24px;
+  }
+  header h1 { font-size: 2.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+  header p { font-size: 1.1rem; opacity: 0.9; margin-top: 6px; }
+  .back-link {
+    display: inline-block;
+    margin-bottom: 16px;
+    color: white;
+    text-decoration: none;
+    font-size: 1rem;
+    opacity: 0.8;
+  }
+  .back-link:hover { opacity: 1; }
+
+  /* Score bar */
+  .score-bar {
+    display: flex;
+    gap: 20px;
+    background: white;
+    border-radius: 50px;
+    padding: 10px 28px;
+    margin-bottom: 24px;
+    font-weight: bold;
+    color: #333;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+  }
+  .score-bar span { font-size: 1.1rem; }
+  .score-bar .stars { color: var(--gold); letter-spacing: 2px; }
+
+  /* Mode selector */
+  .mode-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .mode-tab {
+    padding: 8px 18px;
+    border-radius: 50px;
+    border: none;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: rgba(255,255,255,0.2);
+    color: white;
+    transition: all 0.2s;
+  }
+  .mode-tab.active { background: white; color: #764ba2; }
+  .mode-tab:hover { background: rgba(255,255,255,0.35); }
+
+  /* Main game card */
+  .game-card {
+    background: white;
+    border-radius: 24px;
+    padding: 32px;
+    max-width: 600px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    text-align: center;
+  }
+
+  /* Letter display */
+  .letter-display {
+    font-size: 8rem;
+    font-weight: 900;
+    line-height: 1;
+    margin: 10px 0 6px;
+    color: #764ba2;
+    text-shadow: 3px 3px 0 #ddd;
+    cursor: pointer;
+    transition: transform 0.1s;
+    display: inline-block;
+  }
+  .letter-display:active { transform: scale(0.92); }
+
+  .letter-sound {
+    font-size: 1.5rem;
+    color: #888;
+    margin-bottom: 20px;
+    font-style: italic;
+  }
+
+  /* Word section */
+  .word-section { margin: 20px 0; }
+  .word-image { font-size: 5rem; margin-bottom: 8px; }
+  .word-text {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #333;
+    letter-spacing: 3px;
+  }
+  .word-text .highlight { color: #764ba2; font-size: 2.4rem; }
+
+  /* Answer choices */
+  .choices {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 24px 0;
+  }
+  .choice-btn {
+    padding: 18px 12px;
+    border-radius: 16px;
+    border: 3px solid #eee;
+    font-size: 1.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .choice-btn span { font-size: 0.9rem; color: #666; font-weight: 600; }
+  .choice-btn:hover { border-color: #764ba2; background: #f0ebff; transform: scale(1.03); }
+  .choice-btn.correct { border-color: #4CAF50; background: #E8F5E9; animation: bounce 0.4s; }
+  .choice-btn.wrong { border-color: #F44336; background: #FFEBEE; animation: shake 0.4s; }
+
+  @keyframes bounce {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+  }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+  }
+
+  /* Feedback */
+  .feedback {
+    font-size: 1.8rem;
+    font-weight: 700;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .feedback.correct { color: #4CAF50; }
+  .feedback.wrong { color: #F44336; }
+
+  /* Next button */
+  .next-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 14px 40px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: transform 0.2s, opacity 0.2s;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .next-btn.show { opacity: 1; pointer-events: all; }
+  .next-btn:hover { transform: scale(1.05); }
+
+  /* Alphabet grid */
+  .alphabet-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+    margin: 16px 0;
+  }
+  .alpha-cell {
+    aspect-ratio: 1;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 1.2rem;
+    transition: transform 0.15s;
+    border: 2px solid transparent;
+  }
+  .alpha-cell:hover { transform: scale(1.1); border-color: #764ba2; }
+  .alpha-cell .alpha-letter { font-size: 1.6rem; }
+  .alpha-cell .alpha-word { font-size: 0.6rem; margin-top: 2px; color: #666; }
+  .alpha-cell.selected { border-color: #764ba2; background: #f0ebff; }
+
+  /* Progress stars */
+  .progress-stars {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin: 10px 0;
+  }
+  .star { font-size: 1.6rem; opacity: 0.3; transition: all 0.3s; }
+  .star.earned { opacity: 1; animation: pop 0.3s; }
+  @keyframes pop {
+    0% { transform: scale(0); }
+    70% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+  }
+
+  /* Rhyme mode */
+  .rhyme-word {
+    font-size: 3rem;
+    font-weight: 900;
+    color: #764ba2;
+    margin: 10px 0;
+  }
+  .rhyme-choices {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .rhyme-btn {
+    padding: 16px 8px;
+    border-radius: 14px;
+    border: 3px solid #eee;
+    font-size: 1.4rem;
+    font-weight: 700;
+    cursor: pointer;
+    background: #f9f9f9;
+    transition: all 0.2s;
+  }
+  .rhyme-btn:hover { border-color: #764ba2; background: #f0ebff; }
+  .rhyme-btn.correct { border-color: #4CAF50; background: #E8F5E9; }
+  .rhyme-btn.wrong { border-color: #F44336; background: #FFEBEE; }
+
+  footer { color: rgba(255,255,255,0.7); margin-top: 24px; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<a class="back-link" href="/lumen-academy/">← Back to Kids Zone</a>
+
+<header>
+  <h1>🔤 Phonics Fun!</h1>
+  <p>Learn letters, sounds & words!</p>
+</header>
+
+<div class="score-bar">
+  <span>⭐ Score: <b id="scoreNum">0</b></span>
+  <span>🔥 Streak: <b id="streakNum">0</b></span>
+  <span>📚 Level: <b id="levelNum">1</b></span>
+</div>
+
+<div class="mode-tabs">
+  <button class="mode-tab active" onclick="setMode('letters')">🔤 Letter Sounds</button>
+  <button class="mode-tab" onclick="setMode('words')">📖 Word Match</button>
+  <button class="mode-tab" onclick="setMode('rhymes')">🎵 Rhyme Time</button>
+  <button class="mode-tab" onclick="setMode('alphabet')">🔡 Alphabet</button>
+</div>
+
+<div class="game-card" id="gameCard">
+  <!-- Content injected by JS -->
+</div>
+
+<footer>ARTISY Kids Zone — Phonics Fun | Learning made joyful 🌈</footer>
+
+<script>
+let score = 0, streak = 0, level = 1, mode = 'letters';
+let currentAnswer = '';
+
+const LETTERS = [
+  { letter: 'A', sound: 'ay', word: 'Apple', emoji: '🍎' },
+  { letter: 'B', sound: 'buh', word: 'Balloon', emoji: '🎈' },
+  { letter: 'C', sound: 'kuh', word: 'Cat', emoji: '🐱' },
+  { letter: 'D', sound: 'duh', word: 'Dog', emoji: '🐶' },
+  { letter: 'E', sound: 'eh', word: 'Elephant', emoji: '🐘' },
+  { letter: 'F', sound: 'fuh', word: 'Fish', emoji: '🐟' },
+  { letter: 'G', sound: 'guh', word: 'Giraffe', emoji: '🦒' },
+  { letter: 'H', sound: 'huh', word: 'Hat', emoji: '🎩' },
+  { letter: 'I', sound: 'ih', word: 'Igloo', emoji: '🏠' },
+  { letter: 'J', sound: 'juh', word: 'Jellyfish', emoji: '🪼' },
+  { letter: 'K', sound: 'kuh', word: 'Kite', emoji: '🪁' },
+  { letter: 'L', sound: 'luh', word: 'Lion', emoji: '🦁' },
+  { letter: 'M', sound: 'muh', word: 'Moon', emoji: '🌙' },
+  { letter: 'N', sound: 'nuh', word: 'Nest', emoji: '🪺' },
+  { letter: 'O', sound: 'oh', word: 'Orange', emoji: '🍊' },
+  { letter: 'P', sound: 'puh', word: 'Penguin', emoji: '🐧' },
+  { letter: 'Q', sound: 'kwuh', word: 'Queen', emoji: '👸' },
+  { letter: 'R', sound: 'ruh', word: 'Rainbow', emoji: '🌈' },
+  { letter: 'S', sound: 'suh', word: 'Sun', emoji: '☀️' },
+  { letter: 'T', sound: 'tuh', word: 'Tiger', emoji: '🐯' },
+  { letter: 'U', sound: 'uh', word: 'Umbrella', emoji: '☂️' },
+  { letter: 'V', sound: 'vuh', word: 'Violin', emoji: '🎻' },
+  { letter: 'W', sound: 'wuh', word: 'Whale', emoji: '🐳' },
+  { letter: 'X', sound: 'ks', word: 'Xylophone', emoji: '🎵' },
+  { letter: 'Y', sound: 'yuh', word: 'Yak', emoji: '🦬' },
+  { letter: 'Z', sound: 'zuh', word: 'Zebra', emoji: '🦓' },
+];
+
+const COLORS = ['#FFE0E0','#E0F0FF','#E8FFE0','#FFF0E0','#F0E0FF','#E0FFF0','#FFFDE0'];
+
+const RHYMES = [
+  { word: 'CAT', rhymes: ['HAT','BAT','MAT'], distractors: ['DOG','SUN','PIG'] },
+  { word: 'BIG', rhymes: ['PIG','DIG','JIG'], distractors: ['CAT','RUN','HOP'] },
+  { word: 'SUN', rhymes: ['FUN','RUN','BUN'], distractors: ['CAT','PIG','HAT'] },
+  { word: 'HOP', rhymes: ['TOP','MOP','POP'], distractors: ['SIT','RAN','BEE'] },
+  { word: 'CAKE', rhymes: ['LAKE','MAKE','BAKE'], distractors: ['DOG','SIT','FUN'] },
+  { word: 'STAR', rhymes: ['CAR','JAR','FAR'], distractors: ['PIG','HOP','SUN'] },
+  { word: 'RAIN', rhymes: ['PAIN','TRAIN','MAIN'], distractors: ['CAT','BIG','HOP'] },
+  { word: 'FISH', rhymes: ['WISH','DISH','SWISH'], distractors: ['CAT','SUN','BIG'] },
+];
+
+function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
+function pick(arr, n) { return shuffle(arr).slice(0, n); }
+function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function updateScore() {
+  document.getElementById('scoreNum').textContent = score;
+  document.getElementById('streakNum').textContent = streak;
+  document.getElementById('levelNum').textContent = level;
+}
+
+function speakLetter(text) {
+  if ('speechSynthesis' in window) {
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 0.8; u.pitch = 1.2;
+    speechSynthesis.speak(u);
+  }
+}
+
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  streak = 0; updateScore();
+  renderMode();
+}
+
+function renderMode() {
+  if (mode === 'letters') renderLetters();
+  else if (mode === 'words') renderWords();
+  else if (mode === 'rhymes') renderRhymes();
+  else if (mode === 'alphabet') renderAlphabet();
+}
+
+function renderLetters() {
+  const correct = rand(LETTERS);
+  const others = pick(LETTERS.filter(l => l.letter !== correct.letter), 3);
+  const choices = shuffle([correct, ...others]);
+  currentAnswer = correct.letter;
+
+  const card = document.getElementById('gameCard');
+  card.innerHTML = `
+    <p style="font-size:1.1rem;color:#888;margin-bottom:8px;">What letter makes this sound?</p>
+    <div style="font-size:4rem;margin:16px 0;cursor:pointer" onclick="speakLetter('${correct.sound}')">
+      🔊 <span style="font-size:2rem;font-style:italic;color:#764ba2">"${correct.sound}"</span>
+    </div>
+    <p style="color:#aaa;font-size:0.9rem;margin-bottom:4px">Tap the speaker to hear again</p>
+    <div class="choices">
+      ${choices.map(c => `
+        <button class="choice-btn" onclick="checkAnswer('${c.letter}', this)" style="background:${COLORS[Math.floor(Math.random()*COLORS.length)]}">
+          <span style="font-size:2.5rem;font-weight:900">${c.letter}</span>
+          <span>${c.letter.toLowerCase()}</span>
+        </button>
+      `).join('')}
+    </div>
+    <div class="feedback" id="feedback"></div>
+    <div class="progress-stars">${[1,2,3,4,5].map(i => `<span class="star ${i<=streak?'earned':''}">⭐</span>`).join('')}</div>
+    <button class="next-btn" id="nextBtn" onclick="renderLetters()">Next ➜</button>
+  `;
+  speakLetter(correct.sound);
+}
+
+function renderWords() {
+  const correct = rand(LETTERS);
+  const others = pick(LETTERS.filter(l => l.letter !== correct.letter), 3);
+  const choices = shuffle([correct, ...others]);
+  currentAnswer = correct.letter;
+
+  const card = document.getElementById('gameCard');
+  card.innerHTML = `
+    <p style="font-size:1.1rem;color:#888;margin-bottom:8px;">Which letter does this word start with?</p>
+    <div class="word-section">
+      <div class="word-image">${correct.emoji}</div>
+      <div class="word-text">
+        <span class="highlight">${correct.word[0]}</span>${correct.word.slice(1).toLowerCase()}
+      </div>
+    </div>
+    <div class="choices">
+      ${choices.map(c => `
+        <button class="choice-btn" onclick="checkAnswer('${c.letter}', this)" style="background:${COLORS[Math.floor(Math.random()*COLORS.length)]}">
+          <span style="font-size:2.5rem;font-weight:900">${c.letter}</span>
+          <span>${c.letter.toLowerCase()}</span>
+        </button>
+      `).join('')}
+    </div>
+    <div class="feedback" id="feedback"></div>
+    <div class="progress-stars">${[1,2,3,4,5].map(i => `<span class="star ${i<=streak?'earned':''}">⭐</span>`).join('')}</div>
+    <button class="next-btn" id="nextBtn" onclick="renderWords()">Next ➜</button>
+  `;
+}
+
+function renderRhymes() {
+  const q = rand(RHYMES);
+  const correctOne = rand(q.rhymes);
+  const wrongOnes = pick(q.distractors, 2);
+  const allChoices = shuffle([correctOne, ...wrongOnes]);
+  currentAnswer = correctOne;
+
+  const card = document.getElementById('gameCard');
+  card.innerHTML = `
+    <p style="font-size:1.1rem;color:#888;margin-bottom:12px;">Which word rhymes with...</p>
+    <div class="rhyme-word">${q.word} 🎵</div>
+    <p style="color:#aaa;font-size:0.9rem;margin-bottom:4px">Pick the rhyming word!</p>
+    <div class="rhyme-choices">
+      ${allChoices.map(w => `
+        <button class="rhyme-btn" onclick="checkRhyme('${w}','${correctOne}',this)">${w}</button>
+      `).join('')}
+    </div>
+    <div class="feedback" id="feedback"></div>
+    <div class="progress-stars">${[1,2,3,4,5].map(i => `<span class="star ${i<=streak?'earned':''}">⭐</span>`).join('')}</div>
+    <button class="next-btn" id="nextBtn" onclick="renderRhymes()">Next ➜</button>
+  `;
+}
+
+function renderAlphabet() {
+  const card = document.getElementById('gameCard');
+  card.innerHTML = `
+    <p style="font-size:1.1rem;color:#555;margin-bottom:16px;font-weight:600">Tap any letter to hear its sound! 🎉</p>
+    <div class="alphabet-grid">
+      ${LETTERS.map((l,i) => `
+        <div class="alpha-cell" style="background:${COLORS[i%COLORS.length]}" onclick="speakAndShow('${l.letter}','${l.sound}','${l.emoji}','${l.word}',this)">
+          <span class="alpha-letter">${l.letter}</span>
+          <span class="alpha-word">${l.word}</span>
+        </div>
+      `).join('')}
+    </div>
+    <div id="alphaInfo" style="margin-top:16px;font-size:1.3rem;min-height:60px;color:#764ba2;font-weight:700"></div>
+  `;
+}
+
+function speakAndShow(letter, sound, emoji, word, el) {
+  document.querySelectorAll('.alpha-cell').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  speakLetter(`${letter} says ${sound}. ${word}`);
+  document.getElementById('alphaInfo').innerHTML = `${emoji} ${letter} says "<em>${sound}</em>" — ${word}!`;
+}
+
+function checkAnswer(answer, btn) {
+  const allBtns = document.querySelectorAll('.choice-btn');
+  allBtns.forEach(b => b.disabled = true);
+  const fb = document.getElementById('feedback');
+  const next = document.getElementById('nextBtn');
+
+  if (answer === currentAnswer) {
+    btn.classList.add('correct');
+    score += 10 + (streak * 2);
+    streak++;
+    if (streak % 5 === 0) level++;
+    fb.className = 'feedback correct';
+    fb.innerHTML = ['🌟 Amazing!','✨ Superstar!','🎉 You got it!','🔥 On fire!','🏆 Brilliant!'][Math.floor(Math.random()*5)];
+    speakLetter('Correct! Great job!');
+  } else {
+    btn.classList.add('wrong');
+    // show correct
+    allBtns.forEach(b => {
+      if (b.querySelector('span')?.textContent === currentAnswer || b.textContent.trim().startsWith(currentAnswer)) {
+        b.classList.add('correct');
+      }
+    });
+    streak = 0;
+    fb.className = 'feedback wrong';
+    fb.innerHTML = '❌ Try again next time!';
+    speakLetter('Not quite. Try again!');
+  }
+  updateScore();
+  next.classList.add('show');
+}
+
+function checkRhyme(answer, correct, btn) {
+  const allBtns = document.querySelectorAll('.rhyme-btn');
+  allBtns.forEach(b => b.disabled = true);
+  const fb = document.getElementById('feedback');
+  const next = document.getElementById('nextBtn');
+
+  if (answer === correct) {
+    btn.classList.add('correct');
+    score += 10 + (streak * 2);
+    streak++;
+    if (streak % 5 === 0) level++;
+    fb.className = 'feedback correct';
+    fb.innerHTML = '🎵 Yes! They rhyme!';
+    speakLetter(`${answer} rhymes! Great job!`);
+  } else {
+    btn.classList.add('wrong');
+    allBtns.forEach(b => { if (b.textContent === correct) b.classList.add('correct'); });
+    streak = 0;
+    fb.className = 'feedback wrong';
+    fb.innerHTML = `❌ "${correct}" was the rhyme!`;
+  }
+  updateScore();
+  next.classList.add('show');
+}
+
+// Init
+renderLetters();
+</script>
+</body>
+</html>
