@@ -303,6 +303,21 @@ const ALBUMS = [
       'CarryYourHeart.mp3','LoveAfterLove.mp3','LoveComesQuietly.mp3'
     ]
   },
+  {
+    id: 'golden-ratio', name: 'Golden Ratio Frequencies', emoji: '🌀',
+    songs: [
+      { title: 'Golden Ratio 3 Min With Music', url: 'https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/golden-ratio/Golden_Ratio_3_Minutes_With_Music.mp3' },
+      { title: 'Golden Ratio 10 Min With Music', url: 'https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/golden-ratio/Golden_Ratio_10_Minutes_With_Music.mp3' },
+      { title: 'Golden Ratio 432hz Puretone 15 Min', url: 'https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/golden-ratio/Golden_Ratio_432hz_Puretone_15_Minutes.mp3' },
+      { title: 'Golden Ratio 432hz Single-tone 15 Min', url: 'https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/golden-ratio/Golden_Ratio_432hz_Singletone_15_Minutes.mp3' },
+      { title: 'Golden Ratio 528hz 15 Min', url: 'https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/golden-ratio/Golden_Ratio_528hz_15_Minutes.mp3' },
+      { title: 'Golden Ratio 528hz Single-tone 15 Min', url: 'https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/golden-ratio/Golden_Ratio_528hz_Singletone_15_Minutes.mp3' },
+      { title: 'Golden Ratio Meditation 24 Min', url: 'https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/golden-ratio/Golden_Ratio_Meditation_Music_24_Minutes.mp3' },
+      { title: 'Golden Ratio 432hz Pure 1 Hour', url: 'https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/golden-ratio/Golden_Ratio_432hz_Pure_1Hour.mp3' },
+      { title: 'Golden Ratio 432hz 1 Hour With Music', url: 'https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/golden-ratio/Golden_Ratio_432hz_1Hour_With_Music.mp3' },
+      { title: 'Golden Ratio 528hz Pure 1 Hour', url: 'https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/golden-ratio/Golden_Ratio_528hz_Pure_1Hour.mp3' },
+    ]
+  },
   { title: "THE THICK CLUTCH (I WANT, I WANT)", artist: "Ting Lott", genre: "Gospel", url: "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/THE_THICK_CLUTCH_I_WANT_I_WANT_.mp3" },
   { title: "Stay With Me Lord (Remix)", artist: "Ting Lott", genre: "Gospel", url: "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/Stay_With_Me_Lord_Remix.mp3" },
   { title: "Midnight Miracle", artist: "Ting Lott", genre: "Gospel", url: "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/Midnight_Miracle.mp3" },
@@ -359,17 +374,19 @@ function buildUI() {
     grid.className = 'song-grid';
 
     album.songs.forEach((file, idx) => {
-      const title = cleanTitle(file);
+      const isObj = typeof file === 'object';
+      const title = isObj ? file.title : cleanTitle(file);
+      const cardKey = isObj ? 'obj-' + idx + '-' + album.id : file;
       const card = document.createElement('div');
       card.className = 'song-card';
-      card.id = 'card-' + file;
+      card.id = 'card-' + cardKey;
       card.innerHTML = `<div class="song-num">${idx+1}</div>
         <div class="play-icon">▶</div>
         <div class="song-info">
           <div class="song-title">${title}</div>
           <div class="song-genre">${album.name}</div>
         </div>`;
-      card.onclick = () => playSong(file, title, album.name, album.songs);
+      card.onclick = () => playSong(file, title, album.name, album.songs, cardKey);
       grid.appendChild(card);
     });
 
@@ -387,15 +404,17 @@ function showAlbum(id) {
   if (tabs[idx]) tabs[idx].classList.add('active');
 }
 
-function playSong(file, title, genre, playlist) {
+function playSong(file, title, genre, playlist, cardKey) {
   document.querySelectorAll('.song-card').forEach(c => c.classList.remove('playing'));
-  const card = document.getElementById('card-' + file);
+  const ck = cardKey || file;
+  const card = document.getElementById('card-' + ck);
   if (card) card.classList.add('playing');
   currentSong = file;
   allPlaylist = playlist;
   currentIndex = playlist.indexOf(file);
   const audio = document.getElementById('mainPlayer');
-  audio.src = HF + encodeURIComponent(file);
+  const isObj = typeof file === 'object';
+  audio.src = isObj ? file.url : HF + encodeURIComponent(file);
   audio.play();
   document.getElementById('nowTitle').textContent = title;
   document.getElementById('nowGenre').textContent = genre;
@@ -412,14 +431,16 @@ function nextSong() {
   if (!allPlaylist.length) return;
   currentIndex = (currentIndex + 1) % allPlaylist.length;
   const file = allPlaylist[currentIndex];
-  playSong(file, cleanTitle(file), '', allPlaylist);
+  const t = typeof file === 'object' ? file.title : cleanTitle(file);
+  playSong(file, t, '', allPlaylist);
 }
 
 function prevSong() {
   if (!allPlaylist.length) return;
   currentIndex = (currentIndex - 1 + allPlaylist.length) % allPlaylist.length;
   const file = allPlaylist[currentIndex];
-  playSong(file, cleanTitle(file), '', allPlaylist);
+  const t2 = typeof file === 'object' ? file.title : cleanTitle(file);
+  playSong(file, t2, '', allPlaylist);
 }
 
 function onPlay() { document.getElementById('mainPlayBtn').textContent = '⏸'; }
