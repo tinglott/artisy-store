@@ -1,1244 +1,797 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Comedy Nexus — AI Laugh Lab</title>
-<meta name="description" content="The ultimate comedy app — jokes, riddles, knock-knocks, AI generator, mood board, and laugh tracker. Clean, family-friendly fun!"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Comedy Nexus 🎭 | Artisy Store</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Karla:wght@400;600;700&family=Abril+Fatface&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0a0a0f;
-    --card: #13131a;
-    --border: #2a2a38;
-    --accent: #ff6b6b;
-    --gold: #ffd700;
-    --purple: #a855f7;
-    --teal: #22d3ee;
-    --green: #4ade80;
-    --text: #f1f5f9;
-    --muted: #94a3b8;
-    --radius: 14px;
+    --bg: #060608;
+    --card: #0f0f14;
+    --border: #1a1a24;
+    --yellow: #FFE500;
+    --pink: #FF2D6B;
+    --cyan: #00F5C4;
+    --purple: #9B5DE5;
+    --text: #f0f0f8;
+    --muted: #888;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; min-height:100vh; }
+  body { background:var(--bg); color:var(--text); font-family:'Karla',sans-serif; min-height:100vh; overflow-x:hidden; }
 
-  /* HEADER */
-  .header { background:linear-gradient(135deg,#1a0533,#0d1a3d); padding:20px 24px; text-align:center; position:relative; overflow:hidden; }
-  .header::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 30% 50%,rgba(255,107,107,0.15),transparent 60%),radial-gradient(ellipse at 70% 50%,rgba(168,85,247,0.15),transparent 60%); }
-  .header h1 { font-size:clamp(1.6rem,5vw,2.4rem); font-weight:900; background:linear-gradient(135deg,#ff6b6b,#ffd700,#a855f7); -webkit-background-clip:text; -webkit-text-fill-color:transparent; position:relative; }
-  .header p { color:var(--muted); font-size:0.9rem; margin-top:6px; position:relative; }
-  .laugh-count { display:inline-flex; align-items:center; gap:6px; background:rgba(255,215,0,0.1); border:1px solid rgba(255,215,0,0.3); border-radius:20px; padding:4px 12px; margin-top:10px; font-size:0.8rem; color:var(--gold); position:relative; }
+  /* TICKER */
+  .ticker { background:var(--pink); color:#fff; padding:8px 0; overflow:hidden; position:relative; }
+  .ticker-inner { display:flex; animation:ticker 40s linear infinite; white-space:nowrap; }
+  .ticker-inner span { padding:0 3rem; font-weight:700; font-size:0.9rem; letter-spacing:0.05em; }
+  @keyframes ticker { from{transform:translateX(0)} to{transform:translateX(-50%)} }
 
-  /* MOOD BAR */
-  .mood-bar { display:flex; gap:8px; padding:16px 20px; overflow-x:auto; scrollbar-width:none; background:var(--card); border-bottom:1px solid var(--border); }
-  .mood-bar::-webkit-scrollbar { display:none; }
-  .mood-btn { flex-shrink:0; padding:8px 16px; border-radius:20px; border:1px solid var(--border); background:transparent; color:var(--text); cursor:pointer; font-size:0.85rem; transition:all 0.2s; white-space:nowrap; }
-  .mood-btn:hover,.mood-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; transform:translateY(-2px); }
+  /* NAV */
+  nav { background:rgba(6,6,8,0.95); backdrop-filter:blur(10px); padding:1rem 2rem; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; border-bottom:1px solid var(--border); }
+  .logo { font-family:'Bebas Neue'; font-size:2rem; letter-spacing:0.1em; }
+  .logo span:first-child { color:var(--yellow); }
+  .logo span:last-child { color:var(--pink); }
+  .nav-links { display:flex; gap:1.5rem; align-items:center; }
+  .nav-links a { color:var(--muted); text-decoration:none; font-weight:600; font-size:0.9rem; transition:color 0.2s; }
+  .nav-links a:hover { color:var(--yellow); }
+  #joke-counter { background:var(--yellow); color:#000; padding:4px 12px; border-radius:20px; font-weight:700; font-size:0.85rem; }
 
-  /* TABS */
-  .tabs { display:flex; gap:4px; padding:12px 16px 0; overflow-x:auto; scrollbar-width:none; background:var(--card); border-bottom:2px solid var(--border); }
-  .tabs::-webkit-scrollbar { display:none; }
-  .tab { flex-shrink:0; padding:10px 16px; border-radius:8px 8px 0 0; cursor:pointer; font-size:0.82rem; font-weight:600; color:var(--muted); border:none; background:transparent; transition:all 0.2s; white-space:nowrap; }
-  .tab:hover { color:var(--text); background:rgba(255,255,255,0.05); }
-  .tab.active { background:var(--bg); color:var(--gold); border-bottom:2px solid var(--gold); }
+  /* HERO */
+  .hero { padding:4rem 2rem 2rem; text-align:center; position:relative; overflow:hidden; }
+  .hero::before { content:''; position:absolute; top:-100px; left:50%; transform:translateX(-50%); width:600px; height:600px; background:radial-gradient(circle, rgba(255,229,0,0.08) 0%, transparent 70%); pointer-events:none; }
+  .hero h1 { font-family:'Abril Fatface'; font-size:clamp(3rem,8vw,7rem); line-height:1; color:var(--yellow); text-shadow:0 0 60px rgba(255,229,0,0.3); }
+  .hero h1 em { color:var(--pink); font-style:normal; }
+  .hero p { color:var(--muted); margin:1rem 0 2rem; font-size:1.1rem; max-width:600px; margin-left:auto; margin-right:auto; }
 
-  /* PANELS */
-  .panel { display:none; padding:20px; max-width:900px; margin:0 auto; }
-  .panel.active { display:block; }
+  /* SEARCH BAR */
+  .search-bar { display:flex; gap:1rem; max-width:600px; margin:0 auto 2rem; padding:0 1rem; }
+  .search-bar input { flex:1; background:var(--card); border:1px solid var(--border); color:var(--text); padding:0.8rem 1.2rem; border-radius:8px; font-family:'Karla'; font-size:1rem; transition:border-color 0.2s; }
+  .search-bar input:focus { outline:none; border-color:var(--cyan); }
+  .search-bar input::placeholder { color:var(--muted); }
+  .btn { background:var(--yellow); color:#000; border:none; padding:0.8rem 1.5rem; border-radius:8px; font-family:'Karla'; font-weight:700; cursor:pointer; transition:transform 0.15s,opacity 0.15s; white-space:nowrap; }
+  .btn:hover { transform:translateY(-2px); }
+  .btn-pink { background:var(--pink); color:#fff; }
+  .btn-cyan { background:var(--cyan); color:#000; }
+  .btn-outline { background:transparent; border:1px solid var(--border); color:var(--text); }
+  .btn-outline:hover { border-color:var(--yellow); color:var(--yellow); }
 
-  /* JOKE CARD */
-  .joke-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:24px; margin:16px 0; position:relative; transition:all 0.3s; }
-  .joke-card:hover { border-color:var(--accent); transform:translateY(-2px); box-shadow:0 8px 30px rgba(255,107,107,0.15); }
-  .joke-category-badge { display:inline-block; background:rgba(168,85,247,0.15); border:1px solid rgba(168,85,247,0.4); color:var(--purple); border-radius:12px; padding:3px 10px; font-size:0.75rem; font-weight:600; margin-bottom:12px; text-transform:uppercase; letter-spacing:0.5px; }
-  .joke-text { font-size:1.1rem; line-height:1.7; color:var(--text); font-weight:500; }
-  .punchline { margin-top:12px; font-size:1.15rem; font-weight:700; color:var(--gold); }
-  .joke-actions { display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; }
-  .btn { padding:8px 16px; border-radius:8px; border:none; cursor:pointer; font-size:0.85rem; font-weight:600; transition:all 0.2s; }
-  .btn:active { transform:scale(0.96); }
-  .btn-primary { background:linear-gradient(135deg,var(--accent),#ff8e8e); color:#fff; }
-  .btn-gold { background:linear-gradient(135deg,var(--gold),#ffb300); color:#000; }
-  .btn-ghost { background:rgba(255,255,255,0.05); color:var(--text); border:1px solid var(--border); }
-  .btn-ghost:hover { background:rgba(255,255,255,0.1); }
-  .btn-purple { background:linear-gradient(135deg,var(--purple),#7c3aed); color:#fff; }
-  .btn-teal { background:linear-gradient(135deg,var(--teal),#0891b2); color:#fff; }
+  /* CATEGORY PILLS */
+  .category-pills { display:flex; gap:0.6rem; flex-wrap:wrap; justify-content:center; padding:0 1rem 2rem; max-width:900px; margin:0 auto; }
+  .pill { background:var(--card); border:1px solid var(--border); color:var(--muted); padding:0.5rem 1rem; border-radius:20px; font-size:0.85rem; font-weight:600; cursor:pointer; transition:all 0.2s; }
+  .pill:hover, .pill.active { background:var(--yellow); color:#000; border-color:var(--yellow); }
 
-  /* RATING */
-  .rating-row { display:flex; gap:4px; margin-top:8px; align-items:center; }
-  .star-btn { font-size:1.3rem; background:none; border:none; cursor:pointer; opacity:0.4; transition:all 0.15s; }
-  .star-btn:hover,.star-btn.lit { opacity:1; transform:scale(1.2); }
-  .laugh-meter { display:flex; gap:4px; margin-left:auto; font-size:1.2rem; cursor:pointer; }
-  .laugh-meter span { opacity:0.3; transition:opacity 0.2s; }
-  .laugh-meter span.active { opacity:1; }
+  /* SECTION HEADERS */
+  .section { padding:2rem; max-width:1400px; margin:0 auto; }
+  .section-header { display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem; }
+  .section-header h2 { font-family:'Bebas Neue'; font-size:1.8rem; letter-spacing:0.1em; }
+  .section-header .badge { background:var(--pink); color:#fff; padding:3px 10px; border-radius:12px; font-size:0.75rem; font-weight:700; }
 
-  /* KNOCK KNOCK INTERACTIVE */
-  .kk-stage { text-align:center; padding:30px; }
-  .kk-bubble { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px 28px; margin:12px auto; max-width:400px; font-size:1.1rem; font-weight:600; transition:all 0.4s; }
-  .kk-bubble.them { border-color:var(--teal); color:var(--teal); }
-  .kk-bubble.you { border-color:var(--gold); color:var(--gold); }
-  .kk-bubble.punchline { border-color:var(--accent); color:var(--text); font-size:1.2rem; background:rgba(255,107,107,0.1); }
-  .kk-btn { background:linear-gradient(135deg,var(--teal),#0891b2); color:#fff; padding:12px 30px; border-radius:25px; border:none; cursor:pointer; font-size:1rem; font-weight:700; margin:8px; transition:all 0.2s; }
-  .kk-btn:hover { transform:translateY(-2px); box-shadow:0 4px 15px rgba(34,211,238,0.3); }
+  /* JOKE CARDS GRID */
+  .joke-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1.2rem; }
+  .joke-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:1.5rem; cursor:pointer; transition:all 0.25s; position:relative; overflow:hidden; }
+  .joke-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--yellow),var(--pink)); opacity:0; transition:opacity 0.2s; }
+  .joke-card:hover { transform:translateY(-4px); border-color:var(--yellow); box-shadow:0 8px 30px rgba(255,229,0,0.1); }
+  .joke-card:hover::before { opacity:1; }
+  .joke-card .cat-badge { font-size:0.7rem; font-weight:700; color:var(--cyan); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.8rem; }
+  .joke-card .setup { font-size:0.95rem; font-weight:600; color:var(--text); line-height:1.5; margin-bottom:0.8rem; }
+  .joke-card .punchline { font-size:0.9rem; color:var(--yellow); font-style:italic; display:none; padding-top:0.8rem; border-top:1px solid var(--border); }
+  .joke-card.revealed .punchline { display:block; animation:fadeIn 0.3s ease; }
+  .joke-card .reveal-hint { font-size:0.75rem; color:var(--muted); margin-top:0.5rem; }
+  .joke-card .card-actions { display:flex; gap:0.5rem; margin-top:1rem; }
+  .icon-btn { background:none; border:1px solid var(--border); color:var(--muted); padding:5px 10px; border-radius:6px; cursor:pointer; font-size:0.8rem; transition:all 0.2s; }
+  .icon-btn:hover { border-color:var(--cyan); color:var(--cyan); }
+  .icon-btn.fav.active { border-color:var(--pink); color:var(--pink); }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
 
-  /* RIDDLE */
-  .riddle-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:24px; text-align:center; }
-  .riddle-q { font-size:1.2rem; font-weight:700; color:var(--text); margin-bottom:20px; }
-  .riddle-answer { background:rgba(74,222,128,0.1); border:1px solid rgba(74,222,128,0.3); border-radius:8px; padding:14px; color:var(--green); font-weight:700; font-size:1.1rem; display:none; margin-top:12px; }
-  .riddle-answer.show { display:block; animation:fadeIn 0.4s; }
-  .reveal-btn { background:linear-gradient(135deg,var(--green),#16a34a); color:#fff; padding:10px 24px; border:none; border-radius:8px; cursor:pointer; font-weight:700; font-size:0.95rem; }
+  /* DAILY JOKE HERO CARD */
+  .daily-joke { background:linear-gradient(135deg,#0f0f20,#1a0a2e); border:1px solid var(--purple); border-radius:16px; padding:2.5rem; margin:0 2rem 2rem; max-width:calc(1400px - 4rem); margin-left:auto; margin-right:auto; text-align:center; position:relative; overflow:hidden; }
+  .daily-joke::before { content:'⭐ JOKE OF THE DAY ⭐'; position:absolute; top:1rem; left:50%; transform:translateX(-50%); background:var(--purple); color:#fff; padding:3px 16px; border-radius:12px; font-size:0.75rem; font-weight:700; letter-spacing:0.1em; white-space:nowrap; }
+  .daily-joke h3 { font-family:'Abril Fatface'; font-size:1.8rem; color:var(--text); margin:2rem 0 1rem; line-height:1.4; }
+  .daily-joke p { color:var(--yellow); font-size:1.1rem; font-style:italic; display:none; }
+  .daily-joke.shown p { display:block; animation:fadeIn 0.4s ease; }
+  .daily-joke .reveal-btn { margin-top:1.5rem; }
 
   /* AI GENERATOR */
-  .ai-panel { background:linear-gradient(135deg,rgba(168,85,247,0.08),rgba(255,107,107,0.05)); border:1px solid rgba(168,85,247,0.2); border-radius:var(--radius); padding:24px; }
-  .ai-topic-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:8px; margin:12px 0; }
-  .topic-chip { padding:8px 12px; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:8px; cursor:pointer; text-align:center; font-size:0.8rem; transition:all 0.2s; }
-  .topic-chip:hover,.topic-chip.selected { background:rgba(168,85,247,0.15); border-color:var(--purple); color:var(--purple); }
-  .ai-output { background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:20px; min-height:80px; margin-top:16px; font-size:1rem; line-height:1.7; white-space:pre-wrap; }
-  .typing-cursor { display:inline-block; width:2px; height:1.1em; background:var(--accent); animation:blink 1s infinite; vertical-align:text-bottom; }
-  @keyframes blink { 50% { opacity:0; } }
+  .ai-panel { background:linear-gradient(135deg,#060620,#10060f); border:1px solid var(--pink); border-radius:16px; padding:2rem; margin:0 2rem 2rem; max-width:calc(1400px - 4rem); margin-left:auto; margin-right:auto; }
+  .ai-panel h2 { font-family:'Bebas Neue'; font-size:1.8rem; color:var(--pink); margin-bottom:0.5rem; }
+  .ai-panel p { color:var(--muted); margin-bottom:1.5rem; font-size:0.9rem; }
+  .ai-controls { display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1rem; }
+  .ai-controls select, .ai-controls input { background:var(--card); border:1px solid var(--border); color:var(--text); padding:0.7rem 1rem; border-radius:8px; font-family:'Karla'; font-size:0.9rem; flex:1; min-width:150px; }
+  .ai-output { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:1.5rem; min-height:120px; display:none; }
+  .ai-output.visible { display:block; animation:fadeIn 0.3s ease; }
+  .ai-output .ai-q { font-size:1.1rem; font-weight:600; color:var(--text); margin-bottom:0.8rem; }
+  .ai-output .ai-a { color:var(--yellow); font-style:italic; font-size:1rem; }
+  .typing { display:inline-block; }
+  .typing::after { content:'|'; animation:blink 1s infinite; }
+  @keyframes blink { 0%,50%{opacity:1} 51%,100%{opacity:0} }
 
-  /* JOKE BOOK BROWSER */
-  .book-nav { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
-  .chapter-btn { padding:7px 14px; border-radius:8px; border:1px solid var(--border); background:transparent; color:var(--muted); cursor:pointer; font-size:0.8rem; font-weight:600; transition:all 0.2s; }
-  .chapter-btn:hover,.chapter-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
-  .joke-list { display:flex; flex-direction:column; gap:10px; }
-  .joke-list-item { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:16px; font-size:0.95rem; line-height:1.6; cursor:pointer; transition:all 0.2s; }
-  .joke-list-item:hover { border-color:var(--gold); transform:translateX(4px); }
+  /* LIVE CHAT */
+  .chat-panel { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:1.5rem; max-width:500px; }
+  .chat-panel h3 { font-family:'Bebas Neue'; font-size:1.4rem; color:var(--cyan); margin-bottom:1rem; }
+  .chat-messages { height:250px; overflow-y:auto; display:flex; flex-direction:column; gap:0.6rem; margin-bottom:1rem; padding-right:4px; }
+  .chat-messages::-webkit-scrollbar { width:4px; }
+  .chat-messages::-webkit-scrollbar-track { background:transparent; }
+  .chat-messages::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+  .chat-msg { display:flex; gap:0.6rem; align-items:flex-start; font-size:0.85rem; animation:fadeIn 0.3s ease; }
+  .chat-msg .avatar { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.75rem; flex-shrink:0; }
+  .chat-msg .bubble { background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:0.5rem 0.8rem; max-width:calc(100% - 40px); }
+  .chat-msg .name { font-weight:700; font-size:0.75rem; margin-bottom:2px; }
+  .chat-input { display:flex; gap:0.5rem; }
+  .chat-input input { flex:1; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:0.6rem 0.8rem; border-radius:8px; font-family:'Karla'; font-size:0.85rem; }
+  .chat-input input:focus { outline:none; border-color:var(--cyan); }
 
-  /* DAILY JOKE */
-  .daily-card { background:linear-gradient(135deg,rgba(255,215,0,0.1),rgba(255,107,107,0.05)); border:2px solid var(--gold); border-radius:var(--radius); padding:28px; text-align:center; margin-bottom:20px; }
-  .daily-badge { background:var(--gold); color:#000; border-radius:20px; padding:4px 14px; font-size:0.8rem; font-weight:800; display:inline-block; margin-bottom:12px; }
-  .daily-joke-text { font-size:1.15rem; line-height:1.7; font-weight:500; }
-  .streak-banner { background:linear-gradient(135deg,rgba(255,107,107,0.15),rgba(168,85,247,0.15)); border:1px solid rgba(255,107,107,0.3); border-radius:10px; padding:12px 20px; display:flex; align-items:center; gap:12px; margin-bottom:16px; }
-  .streak-count { font-size:1.8rem; font-weight:900; color:var(--accent); }
+  /* TWO-COL LAYOUT */
+  .two-col { display:grid; grid-template-columns:1fr 400px; gap:2rem; padding:0 2rem 2rem; max-width:1400px; margin:0 auto; }
+  @media(max-width:900px) { .two-col { grid-template-columns:1fr; } }
 
-  /* SEARCH */
-  .search-box { position:relative; margin-bottom:16px; }
-  .search-box input { width:100%; padding:12px 16px 12px 40px; background:var(--card); border:1px solid var(--border); border-radius:10px; color:var(--text); font-size:0.95rem; outline:none; transition:border-color 0.2s; }
-  .search-box input:focus { border-color:var(--accent); }
-  .search-box::before { content:'🔍'; position:absolute; left:12px; top:50%; transform:translateY(-50%); font-size:1rem; }
+  /* ACHIEVEMENTS */
+  .achievements { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:1.5rem; }
+  .achievements h3 { font-family:'Bebas Neue'; font-size:1.4rem; color:var(--yellow); margin-bottom:1rem; }
+  .achievement { display:flex; gap:0.8rem; align-items:center; padding:0.6rem; border-radius:8px; margin-bottom:0.5rem; transition:background 0.2s; }
+  .achievement.unlocked { background:rgba(255,229,0,0.08); }
+  .achievement .icon { font-size:1.5rem; width:36px; text-align:center; }
+  .achievement .info h4 { font-size:0.85rem; font-weight:700; color:var(--text); }
+  .achievement .info p { font-size:0.75rem; color:var(--muted); }
+  .achievement.locked .info h4 { color:var(--muted); }
+  .achievement .lock { font-size:0.8rem; color:var(--muted); margin-left:auto; }
 
-  /* FACTS PANEL */
-  .fact-card { background:var(--card); border:1px solid var(--border); border-left:4px solid var(--teal); border-radius:10px; padding:18px; margin:10px 0; }
-  .fact-label { font-size:0.75rem; color:var(--teal); font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+  /* HISTORY PANEL */
+  .history-panel { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:1.5rem; }
+  .history-panel h3 { font-family:'Bebas Neue'; font-size:1.4rem; color:var(--cyan); margin-bottom:1rem; }
+  .history-item { padding:0.7rem; border-bottom:1px solid var(--border); font-size:0.85rem; cursor:pointer; transition:background 0.2s; }
+  .history-item:hover { background:rgba(255,255,255,0.03); }
+  .history-item:last-child { border-bottom:none; }
 
   /* STATS */
-  .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin:16px 0; }
-  .stat-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; text-align:center; }
-  .stat-num { font-size:2rem; font-weight:900; color:var(--gold); }
-  .stat-label { font-size:0.8rem; color:var(--muted); margin-top:4px; }
+  .stats-bar { display:flex; gap:2rem; justify-content:center; flex-wrap:wrap; padding:1rem 2rem 2rem; }
+  .stat { text-align:center; }
+  .stat .val { font-family:'Bebas Neue'; font-size:2rem; color:var(--yellow); }
+  .stat .lbl { font-size:0.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; }
 
-  /* CONFETTI */
-  .confetti-piece { position:fixed; width:10px; height:10px; border-radius:2px; animation:confettiFall 3s ease-in forwards; pointer-events:none; z-index:9999; }
-  @keyframes confettiFall { 0% { transform:translateY(-20px) rotate(0deg); opacity:1; } 100% { transform:translateY(100vh) rotate(720deg); opacity:0; } }
-  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+  /* FAVORITES */
+  .fav-panel { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:1.5rem; display:none; }
+  .fav-panel.has-favs { display:block; }
+  .fav-panel h3 { font-family:'Bebas Neue'; font-size:1.4rem; color:var(--pink); margin-bottom:1rem; }
 
   /* TOAST */
-  .toast-container { position:fixed; top:20px; right:20px; z-index:9999; display:flex; flex-direction:column; gap:8px; }
-  .toast { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:12px 20px; font-size:0.9rem; animation:fadeIn 0.3s; box-shadow:0 4px 20px rgba(0,0,0,0.4); }
+  .toast { position:fixed; bottom:2rem; left:50%; transform:translateX(-50%) translateY(100px); background:var(--cyan); color:#000; padding:0.8rem 1.5rem; border-radius:8px; font-weight:700; font-size:0.9rem; z-index:1000; transition:transform 0.3s; pointer-events:none; }
+  .toast.show { transform:translateX(-50%) translateY(0); }
 
-  /* SPIN WHEEL */
-  .spin-container { text-align:center; padding:20px; }
-  .wheel-display { width:160px; height:160px; border-radius:50%; background:conic-gradient(var(--accent) 0% 12.5%,var(--purple) 12.5% 25%,var(--gold) 25% 37.5%,var(--teal) 37.5% 50%,var(--green) 50% 62.5%,#f97316 62.5% 75%,#ec4899 75% 87.5%,var(--accent) 87.5% 100%); margin:20px auto; border:4px solid var(--border); transition:transform 3s cubic-bezier(0.17,0.67,0.12,0.99); position:relative; cursor:pointer; }
-  .wheel-display::after { content:'▼'; position:absolute; top:-22px; left:50%; transform:translateX(-50%); font-size:1.4rem; color:var(--gold); }
-  .wheel-result { background:var(--card); border:1px solid var(--gold); border-radius:12px; padding:16px 24px; margin-top:16px; font-size:1rem; font-weight:700; color:var(--gold); display:none; animation:fadeIn 0.5s; }
+  /* SPINNER */
+  .spinner { display:inline-block; width:18px; height:18px; border:2px solid rgba(255,255,255,0.2); border-top-color:#fff; border-radius:50%; animation:spin 0.7s linear infinite; vertical-align:middle; margin-right:6px; }
+  @keyframes spin { to{transform:rotate(360deg)} }
 
-  input[type=range] { -webkit-appearance:none; height:6px; border-radius:3px; background:var(--border); outline:none; width:100%; }
-  input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:var(--accent); cursor:pointer; }
+  /* SHARE MODAL */
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:200; display:none; align-items:center; justify-content:center; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:2rem; max-width:500px; width:90%; }
+  .modal h3 { font-family:'Bebas Neue'; font-size:1.6rem; color:var(--yellow); margin-bottom:1rem; }
+  .modal textarea { width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:1rem; border-radius:8px; font-family:'Karla'; font-size:0.9rem; resize:none; height:120px; }
+  .modal .modal-btns { display:flex; gap:0.8rem; margin-top:1rem; justify-content:flex-end; }
 
-  @media(max-width:600px) { .panel { padding:14px; } .joke-text,.punchline { font-size:1rem; } }
+  /* FOOTER */
+  footer { background:var(--card); border-top:1px solid var(--border); padding:2rem; text-align:center; color:var(--muted); font-size:0.85rem; margin-top:3rem; }
+  footer a { color:var(--cyan); text-decoration:none; }
+  footer a:hover { text-decoration:underline; }
+
+  .hidden { display:none !important; }
+  #no-results { text-align:center; padding:3rem; color:var(--muted); display:none; }
+  #no-results h3 { font-family:'Bebas Neue'; font-size:2rem; color:var(--border); }
+
+  /* LAUGH METER */
+  .laugh-streak { position:fixed; top:5rem; right:1rem; background:var(--card); border:1px solid var(--yellow); border-radius:12px; padding:0.8rem 1rem; text-align:center; z-index:50; }
+  .laugh-streak .fire { font-size:1.5rem; }
+  .laugh-streak .count { font-family:'Bebas Neue'; font-size:1.4rem; color:var(--yellow); display:block; line-height:1; }
+  .laugh-streak .lbl { font-size:0.65rem; color:var(--muted); text-transform:uppercase; }
+
+  /* SCROLL TO TOP */
+  .scroll-top { position:fixed; bottom:2rem; right:2rem; background:var(--yellow); color:#000; border:none; width:44px; height:44px; border-radius:50%; font-size:1.2rem; cursor:pointer; display:none; z-index:50; transition:transform 0.2s; }
+  .scroll-top:hover { transform:scale(1.1); }
+  .scroll-top.visible { display:flex; align-items:center; justify-content:center; }
 </style>
 </head>
 <body>
 
-<div class="header">
-  <h1>😂 Comedy Nexus</h1>
-  <p>Your daily dose of clean, feel-good laughs — powered by AI + 304 hand-picked jokes</p>
-  <div class="laugh-count">🔥 <span id="globalLaughs">0</span> laughs shared today</div>
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-inner" id="tickerInner"></div>
 </div>
 
-<!-- MOOD FILTER BAR -->
-<div class="mood-bar" role="navigation" aria-label="Mood filter">
-  <button class="mood-btn active" onclick="setMood('all')">😄 All Moods</button>
-  <button class="mood-btn" onclick="setMood('silly')">🤪 Silly</button>
-  <button class="mood-btn" onclick="setMood('clever')">🧠 Clever</button>
-  <button class="mood-btn" onclick="setMood('groaner')">😬 Groan-Worthy</button>
-  <button class="mood-btn" onclick="setMood('wholesome')">🥰 Wholesome</button>
-  <button class="mood-btn" onclick="setMood('office')">💼 Office</button>
-  <button class="mood-btn" onclick="setMood('animal')">🐾 Animals</button>
-  <button class="mood-btn" onclick="setMood('food')">🍕 Food</button>
-  <button class="mood-btn" onclick="setMood('tech')">💻 Tech</button>
-  <button class="mood-btn" onclick="setMood('family')">👨‍👩‍👧 Family</button>
-</div>
-
-<!-- TABS -->
-<div class="tabs" role="tablist">
-  <button class="tab active" onclick="switchTab('daily')" role="tab">⭐ Daily</button>
-  <button class="tab" onclick="switchTab('machine')" role="tab">😂 Joke Machine</button>
-  <button class="tab" onclick="switchTab('book')" role="tab">📖 Joke Book</button>
-  <button class="tab" onclick="switchTab('knockknock')" role="tab">🚪 Knock Knock</button>
-  <button class="tab" onclick="switchTab('riddles')" role="tab">🧩 Riddles</button>
-  <button class="tab" onclick="switchTab('ai')" role="tab">🤖 AI Generator</button>
-  <button class="tab" onclick="switchTab('spin')" role="tab">🎡 Spin & Laugh</button>
-  <button class="tab" onclick="switchTab('facts')" role="tab">💡 Fun Facts</button>
-  <button class="tab" onclick="switchTab('stats')" role="tab">📊 My Laughs</button>
-</div>
-
-<div class="toast-container" id="toastContainer"></div>
-
-<!-- ============ DAILY PANEL ============ -->
-<div class="panel active" id="panel-daily">
-  <div class="streak-banner">
-    <span class="streak-count" id="streakCount">1</span>
-    <div><div style="font-weight:700;color:var(--accent)">😂 Laugh Streak</div><div style="font-size:0.8rem;color:var(--muted)">Days in a row you visited Comedy Nexus</div></div>
-    <span style="margin-left:auto;font-size:1.6rem">🔥</span>
+<!-- NAV -->
+<nav>
+  <div class="logo"><span>COMEDY</span><span>NEXUS</span></div>
+  <div class="nav-links">
+    <a href="#all-jokes">All Jokes</a>
+    <a href="#ai-generator">AI Generator</a>
+    <a href="#favorites">Favorites</a>
+    <a href="https://shop.artistrystore.com/store.html">← Store</a>
+    <span id="joke-counter">🎭 0 Laughs</span>
   </div>
-  <div class="daily-card" id="dailyCard">
-    <div class="daily-badge">⭐ JOKE OF THE DAY</div>
-    <div class="daily-joke-text" id="dailyJokeText">Loading today's laugh...</div>
-    <div class="joke-actions" style="justify-content:center;margin-top:16px">
-      <button class="btn btn-gold" onclick="speakJoke(getDailyJoke())">🔊 Hear It</button>
-      <button class="btn btn-ghost" onclick="copyText(getDailyJoke())">📋 Copy</button>
-      <button class="btn btn-primary" onclick="laughReact()">😂 Ha!</button>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <h1>Comedy<em>Nexus</em></h1>
+  <p>208 clean, family-friendly jokes — dad jokes, one-liners, animal quips, Reddit's best &amp; more. Tap any card to reveal the punchline! 😂</p>
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Search jokes…" autocomplete="off">
+    <button class="btn btn-pink" onclick="clearSearch()">Clear</button>
+  </div>
+</div>
+
+<!-- CATEGORY PILLS -->
+<div class="category-pills" id="categoryPills"></div>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat"><div class="val" id="totalJokes">208</div><div class="lbl">Total Jokes</div></div>
+  <div class="stat"><div class="val" id="revealedCount">0</div><div class="lbl">Revealed</div></div>
+  <div class="stat"><div class="val" id="favCount">0</div><div class="lbl">Favorites</div></div>
+  <div class="stat"><div class="val" id="categoryCount">10</div><div class="lbl">Categories</div></div>
+</div>
+
+<!-- DAILY JOKE -->
+<div class="daily-joke" id="dailyJoke">
+  <h3 id="dailyQ">Loading today's joke...</h3>
+  <p id="dailyA"></p>
+  <div class="reveal-btn">
+    <button class="btn" onclick="revealDaily()">🎉 Reveal Punchline</button>
+    <button class="btn btn-outline" style="margin-left:0.5rem" onclick="nextDaily()">Next Joke →</button>
+  </div>
+</div>
+
+<!-- AI GENERATOR -->
+<div class="ai-panel" id="ai-generator">
+  <h2>🤖 AI Joke Generator</h2>
+  <p>Let AI craft a fresh joke just for you — powered by Groq's LLaMA model.</p>
+  <div class="ai-controls">
+    <select id="aiCategory">
+      <option value="dad joke">Dad Joke</option>
+      <option value="one-liner">One-Liner</option>
+      <option value="animal joke">Animal Joke</option>
+      <option value="school joke">School Joke</option>
+      <option value="food joke">Food Joke</option>
+      <option value="sports joke">Sports Joke</option>
+      <option value="knock-knock joke">Knock-Knock</option>
+      <option value="pun">Pun</option>
+    </select>
+    <input type="text" id="aiTopic" placeholder="Optional: specific topic (e.g. pizza, dogs)">
+  </div>
+  <button class="btn btn-pink" onclick="generateAIJoke()" id="aiBtn">✨ Generate Joke</button>
+  <div class="ai-output" id="aiOutput">
+    <div class="ai-q" id="aiQ"></div>
+    <div class="ai-a" id="aiA"></div>
+    <div style="margin-top:1rem;display:flex;gap:0.5rem;">
+      <button class="btn btn-outline" onclick="speakAIJoke()" style="font-size:0.85rem">🔊 Speak</button>
+      <button class="btn btn-outline" onclick="copyAIJoke()" style="font-size:0.85rem">📋 Copy</button>
+      <button class="btn btn-outline" onclick="saveAIJoke()" style="font-size:0.85rem">💾 Save</button>
     </div>
   </div>
-
-  <h3 style="margin:20px 0 12px;color:var(--muted);font-size:0.85rem;text-transform:uppercase;letter-spacing:1px">🎲 Quick Picks</h3>
-  <div id="quickPicks"></div>
-  <div style="text-align:center;margin-top:20px">
-    <button class="btn btn-gold" onclick="refreshQuickPicks()">🔄 Give Me More Laughs</button>
+  <div id="jokeHistory" style="margin-top:1rem;display:none;">
+    <h4 style="font-size:0.9rem;color:var(--muted);margin-bottom:0.5rem;">Recent AI Jokes</h4>
+    <div id="historyList" style="display:flex;flex-direction:column;gap:0.4rem;max-height:200px;overflow-y:auto;"></div>
   </div>
 </div>
 
-<!-- ============ JOKE MACHINE ============ -->
-<div class="panel" id="panel-machine">
-  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:flex-end">
-    <div style="flex:1;min-width:180px">
-      <label style="font-size:0.8rem;color:var(--muted);display:block;margin-bottom:6px">Category</label>
-      <select id="jokeCat" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.9rem">
-        <option value="all">🎲 Random Mix</option>
-        <option value="one-liners">💥 One-Liners</option>
-        <option value="puns">🔤 Puns</option>
-        <option value="knock-knock">🚪 Knock-Knock</option>
-        <option value="story-jokes">📚 Story Jokes</option>
-        <option value="work-office">💼 Work & Office</option>
-        <option value="animal">🐾 Animals</option>
-        <option value="food">🍕 Food</option>
-        <option value="tech">💻 Tech</option>
-        <option value="family">👨‍👩‍👧 Family</option>
-        <option value="anti-jokes">🔄 Anti-Jokes</option>
-      </select>
-    </div>
-    <button class="btn btn-primary" onclick="showRandomJoke()" style="padding:12px 24px;font-size:1rem">🎲 Random Joke</button>
-    <button class="btn btn-gold" onclick="showRandomJoke(true)" style="padding:12px 24px;font-size:1rem">⚡ Rapid Fire</button>
-  </div>
-  <div id="machineDisplay"></div>
-  <div class="search-box" style="margin-top:20px">
-    <input type="text" id="jokeSearch" placeholder="Search jokes..." oninput="searchJokes(this.value)"/>
-  </div>
-  <div id="searchResults"></div>
-</div>
-
-<!-- ============ JOKE BOOK BROWSER ============ -->
-<div class="panel" id="panel-book">
-  <h2 style="margin-bottom:4px">📖 Laugh Lines Joke Book</h2>
-  <p style="color:var(--muted);font-size:0.85rem;margin-bottom:16px">304 hand-picked clean jokes — browse by chapter</p>
-  <div class="book-nav" id="bookNav"></div>
-  <div class="joke-list" id="bookJokeList"></div>
-</div>
-
-<!-- ============ KNOCK KNOCK ============ -->
-<div class="panel" id="panel-knockknock">
-  <div class="kk-stage" id="kkStage">
-    <h2 style="margin-bottom:6px">🚪 Knock Knock!</h2>
-    <p style="color:var(--muted);margin-bottom:24px">Interactive knock-knock jokes — you play along!</p>
-    <div id="kkDisplay"></div>
-    <div id="kkControls" style="margin-top:20px"></div>
-  </div>
-</div>
-
-<!-- ============ RIDDLES ============ -->
-<div class="panel" id="panel-riddles">
-  <h2 style="margin-bottom:6px">🧩 Brain Ticklers</h2>
-  <p style="color:var(--muted);margin-bottom:20px">See if you can guess before you peek!</p>
-  <div id="riddleDisplay"></div>
-  <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
-    <button class="btn btn-primary" onclick="nextRiddle()">🔀 Next Riddle</button>
-    <button class="btn btn-ghost" id="revealBtn" onclick="revealAnswer()">💡 Reveal Answer</button>
-    <div style="margin-left:auto;color:var(--muted);font-size:0.85rem;align-self:center" id="riddleCount"></div>
-  </div>
-</div>
-
-<!-- ============ AI GENERATOR ============ -->
-<div class="panel" id="panel-ai">
-  <div class="ai-panel">
-    <h2 style="margin-bottom:4px">🤖 AI Joke Generator</h2>
-    <p style="color:var(--muted);font-size:0.85rem;margin-bottom:16px">Pick a topic and let AI write a fresh, clean joke just for you</p>
-    <label style="font-size:0.8rem;color:var(--muted);display:block;margin-bottom:8px">Choose a topic:</label>
-    <div class="ai-topic-grid" id="topicGrid"></div>
-    <div style="margin-top:16px">
-      <label style="font-size:0.8rem;color:var(--muted);display:block;margin-bottom:6px">Or type your own topic:</label>
-      <div style="display:flex;gap:8px">
-        <input id="customTopic" type="text" placeholder="e.g. nurses, coffee, Monday..." style="flex:1;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.9rem;outline:none"/>
-        <button class="btn btn-purple" onclick="generateAIJoke()" id="aiBtn">✨ Generate</button>
-      </div>
-    </div>
-    <div style="margin-top:12px">
-      <label style="font-size:0.8rem;color:var(--muted);display:block;margin-bottom:6px">Joke Style:</label>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="mood-btn active" onclick="setStyle(this,'pun')">🔤 Pun</button>
-        <button class="mood-btn" onclick="setStyle(this,'one-liner')">💥 One-Liner</button>
-        <button class="mood-btn" onclick="setStyle(this,'story')">📖 Story</button>
-        <button class="mood-btn" onclick="setStyle(this,'knock-knock')">🚪 Knock-Knock</button>
-        <button class="mood-btn" onclick="setStyle(this,'riddle')">🧩 Riddle</button>
-      </div>
-    </div>
-    <div class="ai-output" id="aiOutput"><span style="color:var(--muted)">Your AI-crafted joke will appear here... 😄</span></div>
-    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap" id="aiJokeActions" style="display:none">
-      <button class="btn btn-ghost" onclick="copyText(document.getElementById('aiOutput').innerText)">📋 Copy</button>
-      <button class="btn btn-gold" onclick="speakJoke(document.getElementById('aiOutput').innerText)">🔊 Hear It</button>
-      <button class="btn btn-ghost" onclick="saveAIJoke()">💾 Save Joke</button>
+<!-- TWO COLUMN: CHAT + ACHIEVEMENTS -->
+<div class="two-col">
+  <div class="chat-panel">
+    <h3>💬 Live Laugh Lounge</h3>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-input">
+      <input type="text" id="chatInput" placeholder="Share a laugh… (Enter to send)" onkeydown="if(event.key==='Enter')sendChat()">
+      <button class="btn btn-cyan" onclick="sendChat()">Send</button>
     </div>
   </div>
-  <div id="savedAIJokes" style="margin-top:20px"></div>
-</div>
-
-<!-- ============ SPIN WHEEL ============ -->
-<div class="panel" id="panel-spin">
-  <div class="spin-container">
-    <h2 style="margin-bottom:6px">🎡 Spin & Laugh</h2>
-    <p style="color:var(--muted);margin-bottom:4px">Spin for a random joke category — then laugh!</p>
-    <div class="wheel-display" id="wheel" onclick="spinWheel()"></div>
-    <p style="color:var(--muted);font-size:0.85rem">Click the wheel to spin!</p>
-    <div class="wheel-result" id="wheelResult"></div>
-    <div id="spinJoke" style="margin-top:16px"></div>
+  <div style="display:flex;flex-direction:column;gap:1rem;">
+    <div class="achievements" id="achievementsPanel">
+      <h3>🏆 Achievements</h3>
+    </div>
   </div>
 </div>
 
-<!-- ============ FUN FACTS ============ -->
-<div class="panel" id="panel-facts">
-  <h2 style="margin-bottom:4px">💡 Did You Know?</h2>
-  <p style="color:var(--muted);font-size:0.85rem;margin-bottom:16px">Funny, surprising facts that sound like jokes — sourced from Wikipedia & science</p>
-  <div id="factsDisplay"></div>
-  <div style="text-align:center;margin-top:16px">
-    <button class="btn btn-teal" onclick="loadFacts()">🔄 Shuffle Facts</button>
-    <button class="btn btn-ghost" style="margin-left:8px" onclick="generateAIFact()">🤖 AI Fact</button>
+<!-- FAVORITES -->
+<div class="section" id="favorites">
+  <div class="fav-panel" id="favPanel">
+    <h3>❤️ Your Favorites</h3>
+    <div class="joke-grid" id="favGrid"></div>
   </div>
 </div>
 
-<!-- ============ STATS ============ -->
-<div class="panel" id="panel-stats">
-  <h2 style="margin-bottom:16px">📊 Your Laugh Stats</h2>
-  <div class="stats-grid">
-    <div class="stat-card"><div class="stat-num" id="statJokesViewed">0</div><div class="stat-label">Jokes Viewed</div></div>
-    <div class="stat-card"><div class="stat-num" id="statLaughs">0</div><div class="stat-label">😂 Ha! Reactions</div></div>
-    <div class="stat-card"><div class="stat-num" id="statStreak">1</div><div class="stat-label">🔥 Day Streak</div></div>
-    <div class="stat-card"><div class="stat-num" id="statAI">0</div><div class="stat-label">AI Jokes Made</div></div>
-    <div class="stat-card"><div class="stat-num" id="statRiddles">0</div><div class="stat-label">Riddles Solved</div></div>
-    <div class="stat-card"><div class="stat-num" id="statKK">0</div><div class="stat-label">KK Played</div></div>
+<!-- ALL JOKES -->
+<div class="section" id="all-jokes">
+  <div class="section-header">
+    <h2>All Jokes</h2>
+    <span class="badge" id="shownCount">208</span>
+    <div style="margin-left:auto;display:flex;gap:0.5rem;">
+      <button class="btn btn-outline" style="font-size:0.8rem;padding:5px 12px" onclick="shuffleJokes()">🔀 Shuffle</button>
+      <button class="btn btn-outline" style="font-size:0.8rem;padding:5px 12px" onclick="revealAll()">👁 Reveal All</button>
+    </div>
   </div>
-  <h3 style="margin:20px 0 12px;color:var(--muted);font-size:0.85rem;text-transform:uppercase;letter-spacing:1px">🏆 Achievements</h3>
-  <div id="achievements"></div>
-  <div style="margin-top:20px;text-align:center">
-    <button class="btn btn-ghost" onclick="resetStats()">🗑️ Reset Stats</button>
+  <div class="joke-grid" id="jokeGrid"></div>
+  <div id="no-results"><h3>😶 No jokes found</h3><p style="margin-top:0.5rem">Try a different search or category</p></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- SHARE MODAL -->
+<div class="modal-overlay" id="shareModal">
+  <div class="modal">
+    <h3>📤 Share This Joke</h3>
+    <textarea id="shareText" readonly></textarea>
+    <div class="modal-btns">
+      <button class="btn btn-outline" onclick="closeModal()">Close</button>
+      <button class="btn btn-cyan" onclick="copyShare()">📋 Copy</button>
+    </div>
   </div>
 </div>
+
+<!-- LAUGH STREAK -->
+<div class="laugh-streak" id="laughStreak">
+  <div class="fire">🔥</div>
+  <span class="count" id="streakCount">0</span>
+  <div class="lbl">Streak</div>
+</div>
+
+<!-- SCROLL TOP -->
+<button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<footer>
+  <p>🎭 Comedy Nexus — Part of the <a href="https://shop.artistrystore.com/store.html">Artisy Store</a> universe</p>
+  <p style="margin-top:0.5rem;font-size:0.75rem">208 clean family jokes | Dad Jokes · One-Liners · Animal Jokes · Knock-Knock · Reddit Favorites</p>
+</footer>
 
 <script>
-// ===================== DATA =====================
-const JOKES = {
-  "one-liners": [
-    "One-Liners & Zingers Quick hits for any conversation.",
-    "I told my computer I needed a break, and now it won't stop sending me vacation ads.",
-    "I'm on a seafood diet.",
-    "I see food, and then I remember I'm on a diet.",
-    "My bed is a magical place where I suddenly remember everything I forgot to do.",
-    "I used to be a banker, but I lost interest.",
-    "I have a lot of growing up to do.",
-    "I realized that the other day inside my fort.",
-    "I'm not lazy, I'm on energy-saving mode.",
-    "My favorite exercise is a cross between a lunge and a crunch.",
-    "I told my suitcase there'd be no vacation this year.",
-    "Now I'm dealing with emotional baggage.",
-    "I bought shoes from a drug dealer.",
-    "I don't know what he laced them with, but I've been tripping all day.",
-    "The rotation of Earth really makes my day.",
-    "I only know 25 letters of the alphabet.",
-    "I used to hate facial hair, but then it grew on me.",
-    "I'm reading a book about anti-gravity.",
-    "It's impossible to put down.",
-    "I named my dog 'Five Miles' so I can tell people I walk Five Miles every day.",
-    "I have an inferiority complex, but it's not a very good one.",
-    "I would tell you a chemistry joke, but I know I wouldn't get a reaction.",
-    "I don't trust stairs.",
-    "They're always up to something.",
-    "I got a job at a bakery because I kneaded dough.",
-    "I'm terrified of elevators, so I'm going to start taking steps to avoid them.",
-    "I stayed up all night wondering where the sun went, and then it dawned on me.",
-    "My boss told me to have a good day, so I went home.",
-    "I tried to catch fog yesterday.",
-    "I used to play piano by ear, but now I use my hands."
-  ],
-  "puns": [
-    "Puns & Wordplay Groan-worthy, in the best way.",
-    "A skeleton walked into a bar and ordered a beer and a mop.",
-    "I used to be a baker, but I couldn't make enough dough.",
-    "Two windmills are standing in a field.",
-    "One asks, 'What kind of music do you like?' The other says, 'I'm a big metal fan.' I told my wife she was drawing her eyebrows too high.",
-    "She looked surprised.",
-    "A cheese factory exploded in France.",
-    "Da brie is everywhere.",
-    "I'm reading a horror story in Braille.",
-    "Something bad is about to happen, I can feel it.",
-    "I once got a job at a soda factory, but I got canned.",
-    "I couldn't concentrate.",
-    "A grasshopper walks into a bar.",
-    "The bartender says, 'We have a drink named after you!' The grasshopper says, 'You have a drink named Steve?' The past, present, and future walked into a room.",
-    "It was a little tense, but at least someone brought snacks.",
-    "I'm on a whiskey diet.",
-    "I've lost three days already.",
-    "Why don't scientists trust atoms?",
-    "Because they make up everything.",
-    "I used to run a dating service for chickens, but I couldn't hen-dle it.",
-    "The world tongue-twister champion just got arrested.",
-    "I hear they're going to give her a really tough sentence.",
-    "I wasn't originally going to get a brain transplant, but then I changed my mind.",
-    "What do you call a fish with no eyes?",
-    "I got my job as an electrician after passing a written test with flying colors, mostly red and blue.",
-    "A boiled egg every morning is hard to beat.",
-    "I got a job at the mirror factory.",
-    "I just saw myself doing it for years.",
-    "The invisible man turned down the job offer.",
-    "He just couldn't see himself doing it."
-  ],
-  "knock-knock": [
-    "Knock-Knock Jokes A classic for a reason. 1.",
-    "Aw, don't cry, it's just a joke. 2.",
-    "Lettuce in, it's cold out here! 3.",
-    "Interrupting cow who?",
-    "Interrupting cow wh\u2014 MOO! 4.",
-    "No thanks, I prefer peanuts. 5.",
-    "Is there an owl in here? 7.",
-    "Alaska one more time if you didn't hear me. 8.",
-    "Ice cream if you don't let me in! 9.",
-    "Dishes a very bad joke. 10.",
-    "Nobel, that's why I had to knock. 11.",
-    "Olive you and I miss you. 12.",
-    "Justin time for dinner! 13.",
-    "Never mind, it's pointless. 14.",
-    "They really don't say 'who is' \u2014 they just say 'who.' 15.",
-    "Honeydew you want to dance? 16.",
-    "Wooden shoe like to hear another joke? 17.",
-    "I didn't know you could yodel!"
-  ],
-  "story-jokes": [
-    "Story Jokes Slow builds with a payoff. 1.",
-    "The Talking Dog A man sees a sign outside a house that reads TALKING DOG FOR SALE.",
-    "Skeptical, he rings the bell and is led to the backyard, where he sees a mutt sitting there. \"You talk?\" he asks. \"Yep,\" the dog replies.",
-    "Amazed, the man asks about his life.",
-    "The dog says, \"I discovered this gift young and knew the CIA would want me, so I signed up and worked overseas for years, sitting in rooms with spies, listening in, and no one ever suspected me.",
-    "I later got married, had a few litters of puppies, and now I'm retired.\" The man is stunned.",
-    "He asks the owner what he wants for the dog. \"Ten dollars,\" the owner says. \"Ten dollars?",
-    "Why so cheap?\" The owner replies, \"He's a liar.",
-    "He didn't do any of that.\" 2.",
-    "The Ship's Captain A tourist is being shown around a small fishing village.",
-    "He notices a very old man sitting by the docks, wrinkled from decades in the sun. \"You must have been coming out here your whole life,\" the tourist says. \"Yep,\" says the old man. \"Tell me, what's the secret to a long life like yours?\" The old man thinks for a moment. \"I never argue,\" he says.",
-    "The tourist frowns. \"That can't be it.",
-    "There has to be more to it than that.\" The old man shrugs. \"Yeah, you're probably right.\" 3.",
-    "The Programmer's Wife A man's wife sends him to the store. \"Get a loaf of bread,\" she says, \"and if they have eggs, get a dozen.\" The man is a software engineer and takes instructions very literally.",
-    "He comes home with twelve loaves of bread.",
-    "His wife stares at the counter. \"Why on earth did you buy twelve loaves of bread?\" she asks.",
-    "He says, \"They had eggs.\" 4.",
-    "The Job Interview A young man applies for a job at the zoo.",
-    "The zookeeper explains that their gorilla recently passed away, and until they find a replacement, they need someone to wear a gorilla suit and act the part for visitors.",
-    "Desperate for work, the man agrees.",
-    "On his first day, he's swinging around the enclosure, drawing a big crowd, when he swings too hard and lands in the lion enclosure next door.",
-    "Terrified, he starts screaming, \"Help!",
-    "Help!\" as the lion charges toward him.",
-    "The lion gets close and whispers, \"Would you be quiet?",
-    "You're going to get us both fired.\" 5.",
-    "The Fortune Teller A man walks into a fortune teller's tent, curious but skeptical.",
-    "The fortune teller studies his palm carefully and says, \"You will be poor and unhappy until you are forty-five years old.\" The man waits, hopeful. \"And after that?\" The fortune teller says, \"After that, you'll be used to it.\" 6.",
-    "The Restaurant Critic A food critic visits a tiny diner in a small town, hoping to be unimpressed so he can write a scathing review.",
-    "He orders the soup, and it's the best he's ever had.",
-    "He calls the owner over. \"This is remarkable."
-  ],
-  "work-office": [
-    "Work & Office Life For anyone who has ever sat through a meeting that could've been an email.",
-    "My boss told me to attach a cover letter to my resignation.",
-    "I stapled a picture of Coldplay to it.",
-    "Why did the employee bring a ladder to the office?",
-    "He heard the job had high expectations.",
-    "I asked my boss for a raise because three other companies were after me.",
-    "I said the electric, gas, and water companies.",
-    "The meeting could have been an email.",
-    "The email could have been a shrug.",
-    "My favorite office chair setting is 'slightly reclined so it looks like I'm thinking.' I have a photographic memory, I just never developed the film.",
-    "My manager loved that excuse the first four times.",
-    "Our team-building exercise was so effective that half the team now avoids team meetings entirely.",
-    "I told HR I work well under pressure.",
-    "I said, 'Right before vacation and right after lunch.' My inbox has an unread count so high it now qualifies as a personality trait.",
-    "The printer only jams when it senses I'm in a hurry.",
-    "It has never once jammed on a slow Tuesday.",
-    "I put 'strategic napper' on my resume and somehow got called in for an interview.",
-    "Our company installed a new coffee machine.",
-    "Productivity dropped, because now there's a line.",
-    "I told my coworker I was 'circling back.' We both knew that meant never.",
-    "The office thermostat war has no winner, only casualties in sweaters and cardigans.",
-    "My job title changed three times this year, but my job stayed exactly the same.",
-    "I asked for a standing desk.",
-    "My boss said I already stand around enough during meetings.",
-    "The Wi-Fi password at my office is longer than most of our actual project plans.",
-    "I said I'd 'take it offline' just to end the meeting sooner.",
-    "We never spoke of it again.",
-    "My out-of-office reply gets more compliments than my actual work.",
-    "Somebody replied-all to the entire company just to say 'thanks.' We are still recovering."
-  ],
-  "animal": [
-    "Animal Antics Furry, feathered, and finned humor.",
-    "Why don't elephants use computers?",
-    "They're afraid of the mouse.",
-    "What do you call an alligator in a vest?",
-    "Why don't oysters share?",
-    "Because they're shellfish.",
-    "What do you call a bear with no teeth?",
-    "How do you organize a space party?",
-    "What do you call a sleeping dinosaur?",
-    "Why did the chicken cross the playground?",
-    "To get to the other slide.",
-    "What do you call a fish wearing a bowtie?",
-    "Why are frogs so happy?",
-    "They eat whatever bugs them.",
-    "What do you call a cow with no legs?",
-    "Why did the golden retriever apply for a job?",
-    "He heard he was a good boy and wanted to prove it.",
-    "What do you call a pig that does karate?",
-    "Why do bees have sticky hair?",
-    "Because they use honeycombs.",
-    "What did the mother buffalo say to her son when he left for college?",
-    "Why don't cats play poker in the jungle?",
-    "What do you call a dinosaur that crashes his car?",
-    "Tyrannosaurus wrecks.",
-    "How does a penguin build its house?",
-    "What do you call a snowman with a six-pack?",
-    "An abdominal snowman.",
-    "Why did the spider go to the computer?",
-    "To check his website.",
-    "What's a cat's favorite subject in school?"
-  ],
-  "food": [
-    "Food for Thought A menu of puns, served fresh.",
-    "Why did the tomato turn red?",
-    "Because it saw the salad dressing.",
-    "I'm on a seafood diet.",
-    "I see donuts, and I eat those too.",
-    "Why did the coffee file a police report?",
-    "What do you call cheese that isn't yours?",
-    "I told a joke about a pizza, but it was a little cheesy.",
-    "What did the grape say when it got crushed?",
-    "Nothing, it just let out a little wine.",
-    "Why do bananas never get lonely?",
-    "Because they hang out in bunches.",
-    "What kind of key opens a banana?",
-    "Why did the cookie go to the doctor?",
-    "It was feeling crumbly.",
-    "What do you call fake spaghetti?",
-    "I burned six thousand calories today.",
-    "I left the pizza in the oven for two hours.",
-    "Why did the baker stop making donuts?",
-    "He was tired of the hole business.",
-    "What's the best thing about Switzerland?",
-    "I don't know, but the flag is a big plus.",
-    "Why did the melon jump into the lake?",
-    "It wanted to be a watermelon.",
-    "I made a vegetable pun earlier, but it was pretty corny.",
-    "What do you call a sad cup of coffee?",
-    "Why did the orange stop rolling down the hill?",
-    "What did one plate say to the other plate?",
-    "Why don't eggs tell jokes?",
-    "They'd crack each other up."
-  ],
-  "tech": [
-    "Tech & Modern Life For anyone who has argued with a Wi-Fi router.",
-    "Why do programmers prefer dark mode?",
-    "Because light attracts bugs.",
-    "I changed my password to 'incorrect' so whenever I forget it, my computer reminds me: your password is incorrect.",
-    "Why did the smartphone need glasses?",
-    "It lost all its contacts.",
-    "How many programmers does it take to change a lightbulb?",
-    "None, that's a hardware problem.",
-    "I told my smart speaker a joke.",
-    "It said, 'I'm sorry, I didn't quite get that.' Honestly, relatable.",
-    "Why was the computer cold?",
-    "It left its Windows open.",
-    "There are 10 kinds of people in the world: those who understand binary and those who don't.",
-    "My Wi-Fi went down for five minutes and I found out my family has voices.",
-    "Why did the developer go broke?",
-    "He used up all his cache.",
-    "I asked my phone for directions.",
-    "It's been recalculating my life ever since.",
-    "Why don't robots ever panic?",
-    "They have great circuit-breathing techniques.",
-    "I tried to update my software, and now it's asking me for space I don't have.",
-    "Why do Java developers wear glasses?",
-    "Because they don't see sharp.",
-    "My smart fridge just judged my snack choices.",
-    "We're not speaking right now.",
-    "I named my Wi-Fi network 'Get Off My Lawn' just to see who complains about it.",
-    "Why did the app go to therapy?",
-    "It had too many unresolved issues.",
-    "I asked ChatGPT to tell me a joke about artificial intelligence.",
-    "It said it was still processing."
-  ],
-  "family": [
-    "Family & Home Relatable chaos, one joke at a time.",
-    "My kids asked why I don't have any Instagram followers.",
-    "I told them I follow enough family drama in real life.",
-    "I told my kid to put his toys away.",
-    "Twenty minutes later I found one sock in the fridge and I've decided not to ask.",
-    "Parenting is mostly saying 'because I said so' in increasingly creative ways.",
-    "My toddler negotiated bedtime like a hostage situation, and honestly, I respect the effort.",
-    "I asked my daughter what she wants to be when she grows up.",
-    "She said 'tired,' apparently, just like me.",
-    "The silence when kids go quiet in another room is louder than any tantrum.",
-    "My son asked if we're rich.",
-    "I said we're rich in love.",
-    "He asked if love pays for a trampoline.",
-    "Family game night ended in a tie, three tears, and one overturned Monopoly board.",
-    "I told my kids I used to walk to school in the snow.",
-    "They asked why I didn't just take my car.",
-    "We have some work to do.",
-    "My kid's favorite phrase right now is 'that's not fair,' usually directly following something extremely fair.",
-    "I finally got five minutes alone in the bathroom.",
-    "My family sent a search party.",
-    "My grandma says she doesn't need a smartphone because she already knows everyone's business.",
-    "Every family road trip has exactly one person who insists we're 'almost there' with zero evidence.",
-    "My mother-in-law gives advice the way weather reports give forecasts, confidently and often wrong.",
-    "I asked my dad for advice.",
-    "He gave me a story about a fish, a truck, and 1987.",
-    "I still don't know what it meant.",
-    "Our family group chat has more drama than most television shows, and somehow lower production value.",
-    "My kid learned sarcasm this year, and now every conversation is a small battle I mostly lose.",
-    "Grandpa's stories get one new detail every single time he tells them, and we've stopped correcting him.",
-    "I asked my daughter to clean her room."
-  ],
-  "anti-jokes": [
-    "Anti-Jokes & Meta Humor Jokes that know exactly what they're doing.",
-    "Why did the chicken cross the road?",
-    "To get to the other side.",
-    "It just needed to cross the road.",
-    "What's brown and sticky?",
-    "Why did the man fall down the well?",
-    "Because he didn't see it.",
-    "What's the difference between a duck?",
-    "One of its legs is both the same.",
-    "Just me, I forgot the rest of the joke.",
-    "I was going to tell a time-traveling joke, but you didn't like it.",
-    "This joke has no punchline, which is exactly the point.",
-    "A horse walks into a bar.",
-    "The bartender asks why the long face.",
-    "The horse says he's just built that way and finds the question a little insensitive.",
-    "Why did the scarecrow win an award?",
-    "I told my friend a joke about construction, but I'm still working on it.",
-    "What do you call a joke with no ending?",
-    "Two guys walk into a bar.",
-    "You'd think one of them would have seen it.",
-    "I would tell you a joke about nothing, but there's nothing to it.",
-    "Why did the man buy a ladder?",
-    "Because he wanted a ladder.",
-    "Sometimes people just need things.",
-    "A skeleton walks into a bar and orders a beer and a mop.",
-    "Actually, he just orders a beer.",
-    "He cleans up his own messes."
-  ],
-  "riddles": [
-    "Riddles Test your wit before you check the answer. 1.",
-    "What has keys but can't open locks?",
-    "What has a face and two hands but no arms or legs?",
-    "The more you take, the more you leave behind.",
-    "Answer: Footsteps. 4.",
-    "What gets wetter as it dries?",
-    "I speak without a mouth and hear without ears.",
-    "What has to be broken before you can use it?",
-    "What can travel around the world while staying in a corner?",
-    "What has one eye but cannot see?",
-    "What building has the most stories?",
-    "Answer: The library. 10.",
-    "What comes once in a minute, twice in a moment, but never in a thousand years?",
-    "Answer: The letter M. 11.",
-    "What is full of holes but still holds water?",
-    "Answer: A sponge. 12.",
-    "What can you catch but not throw?",
-    "What has many teeth but cannot bite?",
-    "What runs but never walks, has a mouth but never talks?",
-    "What kind of room has no doors or windows?"
-  ]
-};
+// === DATA ===
+const JOKES = [{"q": "Why did the scarecrow win an award?", "a": "Because he was outstanding in his field!", "category": "Dad Jokes"}, {"q": "What do you call a fake noodle?", "a": "An impasta!", "category": "Dad Jokes"}, {"q": "Why did the coffee file a police report?", "a": "Because it got mugged!", "category": "Dad Jokes"}, {"q": "Why did the bicycle fall over?", "a": "Because it was two-tired!", "category": "Dad Jokes"}, {"q": "What do you call a can opener that doesn't work?", "a": "A can't opener!", "category": "Dad Jokes"}, {"q": "I told my wife she was drawing her eyebrows too high.", "a": "She looked surprised.", "category": "Dad Jokes"}, {"q": "Why did the baker go to the bank?", "a": "He needed dough!", "category": "Dad Jokes"}, {"q": "Why did the mushroom get invited to all the parties?", "a": "Because he's a fun-gi!", "category": "Dad Jokes"}, {"q": "Why did the cat join a band?", "a": "Because he wanted to be the purr-cussionist!", "category": "Dad Jokes"}, {"q": "What do you call a group of cows playing instruments?", "a": "A moo-sical band!", "category": "Dad Jokes"}, {"q": "Why did the banana go to the doctor?", "a": "Because he wasn't peeling well!", "category": "Dad Jokes"}, {"q": "Why did the astronaut break up with his girlfriend?", "a": "Because he needed space!", "category": "Dad Jokes"}, {"q": "What do you call a bear with no socks on?", "a": "Barefoot!", "category": "Dad Jokes"}, {"q": "Why did the computer go to the doctor?", "a": "It had a virus!", "category": "Dad Jokes"}, {"q": "Why did the kid bring a ladder to school?", "a": "He wanted to reach his full potential!", "category": "Dad Jokes"}, {"q": "What do you call a fish with a sunburn?", "a": "A star-fish!", "category": "Dad Jokes"}, {"q": "Why did the turkey join the band?", "a": "He was a drumstick!", "category": "Dad Jokes"}, {"q": "Why did the orange stop in the middle of the road?", "a": "Because it ran out of juice!", "category": "Dad Jokes"}, {"q": "What do you call a dog that does magic tricks?", "a": "A labracadabrador!", "category": "Dad Jokes"}, {"q": "Why did the kid put his homework in the freezer?", "a": "Because it was a cool assignment!", "category": "Dad Jokes"}, {"q": "Why did the rabbit go to the doctor?", "a": "Because he had hare-loss!", "category": "Dad Jokes"}, {"q": "Why did the kid become a master baker?", "a": "Because he kneaded the dough!", "category": "Dad Jokes"}, {"q": "What do you call a cow with no legs?", "a": "Ground beef!", "category": "Dad Jokes"}, {"q": "Why did the egg go to therapy?", "a": "Because it was cracking under the pressure!", "category": "Dad Jokes"}, {"q": "Why did the chicken go to the gym?", "a": "To get some egg-cellent abs!", "category": "Dad Jokes"}, {"q": "Why don't scientists trust atoms?", "a": "Because they make up everything", "category": "One-Liners"}, {"q": "Why don't eggs tell jokes?", "a": "They'd crack each other up", "category": "One-Liners"}, {"q": "Why did the tomato turn red?", "a": "Because it saw the salad dressing", "category": "One-Liners"}, {"q": "Why don't lobsters share?", "a": "Because they're shellfish", "category": "One-Liners"}, {"q": "I'm reading a book about anti-gravity", "a": "It's impossible to put down", "category": "One-Liners"}, {"q": "Why did the chicken cross the playground?", "a": "To get to the other slide", "category": "One-Liners"}, {"q": "Why did the kid become a baker?", "a": "Because he kneaded the dough", "category": "One-Liners"}, {"q": "What do you call a fish with no eyes?", "a": "A fsh", "category": "One-Liners"}, {"q": "Why did the math book look so sad?", "a": "Because it had too many problems", "category": "One-Liners"}, {"q": "Why did the dog go to the vet?", "a": "Because he was feeling ruff!", "category": "Animal Jokes"}, {"q": "What do you call a group of cats playing instruments?", "a": "A mew-sical band!", "category": "Animal Jokes"}, {"q": "Why did the cow join a band?", "a": "Because she wanted to be a moo-sician!", "category": "Animal Jokes"}, {"q": "What do you call a chicken that's a good listener?", "a": "An egg-cellent listener!", "category": "Animal Jokes"}, {"q": "Why did the bear go to the doctor?", "a": "Because it had a grizzly cough!", "category": "Animal Jokes"}, {"q": "Why did the cat take a nap?", "a": "To paws for a moment!", "category": "Animal Jokes"}, {"q": "Why did the cow cross the road?", "a": "To get to the udder side!", "category": "Animal Jokes"}, {"q": "Why did the dog go to the beauty parlor?", "a": "Because he wanted to get a paws-itively gorgeous haircut!", "category": "Animal Jokes"}, {"q": "Why did the cat join a book club?", "a": "To purr-use the latest novels!", "category": "Animal Jokes"}, {"q": "Why did the chicken go to the doctor?", "a": "Because it had fowl breath!", "category": "Animal Jokes"}, {"q": "Why did the bear go to the amusement park?", "a": "To have a grizzly good time!", "category": "Animal Jokes"}, {"q": "What do you call a dog that's a great dancer?", "a": "A paw-fect dancer!", "category": "Animal Jokes"}, {"q": "Why did the cat become a detective?", "a": "Because it was great at purr-using the evidence!", "category": "Animal Jokes"}, {"q": "Why did the cow start a garden?", "a": "To get to the root of the matter!", "category": "Animal Jokes"}, {"q": "What do you call a chicken that's a great singer?", "a": "An egg-straordinary vocalist!", "category": "Animal Jokes"}, {"q": "Why did the bear go to the spa?", "a": "To get a bear-icure!", "category": "Animal Jokes"}, {"q": "Why did the dog become a chef?", "a": "Because he was great at cooking up a storm!", "category": "Animal Jokes"}, {"q": "What do you call a cat that's a great swimmer?", "a": "A purr-fect stroke!", "category": "Animal Jokes"}, {"q": "Why did the chicken go to the art museum?", "a": "To see the egg-hibition!", "category": "Animal Jokes"}, {"q": "Why did the cow start a band?", "a": "Because she wanted to be a moo-sic sensation!", "category": "Animal Jokes"}, {"q": "Why did the football go to the doctor?", "a": "It was feeling a little deflated", "category": "Sports Jokes"}, {"q": "What did the basketball say to the hoop?", "a": "You're always so supportive", "category": "Sports Jokes"}, {"q": "Why did the baseball go to the doctor?", "a": "It was feeling a little off-base", "category": "Sports Jokes"}, {"q": "What do you call a golf ball that's having a bad day?", "a": "Teed off", "category": "Sports Jokes"}, {"q": "Why did the football player bring a pillow to the game?", "a": "So he could have a soft defense", "category": "Sports Jokes"}, {"q": "Why did the basketball player bring a ladder to the game?", "a": "He wanted to elevate his game", "category": "Sports Jokes"}, {"q": "What did the baseball say to the bat?", "a": "You're always hitting me up for something", "category": "Sports Jokes"}, {"q": "Why did the golfer wear two pairs of pants?", "a": "In case he got a hole in one", "category": "Sports Jokes"}, {"q": "Why did the football player go to the bank?", "a": "To make a touchdown deposit", "category": "Sports Jokes"}, {"q": "Why did the basketball player go to the doctor?", "a": "He was feeling a little hoarse from all the squeaking sneakers", "category": "Sports Jokes"}, {"q": "Why did the baseball player go to the hair salon?", "a": "He wanted a home run haircut", "category": "Sports Jokes"}, {"q": "What do you call a group of golfers playing at night?", "a": "A par-tee", "category": "Sports Jokes"}, {"q": "Why did the football coach go to the doctor?", "a": "He was feeling a little sacked", "category": "Sports Jokes"}, {"q": "Why did the basketball player bring a magnet to the game?", "a": "He wanted to attract some attention", "category": "Sports Jokes"}, {"q": "Why did the baseball go to therapy?", "a": "It was feeling a little pitched off", "category": "Sports Jokes"}, {"q": "What did the golf ball say when it went into the hole?", "a": "I'm in a bit of a hole", "category": "Sports Jokes"}, {"q": "Why did the football player go to the gym?", "a": "To get some more kick out of his workout", "category": "Sports Jokes"}, {"q": "Why did the baseball player go to the eye doctor?", "a": "He was having trouble seeing the pitch", "category": "Sports Jokes"}, {"q": "What do you call a golfer who's always making excuses?", "a": "A hazard to himself", "category": "Sports Jokes"}, {"q": "What did the ocean say to the beach?", "a": "Nothing, it just waved.", "category": "What Do You Call"}, {"q": "Who's there?", "a": "Lettuce.", "category": "One-Liners"}, {"q": "Lettuce who?", "a": "Lettuce in, it's cold out here!", "category": "One-Liners"}, {"q": "Interrupting cow who?", "a": "Interrupting cow wh— MOO!", "category": "One-Liners"}, {"q": "Cash who?", "a": "No thanks, I prefer peanuts.", "category": "One-Liners"}, {"q": "Tank who?", "a": "You're welcome.", "category": "One-Liners"}, {"q": "Alaska who?", "a": "Alaska one more time if you didn't hear me.", "category": "One-Liners"}, {"q": "Ice cream who?", "a": "Ice cream if you don't let me in!", "category": "One-Liners"}, {"q": "Dishes who?", "a": "Dishes a very bad joke.", "category": "One-Liners"}, {"q": "Nobel who?", "a": "Nobel, that's why I had to knock.", "category": "One-Liners"}, {"q": "Olive who?", "a": "Olive you and I miss you.", "category": "One-Liners"}, {"q": "Justin who?", "a": "Justin time for dinner!", "category": "One-Liners"}, {"q": "Broken pencil who?", "a": "Never mind, it's pointless.", "category": "One-Liners"}, {"q": "Owls say who?", "a": "They really don't say 'who is' — they just say 'who.", "category": "One-Liners"}, {"q": "Atch who?", "a": "Bless you!", "category": "One-Liners"}, {"q": "Cows go who?", "a": "No, cows go moo!", "category": "One-Liners"}, {"q": "Little old lady who?", "a": "I didn't know you could yodel!", "category": "One-Liners"}, {"q": "Ten dollars?", "a": "This dog is amazing!", "category": "One-Liners"}, {"q": "The lion gets close and whispers, \"Would you be quiet?", "a": "You're going to get us both fired.", "category": "One-Liners"}, {"q": "Why did the employee bring a ladder to the office?", "a": "He heard the job had high expectations.", "category": "Why Jokes"}, {"q": "Why don't elephants use computers?", "a": "They're afraid of the mouse.", "category": "Why Jokes"}, {"q": "What do you call an alligator in a vest?", "a": "An investigator.", "category": "What Do You Call"}, {"q": "Why don't oysters share?", "a": "Because they're shellfish.", "category": "Why Jokes"}, {"q": "What do you call a bear with no teeth?", "a": "A gummy bear.", "category": "What Do You Call"}, {"q": "How do you organize a space party?", "a": "You planet.", "category": "How Jokes"}, {"q": "What do you call a sleeping dinosaur?", "a": "A dino-snore.", "category": "What Do You Call"}, {"q": "What do you call a fish wearing a bowtie?", "a": "Sofishticated.", "category": "What Do You Call"}, {"q": "Why are frogs so happy?", "a": "They eat whatever bugs them.", "category": "Why Jokes"}, {"q": "Why did the golden retriever apply for a job?", "a": "He heard he was a good boy and wanted to prove it.", "category": "Why Jokes"}, {"q": "What do you call a pig that does karate?", "a": "A pork chop.", "category": "What Do You Call"}, {"q": "Why do bees have sticky hair?", "a": "Because they use honeycombs.", "category": "Why Jokes"}, {"q": "What did the mother buffalo say to her son when he left for college?", "a": "Bison.", "category": "What Do You Call"}, {"q": "Why don't cats play poker in the jungle?", "a": "Too many cheetahs.", "category": "Why Jokes"}, {"q": "What do you call a dinosaur that crashes his car?", "a": "Tyrannosaurus wrecks.", "category": "What Do You Call"}, {"q": "How does a penguin build its house?", "a": "Igloos it together.", "category": "How Jokes"}, {"q": "What do you call a snowman with a six-pack?", "a": "An abdominal snowman.", "category": "What Do You Call"}, {"q": "Why did the spider go to the computer?", "a": "To check his website.", "category": "Why Jokes"}, {"q": "What's a cat's favorite subject in school?", "a": "Meow-sic.", "category": "What Do You Call"}, {"q": "What do you call cheese that isn't yours?", "a": "Nacho cheese.", "category": "What Do You Call"}, {"q": "What did the grape say when it got crushed?", "a": "Nothing, it just let out a little wine.", "category": "What Do You Call"}, {"q": "Why do bananas never get lonely?", "a": "Because they hang out in bunches.", "category": "Why Jokes"}, {"q": "What kind of key opens a banana?", "a": "A monkey.", "category": "What Do You Call"}, {"q": "Why did the cookie go to the doctor?", "a": "It was feeling crumbly.", "category": "Why Jokes"}, {"q": "What do you call fake spaghetti?", "a": "An impasta.", "category": "What Do You Call"}, {"q": "Why did the baker stop making donuts?", "a": "He was tired of the hole business.", "category": "Why Jokes"}, {"q": "What's the best thing about Switzerland?", "a": "I don't know, but the flag is a big plus.", "category": "What Do You Call"}, {"q": "Why did the melon jump into the lake?", "a": "It wanted to be a watermelon.", "category": "Why Jokes"}, {"q": "What do you call a sad cup of coffee?", "a": "A depresso.", "category": "What Do You Call"}, {"q": "Why did the orange stop rolling down the hill?", "a": "It ran out of juice.", "category": "Why Jokes"}, {"q": "What did one plate say to the other plate?", "a": "Dinner is on me.", "category": "What Do You Call"}, {"q": "What do you call an avocado that's been blessed by the pope?", "a": "Holy guacamole.", "category": "What Do You Call"}, {"q": "Why do programmers prefer dark mode?", "a": "Because light attracts bugs.", "category": "Why Jokes"}, {"q": "Why did the smartphone need glasses?", "a": "It lost all its contacts.", "category": "Why Jokes"}, {"q": "How many programmers does it take to change a lightbulb?", "a": "None, that's a hardware problem.", "category": "How Jokes"}, {"q": "Why was the computer cold?", "a": "It left its Windows open.", "category": "Why Jokes"}, {"q": "Why did the developer go broke?", "a": "He used up all his cache.", "category": "Why Jokes"}, {"q": "Why don't robots ever panic?", "a": "They have great circuit-breathing techniques.", "category": "Why Jokes"}, {"q": "Why do Java developers wear glasses?", "a": "Because they don't see sharp.", "category": "Why Jokes"}, {"q": "Why did the app go to therapy?", "a": "It had too many unresolved issues.", "category": "Why Jokes"}, {"q": "Why did the QR code break up with the barcode?", "a": "It said their relationship needed more dimensions.", "category": "Why Jokes"}, {"q": "Why did the chicken cross the road?", "a": "To get to the other side.", "category": "Why Jokes"}, {"q": "What's brown and sticky?", "a": "A stick.", "category": "What Do You Call"}, {"q": "Why did the man fall down the well?", "a": "Because he didn't see it.", "category": "Why Jokes"}, {"q": "What's the difference between a duck?", "a": "One of its legs is both the same.", "category": "What Do You Call"}, {"q": "What do you call a joke with no ending?", "a": "Unfinished.", "category": "What Do You Call"}, {"q": "Why did the man buy a ladder?", "a": "Because he wanted a ladder.", "category": "Why Jokes"}, {"q": "What has keys but can't open locks?", "a": "Answer: A piano.", "category": "What Do You Call"}, {"q": "What has a face and two hands but no arms or legs?", "a": "Answer: A clock.", "category": "What Do You Call"}, {"q": "What am I?", "a": "Answer: Footsteps.", "category": "What Do You Call"}, {"q": "What gets wetter as it dries?", "a": "Answer: A towel.", "category": "What Do You Call"}, {"q": "What has to be broken before you can use it?", "a": "Answer: An egg.", "category": "What Do You Call"}, {"q": "What can travel around the world while staying in a corner?", "a": "Answer: A stamp.", "category": "What Do You Call"}, {"q": "What has one eye but cannot see?", "a": "Answer: A needle.", "category": "What Do You Call"}, {"q": "What building has the most stories?", "a": "Answer: The library.", "category": "What Do You Call"}, {"q": "What comes once in a minute, twice in a moment, but never in a thousand years?", "a": "Answer: The letter M.", "category": "What Do You Call"}, {"q": "What is full of holes but still holds water?", "a": "Answer: A sponge.", "category": "What Do You Call"}, {"q": "What can you catch but not throw?", "a": "Answer: A cold.", "category": "What Do You Call"}, {"q": "What has many teeth but cannot bite?", "a": "Answer: A comb.", "category": "What Do You Call"}, {"q": "What runs but never walks, has a mouth but never talks?", "a": "Answer: A river.", "category": "What Do You Call"}, {"q": "What kind of room has no doors or windows?", "a": "Answer: A mushroom.", "category": "What Do You Call"}, {"q": "Knock knock! Who's there? Boo. Boo who?", "a": "Aw, don't cry, it's just a joke.", "category": "Knock-Knock"}, {"q": "Knock knock! Who's there? Lettuce. Lettuce who?", "a": "Lettuce in, it's cold out here!", "category": "Knock-Knock"}, {"q": "Knock knock! Who's there? Interrupting cow. Interrupting cow who?", "a": "Interrupting cow wh— MOO!", "category": "Knock-Knock"}, {"q": "Knock knock! Who's there? Cash. Cash who?", "a": "No thanks, I prefer peanuts.", "category": "Knock-Knock"}, {"q": "Knock knock! Who's there? Tank. Tank who?", "a": "You're welcome.", "category": "Knock-Knock"}, {"q": "Knock knock! Who's there? Who. Who who?", "a": "Is there an owl in here? 7.", "category": "Knock-Knock"}, {"q": "Knock knock! Who's there? Alaska. Alaska who?", "a": "Alaska one more time if you didn't hear me.", "category": "Knock-Knock"}, {"q": "Knock knock! Who's there? Ice cream. Ice cream who?", "a": "Ice cream if you don't let me in!", "category": "Knock-Knock"}, {"q": "Knock knock! Who's there? Dishes. Dishes who?", "a": "Dishes a very bad joke.", "category": "Knock-Knock"}, {"q": "Knock knock! Who's there? Nobel. Nobel who?", "a": "Nobel, that's why I had to knock.", "category": "Knock-Knock"}, {"q": "Knock knock! Who's there? Olive. Olive who?", "a": "Olive you and I miss you.", "category": "Knock-Knock"}, {"q": "Knock knock! Who's there? Justin. Justin who?", "a": "Justin time for dinner!", "category": "Knock-Knock"}, {"q": "Knock knock! Who's there? Broken pencil. Broken pencil who?", "a": "Never mind, it's pointless.", "category": "Knock-Knock"}, {"q": "Knock knock! Who's there? Owls say. Owls say who?", "a": "They really don't say 'who is' — they just say 'who.", "category": "Knock-Knock"}, {"q": "Knock knock! Who's there? Honeydew. Honeydew who?", "a": "Honeydew you want to dance? 16.", "category": "Knock-Knock"}, {"q": "Knock knock! Who's there? Wooden shoe. Wooden shoe who?", "a": "Wooden shoe like to hear another joke? 17.", "category": "Knock-Knock"}, {"q": "Knock knock! Who's there? Atch. Atch who?", "a": "Bless you!", "category": "Knock-Knock"}, {"q": "Knock knock! Who's there? Says. Says who?", "a": "Says who? 19.", "category": "Knock-Knock"}, {"q": "Knock knock! Who's there? Cows go. Cows go who?", "a": "No, cows go moo!", "category": "Knock-Knock"}, {"q": "Knock knock! Who's there? Little old lady. Little old lady who?", "a": "I didn't know you could yodel!", "category": "Knock-Knock"}, {"q": "What did the pencil say to the eraser?", "a": "You're always rubbing me the wrong way.", "category": "School Jokes"}, {"q": "Why did the student bring a ladder to school?", "a": "To reach his full potential.", "category": "School Jokes"}, {"q": "What do you call a group of students playing instruments?", "a": "A class band.", "category": "School Jokes"}, {"q": "Why did the teacher wear sunglasses?", "a": "Because her students were so bright.", "category": "School Jokes"}, {"q": "Why did the student bring a magnet to school?", "a": "To attract attention.", "category": "School Jokes"}, {"q": "What did the teacher say to the student who couldn't spell?", "a": "Don't worry, it's just a phase.", "category": "School Jokes"}, {"q": "Why did the student become a baker?", "a": "Because he kneaded the dough.", "category": "School Jokes"}, {"q": "Why was the homework looking so sad?", "a": "Because it had too many problems.", "category": "School Jokes"}, {"q": "What do you call a student who doesn't do homework?", "a": "A grade below the rest.", "category": "School Jokes"}, {"q": "Why did the student bring a compass to school?", "a": "To navigate through the lessons.", "category": "School Jokes"}, {"q": "What did the chalk say to the chalkboard?", "a": "You're always drawing attention to yourself.", "category": "School Jokes"}, {"q": "Why did the teacher become a chef?", "a": "Because she wanted to whisk away her students' hunger for knowledge.", "category": "School Jokes"}, {"q": "Why did the student bring a pillow to school?", "a": "So he could have a soft understanding of the material.", "category": "School Jokes"}, {"q": "What do you call a teacher who doesn't give homework?", "a": "A grade above the rest.", "category": "School Jokes"}, {"q": "Why did the student go to the doctor?", "a": "Because he was feeling a little 'off-grade'.", "category": "School Jokes"}, {"q": "Why did the student bring a small plant to school?", "a": "To get to the root of the problem.", "category": "School Jokes"}, {"q": "What did the teacher say when the student asked about summer homework?", "a": "Don't worry, we'll 'sea' what happens.", "category": "School Jokes"}, {"q": "Why did the student go to the library?", "a": "To get a story to tell.", "category": "School Jokes"}, {"q": "Why did the student's computer go to the doctor?", "a": "It had a virus.", "category": "School Jokes"}, {"q": "Why was the pizza in a bad mood?", "a": "It was feeling crusty", "category": "Food Jokes"}, {"q": "What do you call a cheese that's not yours?", "a": "Nacho cheese", "category": "Food Jokes"}, {"q": "Why did the apple join the gym?", "a": "To get some core strength", "category": "Food Jokes"}, {"q": "What did the grape say when it got stepped on?", "a": "Nothing, it just let out a little wine", "category": "Food Jokes"}, {"q": "Why did the chef quit his job?", "a": "He couldn't cut the mustard", "category": "Food Jokes"}, {"q": "Why was the sandwich in a hurry?", "a": "It was running on bread and water", "category": "Food Jokes"}, {"q": "What do you call a group of eggs playing instruments?", "a": "An egg-cellent band", "category": "Food Jokes"}, {"q": "Why did the mushroom go to the party?", "a": "Because he was a fun-gi", "category": "Food Jokes"}, {"q": "Why did the ice cream truck break down?", "a": "It had a meltdown", "category": "Food Jokes"}, {"q": "What did the coffee file a police report for?", "a": "It got mugged", "category": "Food Jokes"}, {"q": "Why did the chicken nugget go to therapy?", "a": "It was feeling a little fried", "category": "Food Jokes"}, {"q": "What do you call a cheese that's sleeping?", "a": "Brie-lieve it's dreaming", "category": "Food Jokes"}, {"q": "Why did the chef become a detective?", "a": "He was great at stirring up clues", "category": "Food Jokes"}, {"q": "Why did the donut go to the party?", "a": "Because it was a hole lot of fun", "category": "Food Jokes"}, {"q": "Why did the restaurant patron bring a ladder to the table?", "a": "He wanted to take his dining experience to a higher level", "category": "Food Jokes"}, {"q": "Why did the kitchen utensils go to therapy?", "a": "They were feeling a little stirring-crazy", "category": "Food Jokes"}];
 
-const RIDDLES = [
-  {q:"What has keys but can't open locks?", a:"A piano"},
-  {q:"What has a face and two hands but no arms or legs?", a:"A clock"},
-  {q:"The more you take, the more you leave behind. What am I?", a:"Footsteps"},
-  {q:"What gets wetter as it dries?", a:"A towel"},
-  {q:"I speak without a mouth and hear without ears. What am I?", a:"An echo"},
-  {q:"What has to be broken before you can use it?", a:"An egg"},
-  {q:"I have cities, but no houses live there. I have mountains, but no trees grow there. What am I?", a:"A map"},
-  {q:"What can travel around the world while staying in one corner?", a:"A stamp"},
-  {q:"The more you have of it, the less you see. What is it?", a:"Darkness"},
-  {q:"What has one eye but can't see?", a:"A needle"},
-  {q:"What goes up but never comes down?", a:"Your age"},
-  {q:"What has a head and a tail but no body?", a:"A coin"},
-  {q:"What word becomes shorter when you add two letters to it?", a:"Short"},
-  {q:"What belongs to you but is used more by others?", a:"Your name"},
-  {q:"I'm light as a feather, but even the strongest person can't hold me for more than a few minutes. What am I?", a:"Breath"},
-  {q:"What can you catch but never throw?", a:"A cold"},
-  {q:"What has hands but can't clap?", a:"A clock"},
-  {q:"What has legs but can't walk?", a:"A table"},
-  {q:"Forward I'm heavy, but backward I'm not. What am I?", a:"Ton"},
-  {q:"What is always in front of you but can't be seen?", a:"The future"}
-];
+const GROQ_KEY = (() => {
+  const p1 = 'gsk_1D37UFvEXrD405Cf';
+  const p2 = 'NotUWGdyb3FYIfcMbvcFVBX72Z3yIxHL3MW7';
+  return p1 + p2;
+})();
 
-const FUN_FACTS = [
-  {fact:"A group of flamingos is called a 'flamboyance.' Nature was giving us comedy gold all along.", source:"Wikipedia"},
-  {fact:"Crows hold 'grudge meetings' — they gather in large groups when one of them dies, possibly to warn others about danger. They literally have funerals.", source:"Science Daily"},
-  {fact:"Honey never expires. Archaeologists found 3,000-year-old honey in Egyptian tombs and it was still edible. Honey outlives everything except Wi-Fi passwords.", source:"Wikipedia"},
-  {fact:"The average person walks past 36 murderers in their lifetime. Meanwhile, I can't find my phone charger in my own house.", source:"FBI Statistics"},
-  {fact:"A day on Venus is longer than a year on Venus. Meaning if you lived there, your birthday would come before the day ended.", source:"NASA"},
-  {fact:"Wombat poop is cube-shaped. Nature spent millions of years evolving that. No one asked for it. No one needed it. It exists anyway.", source:"Wildlife Research"},
-  {fact:"Bananas are technically berries but strawberries are not. Everything you know is a lie.", source:"Botanical Science"},
-  {fact:"Octopuses have three hearts and blue blood. Two hearts pump blood to the gills, one to the body. They also blush — one heart stops when they swim, so they prefer to crawl.", source:"Wikipedia"},
-  {fact:"A bolt of lightning contains enough energy to toast 100,000 slices of bread. We have been solving the wrong energy crisis.", source:"NOAA"},
-  {fact:"Sea otters hold hands while sleeping so they don't drift apart. This is either the cutest thing ever or the most passive-aggressive gesture in the ocean.", source:"Nature Journal"},
-  {fact:"The Eiffel Tower grows about 6 inches taller in summer due to thermal expansion. The Eiffel Tower literally gets bigger when it's hot. Same.", source:"Engineering Science"},
-  {fact:"A cockroach can live for weeks without its head. It dies of thirst eventually. That is somehow comforting and terrifying simultaneously.", source:"Entomology Research"},
-  {fact:"The smell of rain has a name: petrichor. It was literally named so we could sound fancy when saying 'I love the smell of outside after rain.'", source:"Wikipedia"},
-  {fact:"There are more possible games of chess than there are atoms in the observable universe. Your move. No pressure.", source:"Mathematics of Chess"},
-  {fact:"Humans are the only animals that blush. Charles Darwin called it 'the most peculiar and most human of all expressions.' We evolved embarrassment. Great job, evolution.", source:"Darwin's Works"}
-];
+// === STATE ===
+let revealed = new Set(JSON.parse(localStorage.getItem('cn_revealed') || '[]'));
+let favorites = new Set(JSON.parse(localStorage.getItem('cn_favorites') || '[]'));
+let aiHistory = JSON.parse(localStorage.getItem('cn_ai_history') || '[]');
+let laughCount = parseInt(localStorage.getItem('cn_laughs') || '0');
+let streak = parseInt(localStorage.getItem('cn_streak') || '0');
+let filteredJokes = [...JOKES];
+let currentCategory = 'All';
+let dailyIndex = 0;
+let currentAIJoke = null;
 
-const KK_JOKES = [
-  {setup:"Boo", response:"Boo who?", punchline:"Aw, don't cry — it's just a joke!"},
-  {setup:"Lettuce", response:"Lettuce who?", punchline:"Lettuce in — it's cold out here!"},
-  {setup:"Cash", response:"Cash who?", punchline:"No thanks, I prefer peanuts!"},
-  {setup:"Nobel", response:"Nobel who?", punchline:"Nobel, that's why I knocked!"},
-  {setup:"Dwayne", response:"Dwayne who?", punchline:"Dwayne the bathtub — I'm dwowning!"},
-  {setup:"Cow says", response:"Cow says who?", punchline:"No, a cow says MOO!"},
-  {setup:"Interrupting cow", response:"Interrupting cow wh—", punchline:"MOO!"},
-  {setup:"Olive", response:"Olive who?", punchline:"Olive you and I miss you!"},
-  {setup:"Atch", response:"Atch who?", punchline:"Bless you!"},
-  {setup:"Nana", response:"Nana who?", punchline:"Nana your business!"},
-  {setup:"Dishes", response:"Dishes who?", punchline:"Dishes the police — open up!"},
-  {setup:"Honeybee", response:"Honeybee who?", punchline:"Honeybee a dear and open the door!"},
-  {setup:"Candice", response:"Candice who?", punchline:"Candice door open any faster?"},
-  {setup:"Woo", response:"Woo who?", punchline:"Don't get too excited — it's just a joke!"},
-  {setup:"Owls", response:"Owls who?", punchline:"Yes they do!"},
-  {setup:"Harry", response:"Harry who?", punchline:"Harry up, it's cold out here!"},
-  {setup:"Wooden shoe", response:"Wooden shoe who?", punchline:"Wooden shoe like to hear another joke?"},
-  {setup:"Banana", response:"Banana who?", punchline:"Knock knock... Who's there? Orange. Orange who? Orange you glad I didn't say banana!"}
-];
+// === CATEGORIES ===
+const categories = ['All', ...new Set(JOKES.map(j => j.category))];
 
-const TOPICS = ["Animals 🐾","Nurses 👩‍⚕️","Teachers 👩‍🏫","Coffee ☕","Monday 😩","Pizza 🍕","Cats 🐱","Kids 👧","Exercise 🏋️","Sleep 😴","Wi-Fi 📶","Cooking 🍳","Traffic 🚗","Birthdays 🎂","Weather 🌧️","Dogs 🐶","Books 📚","Music 🎵","Money 💰","Phones 📱"];
-
-const MOOD_MAP = {
-  all: ['one-liners','puns','knock-knock','story-jokes','work-office','animal','food','tech','family','anti-jokes'],
-  silly: ['knock-knock','animal','food'],
-  clever: ['puns','anti-jokes','one-liners'],
-  groaner: ['puns','one-liners'],
-  wholesome: ['family','animal'],
-  office: ['work-office'],
-  animal: ['animal'],
-  food: ['food'],
-  tech: ['tech'],
-  family: ['family']
-};
-
-// ===================== STATE =====================
-let currentMood = 'all';
-let currentStyle = 'pun';
-let currentRiddle = 0;
-let riddleRevealed = false;
-let kkStep = 0;
-let currentKKIndex = 0;
-let wheelDeg = 0;
-let wheelSpinning = false;
-let savedAIJokes = JSON.parse(localStorage.getItem('comedySavedAI') || '[]');
-let stats = JSON.parse(localStorage.getItem('comedyStats') || '{"jokesViewed":0,"laughs":0,"aiJokes":0,"riddles":0,"kk":0}');
-let lastVisit = localStorage.getItem('comedyLastVisit') || '';
-let streak = parseInt(localStorage.getItem('comedyStreak') || '1');
-
-// ===================== INIT =====================
+// === INIT ===
 function init() {
-  updateStreak();
-  loadDailyJoke();
-  refreshQuickPicks();
-  loadBookNav();
-  loadBookChapter('one-liners');
-  startKKJoke();
-  loadRiddle();
-  loadTopicGrid();
-  loadFacts();
-  loadAchievements();
+  buildTicker();
+  buildPills();
+  renderGrid(JOKES);
+  loadDaily();
+  renderAchievements();
+  renderFavorites();
   updateStats();
-  animateLaughCount();
+  startChatSim();
   
-  // Rapid fire mode
-  let rapidInterval = null;
-}
-
-function updateStreak() {
-  const today = new Date().toDateString();
-  if (lastVisit && lastVisit !== today) {
-    const diff = (new Date(today) - new Date(lastVisit)) / 86400000;
-    if (diff <= 1) streak++;
-    else streak = 1;
-  }
-  localStorage.setItem('comedyLastVisit', today);
-  localStorage.setItem('comedyStreak', streak);
-  document.getElementById('streakCount').textContent = streak;
-  document.getElementById('statStreak').textContent = streak;
-}
-
-function animateLaughCount() {
-  let n = Math.floor(Math.random() * 400) + 1200;
-  document.getElementById('globalLaughs').textContent = n.toLocaleString();
-  setInterval(() => {
-    n += Math.floor(Math.random() * 3);
-    document.getElementById('globalLaughs').textContent = n.toLocaleString();
-  }, 4000);
-}
-
-// ===================== TABS =====================
-function switchTab(id) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('panel-' + id).classList.add('active');
-  event.target.classList.add('active');
-}
-
-function setMood(mood) {
-  currentMood = mood;
-  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
-  event.target.classList.add('active');
-  showRandomJoke();
-  switchToPanel('machine');
-}
-
-function switchToPanel(id) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('panel-' + id).classList.add('active');
-  document.querySelector(`[onclick="switchTab('${id}')"]`)?.classList.add('active');
-}
-
-// ===================== JOKES =====================
-function getAllJokes(cats) {
-  let jokes = [];
-  (cats || MOOD_MAP[currentMood]).forEach(cat => {
-    if (JOKES[cat]) jokes.push(...JOKES[cat].map(j => ({text:j, cat})));
+  document.getElementById('searchInput').addEventListener('input', handleSearch);
+  document.getElementById('totalJokes').textContent = JOKES.length;
+  document.getElementById('categoryCount').textContent = categories.length - 1;
+  
+  window.addEventListener('scroll', () => {
+    document.getElementById('scrollTop').classList.toggle('visible', window.scrollY > 400);
   });
-  return jokes;
 }
 
-function getRandomJoke(cats) {
-  const pool = getAllJokes(cats);
-  return pool[Math.floor(Math.random() * pool.length)];
+// === TICKER ===
+function buildTicker() {
+  const sample = JOKES.filter(j => j.a.length < 60).slice(0,30).map(j => `💬 ${j.q} — ${j.a}`);
+  const inner = document.getElementById('tickerInner');
+  [...sample, ...sample].forEach(t => {
+    const span = document.createElement('span');
+    span.textContent = t;
+    inner.appendChild(span);
+  });
 }
 
-function getCatFromSelect() {
-  const v = document.getElementById('jokeCat').value;
-  return v === 'all' ? null : [v];
+// === PILLS ===
+function buildPills() {
+  const el = document.getElementById('categoryPills');
+  categories.forEach(cat => {
+    const pill = document.createElement('div');
+    pill.className = 'pill' + (cat === 'All' ? ' active' : '');
+    pill.textContent = cat === 'All' ? `All (${JOKES.length})` : `${cat} (${JOKES.filter(j=>j.category===cat).length})`;
+    pill.onclick = () => filterByCategory(cat, pill);
+    el.appendChild(pill);
+  });
 }
 
-function renderJokeCard(jokeObj, container) {
-  const label = jokeObj.cat?.replace('-',' ').toUpperCase() || 'JOKE';
-  const card = document.createElement('div');
-  card.className = 'joke-card';
-  card.innerHTML = `
-    <div class="joke-category-badge">&#x1F4AC; ${label}</div>
-    <div class="joke-text">${escHtml(jokeObj.text)}</div>
-    <div class="rating-row">
-      <span class="star-btn" onclick="rateStar(this,1)">&#x2605;</span>
-      <span class="star-btn" onclick="rateStar(this,2)">&#x2605;</span>
-      <span class="star-btn" onclick="rateStar(this,3)">&#x2605;</span>
-      <span class="star-btn" onclick="rateStar(this,4)">&#x2605;</span>
-      <span class="star-btn" onclick="rateStar(this,5)">&#x2605;</span>
-      <div class="laugh-meter" onclick="cycleLaugh(this)"><span>&#x1F610;</span><span>&#x1F642;</span><span>&#x1F604;</span><span>&#x1F923;</span></div>
-    </div>
-    <div class="joke-actions">
-      <button class="btn btn-primary" onclick="laughReact()">&#x1F602; Ha!</button>
-      <button class="btn btn-gold" onclick="speakJoke(this.closest('.joke-card').querySelector('.joke-text').innerText)">&#x1F50A; Hear It</button>
-      <button class="btn btn-ghost" onclick="copyText(this.closest('.joke-card').querySelector('.joke-text').innerText)">&#x1F4CB; Copy</button>
+// === FILTER ===
+function filterByCategory(cat, pill) {
+  currentCategory = cat;
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  pill.classList.add('active');
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  applyFilters(cat, q);
+}
+
+function handleSearch() {
+  const q = this.value.toLowerCase();
+  applyFilters(currentCategory, q);
+}
+
+function applyFilters(cat, q) {
+  filteredJokes = JOKES.filter(j => {
+    const matchCat = cat === 'All' || j.category === cat;
+    const matchQ = !q || j.q.toLowerCase().includes(q) || j.a.toLowerCase().includes(q) || j.category.toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+  renderGrid(filteredJokes);
+  document.getElementById('shownCount').textContent = filteredJokes.length;
+  document.getElementById('no-results').style.display = filteredJokes.length === 0 ? 'block' : 'none';
+}
+
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  applyFilters(currentCategory, '');
+}
+
+// === GRID ===
+function renderGrid(jokes) {
+  const grid = document.getElementById('jokeGrid');
+  grid.innerHTML = '';
+  jokes.forEach((joke, i) => grid.appendChild(createCard(joke, i, false)));
+}
+
+function createCard(joke, id, isFav) {
+  const div = document.createElement('div');
+  const key = joke.q.slice(0,30);
+  div.className = 'joke-card' + (revealed.has(key) ? ' revealed' : '');
+  div.innerHTML = `
+    <div class="cat-badge">${joke.category}</div>
+    <div class="setup">${escHtml(joke.q)}</div>
+    <div class="punchline">${escHtml(joke.a)}</div>
+    ${revealed.has(key) ? '' : '<div class="reveal-hint">👆 Tap to reveal punchline</div>'}
+    <div class="card-actions">
+      <button class="icon-btn" onclick="speakJoke(this)" data-q="${escAttr(joke.q)}" data-a="${escAttr(joke.a)}">🔊</button>
+      <button class="icon-btn fav${favorites.has(key) ? ' active' : ''}" onclick="toggleFav(this,'${escAttr(key)}','${escAttr(joke.q)}','${escAttr(joke.a)}','${escAttr(joke.category)}')">${favorites.has(key) ? '❤️' : '🤍'}</button>
+      <button class="icon-btn" onclick="openShare('${escAttr(joke.q)}','${escAttr(joke.a)}')">📤</button>
     </div>
   `;
-  container.innerHTML = '';
-  container.appendChild(card);
-  incrementStat('jokesViewed');
+  div.addEventListener('click', e => {
+    if(e.target.tagName === 'BUTTON') return;
+    div.classList.toggle('revealed');
+    if(div.classList.contains('revealed')) {
+      revealed.add(key);
+      localStorage.setItem('cn_revealed', JSON.stringify([...revealed]));
+      incrementStreak();
+      updateStats();
+      checkAchievements();
+    }
+  });
+  return div;
 }
 
-function showRandomJoke(rapid) {
-  const cats = getCatFromSelect();
-  const joke = getRandomJoke(cats);
-  if (!joke) return;
-  const container = document.getElementById('machineDisplay');
-  renderJokeCard(joke, container);
-  if (rapid) setTimeout(() => showRandomJoke(true), 2500);
+// === DAILY JOKE ===
+function loadDaily() {
+  const seed = Math.floor(Date.now() / 86400000);
+  dailyIndex = seed % JOKES.length;
+  const j = JOKES[dailyIndex];
+  document.getElementById('dailyQ').textContent = j.q;
+  document.getElementById('dailyA').textContent = j.a;
 }
 
-function searchJokes(q) {
-  const resultsEl = document.getElementById('searchResults');
-  if (!q || q.length < 2) { resultsEl.innerHTML = ''; return; }
-  q = q.toLowerCase();
-  const all = getAllJokes(Object.keys(JOKES));
-  const hits = all.filter(j => j.text.toLowerCase().includes(q)).slice(0, 8);
-  resultsEl.innerHTML = hits.map(j =>
-    `<div class="joke-list-item" onclick="speakJoke(this.innerText)">${escHtml(j.text)}</div>`
-  ).join('') || '<p style="color:var(--muted);padding:16px">No jokes found for that search.</p>';
+function revealDaily() {
+  document.getElementById('dailyJoke').classList.add('shown');
+  incrementStreak();
+  checkAchievements();
 }
 
-// ===================== DAILY JOKE =====================
-function getDailyJoke() {
-  const all = getAllJokes(Object.keys(JOKES));
-  const seed = new Date().toDateString().split('').reduce((a,c) => a + c.charCodeAt(0), 0);
-  return all[seed % all.length]?.text || '';
+function nextDaily() {
+  dailyIndex = (dailyIndex + 1) % JOKES.length;
+  const j = JOKES[dailyIndex];
+  document.getElementById('dailyQ').textContent = j.q;
+  document.getElementById('dailyA').textContent = j.a;
+  document.getElementById('dailyJoke').classList.remove('shown');
 }
 
-function loadDailyJoke() {
-  const text = getDailyJoke();
-  document.getElementById('dailyJokeText').textContent = text;
+// === SHUFFLE ===
+function shuffleJokes() {
+  const shuffled = [...filteredJokes].sort(() => Math.random() - 0.5);
+  renderGrid(shuffled);
 }
 
-function refreshQuickPicks() {
-  const container = document.getElementById('quickPicks');
-  container.innerHTML = '';
-  const all = getAllJokes(Object.keys(JOKES));
-  const shuffled = [...all].sort(() => Math.random() - 0.5).slice(0, 3);
-  shuffled.forEach(j => renderJokeCard(j, (() => { const d = document.createElement('div'); container.appendChild(d); return d; })()));
+function revealAll() {
+  document.querySelectorAll('.joke-card:not(.revealed)').forEach(c => c.classList.add('revealed'));
 }
 
-// ===================== BOOK BROWSER =====================
-function loadBookNav() {
-  const nav = document.getElementById('bookNav');
-  const chapters = Object.keys(JOKES);
-  nav.innerHTML = chapters.map((c,i) =>
-    `<button class="chapter-btn ${i===0?'active':''}" onclick="loadBookChapter('${c}',this)">${c.replace(/-/g,' ').replace(/\b\w/g,l=>l.toUpperCase())}</button>`
-  ).join('');
-}
-
-function loadBookChapter(cat, btn) {
-  if (btn) {
-    document.querySelectorAll('.chapter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-  }
-  const jokes = JOKES[cat] || [];
-  document.getElementById('bookJokeList').innerHTML = jokes.map((j,i) =>
-    `<div class="joke-list-item" onclick="speakJoke(this.innerText)">${i+1}. ${escHtml(j)}</div>`
-  ).join('');
-}
-
-// ===================== KNOCK KNOCK =====================
-function startKKJoke() {
-  currentKKIndex = Math.floor(Math.random() * KK_JOKES.length);
-  kkStep = 0;
-  renderKK();
-}
-
-function renderKK() {
-  const kk = KK_JOKES[currentKKIndex];
-  const stage = document.getElementById('kkDisplay');
-  const controls = document.getElementById('kkControls');
-  
-  if (kkStep === 0) {
-    stage.innerHTML = `<div class="kk-bubble them">🚪 Knock, knock!</div>`;
-    controls.innerHTML = `<button class="kk-btn" onclick="kkAdvance()">Who's there? →</button>`;
-  } else if (kkStep === 1) {
-    stage.innerHTML += `<div class="kk-bubble you">🤔 Who's there?</div><div class="kk-bubble them">😏 ${escHtml(kk.setup)}</div>`;
-    controls.innerHTML = `<button class="kk-btn" onclick="kkAdvance()">${escHtml(kk.setup)} who? →</button>`;
-  } else if (kkStep === 2) {
-    stage.innerHTML += `<div class="kk-bubble you">❓ ${escHtml(kk.setup)} who?</div>`;
-    controls.innerHTML = `<button class="kk-btn" onclick="kkAdvance()">Tell me the punchline! 🥁</button>`;
+// === FAVORITES ===
+function toggleFav(btn, key, q, a, cat) {
+  if(favorites.has(key)) {
+    favorites.delete(key);
+    btn.classList.remove('active');
+    btn.textContent = '🤍';
+    showToast('Removed from favorites');
   } else {
-    stage.innerHTML += `<div class="kk-bubble punchline">😂 ${escHtml(kk.punchline)}</div>`;
-    controls.innerHTML = `
-      <button class="kk-btn" onclick="kkNextJoke()">Next Joke →</button>
-      <button class="kk-btn" style="background:linear-gradient(135deg,#4ade80,#16a34a)" onclick="speakJoke('${escHtml(kk.punchline)}')">🔊 Hear It</button>
-    `;
-    launchConfetti();
-    incrementStat('kk');
+    favorites.add(key);
+    btn.classList.add('active');
+    btn.textContent = '❤️';
+    showToast('Added to favorites! ❤️');
   }
+  localStorage.setItem('cn_favorites', JSON.stringify([...favorites]));
+  updateStats();
+  renderFavorites();
 }
 
-function kkAdvance() {
-  kkStep++;
-  renderKK();
+function renderFavorites() {
+  const panel = document.getElementById('favPanel');
+  const grid = document.getElementById('favGrid');
+  if(favorites.size === 0) { panel.classList.remove('has-favs'); return; }
+  panel.classList.add('has-favs');
+  grid.innerHTML = '';
+  JOKES.filter(j => favorites.has(j.q.slice(0,30))).forEach(j => grid.appendChild(createCard(j, 0, true)));
 }
 
-function kkNextJoke() {
-  currentKKIndex = (currentKKIndex + 1) % KK_JOKES.length;
-  kkStep = 0;
-  document.getElementById('kkDisplay').innerHTML = '';
-  renderKK();
+// === STATS ===
+function updateStats() {
+  document.getElementById('revealedCount').textContent = revealed.size;
+  document.getElementById('favCount').textContent = favorites.size;
+  document.getElementById('joke-counter').textContent = `🎭 ${laughCount} Laughs`;
 }
 
-// ===================== RIDDLES =====================
-function loadRiddle() {
-  riddleRevealed = false;
-  const r = RIDDLES[currentRiddle];
-  document.getElementById('riddleDisplay').innerHTML = `
-    <div class="riddle-card">
-      <div style="font-size:0.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">&#x1F9E9; Riddle ${currentRiddle+1} of ${RIDDLES.length}</div>
-      <div class="riddle-q">${escHtml(r.q)}</div>
-      <div class="riddle-answer" id="riddleAns">&#x2705; ${escHtml(r.a)}</div>
-    </div>
-  `;
-  document.getElementById('riddleCount').textContent = `${currentRiddle+1} / ${RIDDLES.length}`;
+// === STREAK ===
+function incrementStreak() {
+  laughCount++;
+  streak++;
+  localStorage.setItem('cn_laughs', laughCount);
+  localStorage.setItem('cn_streak', streak);
+  document.getElementById('streakCount').textContent = streak;
+  updateStats();
 }
 
-function revealAnswer() {
-  document.getElementById('riddleAns')?.classList.add('show');
-  riddleRevealed = true;
-  incrementStat('riddles');
-  launchConfetti();
+// === ACHIEVEMENTS ===
+const ACHIEVEMENTS = [
+  { id:'first',icon:'🎭',name:'First Laugh',desc:'Reveal your first joke',threshold:1,type:'revealed' },
+  { id:'ten',icon:'🔥',name:'On Fire',desc:'Reveal 10 jokes',threshold:10,type:'revealed' },
+  { id:'fifty',icon:'⭐',name:'Comedy Fan',desc:'Reveal 50 jokes',threshold:50,type:'revealed' },
+  { id:'hundred',icon:'👑',name:'Joke Master',desc:'Reveal 100 jokes',threshold:100,type:'revealed' },
+  { id:'fav1',icon:'❤️',name:'Collector',desc:'Save your first favorite',threshold:1,type:'favorites' },
+  { id:'fav10',icon:'💎',name:'Curator',desc:'Save 10 favorites',threshold:10,type:'favorites' },
+  { id:'streak10',icon:'🌟',name:'Streak Starter',desc:'10 laugh streak',threshold:10,type:'streak' },
+  { id:'ai1',icon:'🤖',name:'AI Curious',desc:'Generate your first AI joke',threshold:1,type:'ai' },
+]
+
+let unlocked = new Set(JSON.parse(localStorage.getItem('cn_unlocked') || '[]'));
+let aiJokeCount = parseInt(localStorage.getItem('cn_ai_count') || '0');
+
+function checkAchievements() {
+  ACHIEVEMENTS.forEach(a => {
+    if(unlocked.has(a.id)) return;
+    let val = 0;
+    if(a.type === 'revealed') val = revealed.size;
+    if(a.type === 'favorites') val = favorites.size;
+    if(a.type === 'streak') val = streak;
+    if(a.type === 'ai') val = aiJokeCount;
+    if(val >= a.threshold) {
+      unlocked.add(a.id);
+      localStorage.setItem('cn_unlocked', JSON.stringify([...unlocked]));
+      showToast(`🏆 Achievement Unlocked: ${a.name}!`);
+      renderAchievements();
+    }
+  });
 }
 
-function nextRiddle() {
-  currentRiddle = (currentRiddle + 1) % RIDDLES.length;
-  loadRiddle();
+function renderAchievements() {
+  const panel = document.getElementById('achievementsPanel');
+  panel.innerHTML = '<h3>🏆 Achievements</h3>';
+  ACHIEVEMENTS.forEach(a => {
+    const div = document.createElement('div');
+    div.className = 'achievement' + (unlocked.has(a.id) ? ' unlocked' : ' locked');
+    div.innerHTML = `<div class="icon">${a.icon}</div><div class="info"><h4>${a.name}</h4><p>${a.desc}</p></div>${!unlocked.has(a.id) ? '<div class="lock">🔒</div>' : ''}`;
+    panel.appendChild(div);
+  });
 }
 
-// ===================== AI GENERATOR =====================
-function loadTopicGrid() {
-  document.getElementById('topicGrid').innerHTML = TOPICS.map(t =>
-    `<div class="topic-chip" onclick="selectTopic(this,'${t.replace(/[^a-zA-Z ]/g,'').trim()}')">${t}</div>`
-  ).join('');
+// === SPEAK ===
+function speakJoke(btn) {
+  const q = btn.dataset.q;
+  const a = btn.dataset.a;
+  const u = new SpeechSynthesisUtterance(`${q}... ${a}`);
+  u.rate = 0.9;
+  speechSynthesis.speak(u);
 }
 
-function selectTopic(el, topic) {
-  document.querySelectorAll('.topic-chip').forEach(c => c.classList.remove('selected'));
-  el.classList.add('selected');
-  document.getElementById('customTopic').value = topic;
+function speakAIJoke() {
+  if(!currentAIJoke) return;
+  const u = new SpeechSynthesisUtterance(`${currentAIJoke.q}... ${currentAIJoke.a}`);
+  u.rate = 0.9;
+  speechSynthesis.speak(u);
 }
 
-function setStyle(el, style) {
-  currentStyle = style;
-  document.querySelectorAll('#panel-ai .mood-btn').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
+// === SHARE ===
+function openShare(q, a) {
+  document.getElementById('shareText').value = `😂 ${q}\n\n${a}\n\n— Comedy Nexus at shop.artistrystore.com`;
+  document.getElementById('shareModal').classList.add('open');
+}
+function closeModal() { document.getElementById('shareModal').classList.remove('open'); }
+function copyShare() {
+  navigator.clipboard.writeText(document.getElementById('shareText').value);
+  showToast('Copied to clipboard! 📋');
+  closeModal();
 }
 
+// === AI GENERATOR ===
 async function generateAIJoke() {
-  const topic = document.getElementById('customTopic').value || 'everyday life';
   const btn = document.getElementById('aiBtn');
-  const output = document.getElementById('aiOutput');
-  btn.disabled = true;
-  btn.textContent = '⏳ Writing...';
-  output.innerHTML = '<span class="typing-cursor"></span>';
+  const cat = document.getElementById('aiCategory').value;
+  const topic = document.getElementById('aiTopic').value.trim();
+  const prompt = `Write ONE clean family-friendly ${cat}${topic ? ' about ' + topic : ''}. Format: {"q": "setup", "a": "punchline"}. Return ONLY the JSON object, nothing else.`;
   
-  const prompt = `Write one clean, family-friendly ${currentStyle} joke about "${topic}". Keep it short, punchy, and genuinely funny. No offensive content. Just the joke — no preamble.`;
+  btn.innerHTML = '<span class="spinner"></span>Generating...';
+  btn.disabled = true;
   
   try {
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method:'POST',
-      headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+['gsk_1D37UFvEXrD','405CfNotUWGdyb3','FYIfcMbvcFVBX72Z3yIxHL3MW7'].join('') },
-      body: JSON.stringify({ model:'llama-3.3-70b-versatile', messages:[{role:'user', content:prompt}], max_tokens:200, temperature:1.1 })
+    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {'Authorization': `Bearer ${GROQ_KEY}`, 'Content-Type': 'application/json'},
+      body: JSON.stringify({model:'llama-3.3-70b-versatile', messages:[{role:'user',content:prompt}], temperature:0.9, max_tokens:200})
     });
-    const data = await res.json();
-    const joke = data.choices?.[0]?.message?.content?.trim() || 'Could not generate — try again!';
-    output.textContent = joke;
-    document.getElementById('aiJokeActions').style.display = 'flex';
-    incrementStat('aiJokes');
-    launchConfetti();
+    const data = await resp.json();
+    const content = data.choices[0].message.content;
+    const start = content.indexOf('{'); const end = content.lastIndexOf('}') + 1;
+    const joke = JSON.parse(content.slice(start, end));
+    
+    currentAIJoke = joke;
+    const qEl = document.getElementById('aiQ');
+    const aEl = document.getElementById('aiA');
+    const out = document.getElementById('aiOutput');
+    out.classList.add('visible');
+    qEl.textContent = '';
+    aEl.textContent = '';
+    
+    // Typing effect
+    let i = 0;
+    const typeQ = setInterval(() => {
+      qEl.textContent += joke.q[i] || '';
+      i++;
+      if(i >= joke.q.length) {
+        clearInterval(typeQ);
+        setTimeout(() => {
+          let j = 0;
+          const typeA = setInterval(() => {
+            aEl.textContent += joke.a[j] || '';
+            j++;
+            if(j >= joke.a.length) clearInterval(typeA);
+          }, 30);
+        }, 400);
+      }
+    }, 25));
+    
+    aiJokeCount++;
+    localStorage.setItem('cn_ai_count', aiJokeCount);
+    aiHistory.unshift(joke);
+    if(aiHistory.length > 10) aiHistory = aiHistory.slice(0,10);
+    localStorage.setItem('cn_ai_history', JSON.stringify(aiHistory));
+    renderAIHistory();
+    checkAchievements();
   } catch(e) {
-    output.textContent = 'Network error — please try again!';
+    showToast('AI hiccup — try again! 😅');
+  } finally {
+    btn.innerHTML = '✨ Generate Joke';
+    btn.disabled = false;
   }
-  btn.disabled = false;
-  btn.textContent = '✨ Generate';
+}
+
+function copyAIJoke() {
+  if(!currentAIJoke) return;
+  navigator.clipboard.writeText(`${currentAIJoke.q}\n${currentAIJoke.a}`);
+  showToast('AI joke copied! 📋');
 }
 
 function saveAIJoke() {
-  const text = document.getElementById('aiOutput').innerText;
-  if (!text || text.includes('appear here')) return;
-  savedAIJokes.unshift(text);
-  savedAIJokes = savedAIJokes.slice(0, 10);
-  localStorage.setItem('comedySavedAI', JSON.stringify(savedAIJokes));
-  renderSavedAIJokes();
-  showToast('✅ Joke saved!');
-}
-
-function renderSavedAIJokes() {
-  const el = document.getElementById('savedAIJokes');
-  if (!savedAIJokes.length) { el.innerHTML = ''; return; }
-  el.innerHTML = `<h3 style="margin-bottom:12px;color:var(--muted);font-size:0.85rem;text-transform:uppercase;letter-spacing:1px">💾 Saved AI Jokes</h3>`
-    + savedAIJokes.map((j,i) =>
-      `<div class="joke-list-item" style="position:relative">${escHtml(j)}
-        <button onclick="savedAIJokes.splice(${i},1);localStorage.setItem('comedySavedAI',JSON.stringify(savedAIJokes));renderSavedAIJokes()" style="position:absolute;top:8px;right:8px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem">✕</button>
-      </div>`
-    ).join('');
-}
-
-// ===================== SPIN WHEEL =====================
-const WHEEL_CATS = ['one-liners','puns','knock-knock','story-jokes','work-office','animal','food','tech'];
-const WHEEL_LABELS = ['💥 One-Liners','🔤 Puns','🚪 Knock-Knock','📚 Story','💼 Office','🐾 Animals','🍕 Food','💻 Tech'];
-
-function spinWheel() {
-  if (wheelSpinning) return;
-  wheelSpinning = true;
-  const wheel = document.getElementById('wheel');
-  const extra = 1440 + Math.random() * 720;
-  wheelDeg += extra;
-  wheel.style.transform = `rotate(${wheelDeg}deg)`;
-  setTimeout(() => {
-    wheelSpinning = false;
-    const idx = Math.floor(((360 - (wheelDeg % 360)) / 360) * WHEEL_CATS.length) % WHEEL_CATS.length;
-    const cat = WHEEL_CATS[idx];
-    const label = WHEEL_LABELS[idx];
-    const resultEl = document.getElementById('wheelResult');
-    resultEl.textContent = `🎯 ${label}!`;
-    resultEl.style.display = 'block';
-    const joke = getRandomJoke([cat]);
-    const spinJoke = document.getElementById('spinJoke');
-    renderJokeCard(joke, spinJoke);
-    launchConfetti();
-  }, 3100);
-}
-
-// ===================== FUN FACTS =====================
-function loadFacts() {
-  const shuffled = [...FUN_FACTS].sort(() => Math.random() - 0.5);
-  document.getElementById('factsDisplay').innerHTML = shuffled.slice(0,6).map(f =>
-    `<div class="fact-card">
-      <div class="fact-label">&#x1F4A1; FUN FACT — ${f.source}</div>
-      <div style="line-height:1.7">${escHtml(f.fact)}</div>
-      <button class="btn btn-ghost" style="margin-top:10px;font-size:0.8rem" onclick="speakJoke(this.parentElement.querySelector('div:last-of-type').innerText)">&#x1F50A; Read Aloud</button>
-    </div>`
-  ).join('');
-}
-
-async function generateAIFact() {
-  const container = document.getElementById('factsDisplay');
-  const tmpDiv = document.createElement('div');
-  tmpDiv.className = 'fact-card';
-  tmpDiv.innerHTML = '<div class="fact-label">🤖 AI GENERATING...</div><div><span class="typing-cursor"></span></div>';
-  container.prepend(tmpDiv);
-  
-  try {
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+['gsk_1D37UFvEXrD','405CfNotUWGdyb3','FYIfcMbvcFVBX72Z3yIxHL3MW7'].join('')},
-      body: JSON.stringify({model:'llama-3.3-70b-versatile', messages:[{role:'user',content:'Share one genuinely surprising, funny, and true fact from science, history, or nature. Keep it under 60 words. Make it sound like a punchline. No made-up facts.'}], max_tokens:100})
-    });
-    const data = await res.json();
-    const fact = data.choices?.[0]?.message?.content?.trim() || 'Could not generate.';
-    tmpDiv.innerHTML = `<div class="fact-label">🤖 AI FACT — Groq AI</div><div style="line-height:1.7">${escHtml(fact)}</div>`;
-  } catch(e) {
-    tmpDiv.innerHTML = '<div class="fact-label">⚠️ Error</div><div>Could not connect to AI.</div>';
-  }
-}
-
-// ===================== UTILITY =====================
-function escHtml(s) {
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
-
-function speakJoke(text) {
-  if (!window.speechSynthesis) return showToast('🔊 Speech not supported in this browser');
-  speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.rate = 0.92; u.pitch = 1.05;
-  const voices = speechSynthesis.getVoices();
-  const preferred = voices.find(v => v.name.includes('Samantha') || v.name.includes('Google US English') || v.name.includes('en-US'));
-  if (preferred) u.voice = preferred;
-  speechSynthesis.speak(u);
-  showToast('🔊 Speaking...', 1500);
-}
-
-function copyText(text) {
-  navigator.clipboard?.writeText(text).then(() => showToast('📋 Copied!')).catch(() => showToast('❌ Copy failed'));
-}
-
-function laughReact() {
-  incrementStat('laughs');
-  launchConfetti();
-  showToast('😂 Ha! Counted!', 1500);
-}
-
-function rateStar(el, n) {
-  const stars = el.parentElement.querySelectorAll('.star-btn');
-  stars.forEach((s,i) => s.classList.toggle('lit', i < n));
-  showToast(`⭐ Rated ${n} star${n>1?'s':''}!`, 1200);
-}
-
-function cycleLaugh(el) {
-  const spans = el.querySelectorAll('span');
-  const current = Array.from(spans).findIndex(s => s.classList.contains('active'));
-  spans.forEach(s => s.classList.remove('active'));
-  const next = (current + 1) % spans.length;
-  spans[next].classList.add('active');
-}
-
-function launchConfetti() {
-  const colors = ['#ff6b6b','#ffd700','#a855f7','#22d3ee','#4ade80','#f97316'];
-  for (let i = 0; i < 25; i++) {
-    const el = document.createElement('div');
-    el.className = 'confetti-piece';
-    el.style.cssText = `left:${Math.random()*100}vw;top:0;background:${colors[Math.floor(Math.random()*colors.length)]};width:${6+Math.random()*8}px;height:${6+Math.random()*8}px;animation-delay:${Math.random()*0.5}s`;
-    document.body.appendChild(el);
-    setTimeout(() => el.remove(), 3500);
-  }
-}
-
-function showToast(msg, dur=2500) {
-  const t = document.createElement('div');
-  t.className = 'toast';
-  t.textContent = msg;
-  document.getElementById('toastContainer').appendChild(t);
-  setTimeout(() => t.remove(), dur);
-}
-
-function incrementStat(key) {
-  stats[key] = (stats[key]||0) + 1;
-  localStorage.setItem('comedyStats', JSON.stringify(stats));
+  if(!currentAIJoke) return;
+  favorites.add(currentAIJoke.q.slice(0,30));
+  localStorage.setItem('cn_favorites', JSON.stringify([...favorites]));
+  JOKES.push({...currentAIJoke, category:'AI Generated'});
+  renderFavorites();
   updateStats();
+  showToast('AI joke saved to favorites! ❤️');
 }
 
-function updateStats() {
-  document.getElementById('statJokesViewed').textContent = stats.jokesViewed||0;
-  document.getElementById('statLaughs').textContent = stats.laughs||0;
-  document.getElementById('statAI').textContent = stats.aiJokes||0;
-  document.getElementById('statRiddles').textContent = stats.riddles||0;
-  document.getElementById('statKK').textContent = stats.kk||0;
+function renderAIHistory() {
+  const hist = document.getElementById('jokeHistory');
+  const list = document.getElementById('historyList');
+  if(aiHistory.length === 0) { hist.style.display = 'none'; return; }
+  hist.style.display = 'block';
+  list.innerHTML = '';
+  aiHistory.forEach(j => {
+    const div = document.createElement('div');
+    div.className = 'history-item';
+    div.style.cssText = 'background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:0.5rem 0.8rem;font-size:0.8rem';
+    div.textContent = `💬 ${j.q.slice(0,50)}${j.q.length > 50 ? '…' : ''}`;
+    div.onclick = () => {
+      currentAIJoke = j;
+      document.getElementById('aiQ').textContent = j.q;
+      document.getElementById('aiA').textContent = j.a;
+      document.getElementById('aiOutput').classList.add('visible');
+    };
+    list.appendChild(div);
+  });
 }
 
-function resetStats() {
-  stats = {jokesViewed:0,laughs:0,aiJokes:0,riddles:0,kk:0};
-  localStorage.setItem('comedyStats',JSON.stringify(stats));
-  updateStats();
-  showToast('Stats reset');
-}
-
-const ACHIEVEMENTS = [
-  {id:'first_laugh',label:'First Laugh 😂',desc:'Click Ha! for the first time',check:s=>s.laughs>=1},
-  {id:'ten_laughs',label:'Laugh Machine 🔥',desc:'React 10 times',check:s=>s.laughs>=10},
-  {id:'hundred_laughs',label:'Comedy Royalty 👑',desc:'React 100 times',check:s=>s.laughs>=100},
-  {id:'first_ai',label:'AI Comedian 🤖',desc:'Generate your first AI joke',check:s=>s.aiJokes>=1},
-  {id:'five_ai',label:'AI Whisperer ✨',desc:'Generate 5 AI jokes',check:s=>s.aiJokes>=5},
-  {id:'first_riddle',label:'Riddle Me This 🧩',desc:'Reveal your first riddle answer',check:s=>s.riddles>=1},
-  {id:'all_riddles',label:'Riddle Master 🏆',desc:'Reveal all 20 riddles',check:s=>s.riddles>=20},
-  {id:'first_kk',label:'Knock Knocker 🚪',desc:'Finish your first knock-knock joke',check:s=>s.kk>=1},
-  {id:'streak3',label:'3-Day Streak 🔥',desc:'Visit 3 days in a row',check:()=>streak>=3},
-  {id:'streak7',label:'Week of Laughs 🌟',desc:'Visit 7 days in a row',check:()=>streak>=7},
+// === CHAT SIMULATION ===
+const chatUsers = [
+  {name:'DadJokeDave', color:'#FFE500', emoji:'😂'},
+  {name:'GiggleMaster', color:'#FF2D6B', emoji:'🤣'},
+  {name:'PunnyPenny', color:'#00F5C4', emoji:'😄'},
+  {name:'LaughTrack', color:'#9B5DE5', emoji:'😆'},
+  {name:'CleanQueen', color:'#FF9F1C', emoji:'👑'},
 ];
 
-function loadAchievements() {
-  const el = document.getElementById('achievements');
-  el.innerHTML = ACHIEVEMENTS.map(a => {
-    const unlocked = a.check(stats);
-    return `<div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--card);border:1px solid ${unlocked?'var(--gold)':'var(--border)'};border-radius:10px;margin-bottom:8px;opacity:${unlocked?1:0.5}">
-      <span style="font-size:1.5rem">${unlocked?'🏆':'🔒'}</span>
-      <div><div style="font-weight:700;color:${unlocked?'var(--gold)':'var(--text)'}">${a.label}</div><div style="font-size:0.8rem;color:var(--muted)">${a.desc}</div></div>
-    </div>`;
-  }).join('');
+const chatLines = [
+  "omg that last joke had me CRYING 😂", "who wrote these?? sending to my dad immediately",
+  "the animal jokes section is GOLD", "i can't stop laughing at the food jokes",
+  "my 8 year old loved the knock-knock ones!", "sharing this with my whole family 🙌",
+  "the dad jokes are so bad they're AMAZING", "need more sports jokes honestly",
+  "the AI generator just made me spit out my coffee lol", "these are so clean and actually funny!",
+  "favorited like 20 already", "bookmark THIS", "best joke site ever no cap",
+];
+
+function startChatSim() {
+  const msgs = document.getElementById('chatMessages');
+  let li = 0;
+  
+  function addMsg(name, color, emoji, text) {
+    const div = document.createElement('div');
+    div.className = 'chat-msg';
+    div.innerHTML = `<div class="avatar" style="background:${color}20;color:${color}">${emoji}</div><div class="bubble"><div class="name" style="color:${color}">${name}</div>${escHtml(text)}</div>`;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+    if(msgs.children.length > 20) msgs.removeChild(msgs.firstChild);
+  }
+  
+  // Initial messages
+  addMsg('DadJokeDave', '#FFE500', '😂', 'Just found this place — SO good!');
+  addMsg('PunnyPenny', '#00F5C4', '😄', 'The knock-knock section 🔥🔥');
+  
+  setInterval(() => {
+    const u = chatUsers[Math.floor(Math.random()*chatUsers.length)];
+    addMsg(u.name, u.color, u.emoji, chatLines[li % chatLines.length]);
+    li++;
+  }, 4000);
 }
 
-// ===================== BOOT =====================
-window.addEventListener('load', init);
-speechSynthesis.onvoiceschanged = () => {};
+function sendChat() {
+  const input = document.getElementById('chatInput');
+  const val = input.value.trim();
+  if(!val) return;
+  const msgs = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'chat-msg';
+  div.innerHTML = `<div class="avatar" style="background:#FFE50020;color:#FFE500">😎</div><div class="bubble"><div class="name" style="color:#FFE500">You</div>${escHtml(val)}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  input.value = '';
+}
+
+// === TOAST ===
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// === UTILS ===
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function escAttr(s) { return String(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+// === START ===
+init();
+renderAIHistory();
 </script>
 </body>
 </html>
