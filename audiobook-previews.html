@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Audiobook Previews — Ting Lott</title>
+<style>
+  :root {
+    --gold: #d4af37;
+    --dark: #0a0a0f;
+    --card: #12121a;
+    --card2: #1a1a28;
+    --text: #e8e0d0;
+    --muted: #8888aa;
+    --accent: #9b59b6;
+    --green: #27ae60;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--dark);
+    color: var(--text);
+    font-family: 'Segoe UI', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* NAV */
+  nav {
+    background: rgba(10,10,15,0.97);
+    border-bottom: 2px solid var(--gold);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  nav .brand {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--gold);
+    text-decoration: none;
+  }
+  nav .brand span { color: var(--text); font-weight: 300; }
+  nav .nav-links a {
+    color: var(--text);
+    text-decoration: none;
+    margin-left: 18px;
+    font-size: 0.9rem;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+  }
+  nav .nav-links a:hover { opacity: 1; color: var(--gold); }
+
+  /* HERO */
+  .hero {
+    text-align: center;
+    padding: 60px 20px 40px;
+    background: linear-gradient(180deg, #1a0a2e 0%, var(--dark) 100%);
+  }
+  .hero h1 {
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    color: var(--gold);
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+  }
+  .hero p {
+    color: var(--muted);
+    font-size: 1.05rem;
+    max-width: 600px;
+    margin: 0 auto 28px;
+    line-height: 1.6;
+  }
+  .hero .badge {
+    display: inline-block;
+    background: rgba(212,175,55,0.15);
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    padding: 6px 18px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  /* FILTER */
+  .filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .filter-btn {
+    background: var(--card);
+    border: 1px solid #333;
+    color: var(--muted);
+    padding: 7px 16px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    background: var(--gold);
+    color: #000;
+    border-color: var(--gold);
+    font-weight: 700;
+  }
+
+  /* SEARCH */
+  .search-wrap {
+    text-align: center;
+    padding: 0 20px 20px;
+  }
+  .search-wrap input {
+    background: var(--card);
+    border: 1px solid #444;
+    color: var(--text);
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 0.95rem;
+    width: 100%;
+    max-width: 400px;
+    outline: none;
+    transition: border 0.2s;
+  }
+  .search-wrap input:focus { border-color: var(--gold); }
+  .search-wrap input::placeholder { color: var(--muted); }
+
+  /* GRID */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+    padding: 20px 24px 60px;
+    max-width: 1300px;
+    margin: 0 auto;
+  }
+
+  /* CARD */
+  .card {
+    background: var(--card);
+    border: 1px solid #222;
+    border-radius: 14px;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 32px rgba(212,175,55,0.15);
+    border-color: #444;
+  }
+  .card-cover {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4/5;
+    overflow: hidden;
+    background: #1a1a2a;
+  }
+  .card-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s;
+  }
+  .card:hover .card-cover img { transform: scale(1.04); }
+  .card-cover .genre-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(0,0,0,0.75);
+    color: var(--gold);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1px solid var(--gold);
+  }
+  .card-cover .price-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: var(--gold);
+    color: #000;
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 10px;
+  }
+
+  .card-body {
+    padding: 14px 16px 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .card-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  /* PREVIEW PLAYER */
+  .preview-wrap {
+    background: var(--card2);
+    border-radius: 10px;
+    padding: 10px 12px;
+    border: 1px solid #2a2a3a;
+  }
+  .preview-label {
+    font-size: 0.72rem;
+    color: var(--gold);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .preview-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .play-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--gold);
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .play-btn:hover { background: #c09a2a; transform: scale(1.05); }
+  .play-btn:active { transform: scale(0.95); }
+  .progress-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .progress-bar {
+    width: 100%;
+    height: 5px;
+    background: #2a2a3a;
+    border-radius: 3px;
+    overflow: hidden;
+    cursor: pointer;
+  }
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--gold), #f0c040);
+    border-radius: 3px;
+    transition: width 0.3s linear;
+  }
+  .progress-fill.halfway { background: linear-gradient(90deg, #e74c3c, #e67e22); }
+  .time-display {
+    font-size: 0.68rem;
+    color: var(--muted);
+    text-align: right;
+  }
+
+  /* PREVIEW ENDED OVERLAY */
+  .preview-ended {
+    display: none;
+    text-align: center;
+    padding: 8px 0 2px;
+    font-size: 0.8rem;
+    color: #e74c3c;
+    font-weight: 600;
+  }
+  .preview-ended.show { display: block; }
+
+  /* BUY BUTTON */
+  .buy-btn {
+    display: block;
+    text-align: center;
+    background: linear-gradient(135deg, var(--gold) 0%, #c09a2a 100%);
+    color: #000;
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 11px;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: opacity 0.2s, transform 0.1s;
+    margin-top: auto;
+  }
+  .buy-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+  .buy-btn:active { transform: translateY(0); }
+
+  /* NO RESULTS */
+  #noResults {
+    display: none;
+    text-align: center;
+    color: var(--muted);
+    padding: 60px 20px;
+    font-size: 1.1rem;
+    grid-column: 1/-1;
+  }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 28px 20px;
+    border-top: 1px solid #222;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  footer a { color: var(--gold); text-decoration: none; }
+
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 1.8rem; }
+    .grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; padding: 12px 12px 40px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="brand" href="store.html">ARTISY <span>Store</span></a>
+  <div class="nav-links">
+    <a href="store.html">🛍️ Shop</a>
+    <a href="music_hub.html">🎵 Music</a>
+    <a href="book-nook/">📚 Book Nook</a>
+    <a href="https://tlott12.gumroad.com" target="_blank">💛 Gumroad</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <h1>🎧 Audiobook Previews</h1>
+  <p>Listen to the first half of every story — free. Loved what you heard? Grab the full audiobook on Gumroad.</p>
+  <span class="badge">✨ 50 Audiobooks Available</span>
+</div>
+
+<div class="search-wrap">
+  <input type="text" id="searchInput" placeholder="🔍 Search by title or genre…" oninput="filterBooks()"/>
+</div>
+
+<div class="filter-bar" id="filterBar">
+  <button class="filter-btn active" onclick="setFilter('All', this)">All</button>
+</div>
+
+<div class="grid" id="bookGrid"></div>
+<div id="noResults">No audiobooks found. Try a different search! 🎧</div>
+
+<footer>
+  <p>© 2026 Ting Lott · <a href="store.html">Shop</a> · <a href="music_hub.html">Music Hub</a> · <a href="https://tlott12.gumroad.com" target="_blank">Gumroad Store</a></p>
+</footer>
+
+<script>
+const BOOKS = [
+    {
+        "title": "Sea Glass Heart",
+        "genre": "Women's Fiction",
+        "price": 24.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/Sea_Glass_Heart_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/Sea_Glass_Heart.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/lzezx"
+    },
+    {
+        "title": "365 Days of Peace & Happiness",
+        "genre": "Wellness/Inspirational",
+        "price": 24.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/365_Days_Peace_Happiness_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/365_Days_of_Peace___Happiness.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/nozlmu"
+    },
+    {
+        "title": "Potions & Pretenses",
+        "genre": "Fantasy Fiction",
+        "price": 24.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/Potions_Pretenses_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/Potions___Pretenses.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/embwog"
+    },
+    {
+        "title": "Extraordinary Adventures",
+        "genre": "Adventure Fiction",
+        "price": 24.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/Extraordinary_Adventures_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/Extraordinary_Adventures.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/lzhnlu"
+    },
+    {
+        "title": "Redline",
+        "genre": "Thriller",
+        "price": 24.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/Redline_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/Redline.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/basjhpp"
+    },
+    {
+        "title": "The Whispering Compass",
+        "genre": "Women's Adventure Fiction",
+        "price": 24.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/The_Whispering_Compass_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/The_Whispering_Compass.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/zorkxwf"
+    },
+    {
+        "title": "Smart College Choices",
+        "genre": "Education/Parenting",
+        "price": 24.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/Smart_College_Choices_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/Smart_College_Choices.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/wzmijr"
+    },
+    {
+        "title": "AI Powered Business Transformation",
+        "genre": "Business/Technology",
+        "price": 24.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/AI_Powered_Business_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/AI_Powered_Business_Transformation.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/alhny"
+    },
+    {
+        "title": "Beyond Productivity",
+        "genre": "Business/Self-Help",
+        "price": 22.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/Beyond_Productivity_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/Beyond_Productivity.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/hxoubh"
+    },
+    {
+        "title": "Parenting with Purpose",
+        "genre": "Parenting",
+        "price": 24.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/Parenting_with_Purpose_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/Parenting_with_Purpose.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/djxhqx"
+    },
+    {
+        "title": "Haunting America",
+        "genre": "Horror/Paranormal",
+        "price": 19.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/Haunting_America_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/Haunting_America.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/vqnqmo"
+    },
+    {
+        "title": "An American Quilt",
+        "genre": "Historical Fiction",
+        "price": 19.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/An_American_Quilt_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/An_American_Quilt.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/fjcdj"
+    },
+    {
+        "title": "Inspirational Stories for Every Season",
+        "genre": "Inspirational/Self-Help",
+        "price": 19.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/Inspirational_Stories_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/Inspirational_Stories_for_Every_Season.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/sqmlnf"
+    },
+    {
+        "title": "A Midnight Summer Dream",
+        "genre": "Mystery/Romance",
+        "price": 19.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/Midnight_Summer_Dream_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/A_Midnight_Summer_Dream.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/xqbmn"
+    },
+    {
+        "title": "The Modern Castaway's Voyage",
+        "genre": "Adventure Fiction",
+        "price": 19.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/Modern_Castaway_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/The_Modern_Castaway_s_Voyage.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/ofzeuk"
+    },
+    {
+        "title": "Transform Your Habits",
+        "genre": "Self-Help",
+        "price": 19.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/Transform_Habits_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/Transform_Your_Habits.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/cvfzfm"
+    },
+    {
+        "title": "Pedal to the Pacific",
+        "genre": "Adventure Memoir",
+        "price": 19.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/Pedal_to_the_Pacific_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/Pedal_to_the_Pacific.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/lbosmq"
+    },
+    {
+        "title": "AI Consulting Mastery",
+        "genre": "Business",
+        "price": 19.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/AI_Consulting_Mastery_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/AI_Consulting_Mastery.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/lmexvx"
+    },
+    {
+        "title": "Yoga Nidra: The Complete Study Guide",
+        "genre": "Wellness/Spirituality",
+        "price": 19.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/Yoga_Nidra_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/Yoga_Nidra__The_Complete_Study_Guide.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/pyhzr"
+    },
+    {
+        "title": "Unlock Your Mindset Potential",
+        "genre": "Self-Help/Psychology",
+        "price": 17.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/Unlock_Your_Mindset_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/Unlock_Your_Mindset_Potential.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/xejkku"
+    },
+    {
+        "title": "Stranger In The Night",
+        "genre": "Thriller/Suspense",
+        "price": 14.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/Stranger_In_Night_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/Stranger_In_The_Night.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/nwclr"
+    },
+    {
+        "title": "90 Days to Calm",
+        "genre": "Mental Health/Wellness",
+        "price": 14.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/90_Days_to_Calm_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/90_Days_to_Calm.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/lqppi"
+    },
+    {
+        "title": "Peace In His Presence",
+        "genre": "Christian/Spiritual",
+        "price": 14.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/Peace_In_His_Presence_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/Peace_In_His_Presence.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/kcpzak"
+    },
+    {
+        "title": "Sacred Cycles: Mind-Body Renewal",
+        "genre": "Wellness/Spirituality",
+        "price": 14.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/Sacred_Cycles_Mind_Body_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/Sacred_Cycles__Mind_Body_Renewal.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/oyrihg"
+    },
+    {
+        "title": "The Longevity Revolution",
+        "genre": "Health/Longevity",
+        "price": 14.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/The_Longevity_Revolution_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/The_Longevity_Revolution.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/rsycq"
+    },
+    {
+        "title": "The Blue Place",
+        "genre": "Adventure Fiction",
+        "price": 14.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/The_Blue_Place_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/The_Blue_Place.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/bcnkmx"
+    },
+    {
+        "title": "The Irreplaceable Human",
+        "genre": "Non-Fiction/Future of Work",
+        "price": 14.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/The_Irreplaceable_Human_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/The_Irreplaceable_Human.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/pfbjw"
+    },
+    {
+        "title": "The Art of True Love",
+        "genre": "Romance/Relationships",
+        "price": 12.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/The_Art_of_True_Love_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/The_Art_of_True_Love.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/gkvted"
+    },
+    {
+        "title": "Ordinary Grace",
+        "genre": "Drama/Literary Fiction",
+        "price": 12.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/Ordinary_Grace_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/Ordinary_Grace.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/hhfvyr"
+    },
+    {
+        "title": "Productivity Powerhouse",
+        "genre": "Business/Productivity",
+        "price": 12.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/Productivity_Powerhouse_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/Productivity_Powerhouse.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/fbnhmw"
+    },
+    {
+        "title": "Bendable, Not Broken: The EDS/HSD Survival Handbook",
+        "genre": "Audiobook",
+        "price": 14.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/Bendable_Not_Broken_EDS_HSD_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/Bendable__Not_Broken__The_EDS_HSD_Survival_Handboo.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/cmzfjx"
+    },
+    {
+        "title": "50 Modern Hymns: The Complete Book",
+        "genre": "Audiobook",
+        "price": 9.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/50_Modern_Hymns_Complete_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/50_Modern_Hymns__The_Complete_Book.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/fymjey"
+    },
+    {
+        "title": "27 Modern Hymns: Classic Style Edition",
+        "genre": "Audiobook",
+        "price": 9.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/27_Modern_Hymns_Classic_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/27_Modern_Hymns__Classic_Style_Edition.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/idvkev"
+    },
+    {
+        "title": "Bulletproof Ownership: Trusts, Holding Companies, and the Real Estate Asset Protection Strategy",
+        "genre": "Audiobook",
+        "price": 14.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/Bulletproof_Ownership_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/Bulletproof_Ownership__Trusts__Holding_Companies__.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/dzqpvv"
+    },
+    {
+        "title": "Get Found First: The Local SEO and Visibility Playbook",
+        "genre": "Audiobook",
+        "price": 14.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/Get_Found_First_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/Get_Found_First__The_Local_SEO_and_Visibility_Play.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/orxrsh"
+    },
+    {
+        "title": "Understanding Section 8: A Practical Guide",
+        "genre": "Audiobook",
+        "price": 14.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/Understanding_Section8_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/Understanding_Section_8__A_Practical_Guide.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/ojopen"
+    },
+    {
+        "title": "The Vanishing $4,400",
+        "genre": "Audiobook",
+        "price": 14.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/The_Vanishing_4400_AUDIOBOOK.mp3",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/The_Vanishing__4_400.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/wucjv"
+    },
+    {
+        "title": "Clearer: A Sacred Cycles Companion Guide to Understanding and Treating Acne (Audiobook)",
+        "genre": "Audiobook",
+        "price": 14.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/Clearer_Acne_Companion_Guide_AUDIOBOOK.zip",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/Clearer__A_Sacred_Cycles_Companion_Guide_to_Unders.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/bbaffx"
+    },
+    {
+        "title": "Beyond the Ache: A Chronic Migraine Companion Guide (Audiobook)",
+        "genre": "Audiobook",
+        "price": 14.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/Beyond_the_Ache_Chronic_Migraine_Guide_AUDIOBOOK.zip",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/Beyond_the_Ache__A_Chronic_Migraine_Companion_Guid.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/lwrhs"
+    },
+    {
+        "title": "The Endo Patient's Survival Guide (Audiobook)",
+        "genre": "Audiobook",
+        "price": 14.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/The_Endo_Patients_Survival_Guide_AUDIOBOOK.zip",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/The_Endo_Patient_s_Survival_Guide__Audiobook_.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/kjbzs"
+    },
+    {
+        "title": "Strength Through the Storm (Audiobook)",
+        "genre": "Audiobook",
+        "price": 14.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/Strength_Through_the_Storm_AUDIOBOOK.zip",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/Strength_Through_the_Storm__Audiobook_.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/gaxwco"
+    },
+    {
+        "title": "The Fibromyalgia Compass: A Survival Guide (Audiobook)",
+        "genre": "Audiobook",
+        "price": 14.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/The_Fibromyalgia_Compass_Guide_AUDIOBOOK.zip",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/The_Fibromyalgia_Compass__A_Survival_Guide__Audiob.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/sxlhdr"
+    },
+    {
+        "title": "Within the Envelope: An ME/CFS & Long COVID Survival Guide (Audiobook)",
+        "genre": "Audiobook",
+        "price": 14.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/Within_the_Envelope_MECFS_LongCOVID_Guide_AUDIOBOOK.zip",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/Within_the_Envelope__An_ME_CFS___Long_COVID_Surviv.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/zgxfju"
+    },
+    {
+        "title": "The Autoimmune Compass: A Survival Guide (Audiobook)",
+        "genre": "Audiobook",
+        "price": 14.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/The_Autoimmune_Compass_Guide_AUDIOBOOK.zip",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/The_Autoimmune_Compass__A_Survival_Guide__Audioboo.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/otddlw"
+    },
+    {
+        "title": "The Lucky Swing (Audiobook)",
+        "genre": "Audiobook",
+        "price": 14.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/The_Lucky_Swing_AUDIOBOOK.zip",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/The_Lucky_Swing__Audiobook_.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/xwksj"
+    },
+    {
+        "title": "The Government Auctions Guide",
+        "genre": "Finance/Real Estate",
+        "price": 9.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/Government_Auctions_Guide_AUDIOBOOK.zip",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/The_Government_Auctions_Guide.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/mvots"
+    },
+    {
+        "title": "Lilly Transformed",
+        "genre": "Children's Fiction",
+        "price": 9.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/Lilly_Transformed_AUDIOBOOK.zip",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/Lilly_Transformed.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/jqfpd"
+    },
+    {
+        "title": "Become the Bank",
+        "genre": "Real Estate/Finance",
+        "price": 9.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/Become_the_Bank_AUDIOBOOK.zip",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/Become_the_Bank.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/utahbx"
+    },
+    {
+        "title": "Poems of Wisdom & Inspiration",
+        "genre": "Poetry",
+        "price": 7.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/Poems_Wisdom_Inspiration_AUDIOBOOK.zip",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/Poems_of_Wisdom___Inspiration.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/sbldj"
+    },
+    {
+        "title": "The First Year of Sleep",
+        "genre": "Parenting/Wellness",
+        "price": 7.99,
+        "mp3_url": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/audiobooks/First_Year_of_Sleep_AUDIOBOOK.zip",
+        "cover": "https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/covers/The_First_Year_of_Sleep.jpg",
+        "buy_url": "https://tlott12.gumroad.com/l/lgkfq"
+    }
+];
+
+let currentAudio = null;
+let currentCard = null;
+let activeFilter = 'All';
+
+// Build genre list
+const genres = ['All', ...new Set(BOOKS.map(b => b.genre).filter(Boolean).sort())];
+const filterBar = document.getElementById('filterBar');
+filterBar.innerHTML = genres.map(g =>
+  `<button class="filter-btn${g==='All'?' active':''}" onclick="setFilter('${g}', this)">${g}</button>`
+).join('');
+
+function setFilter(genre, btn) {
+  activeFilter = genre;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderGrid();
+}
+
+function filterBooks() {
+  renderGrid();
+}
+
+function renderGrid() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const grid = document.getElementById('bookGrid');
+  const filtered = BOOKS.filter(b => {
+    const matchSearch = !q || b.title.toLowerCase().includes(q) || (b.genre||'').toLowerCase().includes(q);
+    const matchFilter = activeFilter === 'All' || b.genre === activeFilter;
+    return matchSearch && matchFilter;
+  });
+
+  document.getElementById('noResults').style.display = filtered.length === 0 ? 'block' : 'none';
+
+  grid.innerHTML = filtered.map((b, i) => {
+    const price = b.price ? `$${parseFloat(b.price).toFixed(2)}` : '';
+    const cover = b.cover || 'https://via.placeholder.com/280x350/1a1a2a/d4af37?text=🎧';
+    return `
+    <div class="card" data-idx="${i}">
+      <div class="card-cover">
+        <img src="${cover}" alt="${b.title}" loading="lazy" onerror="this.src='https://placehold.co/280x350/1a1a2a/d4af37?text=🎧'"/>
+        ${b.genre ? `<span class="genre-badge">${b.genre}</span>` : ''}
+        ${price ? `<span class="price-badge">${price}</span>` : ''}
+      </div>
+      <div class="card-body">
+        <div class="card-title">${b.title}</div>
+        <div class="preview-wrap">
+          <div class="preview-label">🎧 Free Preview — First Half</div>
+          <div class="preview-controls">
+            <button class="play-btn" onclick="togglePlay(${i}, '${b.mp3_url}', this)">▶</button>
+            <div class="progress-wrap">
+              <div class="progress-bar" onclick="seekAudio(${i}, event, this)">
+                <div class="progress-fill" id="fill-${i}"></div>
+              </div>
+              <div class="time-display" id="time-${i}">0:00 / --:--</div>
+            </div>
+          </div>
+          <div class="preview-ended" id="ended-${i}">⏸ Preview ended — get the full story below!</div>
+        </div>
+        <a class="buy-btn" href="${b.buy_url}" target="_blank">🛒 Get Full Audiobook — ${price}</a>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Audio state map: idx -> {audio, duration}
+const audioMap = {};
+
+function togglePlay(idx, url, btn) {
+  // Stop any currently playing audio
+  if (currentAudio && currentAudio !== audioMap[idx]?.audio) {
+    currentAudio.pause();
+    if (currentCard) {
+      currentCard.textContent = '▶';
+      const ci = currentCard.closest('.card').dataset.idx;
+      document.getElementById('fill-'+ci)?.classList.remove('halfway');
+    }
+  }
+
+  if (!audioMap[idx]) {
+    const audio = new Audio();
+    audio.crossOrigin = 'anonymous';
+    audio.src = url;
+    audioMap[idx] = { audio, halfReached: false };
+
+    audio.addEventListener('loadedmetadata', () => {
+      audioMap[idx].halfPoint = audio.duration / 2;
+      document.getElementById('time-'+idx).textContent = `0:00 / ${fmt(audio.duration/2)} (preview)`;
+    });
+
+    audio.addEventListener('timeupdate', () => {
+      const data = audioMap[idx];
+      if (!data.halfPoint) return;
+      const pct = (audio.currentTime / data.halfPoint) * 100;
+      const fill = document.getElementById('fill-'+idx);
+      if (fill) {
+        fill.style.width = Math.min(pct, 100) + '%';
+        if (pct > 70) fill.classList.add('halfway');
+      }
+      document.getElementById('time-'+idx).textContent = `${fmt(audio.currentTime)} / ${fmt(data.halfPoint)} (preview)`;
+
+      if (audio.currentTime >= data.halfPoint) {
+        audio.pause();
+        btn.textContent = '▶';
+        document.getElementById('ended-'+idx)?.classList.add('show');
+      }
+    });
+
+    audio.addEventListener('ended', () => {
+      btn.textContent = '▶';
+    });
+  }
+
+  const { audio } = audioMap[idx];
+  if (audio.paused) {
+    audio.play().catch(() => {});
+    btn.textContent = '⏸';
+    currentAudio = audio;
+    currentCard = btn;
+  } else {
+    audio.pause();
+    btn.textContent = '▶';
+  }
+}
+
+function seekAudio(idx, e, barEl) {
+  const data = audioMap[idx];
+  if (!data || !data.halfPoint) return;
+  const rect = barEl.getBoundingClientRect();
+  const pct = (e.clientX - rect.left) / rect.width;
+  data.audio.currentTime = pct * data.halfPoint;
+}
+
+function fmt(s) {
+  if (!s || isNaN(s)) return '--:--';
+  const m = Math.floor(s/60), sec = Math.floor(s%60);
+  return `${m}:${sec.toString().padStart(2,'0')}`;
+}
+
+renderGrid();
+</script>
+</body>
+</html>
