@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Math Academy — Learn Math Step by Step</title>
+<style>
+:root{--gold:#f5a623;--deep:#0d1117;--mid:#161b22;--card:#1c2230;--green:#00d084;--red:#ff4757;--blue:#3b82f6;--purple:#a855f7;--pink:#ec4899;--orange:#fb923c;--teal:#14b8a6}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--deep);color:#fff;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+header{background:linear-gradient(135deg,#0d1117,#1c2230);padding:20px;text-align:center;border-bottom:3px solid var(--gold)}
+header h1{font-size:2.2rem;color:var(--gold);text-shadow:0 0 20px rgba(245,166,35,0.4)}
+header p{color:#888;margin-top:4px;font-size:0.9rem}
+/* MODULE NAV */
+.module-nav{display:flex;overflow-x:auto;gap:0;background:var(--mid);border-bottom:2px solid #222;padding:0 10px}
+.mod-tab{padding:14px 20px;cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent;font-size:0.9rem;font-weight:600;color:#666;transition:all .2s;display:flex;align-items:center;gap:8px}
+.mod-tab:hover{color:#aaa;border-bottom-color:#444}
+.mod-tab.active{color:var(--gold);border-bottom-color:var(--gold);background:rgba(245,166,35,0.05)}
+.mod-tab.locked{cursor:not-allowed;opacity:0.4}
+.main{max-width:960px;margin:0 auto;padding:20px}
+/* LESSON VIEW */
+.lesson-card{background:var(--card);border-radius:16px;padding:28px;margin-bottom:20px;border-top:4px solid var(--gold)}
+.lesson-card h2{font-size:1.5rem;color:var(--gold);margin-bottom:12px}
+.lesson-card p{color:#ccc;line-height:1.8;margin-bottom:12px;font-size:1rem}
+.lesson-card .tip{background:rgba(245,166,35,0.08);border-left:3px solid var(--gold);padding:12px 16px;border-radius:0 8px 8px 0;color:#e5c07b;margin-top:12px;font-size:0.9rem}
+/* VISUAL AIDS */
+.visual-box{background:#0d1117;border-radius:12px;padding:20px;text-align:center;margin:16px 0;min-height:120px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px}
+.counter-obj{font-size:2rem;cursor:default;transition:transform .15s;display:inline-block}
+.counter-obj:hover{transform:scale(1.3)}
+.number-line{display:flex;gap:0;overflow-x:auto;padding:10px 0}
+.nl-num{min-width:44px;height:44px;border:2px solid #333;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;border-radius:0;cursor:pointer;transition:all .2s}
+.nl-num.highlight{background:var(--gold);color:#000;border-color:var(--gold)}
+.nl-num:first-child{border-radius:8px 0 0 8px}
+.nl-num:last-child{border-radius:0 8px 8px 0}
+.array-grid{display:grid;gap:6px;justify-content:center;margin:10px auto}
+.array-dot{width:28px;height:28px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:0.75rem;color:#000;font-weight:700}
+.shape-svg{margin:10px auto;display:block}
+/* SECTION TABS */
+.section-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.sec-btn{padding:9px 18px;border-radius:30px;border:2px solid #333;background:transparent;color:#888;cursor:pointer;font-size:0.85rem;font-weight:600;transition:all .2s}
+.sec-btn.active,.sec-btn:hover{border-color:var(--gold);color:var(--gold)}
+/* PRACTICE */
+.problem-card{background:var(--card);border-radius:14px;padding:24px;margin-bottom:20px;text-align:center}
+.problem-display{font-size:3.5rem;font-weight:900;color:#fff;margin:16px 0;letter-spacing:2px}
+.problem-hint{color:#666;font-size:0.85rem;margin-bottom:12px;min-height:20px}
+.answer-input{background:#0d1117;border:3px solid #333;color:#fff;font-size:2rem;font-weight:700;text-align:center;padding:12px;border-radius:10px;width:160px;outline:none;transition:border-color .2s}
+.answer-input:focus{border-color:var(--gold)}
+.answer-input.correct{border-color:var(--green);background:rgba(0,208,132,0.08)}
+.answer-input.wrong{border-color:var(--red);background:rgba(255,71,87,0.08)}
+.feedback{font-size:1.1rem;font-weight:700;min-height:28px;margin-top:10px;transition:all .3s}
+.feedback.correct{color:var(--green)}
+.feedback.wrong{color:var(--red)}
+.practice-controls{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.btn{padding:10px 22px;border-radius:8px;border:none;cursor:pointer;font-size:0.9rem;font-weight:600;transition:all .2s}
+.btn-gold{background:var(--gold);color:#000}
+.btn-gold:hover{background:#e8960f}
+.btn-outline{background:transparent;border:2px solid #444;color:#ccc}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold)}
+.btn-green{background:var(--green);color:#000}
+.progress-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:20px}
+.prog-dot{width:18px;height:18px;border-radius:50%;border:2px solid #333;background:#1a1a2a;transition:all .3s}
+.prog-dot.done-correct{background:var(--green);border-color:var(--green)}
+.prog-dot.done-wrong{background:var(--red);border-color:var(--red)}
+.prog-dot.current{border-color:var(--gold);box-shadow:0 0 0 3px rgba(245,166,35,0.3)}
+/* TIMER */
+.timer-bar-wrap{background:#1a1a2a;border-radius:10px;height:12px;margin:12px 0;overflow:hidden}
+.timer-bar-fill{height:12px;border-radius:10px;background:linear-gradient(90deg,var(--green),var(--gold));transition:width .1s linear}
+.timer-label{color:#888;font-size:0.85rem;text-align:right;margin-bottom:4px}
+/* WORD PROBLEMS */
+.wp-card{background:var(--card);border-radius:14px;padding:24px;margin-bottom:20px}
+.wp-story{background:rgba(245,166,35,0.06);border-radius:10px;padding:16px;margin-bottom:16px;font-size:1rem;line-height:1.7;color:#ddd;border-left:3px solid var(--gold)}
+.wp-question{font-size:1.05rem;font-weight:600;color:#fff;margin-bottom:14px}
+.mc-choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:480px){.mc-choices{grid-template-columns:1fr}}
+.mc-choice{padding:12px 16px;border-radius:10px;border:2px solid #333;background:#0d1117;cursor:pointer;transition:all .2s;color:#ddd;font-size:0.95rem;font-weight:600}
+.mc-choice:hover:not(.locked){border-color:var(--gold);background:rgba(245,166,35,0.08);color:#fff}
+.mc-choice.correct-mc{border-color:var(--green)!important;background:rgba(0,208,132,0.12)!important;color:var(--green)!important}
+.mc-choice.wrong-mc{border-color:var(--red)!important;background:rgba(255,71,87,0.12)!important;color:var(--red)!important}
+.mc-choice.reveal-mc{border-color:var(--green)!important}
+.mc-choice.locked{cursor:default}
+/* RESULTS */
+.score-box{background:var(--card);border-radius:16px;padding:30px;text-align:center;margin-top:20px}
+.score-big{font-size:3.5rem;font-weight:900;color:#fff}
+.star-row{font-size:2.5rem;margin:12px 0}
+/* DASHBOARD */
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:30px}
+.dash-card{background:var(--card);border-radius:12px;padding:20px;text-align:center}
+.dash-num{font-size:2.5rem;font-weight:900;color:var(--gold)}
+.dash-label{color:#888;font-size:0.85rem;margin-top:4px}
+.module-progress-item{background:var(--card);border-radius:12px;padding:18px;margin-bottom:14px;display:flex;align-items:center;gap:16px}
+.mod-icon{font-size:2rem;width:50px;text-align:center}
+.mod-info{flex:1}
+.mod-info h3{font-size:1rem;font-weight:700;margin-bottom:6px}
+.pb-wrap{background:#0d1117;border-radius:8px;height:10px}
+.pb-fill{height:10px;border-radius:8px;background:linear-gradient(90deg,var(--gold),var(--green));transition:width .5s}
+/* ACHIEVEMENTS */
+.ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}
+.ach-card{background:var(--card);border-radius:12px;padding:16px;text-align:center;opacity:0.45;transition:all .3s}
+.ach-card.earned{opacity:1;border:2px solid var(--gold);box-shadow:0 0 15px rgba(245,166,35,0.15)}
+.ach-icon{font-size:2.2rem}
+.ach-name{font-weight:700;font-size:0.85rem;margin-top:8px;color:var(--gold)}
+.ach-desc{color:#888;font-size:0.72rem;margin-top:4px}
+/* CONFETTI */
+.confetti-piece{position:fixed;width:10px;height:10px;border-radius:50%;animation:fall 2.5s ease-out forwards;pointer-events:none;z-index:9999}
+@keyframes fall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+/* MISC */
+.section-title{font-size:1.25rem;font-weight:700;color:var(--gold);margin:24px 0 16px;padding-bottom:8px;border-bottom:2px solid rgba(245,166,35,0.15)}
+.hidden{display:none!important}
+.challenge-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.score-badge{background:rgba(245,166,35,0.1);border:2px solid var(--gold);padding:8px 18px;border-radius:30px;font-weight:700;font-size:1rem;color:var(--gold)}
+.hint-box{background:rgba(55,130,246,0.08);border-left:3px solid var(--blue);border-radius:0 8px 8px 0;padding:12px 16px;margin-top:10px;color:#93c5fd;font-size:0.9rem;display:none}
+.show-hint-btn{background:transparent;border:1px solid #444;color:#888;padding:6px 14px;border-radius:20px;cursor:pointer;font-size:0.8rem;margin-top:10px}
+.show-hint-btn:hover{border-color:var(--blue);color:var(--blue)}
+</style>
+</head>
+<body>
+<header>
+  <h1>🔢 Math Academy</h1>
+  <p>Master Counting → Addition → Multiplication → Division → Geometry → Algebra</p>
+</header>
+
+<div class="module-nav" id="module-nav"></div>
+
+<div class="main" id="main-content"></div>
+
+<script>
+// ============ MODULE DEFINITIONS ============
+const MODULES = [
+  {
+    id:'counting', icon:'🔢', name:'Counting', color:'#00d084',
+    grade:'K–1', desc:'Count objects, learn number order, skip count, and compare numbers up to 100.',
+    lesson:{
+      title:'What is Counting?',
+      body:'Counting means saying numbers in order to find out how many things there are. We always start at 1! You can count anything — apples, stars, dogs — and the last number you say tells you the total.',
+      tip:'Skip counting is a super-fast way to count! Counting by 2s: 2, 4, 6, 8... Counting by 5s: 5, 10, 15, 20... Counting by 10s: 10, 20, 30, 40...',
+      visual:'objects'
+    },
+    wordProblems:[
+      {story:'Lily has 5 red apples and 3 green apples in her basket.',q:'How many apples does Lily have in all?',choices:['7','8','9','6'],a:1,exp:'5 + 3 = 8 apples total.'},
+      {story:'There are 12 birds on a wire. 4 fly away.',q:'How many birds are still on the wire?',choices:['6','7','8','9'],a:2,exp:'12 - 4 = 8 birds remaining.'},
+      {story:'Mia counted her crayons: 2, 4, 6, 8, 10. She was counting by twos.',q:'How many crayons does Mia have?',choices:['8','9','10','12'],a:2,exp:'The last number when counting by 2s to the 5th count is 10.'},
+      {story:'Sam has 3 bags of 10 marbles each.',q:'How many marbles does Sam have in total?',choices:['13','23','30','33'],a:2,exp:'3 groups of 10 = 30 marbles.'},
+      {story:'There are 20 children in a classroom. They sit in rows of 5.',q:'How many rows are there?',choices:['2','3','4','5'],a:2,exp:'20 ÷ 5 = 4 rows.'},
+    ]
+  },
+  {
+    id:'addition', icon:'➕', name:'Addition', color:'#3b82f6',
+    grade:'1–2', desc:'Add single and double-digit numbers, learn carrying, and solve addition word problems.',
+    lesson:{
+      title:'Adding Numbers Together',
+      body:'Addition is putting two or more groups together to find the total. The + sign means "add" and the = sign means "equals" (the answer). When you add, the total always gets bigger!',
+      tip:'Remember: you can add in any order and get the same answer! 3 + 5 = 8, and 5 + 3 = 8. This is called the Commutative Property.',
+      visual:'numberline'
+    },
+    wordProblems:[
+      {story:'Jake has 24 baseball cards. His friend gives him 15 more.',q:'How many baseball cards does Jake have now?',choices:['29','38','39','49'],a:2,exp:'24 + 15 = 39 baseball cards.'},
+      {story:'A bakery made 48 muffins in the morning and 36 muffins in the afternoon.',q:'How many muffins were baked in all?',choices:['74','84','82','94'],a:1,exp:'48 + 36 = 84 muffins total.'},
+      {story:'Zoe read 17 pages on Monday and 23 pages on Tuesday.',q:'How many pages did Zoe read in those two days?',choices:['30','38','40','42'],a:2,exp:'17 + 23 = 40 pages.'},
+      {story:'There are 56 students in the gym and 29 more arrive.',q:'How many students are in the gym now?',choices:['75','84','85','95'],a:2,exp:'56 + 29 = 85 students.'},
+      {story:'A store sells 125 pencils on Monday and 248 on Tuesday.',q:'How many pencils were sold in total?',choices:['363','373','373','383'],a:1,exp:'125 + 248 = 373 pencils.'},
+    ]
+  },
+  {
+    id:'multiplication', icon:'✖️', name:'Multiplication', color:'#a855f7',
+    grade:'2–3', desc:'Master times tables 1–12, understand arrays, and multiply 2-digit numbers.',
+    lesson:{
+      title:'Multiplication — Fast Addition!',
+      body:'Multiplication is a fast way to add the same number many times. Instead of 4 + 4 + 4 = 12, we write 3 × 4 = 12. We call it "3 groups of 4." The numbers you multiply are called factors, and the answer is the product.',
+      tip:'Try the array trick! 3 × 4 means 3 rows of 4 dots. Draw it out to see the multiplication visually. Also: anything × 0 = 0, and anything × 1 = itself!',
+      visual:'array'
+    },
+    wordProblems:[
+      {story:'A classroom has 6 rows of desks with 5 desks in each row.',q:'How many desks are there in all?',choices:['11','25','30','36'],a:2,exp:'6 × 5 = 30 desks.'},
+      {story:'Each box holds 8 cookies. There are 9 boxes.',q:'How many cookies are there in total?',choices:['64','70','72','80'],a:2,exp:'9 × 8 = 72 cookies.'},
+      {story:'A spider has 8 legs. There are 7 spiders.',q:'How many legs are there in all?',choices:['48','54','56','64'],a:2,exp:'7 × 8 = 56 legs.'},
+      {story:'A farmer plants 12 rows of corn with 11 seeds in each row.',q:'How many seeds did the farmer plant?',choices:['112','121','132','144'],a:2,exp:'12 × 11 = 132 seeds.'},
+      {story:'A school orders 15 boxes of colored pencils with 24 pencils in each box.',q:'How many colored pencils did the school order?',choices:['300','340','360','380'],a:2,exp:'15 × 24 = 360 pencils.'},
+    ]
+  },
+  {
+    id:'division', icon:'➗', name:'Division', color:'#ec4899',
+    grade:'3–4', desc:'Divide numbers evenly, understand remainders, and connect division to multiplication.',
+    lesson:{
+      title:'Division — Sharing Equally',
+      body:'Division is splitting a number into equal groups. If you have 12 cookies and want to share them equally with 3 friends, each friend gets 12 ÷ 3 = 4 cookies. The number being divided is the dividend, the number you divide by is the divisor, and the answer is the quotient.',
+      tip:'Division and multiplication are opposites! If 4 × 3 = 12, then 12 ÷ 3 = 4. Use your times tables to help you divide faster. And a remainder is what is left over when you cannot divide evenly.',
+      visual:'objects'
+    },
+    wordProblems:[
+      {story:'42 students need to be divided into groups of 6 for a science project.',q:'How many groups will there be?',choices:['5','6','7','8'],a:2,exp:'42 ÷ 6 = 7 groups.'},
+      {story:'A bag has 56 candies. They are shared equally among 8 children.',q:'How many candies does each child get?',choices:['5','6','7','8'],a:2,exp:'56 ÷ 8 = 7 candies each.'},
+      {story:'A library has 91 books to place equally on 7 shelves.',q:'How many books go on each shelf?',choices:['11','12','13','14'],a:2,exp:'91 ÷ 7 = 13 books per shelf.'},
+      {story:'A farmer has 75 eggs and wants to put them in cartons of 12.',q:'How many full cartons can the farmer fill, and how many eggs are left over?',choices:['6 cartons, 3 left','6 cartons, 2 left','7 cartons, 0 left','5 cartons, 15 left'],a:0,exp:'75 ÷ 12 = 6 remainder 3. Six full cartons with 3 eggs left over.'},
+      {story:'A school bus holds 48 students. 192 students need rides.',q:'How many bus trips are needed?',choices:['3','4','5','6'],a:1,exp:'192 ÷ 48 = 4 trips exactly.'},
+    ]
+  },
+  {
+    id:'geometry', icon:'📐', name:'Geometry', color:'#14b8a6',
+    grade:'4–5', desc:'Identify 2D and 3D shapes, calculate area and perimeter, measure angles, and understand coordinates.',
+    lesson:{
+      title:'Shapes, Space & Measurement',
+      body:'Geometry is the study of shapes, sizes, and positions. A 2D shape is flat (like a square on paper). A 3D shape has depth (like a box). Perimeter is the distance around a shape (add all sides). Area is the space inside a shape (for a rectangle: length × width).',
+      tip:'Remember: Perimeter = sum of all sides. Area of a rectangle = length × width. Area of a triangle = (base × height) ÷ 2. A right angle is exactly 90°. Angles in any triangle always add to 180°.',
+      visual:'shapes'
+    },
+    wordProblems:[
+      {story:'A rectangular garden is 8 meters long and 5 meters wide.',q:'What is the area of the garden?',choices:['26 m²','36 m²','40 m²','45 m²'],a:2,exp:'Area = 8 × 5 = 40 square meters.'},
+      {story:'A square playground has sides of 12 meters.',q:'What is the perimeter of the playground?',choices:['24 m','36 m','48 m','60 m'],a:2,exp:'Perimeter = 4 × 12 = 48 meters (square has 4 equal sides).'},
+      {story:'A triangle has angles of 55° and 75°.',q:'What is the measure of the third angle?',choices:['40°','50°','60°','70°'],a:1,exp:'Angles in a triangle add to 180°. 180 - 55 - 75 = 50°.'},
+      {story:'A room is 9 feet long and 7 feet wide. Tiles cost $3 per square foot.',q:'How much will it cost to tile the entire floor?',choices:['$162','$168','$183','$189'],a:3,exp:'Area = 9 × 7 = 63 sq ft. Cost = 63 × $3 = $189.'},
+      {story:'A circular pizza has a radius of 6 inches. (Use π ≈ 3.14)',q:'What is the approximate area of the pizza?',choices:['37.7 in²','78.5 in²','113.0 in²','226.0 in²'],a:2,exp:'Area = π × r² = 3.14 × 6² = 3.14 × 36 ≈ 113.0 square inches.'},
+    ]
+  },
+  {
+    id:'algebra', icon:'🔣', name:'Algebra', color:'#fb923c',
+    grade:'5–6', desc:'Solve for unknowns, work with expressions, understand variables, patterns, and equations.',
+    lesson:{
+      title:'Algebra — Math with Letters!',
+      body:'In algebra, we use letters (called variables) to stand for unknown numbers. If x + 3 = 7, we need to find what x is. Since 4 + 3 = 7, x = 4! The goal is always to get the variable alone on one side of the equation. Whatever you do to one side, you must do to the other.',
+      tip:'Key rule: Keep the equation balanced! Think of it like a scale. If you add 5 to the left side, you must add 5 to the right side. To solve x + 5 = 12: subtract 5 from both sides → x = 7. To solve 3x = 21: divide both sides by 3 → x = 7.',
+      visual:'algebra'
+    },
+    wordProblems:[
+      {story:'Emma thinks of a number. She adds 14 to it and gets 31.',q:'What is Emma\'s number? (n + 14 = 31)',choices:['15','17','18','21'],a:1,exp:'n + 14 = 31 → n = 31 - 14 = 17.'},
+      {story:'A box of pens costs $x. Three boxes cost $36.',q:'How much does one box cost? (3x = 36)',choices:['$9','$10','$12','$15'],a:2,exp:'3x = 36 → x = 36 ÷ 3 = $12 per box.'},
+      {story:'The pattern is: 3, 7, 11, 15, ___',q:'What is the next number in the pattern?',choices:['17','18','19','20'],a:2,exp:'The pattern adds 4 each time: 15 + 4 = 19.'},
+      {story:'A train travels at a speed of 60 miles per hour. The distance is represented by d = 60t.',q:'How far will the train travel in 4 hours?',choices:['180 miles','220 miles','240 miles','260 miles'],a:2,exp:'d = 60 × 4 = 240 miles.'},
+      {story:'The sum of two consecutive numbers is 53.',q:'What are the two numbers? (n + n+1 = 53)',choices:['25 and 27','26 and 27','25 and 28','24 and 29'],a:1,exp:'n + (n+1) = 53 → 2n+1 = 53 → 2n = 52 → n = 26. So 26 and 27.'},
+    ]
+  }
+];
+
+// Word problems per module for practice tab
+// ============ STATE ============
+let activeModule = 0;
+let activeSection = 'lesson'; // lesson | practice | challenge | wordproblems | dashboard
+let practiceState = {};
+let challengeState = {};
+let wpState = {};
+let challengeTimer = null;
+
+function getProgress(){try{return JSON.parse(localStorage.getItem('mathAcad_progress')||'{}')}catch(e){return{}}}
+function saveProgress(p){localStorage.setItem('mathAcad_progress',JSON.stringify(p))}
+
+// ============ INIT ============
+document.addEventListener('DOMContentLoaded', () => {
+  renderModuleNav();
+  showModule(0);
+});
+
+function renderModuleNav(){
+  const nav = document.getElementById('module-nav');
+  nav.innerHTML = MODULES.map((m,i) => `
+    <div class="mod-tab ${i===0?'active':''}" id="mtab-${i}" onclick="showModule(${i})">
+      <span>${m.icon}</span><span>${m.name}</span>
+    </div>
+  `).join('') + `<div class="mod-tab" id="mtab-dash" onclick="showDashboard()">📊 Dashboard</div>`;
+}
+
+function showModule(idx){
+  activeModule = idx;
+  activeSection = 'lesson';
+  document.querySelectorAll('.mod-tab').forEach((t,i)=>{t.classList.toggle('active',i===idx)});
+  document.getElementById('mtab-dash')&&document.getElementById('mtab-dash').classList.remove('active');
+  renderSectionTabs();
+  renderLesson();
+}
+
+function showDashboard(){
+  document.querySelectorAll('.mod-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('mtab-dash').classList.add('active');
+  renderDashboard();
+}
+
+function renderSectionTabs(){
+  const m = MODULES[activeModule];
+  document.getElementById('main-content').innerHTML = `
+    <div class="section-tabs" id="sec-tabs">
+      <button class="sec-btn ${activeSection==='lesson'?'active':''}" onclick="switchSection('lesson')">📖 Lesson</button>
+      <button class="sec-btn ${activeSection==='practice'?'active':''}" onclick="switchSection('practice')">✏️ Practice</button>
+      <button class="sec-btn ${activeSection==='challenge'?'active':''}" onclick="switchSection('challenge')">⚡ Challenge</button>
+      <button class="sec-btn ${activeSection==='wordproblems'?'active':''}" onclick="switchSection('wordproblems')">📝 Word Problems</button>
+    </div>
+    <div id="section-content"></div>`;
+}
+
+function switchSection(sec){
+  activeSection = sec;
+  document.querySelectorAll('.sec-btn').forEach((b,i)=>{
+    b.classList.toggle('active', ['lesson','practice','challenge','wordproblems'][i]===sec);
+  });
+  if(sec==='lesson') renderLesson();
+  else if(sec==='practice') startPractice();
+  else if(sec==='challenge') startChallenge();
+  else renderWordProblems();
+}
+
+// ============ LESSON ============
+function renderLesson(){
+  const m = MODULES[activeModule];
+  const l = m.lesson;
+  const sec = document.getElementById('section-content');
+  sec.innerHTML = `
+    <div class="lesson-card">
+      <h2>${m.icon} ${l.title}</h2>
+      <p>${l.body}</p>
+      <div class="visual-box" id="lesson-visual">${buildVisual(m.id, l.visual)}</div>
+      <div class="tip">💡 <strong>Pro Tip:</strong> ${l.tip}</div>
+    </div>
+    <div style="text-align:center;margin-top:16px">
+      <button class="btn btn-gold" style="font-size:1rem;padding:14px 36px" onclick="switchSection('practice')">Start Practicing ✏️</button>
+    </div>`;
+  // Animate objects
+  if(l.visual==='objects' && m.id==='counting') animateObjects();
+}
+
+function buildVisual(moduleId, type){
+  if(type==='objects'){
+    const emojis = moduleId==='division' ? ['🍬','🍬','🍬','🍬','🍬','🍬','🍬','🍬','🍬','🍬','🍬','🍬'] : ['⭐','⭐','⭐','⭐','⭐','⭐','⭐','⭐','⭐','⭐'];
+    return emojis.map((e,i)=>`<span class="counter-obj" id="cobj-${i}" onclick="this.style.transform='scale(1.5)';setTimeout(()=>this.style.transform='',300)">${e}</span>`).join('');
+  }
+  if(type==='numberline'){
+    return `<div class="number-line">${Array.from({length:21},(_,i)=>`<div class="nl-num" onclick="highlightNL(${i})" id="nl-${i}">${i}</div>`).join('')}</div>
+    <div style="color:#888;font-size:0.8rem;margin-top:8px">Click a number to highlight it!</div>`;
+  }
+  if(type==='array'){
+    return `<div>
+      <div style="color:#aaa;font-size:0.85rem;margin-bottom:10px">3 × 4 = 12 (3 rows of 4)</div>
+      <div class="array-grid" style="grid-template-columns:repeat(4,28px)" id="array-demo">
+        ${Array.from({length:12},(_,i)=>`<div class="array-dot">${i+1}</div>`).join('')}
+      </div>
+      <div style="margin-top:16px;color:#888;font-size:0.85rem">Try: <button onclick="buildArray(2,6)" style="margin:4px;padding:4px 10px;border-radius:6px;border:1px solid #444;background:#1a1a2a;color:#aaa;cursor:pointer">2×6</button>
+      <button onclick="buildArray(5,3)" style="margin:4px;padding:4px 10px;border-radius:6px;border:1px solid #444;background:#1a1a2a;color:#aaa;cursor:pointer">5×3</button>
+      <button onclick="buildArray(4,4)" style="margin:4px;padding:4px 10px;border-radius:6px;border:1px solid #444;background:#1a1a2a;color:#aaa;cursor:pointer">4×4</button></div>
+    </div>`;
+  }
+  if(type==='shapes'){
+    return `<svg width="340" height="120" class="shape-svg">
+      <rect x="20" y="30" width="70" height="70" fill="none" stroke="#f5a623" stroke-width="2.5" rx="2"/>
+      <text x="55" y="115" fill="#888" font-size="11" text-anchor="middle">Square</text>
+      <rect x="120" y="40" width="90" height="55" fill="none" stroke="#3b82f6" stroke-width="2.5" rx="2"/>
+      <text x="165" y="115" fill="#888" font-size="11" text-anchor="middle">Rectangle</text>
+      <polygon points="270,30 240,100 300,100" fill="none" stroke="#a855f7" stroke-width="2.5"/>
+      <text x="270" y="115" fill="#888" font-size="11" text-anchor="middle">Triangle</text>
+    </svg>`;
+  }
+  if(type==='algebra'){
+    return `<div style="font-size:1.1rem;color:#ccc;text-align:center">
+      <div style="margin-bottom:16px">⚖️ <strong style="color:var(--gold)">Balance Rule</strong></div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap">
+        <div style="background:rgba(245,166,35,0.1);border:2px solid var(--gold);border-radius:10px;padding:14px 24px">
+          <div style="color:#888;font-size:0.75rem">LEFT</div>
+          <div style="font-size:1.5rem;font-weight:700">x + 5</div>
+        </div>
+        <div style="font-size:2rem;color:var(--gold)">=</div>
+        <div style="background:rgba(245,166,35,0.1);border:2px solid var(--gold);border-radius:10px;padding:14px 24px">
+          <div style="color:#888;font-size:0.75rem">RIGHT</div>
+          <div style="font-size:1.5rem;font-weight:700">12</div>
+        </div>
+      </div>
+      <div style="margin-top:16px;color:#888;font-size:0.85rem">Subtract 5 from both sides → x = 7</div>
+    </div>`;
+  }
+  return '';
+}
+
+function highlightNL(n){
+  document.querySelectorAll('.nl-num').forEach(el=>el.classList.remove('highlight'));
+  document.getElementById('nl-'+n)&&document.getElementById('nl-'+n).classList.add('highlight');
+}
+function buildArray(rows,cols){
+  const g=document.getElementById('array-demo');
+  if(!g) return;
+  g.style.gridTemplateColumns=`repeat(${cols},28px)`;
+  g.innerHTML=Array.from({length:rows*cols},(_,i)=>`<div class="array-dot">${i+1}</div>`).join('');
+  const heading=g.previousElementSibling;
+  if(heading) heading.textContent=`${rows} × ${cols} = ${rows*cols} (${rows} rows of ${cols})`;
+}
+function animateObjects(){
+  let i=0;const objs=document.querySelectorAll('.counter-obj');
+  function pulse(){if(i<objs.length){objs[i].style.transform='scale(1.5)';objs[i].style.color='var(--gold)';setTimeout(()=>{if(objs[i])objs[i].style.transform='';i++;pulse();},200);}};
+  setTimeout(pulse,500);
+}
+
+// ============ PROBLEM GENERATORS ============
+function generateProblem(moduleId, difficulty){
+  const d = difficulty||1;
+  const r = (a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+  switch(moduleId){
+    case 'counting':{
+      const type=r(0,2);
+      if(type===0){const n=r(1,20+d*10);return{q:`What number comes AFTER ${n}?`,a:n+1,hint:`Count up one from ${n}.`};}
+      if(type===1){const n=r(2,20+d*10);return{q:`What number comes BEFORE ${n}?`,a:n-1,hint:`Count down one from ${n}.`};}
+      const skip=d<2?2:d<3?5:10;const start=r(1,10)*skip;const count=r(3,6);
+      return{q:`Count by ${skip}s: ${Array.from({length:count},(_,i)=>start+i*skip).join(', ')}, ___`,a:start+count*skip,hint:`Add ${skip} to the last number.`};
+    }
+    case 'addition':{
+      const max=d<2?9:d<3?49:99;
+      const a=r(1,max),b=r(1,max);
+      return{q:`${a} + ${b} = ?`,a:a+b,hint:`Start with ${a} and count up ${b} more.`};
+    }
+    case 'multiplication':{
+      const max=d<2?5:d<3?9:12;
+      const a=r(1,max),b=r(1,max);
+      return{q:`${a} × ${b} = ?`,a:a*b,hint:`Think of ${a} groups of ${b}, or use your times table.`};
+    }
+    case 'division':{
+      const max=d<2?5:d<3?9:12;
+      const b=r(2,max),a=r(1,max)*b;
+      return{q:`${a} ÷ ${b} = ?`,a:a/b,hint:`Ask: how many times does ${b} go into ${a}? Use times tables!`};
+    }
+    case 'geometry':{
+      const type=r(0,2);
+      if(type===0){const l=r(2,20),w=r(2,15);return{q:`Area of rectangle: length ${l}, width ${w}`,a:l*w,hint:`Area = length × width = ${l} × ${w}`};}
+      if(type===1){const s=r(2,15);return{q:`Perimeter of square with side ${s}`,a:s*4,hint:`Perimeter of square = 4 × side = 4 × ${s}`};}
+      const l=r(3,15),w=r(2,10);return{q:`Perimeter of rectangle: length ${l}, width ${w}`,a:2*(l+w),hint:`Perimeter = 2 × (length + width) = 2 × (${l} + ${w})`};
+    }
+    case 'algebra':{
+      const type=r(0,2);
+      if(type===0){const x=r(1,20+d*5),b=r(1,20+d*5);return{q:`Solve: n + ${b} = ${x+b}`,a:x,hint:`Subtract ${b} from both sides: n = ${x+b} - ${b}`};}
+      if(type===1){const x=r(1,12),c=r(2,6+d*2);return{q:`Solve: ${c}n = ${c*x}`,a:x,hint:`Divide both sides by ${c}: n = ${c*x} ÷ ${c}`};}
+      const x=r(2,15+d*5),b=r(1,10);return{q:`Solve: n - ${b} = ${x-b}`,a:x,hint:`Add ${b} to both sides: n = ${x-b} + ${b}`};
+    }
+  }
+  return{q:'5 + 5 = ?',a:10,hint:'Count on from 5!'};
+}
+
+// ============ PRACTICE ============
+function startPractice(){
+  const total=10;
+  practiceState={idx:0,correct:0,wrong:0,dots:Array(total).fill('pending'),total,difficulty:1};
+  renderPractice();
+}
+
+function renderPractice(){
+  const ps=practiceState;const m=MODULES[activeModule];
+  const prob=generateProblem(m.id,ps.difficulty);
+  ps.currentProblem=prob;
+  const sec=document.getElementById('section-content');
+  sec.innerHTML=`
+    <div class="progress-row">${ps.dots.map((d,i)=>`<div class="prog-dot ${d==='correct'?'done-correct':d==='wrong'?'done-wrong':i===ps.idx?'current':''}" id="pd-${i}"></div>`).join('')}</div>
+    <div style="text-align:right;color:#888;font-size:0.85rem;margin-bottom:8px">Question ${ps.idx+1} of ${ps.total}</div>
+    <div class="problem-card">
+      <div class="problem-hint">${m.icon} ${m.name}</div>
+      <div class="problem-display" id="prob-display">${prob.q}</div>
+      <div style="margin:16px 0">
+        <input type="number" class="answer-input" id="answer-input" placeholder="?" autocomplete="off"
+          onkeydown="if(event.key==='Enter')checkAnswer()" oninput="this.classList.remove('correct','wrong')"/>
+      </div>
+      <div class="feedback" id="practice-feedback"></div>
+      <button class="show-hint-btn" onclick="toggleHint()">💡 Show Hint</button>
+      <div class="hint-box" id="hint-box">${prob.hint}</div>
+      <div class="practice-controls">
+        <button class="btn btn-gold" onclick="checkAnswer()">Check ✓</button>
+        <button class="btn btn-outline" onclick="skipProblem()">Skip →</button>
+      </div>
+    </div>`;
+  setTimeout(()=>document.getElementById('answer-input')&&document.getElementById('answer-input').focus(),100);
+}
+
+function toggleHint(){
+  const h=document.getElementById('hint-box');
+  if(h) h.style.display=h.style.display==='block'?'none':'block';
+}
+
+function checkAnswer(){
+  const inp=document.getElementById('answer-input');
+  if(!inp) return;
+  const val=parseFloat(inp.value);
+  if(isNaN(val)){inp.focus();return;}
+  const ps=practiceState;
+  const correct=Math.abs(val-ps.currentProblem.a)<0.001;
+  const fb=document.getElementById('practice-feedback');
+  inp.classList.add(correct?'correct':'wrong');
+  if(correct){ps.correct++;ps.dots[ps.idx]='correct';fb.textContent='✓ Correct! '+getRandPraise();fb.className='feedback correct';}
+  else{ps.wrong++;ps.dots[ps.idx]='wrong';fb.textContent='✗ Answer: '+ps.currentProblem.a+'. '+ps.currentProblem.hint;fb.className='feedback wrong';}
+  ps.idx++;
+  if(ps.correct>=7) ps.difficulty=Math.min(3,ps.difficulty+0.5);
+  setTimeout(()=>{
+    if(ps.idx>=ps.total) showPracticeResults();
+    else renderPractice();
+  },1400);
+}
+
+function skipProblem(){
+  const ps=practiceState;
+  ps.dots[ps.idx]='wrong';ps.wrong++;ps.idx++;
+  if(ps.idx>=ps.total) showPracticeResults();
+  else renderPractice();
+}
+
+function showPracticeResults(){
+  const ps=practiceState;
+  const pct=Math.round((ps.correct/ps.total)*100);
+  const stars=pct>=90?3:pct>=70?2:pct>=50?1:0;
+  saveModuleProgress('practice',stars,pct);
+  if(stars===3) confetti();
+  const sec=document.getElementById('section-content');
+  sec.innerHTML=`<div class="score-box">
+    <h2 style="color:var(--gold);font-size:1.5rem">Practice Complete!</h2>
+    <div class="score-big">${ps.correct}/${ps.total}</div>
+    <div class="star-row">${'★'.repeat(stars)}${'☆'.repeat(3-stars)}</div>
+    <div style="color:#888;margin-bottom:20px">${pct}% correct</div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-gold" onclick="startPractice()">Practice Again 🔄</button>
+      <button class="btn btn-outline" onclick="switchSection('challenge')">Try Challenge ⚡</button>
+      <button class="btn btn-outline" onclick="switchSection('wordproblems')">Word Problems 📝</button>
+    </div>
+  </div>`;
+}
+
+function getRandPraise(){
+  const p=['Amazing!','Excellent!','You got it!','Brilliant!','Superstar!','Nailed it!','Perfect!','Great work!'];
+  return p[Math.floor(Math.random()*p.length)];
+}
+
+// ============ CHALLENGE (60-second sprint) ============
+function startChallenge(){
+  if(challengeTimer) clearInterval(challengeTimer);
+  challengeState={score:0,timeLeft:60,active:true};
+  renderChallenge();
+  challengeTimer=setInterval(tickTimer,1000);
+}
+
+function renderChallenge(){
+  const cs=challengeState;const m=MODULES[activeModule];
+  const prob=generateProblem(m.id,2);
+  cs.currentProb=prob;
+  const sec=document.getElementById('section-content');
+  sec.innerHTML=`
+    <div class="challenge-header">
+      <div class="score-badge" id="ch-score">⚡ Score: ${cs.score}</div>
+      <div>
+        <div class="timer-label">Time Left: <span id="timer-val">${cs.timeLeft}s</span></div>
+        <div class="timer-bar-wrap"><div class="timer-bar-fill" id="timer-bar" style="width:100%"></div></div>
+      </div>
+    </div>
+    <div class="problem-card">
+      <div class="problem-display">${prob.q}</div>
+      <div style="margin:16px 0">
+        <input type="number" class="answer-input" id="ch-input" placeholder="?" autocomplete="off"
+          onkeydown="if(event.key==='Enter')checkChallenge()"/>
+      </div>
+      <div class="feedback" id="ch-feedback"></div>
+      <div class="practice-controls">
+        <button class="btn btn-gold" onclick="checkChallenge()">Submit ⚡</button>
+        <button class="btn btn-outline" onclick="skipChallenge()">Skip</button>
+      </div>
+    </div>`;
+  setTimeout(()=>document.getElementById('ch-input')&&document.getElementById('ch-input').focus(),100);
+}
+
+function tickTimer(){
+  if(!challengeState.active) return;
+  challengeState.timeLeft--;
+  const tv=document.getElementById('timer-val');const tb=document.getElementById('timer-bar');
+  if(tv) tv.textContent=challengeState.timeLeft+'s';
+  if(tb) tb.style.width=(challengeState.timeLeft/60*100)+'%';
+  if(challengeState.timeLeft<=10&&tb) tb.style.background='var(--red)';
+  if(challengeState.timeLeft<=0){clearInterval(challengeTimer);endChallenge();}
+}
+
+function checkChallenge(){
+  const inp=document.getElementById('ch-input');if(!inp) return;
+  const val=parseFloat(inp.value);if(isNaN(val)) return;
+  const correct=Math.abs(val-challengeState.currentProb.a)<0.001;
+  const fb=document.getElementById('ch-feedback');
+  if(correct){challengeState.score++;if(fb){fb.textContent='✓ +1';fb.className='feedback correct';}}
+  else{if(fb){fb.textContent='✗ '+challengeState.currentProb.a;fb.className='feedback wrong';}}
+  const sc=document.getElementById('ch-score');if(sc) sc.textContent='⚡ Score: '+challengeState.score;
+  setTimeout(()=>{if(challengeState.active&&challengeState.timeLeft>0) renderChallenge();},800);
+}
+
+function skipChallenge(){if(challengeState.active) renderChallenge();}
+
+function endChallenge(){
+  challengeState.active=false;
+  const s=challengeState.score;
+  const stars=s>=15?3:s>=8?2:s>=4?1:0;
+  saveModuleProgress('challenge',stars,null);
+  if(stars===3) confetti();
+  const sec=document.getElementById('section-content');
+  sec.innerHTML=`<div class="score-box">
+    <h2 style="color:var(--gold)">⚡ Challenge Complete!</h2>
+    <div class="score-big">${s} pts</div>
+    <div class="star-row">${'★'.repeat(stars)}${'☆'.repeat(3-stars)}</div>
+    <div style="color:#888;margin-bottom:8px">${s>=15?'Math Speedster! 🚀':s>=8?'Great speed!':s>=4?'Keep pushing!':'Practice more — you\'ve got this!'}</div>
+    <div style="color:#555;font-size:0.8rem;margin-bottom:20px">Target: 15+ for 3 stars</div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-gold" onclick="startChallenge()">Go Again ⚡</button>
+      <button class="btn btn-outline" onclick="switchSection('wordproblems')">Word Problems 📝</button>
+    </div>
+  </div>`;
+}
+
+// ============ WORD PROBLEMS ============
+function renderWordProblems(){
+  const m=MODULES[activeModule];
+  wpState={idx:0,correct:0,answered:{},total:m.wordProblems.length};
+  renderWP();
+}
+
+function renderWP(){
+  const m=MODULES[activeModule];const ws=wpState;
+  if(ws.idx>=ws.total){showWPResults();return;}
+  const wp=m.wordProblems[ws.idx];
+  const sec=document.getElementById('section-content');
+  sec.innerHTML=`
+    <div style="color:#888;font-size:0.85rem;margin-bottom:8px">Word Problem ${ws.idx+1} of ${ws.total}</div>
+    <div class="wp-card">
+      <div class="wp-story">📖 ${wp.story}</div>
+      <div class="wp-question">❓ ${wp.q}</div>
+      <div class="mc-choices">
+        ${wp.choices.map((c,i)=>`<button class="mc-choice" id="wpc-${i}" onclick="answerWP(${i})">${c}</button>`).join('')}
+      </div>
+      <div class="hint-box" id="wp-exp" style="margin-top:12px">${wp.exp}</div>
+    </div>`;
+}
+
+function answerWP(ci){
+  const m=MODULES[activeModule];const ws=wpState;const wp=m.wordProblems[ws.idx];
+  if(ws.answered[ws.idx]) return;
+  ws.answered[ws.idx]=ci;
+  const correct=ci===wp.a;
+  if(correct) ws.correct++;
+  document.querySelectorAll('.mc-choice').forEach(b=>b.classList.add('locked'));
+  document.getElementById('wpc-'+ci).classList.add(correct?'correct-mc':'wrong-mc');
+  if(!correct) document.getElementById('wpc-'+wp.a).classList.add('reveal-mc');
+  const exp=document.getElementById('wp-exp');if(exp) exp.style.display='block';
+  setTimeout(()=>{ws.idx++;renderWP();},1800);
+}
+
+function showWPResults(){
+  const ws=wpState;const pct=Math.round((ws.correct/ws.total)*100);
+  const stars=pct>=100?3:pct>=80?2:pct>=60?1:0;
+  saveModuleProgress('wordproblems',stars,pct);
+  if(stars===3) confetti();
+  const sec=document.getElementById('section-content');
+  sec.innerHTML=`<div class="score-box">
+    <h2 style="color:var(--gold)">Word Problems Done!</h2>
+    <div class="score-big">${ws.correct}/${ws.total}</div>
+    <div class="star-row">${'★'.repeat(stars)}${'☆'.repeat(3-stars)}</div>
+    <div style="color:#888;margin-bottom:20px">${pct}% correct</div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-gold" onclick="renderWordProblems()">Try Again 🔄</button>
+      <button class="btn btn-outline" onclick="switchSection('practice')">Practice 🔢</button>
+    </div>
+  </div>`;
+}
+
+// ============ PROGRESS ============
+function saveModuleProgress(section,stars,pct){
+  const p=getProgress();
+  const key=MODULES[activeModule].id+'_'+section;
+  if(!p[key]||stars>(p[key].stars||0)) p[key]={stars,pct,date:new Date().toISOString()};
+  p.__totalSessions=(p.__totalSessions||0)+1;
+  saveProgress(p);
+}
+
+function getModuleStars(moduleId){
+  const p=getProgress();
+  const sections=['practice','challenge','wordproblems'];
+  return sections.reduce((t,s)=>{const k=p[moduleId+'_'+s];return t+(k?k.stars:0);},0);
+}
+
+// ============ DASHBOARD ============
+const ACHIEVEMENTS_MATH=[
+  {id:'first_practice',icon:'🌟',name:'First Steps',desc:'Complete your first practice',check:p=>Object.keys(p).filter(k=>k.includes('_practice')).length>=1},
+  {id:'perfect_practice',icon:'💯',name:'Flawless',desc:'Score 100% on a practice session',check:p=>Object.values(p).some(v=>v.pct===100)},
+  {id:'all_modules',icon:'🏆',name:'Math Master',desc:'Complete all 6 modules',check:p=>MODULES.every(m=>p[m.id+'_practice'])},
+  {id:'challenge_15',icon:'⚡',name:'Speed Demon',desc:'Score 15+ in Challenge mode',check:p=>Object.values(p).some(v=>v.stars===3&&v.pct===null)},
+  {id:'three_stars',icon:'⭐',name:'Triple Star',desc:'Get 3 stars on any section',check:p=>Object.values(p).some(v=>v.stars===3)},
+  {id:'counting_done',icon:'🔢',name:'Counting Champ',desc:'Complete Counting module',check:p=>p.counting_practice},
+  {id:'algebra_done',icon:'🔣',name:'Algebra Ace',desc:'Complete Algebra module',check:p=>p.algebra_practice},
+  {id:'word_pro',icon:'📝',name:'Word Problem Pro',desc:'Complete Word Problems in 3 modules',check:p=>MODULES.filter(m=>p[m.id+'_wordproblems']).length>=3},
+  {id:'persistent',icon:'🔥',name:'Persistent',desc:'Complete 10 total sessions',check:p=>(p.__totalSessions||0)>=10},
+  {id:'geometry_done',icon:'📐',name:'Shape Shifter',desc:'Complete Geometry module',check:p=>p.geometry_practice},
+  {id:'division_done',icon:'➗',name:'Division Dynamo',desc:'Complete Division module',check:p=>p.division_practice},
+  {id:'multiplication_done',icon:'✖️',name:'Times Table Titan',desc:'Complete Multiplication module',check:p=>p.multiplication_practice},
+];
+
+function renderDashboard(){
+  const p=getProgress();
+  const sessions=p.__totalSessions||0;
+  const modsCompleted=MODULES.filter(m=>p[m.id+'_practice']).length;
+  const totalStars=MODULES.reduce((t,m)=>t+getModuleStars(m.id),0);
+  const maxStars=MODULES.length*9;
+  const sec=document.getElementById('main-content');
+  sec.innerHTML=`
+    <div class="section-title">📊 Math Progress Dashboard</div>
+    <div class="dash-grid">
+      <div class="dash-card"><div class="dash-num">${modsCompleted}/6</div><div class="dash-label">Modules Started</div></div>
+      <div class="dash-card"><div class="dash-num">${totalStars}⭐</div><div class="dash-label">Total Stars (max ${maxStars})</div></div>
+      <div class="dash-card"><div class="dash-num">${sessions}</div><div class="dash-label">Practice Sessions</div></div>
+    </div>
+    <div class="section-title">📈 Module Progress</div>
+    ${MODULES.map(m=>{
+      const stars=getModuleStars(m.id);const maxS=9;const pct=Math.round(stars/maxS*100);
+      return `<div class="module-progress-item">
+        <div class="mod-icon">${m.icon}</div>
+        <div class="mod-info">
+          <h3>${m.name} <small style="color:#666;font-weight:400">${m.grade}</small></h3>
+          <div class="pb-wrap"><div class="pb-fill" style="width:${pct}%"></div></div>
+          <div style="margin-top:4px;color:#888;font-size:0.8rem">${stars}/9 stars</div>
+        </div>
+        <button class="btn btn-outline" style="white-space:nowrap;font-size:0.8rem" onclick="showModule(${MODULES.indexOf(m)})">Open →</button>
+      </div>`;
+    }).join('')}
+    <div class="section-title">🏆 Achievements</div>
+    <div class="ach-grid">
+      ${ACHIEVEMENTS_MATH.map(a=>{
+        const earned=a.check(p);
+        return `<div class="ach-card ${earned?'earned':''}">
+          <div class="ach-icon">${a.icon}</div>
+          <div class="ach-name">${a.name}</div>
+          <div class="ach-desc">${a.desc}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+// ============ CONFETTI ============
+function confetti(){
+  const colors=['#f5a623','#00d084','#3b82f6','#a855f7','#ec4899','#fb923c'];
+  for(let i=0;i<60;i++){
+    const d=document.createElement('div');d.className='confetti-piece';
+    d.style.left=Math.random()*100+'vw';d.style.background=colors[Math.floor(Math.random()*colors.length)];
+    d.style.width=(Math.random()*10+6)+'px';d.style.height=(Math.random()*10+6)+'px';
+    d.style.animationDuration=(Math.random()*2+1.5)+'s';d.style.animationDelay=(Math.random()*1)+'s';
+    document.body.appendChild(d);setTimeout(()=>d.remove(),4000);
+  }
+}
+</script>
+</body>
+</html>

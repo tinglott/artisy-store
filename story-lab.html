@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Story Lab — Reading Comprehension & Reasoning</title>
+<style>
+:root{--gold:#f5a623;--deep:#1a1a2e;--mid:#16213e;--card:#0f3460;--green:#00d084;--red:#ff4757;--blue:#3742fa;--purple:#a855f7;--pink:#ec4899;--cream:#fef9ef}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--deep);color:#fff;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+header{background:linear-gradient(135deg,#1a1a2e,#0f3460);padding:20px;text-align:center;border-bottom:3px solid var(--gold)}
+header h1{font-size:2.2rem;color:var(--gold);text-shadow:0 0 20px rgba(245,166,35,0.4)}
+header p{color:#aaa;margin-top:4px;font-size:0.95rem}
+.tabs{display:flex;gap:8px;padding:16px 20px;background:var(--mid);flex-wrap:wrap;justify-content:center}
+.tab-btn{padding:10px 20px;border:2px solid var(--gold);border-radius:30px;background:transparent;color:var(--gold);cursor:pointer;font-size:0.9rem;font-weight:600;transition:all .2s}
+.tab-btn.active,.tab-btn:hover{background:var(--gold);color:#000}
+.main{max-width:1100px;margin:0 auto;padding:20px}
+/* LIBRARY */
+.controls{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.controls select,.controls input{padding:10px 14px;border-radius:8px;border:2px solid #333;background:#1a1a2e;color:#fff;font-size:0.9rem}
+.controls select:focus,.controls input:focus{border-color:var(--gold);outline:none}
+.story-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.story-card{background:var(--card);border-radius:14px;padding:18px;cursor:pointer;border:2px solid transparent;transition:all .25s;position:relative;overflow:hidden}
+.story-card:hover{border-color:var(--gold);transform:translateY(-3px);box-shadow:0 8px 25px rgba(245,166,35,0.2)}
+.story-card.completed{border-color:var(--green)}
+.story-card .level-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:0.75rem;font-weight:700;margin-bottom:10px}
+.story-card h3{font-size:1.05rem;margin-bottom:6px;color:#fff}
+.story-card .meta{color:#888;font-size:0.8rem;margin-bottom:10px}
+.story-card .stars{color:var(--gold);font-size:0.9rem}
+.story-card .genre-icon{position:absolute;top:14px;right:14px;font-size:1.4rem}
+.completed-check{position:absolute;bottom:12px;right:12px;color:var(--green);font-size:1.2rem}
+/* READER */
+#reader-view{display:none}
+.reader-header{display:flex;gap:12px;align-items:center;margin-bottom:20px;flex-wrap:wrap}
+.back-btn{padding:8px 16px;border-radius:8px;border:2px solid #555;background:transparent;color:#fff;cursor:pointer;font-size:0.9rem;transition:all .2s}
+.back-btn:hover{border-color:var(--gold);color:var(--gold)}
+.reader-title{font-size:1.6rem;color:var(--gold);font-weight:700}
+.reader-meta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.reader-meta span{padding:4px 12px;border-radius:20px;font-size:0.8rem;font-weight:600}
+.story-actions{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.btn{padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-size:0.9rem;font-weight:600;transition:all .2s}
+.btn-gold{background:var(--gold);color:#000}
+.btn-gold:hover{background:#e8960f}
+.btn-outline{background:transparent;border:2px solid #555;color:#fff}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold)}
+.btn-green{background:var(--green);color:#000}
+.btn-green:hover{background:#00b871}
+.story-box{background:var(--card);border-radius:14px;padding:24px;font-size:1.05rem;line-height:1.9;margin-bottom:20px;border-left:4px solid var(--gold)}
+.story-box .vocab-word{background:rgba(245,166,35,0.15);border-bottom:2px solid var(--gold);cursor:pointer;border-radius:4px;padding:0 3px;transition:background .2s}
+.story-box .vocab-word:hover{background:rgba(245,166,35,0.35)}
+/* VOCAB POPUP */
+.vocab-popup{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--gold);color:#000;padding:12px 24px;border-radius:12px;font-weight:700;font-size:0.95rem;z-index:999;display:none;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateX(-50%) translateY(20px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
+/* QUESTIONS */
+.questions-section{margin-top:24px}
+.q-block{background:var(--card);border-radius:12px;padding:20px;margin-bottom:16px;border-left:4px solid var(--blue)}
+.q-block.reasoning{border-left-color:var(--purple)}
+.skill-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;margin-bottom:10px;text-transform:uppercase}
+.skill-comprehension{background:rgba(55,66,250,0.2);color:#7981ff}
+.skill-inference{background:rgba(168,85,247,0.2);color:#c084fc}
+.skill-main_idea{background:rgba(0,208,132,0.2);color:#34d399}
+.skill-cause_effect{background:rgba(245,166,35,0.2);color:var(--gold)}
+.skill-prediction{background:rgba(236,72,153,0.2);color:#f472b6}
+.skill-sequence{background:rgba(99,102,241,0.2);color:#a5b4fc}
+.skill-vocabulary{background:rgba(20,184,166,0.2);color:#5eead4}
+.skill-compare{background:rgba(249,115,22,0.2);color:#fb923c}
+.q-text{font-size:1rem;font-weight:600;margin-bottom:14px;color:#fff}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:500px){.choices{grid-template-columns:1fr}}
+.choice{padding:12px 16px;border-radius:10px;border:2px solid #333;background:var(--mid);cursor:pointer;transition:all .2s;font-size:0.9rem;text-align:left;color:#fff}
+.choice:hover:not(.locked){border-color:var(--gold);background:rgba(245,166,35,0.08)}
+.choice.correct{border-color:var(--green)!important;background:rgba(0,208,132,0.15)!important;color:var(--green)}
+.choice.wrong{border-color:var(--red)!important;background:rgba(255,71,87,0.15)!important;color:var(--red)}
+.choice.locked{cursor:default}
+.choice.reveal-correct{border-color:var(--green)!important;background:rgba(0,208,132,0.08)!important}
+.explanation{margin-top:12px;padding:10px 14px;background:rgba(255,255,255,0.05);border-radius:8px;font-size:0.85rem;color:#aaa;display:none}
+/* RESULTS */
+.results-box{background:var(--card);border-radius:16px;padding:30px;text-align:center;margin-top:20px}
+.results-box h2{font-size:1.8rem;color:var(--gold);margin-bottom:10px}
+.score-big{font-size:3.5rem;font-weight:900;color:#fff;margin:16px 0}
+.star-row{font-size:2.5rem;margin:10px 0}
+.skill-breakdown{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-top:20px;text-align:left}
+.skill-item{background:var(--mid);padding:12px;border-radius:10px;font-size:0.85rem}
+.skill-item .skill-name{color:#aaa;font-size:0.75rem;text-transform:uppercase;margin-bottom:4px}
+.skill-item .skill-score{font-weight:700;font-size:1.1rem}
+/* PROGRESS TAB */
+.progress-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:30px}
+.prog-card{background:var(--card);border-radius:12px;padding:18px;text-align:center}
+.prog-card .prog-num{font-size:2.5rem;font-weight:900;color:var(--gold)}
+.prog-card .prog-label{color:#aaa;font-size:0.85rem;margin-top:4px}
+.achievements-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
+.ach-card{background:var(--card);border-radius:12px;padding:16px;text-align:center;opacity:0.5;transition:all .3s}
+.ach-card.earned{opacity:1;border:2px solid var(--gold)}
+.ach-card .ach-icon{font-size:2.5rem}
+.ach-card .ach-name{font-weight:700;font-size:0.9rem;margin-top:8px;color:var(--gold)}
+.ach-card .ach-desc{color:#aaa;font-size:0.75rem;margin-top:4px}
+/* CONFETTI */
+.confetti-piece{position:fixed;width:10px;height:10px;border-radius:50%;animation:confettiFall 2.5s ease-out forwards;pointer-events:none;z-index:9999}
+@keyframes confettiFall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+/* LEVEL COLORS */
+.lv-K{background:rgba(0,208,132,0.2);color:#34d399}
+.lv-1{background:rgba(55,66,250,0.2);color:#7981ff}
+.lv-2{background:rgba(245,166,35,0.2);color:var(--gold)}
+.lv-3{background:rgba(236,72,153,0.2);color:#f472b6}
+.lv-4{background:rgba(168,85,247,0.2);color:#c084fc}
+.lv-5{background:rgba(249,115,22,0.2);color:#fb923c}
+.progress-bar-wrap{background:#333;border-radius:10px;height:8px;margin-top:6px}
+.progress-bar-fill{height:8px;border-radius:10px;background:linear-gradient(90deg,var(--gold),#ff8c00);transition:width .5s}
+.reading-progress{position:sticky;top:0;background:var(--deep);z-index:10;padding:8px 0;margin-bottom:12px}
+.reading-progress-bar{height:6px;background:linear-gradient(90deg,var(--gold),var(--green));border-radius:3px;transition:width .3s}
+.hidden{display:none}
+.section-title{font-size:1.3rem;font-weight:700;color:var(--gold);margin:24px 0 16px;border-bottom:2px solid rgba(245,166,35,0.2);padding-bottom:8px}
+.speaking-indicator{display:inline-flex;align-items:center;gap:4px;color:var(--gold);font-size:0.85rem}
+.speaking-indicator .dot{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:pulse 1s infinite}
+.speaking-indicator .dot:nth-child(2){animation-delay:.2s}
+.speaking-indicator .dot:nth-child(3){animation-delay:.4s}
+@keyframes pulse{0%,100%{opacity:0.3}50%{opacity:1}}
+.highlight-word{background:rgba(245,166,35,0.4)!important;border-radius:3px}
+.empty-state{text-align:center;padding:60px 20px;color:#555}
+.empty-state .icon{font-size:4rem;margin-bottom:16px}
+</style>
+</head>
+<body>
+<header>
+  <h1>📖 Story Lab</h1>
+  <p>Reading Comprehension &amp; Reasoning Skills — Grades K–5</p>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="showTab('library')">📚 Story Library</button>
+  <button class="tab-btn" onclick="showTab('progress')">⭐ My Progress</button>
+  <button class="tab-btn" onclick="showTab('skills')">🧠 Skill Guide</button>
+</div>
+
+<div class="main">
+  <!-- LIBRARY TAB -->
+  <div id="tab-library">
+    <div class="controls">
+      <select id="filter-level" onchange="filterStories()">
+        <option value="">All Levels</option>
+        <option value="K">Kindergarten (K)</option>
+        <option value="1">Grade 1</option>
+        <option value="2">Grade 2</option>
+        <option value="3">Grade 3</option>
+        <option value="4">Grade 4</option>
+        <option value="5">Grade 5</option>
+      </select>
+      <select id="filter-genre" onchange="filterStories()">
+        <option value="">All Genres</option>
+        <option value="Animals">🐾 Animals</option>
+        <option value="Adventure">🗺️ Adventure</option>
+        <option value="Friendship">💛 Friendship</option>
+        <option value="Mystery">🔍 Mystery</option>
+        <option value="Science">🔬 Science</option>
+        <option value="Fantasy">🌟 Fantasy</option>
+        <option value="Nature">🌿 Nature</option>
+        <option value="Community">🏘️ Community</option>
+      </select>
+      <input type="text" id="search-box" placeholder="🔎 Search stories..." oninput="filterStories()" style="flex:1;min-width:160px"/>
+    </div>
+    <div id="story-grid" class="story-grid"></div>
+  </div>
+
+  <!-- READER VIEW -->
+  <div id="reader-view">
+    <div class="reader-header">
+      <button class="back-btn" onclick="backToLibrary()">← Back</button>
+      <div>
+        <div class="reader-title" id="reader-title"></div>
+        <div id="reader-meta" class="reader-meta"></div>
+      </div>
+    </div>
+    <div class="reading-progress">
+      <div id="reading-progress-bar" class="reading-progress-bar" style="width:0%"></div>
+    </div>
+    <div class="story-actions">
+      <button class="btn btn-gold" id="read-aloud-btn" onclick="toggleReadAloud()">🔊 Read Aloud</button>
+      <button class="btn btn-outline" onclick="showVocab()">📖 Vocabulary</button>
+      <button class="btn btn-green" onclick="startQuestions()" id="start-q-btn">✏️ Answer Questions</button>
+    </div>
+    <div id="story-text" class="story-box" onscroll="updateReadingProgress()"></div>
+    <div id="vocab-section" class="hidden">
+      <div class="section-title">📖 Vocabulary Words</div>
+      <div id="vocab-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px"></div>
+    </div>
+    <div id="questions-section" class="questions-section hidden">
+      <div class="section-title">🧠 Comprehension &amp; Reasoning Questions</div>
+      <div id="questions-list"></div>
+      <div id="submit-section" class="hidden" style="text-align:center;margin-top:20px">
+        <button class="btn btn-gold" onclick="submitAnswers()" style="font-size:1.1rem;padding:14px 36px">Check My Answers ✓</button>
+      </div>
+      <div id="results-section" class="hidden"></div>
+    </div>
+  </div>
+
+  <!-- PROGRESS TAB -->
+  <div id="tab-progress" class="hidden">
+    <div class="section-title">📊 My Reading Stats</div>
+    <div class="progress-grid" id="stats-grid"></div>
+    <div class="section-title">🏆 Achievements</div>
+    <div class="achievements-grid" id="achievements-grid"></div>
+    <div class="section-title">📈 Level Progress</div>
+    <div id="level-progress"></div>
+  </div>
+
+  <!-- SKILLS TAB -->
+  <div id="tab-skills" class="hidden">
+    <div class="section-title">🧠 Reading Comprehension &amp; Reasoning Skills</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px" id="skills-list"></div>
+  </div>
+</div>
+
+<div class="vocab-popup" id="vocab-popup"></div>
+
+<script>
+const SKILLS = [
+  {id:'comprehension',icon:'🔍',name:'Comprehension',color:'#7981ff',desc:'Find facts stated directly in the story — who, what, where, when.'},
+  {id:'inference',icon:'💭',name:'Inference',color:'#c084fc',desc:'Read between the lines. Figure out what the author implies but does not say directly.'},
+  {id:'main_idea',icon:'🎯',name:'Main Idea',color:'#34d399',desc:'Identify what the story is mostly about — the big message or central theme.'},
+  {id:'cause_effect',icon:'⚡',name:'Cause & Effect',color:'#f5a623',desc:'Understand why things happen and what results from actions in the story.'},
+  {id:'prediction',icon:'🔮',name:'Prediction',color:'#f472b6',desc:'Use story clues to figure out what will likely happen next.'},
+  {id:'sequence',icon:'📋',name:'Sequence',color:'#a5b4fc',desc:'Understand the order of events — what happened first, next, and last.'},
+  {id:'vocabulary',icon:'📝',name:'Vocabulary in Context',color:'#5eead4',desc:'Use clues in the sentence or story to figure out what a word means.'},
+  {id:'compare',icon:'⚖️',name:'Compare & Contrast',color:'#fb923c',desc:'Find how two characters, settings, or ideas are alike and different.'},
+];
+
+const ACHIEVEMENTS = [
+  {id:'first_story',icon:'🌟',name:'First Story',desc:'Complete your first story',check:s=>s.completed>=1},
+  {id:'five_stories',icon:'📚',name:'Bookworm',desc:'Complete 5 stories',check:s=>s.completed>=5},
+  {id:'ten_stories',icon:'🏆',name:'Story Champion',desc:'Complete 10 stories',check:s=>s.completed>=10},
+  {id:'perfect',icon:'💯',name:'Perfect Score',desc:'Score 100% on a story',check:s=>s.perfectScores>=1},
+  {id:'three_perfect',icon:'🎯',name:'Sharpshooter',desc:'Score 100% on 3 stories',check:s=>s.perfectScores>=3},
+  {id:'all_levels',icon:'🌈',name:'Level Master',desc:'Complete a story at every level',check:s=>s.levelsCompleted>=6},
+  {id:'inference_5',icon:'💭',name:'Mind Reader',desc:'Answer 5 inference questions correctly',check:s=>(s.skillCorrect&&s.skillCorrect.inference||0)>=5},
+  {id:'streak_3',icon:'🔥',name:'On Fire',desc:'Complete 3 stories in a row',check:s=>s.streak>=3},
+  {id:'all_genres',icon:'🎭',name:'Genre Explorer',desc:'Read in 5 different genres',check:s=>s.genresRead>=5},
+  {id:'speed_reader',icon:'⚡',name:'Speed Reader',desc:'Complete a story in under 3 minutes',check:s=>s.fastComplete>=1},
+  {id:'night_owl',icon:'🦉',name:'Night Owl',desc:'Read 10 stories total',check:s=>s.completed>=10},
+  {id:'curious',icon:'🔬',name:'Curious Mind',desc:'Answer 10 reasoning questions correctly',check:s=>((s.skillCorrect&&s.skillCorrect.inference||0)+(s.skillCorrect&&s.skillCorrect.main_idea||0))>=10},
+];
+
+const STORIES = [
+// LEVEL K
+{id:'k1',level:'K',genre:'Animals',lexile:'190L',title:'The Lost Puppy',icon:'🐶',
+text:'Max was a small brown puppy. One day he ran away from home. He ran past the red barn. He ran past the big oak tree. He ran all the way to the pond. Max looked around. He did not know where he was. Everything looked new and strange. Max sat down and began to cry. Then he heard a voice. "Max! Max!" It was his owner, Lily. She ran to him and hugged him tight. "I was so scared," she said. Max licked her face. His tail wagged fast. He was so happy to be found.',
+vocab:[{w:'strange',d:'Something that looks different or new, not like what you know'},{w:'wagged',d:'Moved back and forth quickly'},{w:'scared',d:'Feeling afraid or worried'}],
+questions:[
+{q:'Where did Max run to when he got lost?',choices:['The park','The pond','The school','The store'],a:1,type:'comprehension',skill:'comprehension',exp:'The story says Max ran all the way to the pond.'},
+{q:'How did Lily feel when she found Max?',choices:['Angry','Bored','Scared and worried','Tired'],a:2,type:'comprehension',skill:'comprehension',exp:'Lily said "I was so scared," which tells us she was worried.'},
+{q:'Why do you think Max started to cry when he was lost?',choices:['He was tired from running','He was lonely and did not know the way home','He was hungry','He was bored'],a:1,type:'reasoning',skill:'inference',exp:'Max cried because he was in a strange place and did not know where he was — he was lonely and afraid.'},
+{q:'What does this story mostly teach us?',choices:['Ponds are dangerous places','Running is good exercise','Getting lost is scary but being found feels wonderful','Puppies like to explore'],a:2,type:'reasoning',skill:'main_idea',exp:'The story shows how scary it feels to be lost and how wonderful it feels when someone who loves you finds you.'},
+]},
+
+{id:'k2',level:'K',genre:'Nature',lexile:'200L',title:'Sam's Garden',icon:'🌱',
+text:'Sam wanted to grow a flower. He dug a small hole in the ground. He put one tiny seed inside. He covered it with dirt and gave it water. Every morning Sam looked at the spot. Nothing was there. He waited and waited. One week went by. Then he saw something green peeking up from the dirt. It was a tiny sprout! Sam watered it again. Each day it grew taller. Soon a bright yellow flower bloomed. Sam smiled a big smile. He had grown something all by himself.',
+vocab:[{w:'sprout',d:'A tiny new plant just starting to grow'},{w:'bloomed',d:'Opened up into a full flower'},{w:'peeking',d:'Appearing just a little bit, barely showing'}],
+questions:[
+{q:'What did Sam put in the hole he dug?',choices:['A flower','A tiny seed','Some water','A rock'],a:1,type:'comprehension',skill:'comprehension',exp:'Sam put one tiny seed inside the hole.'},
+{q:'How long did Sam wait before he saw something green?',choices:['One day','One month','One week','Two weeks'],a:2,type:'comprehension',skill:'comprehension',exp:'The story says one week went by before he saw the tiny sprout.'},
+{q:'Why do you think Sam smiled a big smile at the end?',choices:['He got a gift','He was proud because he grew something by himself','He found money','His friend came to visit'],a:1,type:'reasoning',skill:'inference',exp:'Sam grew the flower all by himself with patience and care, so he felt proud of what he had done.'},
+{q:'What must happen FIRST before a flower can bloom?',choices:['The flower must be picked','A seed must be planted and watered','Rain must fall for a month','You must buy a pot'],a:1,type:'reasoning',skill:'sequence',exp:'First a seed is planted, then watered, then a sprout grows, then the flower blooms — the seed comes first.'},
+]},
+
+{id:'k3',level:'K',genre:'Friendship',lexile:'210L',title:'The Red Ball',icon:'⚽',
+text:'Tom had a red ball. It was his favorite toy. One afternoon the ball rolled under the fence and into the yard next door. Tom could not reach it. He sat on the steps and felt sad. His neighbor, Mia, saw him. "What is wrong?" she asked. Tom told her about the ball. Mia went into her yard and picked it up. She handed it to Tom with a smile. "Thank you!" said Tom. "You are a good friend." Mia smiled. "Friends help each other," she said.',
+vocab:[{w:'neighbor',d:'A person who lives near you'},{w:'favorite',d:'The one you like best of all'},{w:'reach',d:'To stretch out and touch something'}],
+questions:[
+{q:'Where did Tom's ball go?',choices:['Into the street','Under the fence into the yard next door','Into the pond','Up a tree'],a:1,type:'comprehension',skill:'comprehension',exp:'The ball rolled under the fence into the yard next door.'},
+{q:'Who helped Tom get his ball back?',choices:['His mom','A stranger','His neighbor Mia','His teacher'],a:2,type:'comprehension',skill:'comprehension',exp:'His neighbor Mia saw him, went into her yard, and handed the ball back to Tom.'},
+{q:'Why did Tom feel sad before Mia helped him?',choices:['He was hungry','He could not get his favorite toy back by himself','He did not like Mia','He lost his money'],a:1,type:'reasoning',skill:'cause_effect',exp:'Tom felt sad because his favorite ball was out of reach and he could not get it back on his own.'},
+{q:'What does Mia mean when she says "Friends help each other"?',choices:['Friends share their toys','Good friends do kind things for one another when they are in need','Friends live near each other','Friends play games together'],a:1,type:'reasoning',skill:'vocabulary',exp:'Mia is saying that real friendship means doing helpful, kind things for the people you care about.'},
+]},
+
+// LEVEL 1
+{id:'1a',level:'1',genre:'Fantasy',lexile:'340L',title:'The Magic Seed',icon:'✨',
+text:'Maya found a seed under a big oak tree. It was gold and shiny, not like any seed she had seen before. She planted it in a pot by the window. That night she heard a soft humming sound. By morning a vine had grown three feet tall, with tiny silver leaves. Each leaf had a picture on it — a sun, a moon, a star. Maya touched the leaf with the sun. A warm glow filled the room. She touched the moon leaf and the room turned deep blue, like night. Maya sat on the floor and laughed with joy. She had found something truly magical.',
+vocab:[{w:'vine',d:'A long climbing plant with a twisting stem'},{w:'glow',d:'A soft, warm, steady light'},{w:'magical',d:'Having a special power that seems impossible in real life'}],
+questions:[
+{q:'Where did Maya find the golden seed?',choices:['In a store','In her school bag','Under a big oak tree','In her mom's garden'],a:2,type:'comprehension',skill:'comprehension',exp:'The story says Maya found it under a big oak tree.'},
+{q:'What happened when Maya touched the sun leaf?',choices:['The room turned dark','A warm glow filled the room','The vine grew taller','Silver leaves fell off'],a:1,type:'comprehension',skill:'comprehension',exp:'Touching the sun leaf made a warm glow fill the room.'},
+{q:'What do you think Maya will do with the vine as she gets older?',choices:['Throw it away','Ignore it and forget about it','Keep exploring its powers and share the wonder with others','Pull it out of the pot'],a:2,type:'reasoning',skill:'prediction',exp:'Maya laughed with joy and seemed excited about the magic, so she will likely keep exploring and sharing it.'},
+{q:'Why do you think the seed was gold instead of brown?',choices:['Someone painted it','Gold seeds grow faster','Its unusual color hints that it is special and different from ordinary seeds','Gold is heavy and grows well'],a:2,type:'reasoning',skill:'inference',exp:'The gold color signals to the reader that this is no ordinary seed — it hints at the magic hidden inside it.'},
+]},
+
+{id:'1b',level:'1',genre:'Animals',lexile:'360L',title:'A Bear's Big Day',icon:'🐻',
+text:'Bruno the bear slept all winter long in his warm cave. When spring came, the sun warmed the rocks outside. Bruno yawned and stretched his big paws. He walked out and sniffed the air. Flowers were blooming everywhere. A stream gurgled nearby. Bruno was very hungry after his long sleep. He found sweet berries near the stream. He splashed in the cold water and caught a shiny fish. Later he rolled in the soft grass and looked up at the blue sky. He had forgotten how wonderful the world felt in spring. He let out a happy growl and went to find more berries.',
+vocab:[{w:'gurgled',d:'Made a soft bubbling sound like water flowing over rocks'},{w:'sniffed',d:'Breathed in through your nose to smell something'},{w:'forgotten',d:'No longer remembered something you knew before'}],
+questions:[
+{q:'What did Bruno do all winter long?',choices:['Ate berries','Played in the snow','Slept in his cave','Swam in the stream'],a:2,type:'comprehension',skill:'comprehension',exp:'Bruno slept all winter long in his warm cave.'},
+{q:'How did Bruno get food when he woke up?',choices:['He went to a farm','He found berries and caught a fish in the stream','His mother brought him food','He waited for other animals to share'],a:1,type:'comprehension',skill:'comprehension',exp:'Bruno found sweet berries near the stream and caught a shiny fish.'},
+{q:'Why was Bruno very hungry when he woke up?',choices:['He forgot to eat the day before','He had not eaten anything during his long winter sleep','The berries were all gone','He did not like fish'],a:1,type:'reasoning',skill:'cause_effect',exp:'Bruno slept the whole winter without eating, so when he woke up, he was very hungry.'},
+{q:'How does Bruno feel at the end of the story compared to when he first woke up?',choices:['Still very hungry','Happier and more satisfied after enjoying a wonderful spring day','Tired and ready to sleep again','Exactly the same'],a:1,type:'reasoning',skill:'compare',exp:'At first Bruno was hungry and just waking up; by the end he had eaten well, played, and felt happy — a big difference.'},
+]},
+
+{id:'1c',level:'1',genre:'Friendship',lexile:'380L',title:'Best Friends',icon:'💛',
+text:'Mia and Zoe had been best friends since kindergarten. One day they were painting pictures. Mia accidentally knocked over Zoe's paint jar. The paint splashed all over Zoe's picture. Zoe's cheeks went red. "You ruined my painting!" she cried. Mia felt terrible. She said she was sorry, but Zoe would not look at her. At recess, Mia sat alone on the bench. She felt a tap on her shoulder. It was Zoe. "I know it was an accident," Zoe said quietly. "I am sorry I got so mad." The girls hugged. They decided to paint a new picture together, even better than before.',
+vocab:[{w:'accidentally',d:'Done by mistake, not on purpose'},{w:'ruined',d:'Spoiled or destroyed completely'},{w:'recess',d:'A break from class when students go outside to play'}],
+questions:[
+{q:'How did Zoe's painting get ruined?',choices:['The art teacher spilled paint on it','Mia accidentally knocked over the paint jar','The wind blew it off the table','Zoe spilled it herself'],a:1,type:'comprehension',skill:'comprehension',exp:'Mia accidentally knocked over Zoe's paint jar and the paint splashed on her picture.'},
+{q:'What did Zoe do at recess?',choices:['She played with other friends','She stayed inside to repaint','She found Mia on the bench and said sorry','She told the teacher'],a:2,type:'comprehension',skill:'comprehension',exp:'Zoe tapped Mia on the shoulder, told her she understood it was an accident, and apologized for getting mad.'},
+{q:'Why do you think Zoe finally went to talk to Mia?',choices:['The teacher made her','She realized that her friendship with Mia was more important than a ruined painting','She needed help with her new painting','She forgot what happened'],a:1,type:'reasoning',skill:'inference',exp:'Zoe calmed down and realized that a true friend is more precious than any painting — their friendship mattered more.'},
+{q:'What lesson does this story teach?',choices:['Painting is a hard skill to learn','Saying sorry is always enough','Real friends work through disagreements and forgive each other','Never share your art supplies'],a:2,type:'reasoning',skill:'main_idea',exp:'The story shows that even best friends disagree, but what makes a friendship strong is being willing to forgive and make up.'},
+]},
+
+// LEVEL 2
+{id:'2a',level:'2',genre:'Mystery',lexile:'500L',title:'The Mystery Box',icon:'📦',
+text:'On a rainy Saturday, Ella and her brother Jake discovered a dusty wooden box in the attic. It was about the size of a shoebox, with a brass latch and no key. Strange symbols were carved on the lid. "Let's open it," said Jake. "We should ask Mom first," Ella said carefully. Their mother looked at it and smiled in surprise. "I forgot this was up here," she said softly. Inside were old photographs, a bundle of letters tied with faded ribbon, and a small compass that still worked. The letters were from their grandfather, written during a long journey he had taken as a young man. That afternoon, they sat together and read every word, learning stories about their family they had never known before.',
+vocab:[{w:'brass',d:'A shiny yellowish metal'},{w:'compass',d:'A tool that points north and helps you find your direction'},{w:'faded',d:'Lost its original bright color over time'}],
+questions:[
+{q:'Where did Ella and Jake find the mystery box?',choices:['In the basement','In the attic','Under the porch','In the garage'],a:1,type:'comprehension',skill:'comprehension',exp:'They found the dusty wooden box in the attic on a rainy Saturday.'},
+{q:'What was inside the box?',choices:['Gold coins and jewels','Old toys and books','Photographs, letters, and a compass','A secret map'],a:2,type:'comprehension',skill:'comprehension',exp:'Inside were old photographs, letters tied with ribbon, and a small compass.'},
+{q:'Why did Ella say they should ask Mom before opening the box?',choices:['She was afraid of boxes','She thought it might belong to someone and wanted to do the right thing','She could not work the latch','She was not curious about it'],a:1,type:'reasoning',skill:'inference',exp:'Ella was being responsible — the box might belong to someone, so she wanted permission before opening it.'},
+{q:'How do you think Ella and Jake felt after reading the letters?',choices:['Bored because the letters were old','Connected to their family history and curious to learn more','Disappointed that there was no treasure','Confused because they could not read the old writing'],a:1,type:'reasoning',skill:'inference',exp:'Reading personal letters from their grandfather would make them feel close to him and eager to learn more about their family.'},
+]},
+
+{id:'2b',level:'2',genre:'Science',lexile:'510L',title:'Luna and the Stars',icon:'🌙',
+text:'Luna was afraid of the dark. Every night she pulled the blanket over her head and squeezed her eyes shut. One evening her grandfather came to stay. When Luna told him her secret, he did not laugh. Instead, he took her hand and led her outside into the backyard. "Look up," he said gently. The sky was thick with stars, scattered like sugar on a black cloth. Grandpa pointed out the Big Dipper, Orion, and the North Star. "These same stars guided sailors across oceans for thousands of years," he told her. "They never move." Luna looked up for a long time. After that, whenever the dark felt scary, she went to her window and found the North Star. It was always there, steady and bright, and it made her feel less alone.',
+vocab:[{w:'scattered',d:'Spread out unevenly in different directions'},{w:'guided',d:'Led or showed the way to someone'},{w:'steady',d:'Firm, not moving or shaking; reliable'}],
+questions:[
+{q:'What was Luna afraid of at the start of the story?',choices:['Heights','Spiders','The dark','Thunderstorms'],a:2,type:'comprehension',skill:'comprehension',exp:'Luna was afraid of the dark and would hide under her blanket every night.'},
+{q:'What did Grandpa show Luna in the backyard?',choices:['Fireflies','The stars and constellations','The moon through a telescope','A night-blooming flower'],a:1,type:'comprehension',skill:'comprehension',exp:'Grandpa showed her the Big Dipper, Orion, and the North Star.'},
+{q:'Why did knowing about the North Star help Luna feel less scared?',choices:['It was very bright and lit up her room','It helped her realize something powerful and steady was always there even in the darkness','Stars make the dark go away','Her grandfather slept outside to watch it'],a:1,type:'reasoning',skill:'cause_effect',exp:'The North Star's steadiness meant that in any scary dark moment, something reliable was always present — that comfort replaced fear.'},
+{q:'What do you think Luna might tell a younger child who is also afraid of the dark?',choices:['Just stay under your blanket','Cover your eyes until morning','Look for the North Star — it is always there and will make you feel less alone','Turn on all the lights'],a:2,type:'reasoning',skill:'prediction',exp:'Luna would likely share what worked for her — looking at the steady North Star — to help another child feel less afraid.'},
+]},
+
+// LEVEL 3
+{id:'3a',level:'3',genre:'Science',lexile:'620L',title:'The Science Fair',icon:'🔬',
+text:'Maya had never won anything in her life. So when the science fair was announced, she was not sure she should even try. Her mother said, "You will never know unless you do." Maya decided to study why plants grow toward light. She set up three bean plants: one facing a window, one in a dark closet, and one under an artificial lamp. For two weeks she watered them, measured them daily, and took careful notes in a blue journal. On fair day, the gymnasium smelled like poster paint and nervousness. Maya's board was neat but not flashy. She did not have LEDs or loud buzzers. What she had was real data, clear graphs, and an answer: all three plants bent toward their light source, proving that light, not heat, was the trigger. The judge, a tall woman with kind eyes, asked Maya six careful questions. Maya answered every one. When the results were posted, Maya's name was at the top. She stared at the ribbon for a long moment before she smiled.',
+vocab:[{w:'artificial',d:'Made by people, not found in nature'},{w:'data',d:'Facts and numbers collected during an experiment'},{w:'trigger',d:'The thing that causes something else to happen'}],
+questions:[
+{q:'What scientific question was Maya trying to answer with her experiment?',choices:['Why plants need water','Why plants grow toward light','How fast plants grow in winter','Whether plants like music'],a:1,type:'comprehension',skill:'comprehension',exp:'Maya was studying why plants grow toward light — she set up three plants in different light conditions.'},
+{q:'What made Maya's science fair project win, according to the story?',choices:['Flashing LEDs and sound effects','A colorful and creative poster design','Real data, clear graphs, and a well-supported conclusion','Having the biggest display board'],a:2,type:'comprehension',skill:'comprehension',exp:'The story says she had real data, clear graphs, and a genuine answer — not flashy effects.'},
+{q:'Why did Maya stare at the ribbon for a long moment before smiling?',choices:['She did not like the color of the ribbon','She was checking that her name was spelled correctly','It took a moment for her to believe that she — someone who had never won — had actually won','She was looking for her mother in the crowd'],a:2,type:'reasoning',skill:'inference',exp:'Maya had never won anything before, so winning felt unreal at first — she had to take it in before joy replaced disbelief.'},
+{q:'What is the main message of this story?',choices:['Science fairs are more important than grades','Having flashy displays wins competitions','Careful, honest work and effort can achieve results even when you doubt yourself','Plants always grow toward light'],a:2,type:'reasoning',skill:'main_idea',exp:'The story's core message is that disciplined, genuine effort — even without flash — can lead to success when you push past self-doubt.'},
+]},
+
+{id:'3b',level:'3',genre:'Adventure',lexile:'650L',title:'The Hidden Cave',icon:'🗻',
+text:'On the last day of summer, Priya and her cousin Raj hiked a trail behind their grandmother's house. They had hiked it a dozen times, but today Raj slipped off the path chasing a bright orange butterfly and stumbled onto a narrow track half-hidden by ferns. They followed it for fifteen minutes until the trees opened to reveal a small cave carved into the hillside. Inside, the rock walls were cool and smooth. Someone had left drawings there long ago — deer, handprints, and wave-shaped lines. "These could be very old," Priya said quietly, touching the air just above a handprint without pressing it. Raj wanted to chip a piece off as a souvenir. "No," said Priya firmly. "If we damage it, no one else will ever see it." They took photos instead. Walking home, Priya felt the weight of what they had found — something made by human hands, left for the world, still waiting to be discovered.',
+vocab:[{w:'stumbled',d:'Tripped and nearly fell, or found something by accident'},{w:'reveal',d:'To show something that was hidden before'},{w:'souvenir',d:'An object kept as a memory of a place or event'}],
+questions:[
+{q:'How did Raj and Priya discover the hidden cave?',choices:['Their grandmother told them about it','Raj chased a butterfly and found a hidden track','They followed a map they found at home','A park ranger showed them the trail'],a:1,type:'comprehension',skill:'comprehension',exp:'Raj slipped off the path chasing a butterfly and stumbled onto a narrow hidden track that led to the cave.'},
+{q:'Why did Priya tell Raj not to chip off a piece of the cave wall?',choices:['It was against the park rules','She was afraid the cave would collapse','Damaging it would mean no one else would ever be able to see the ancient drawings','The rock was too hard to chip'],a:2,type:'comprehension',skill:'comprehension',exp:'Priya said if they damage it, no one else will ever see it — she wanted to preserve it for others.'},
+{q:'What does Priya's decision to photograph instead of take rocks reveal about her character?',choices:['She is afraid of getting in trouble','She is not interested in the cave','She is thoughtful and cares about preserving things for others, not just herself','She forgot to bring a bag'],a:2,type:'reasoning',skill:'inference',exp:'Choosing to preserve rather than possess shows Priya thinks about the bigger picture — she values shared wonder over personal gain.'},
+{q:'Why does Priya feel the "weight of what they had found" on the walk home?',choices:['Her backpack was heavy','She was tired from hiking','She understood they had discovered something rare and meaningful that connected them to people from long ago','She was worried Raj was upset with her'],a:2,type:'reasoning',skill:'vocabulary',exp:'The "weight" here is emotional — Priya feels the gravity and significance of having found ancient human art still waiting to be seen.'},
+]},
+
+// LEVEL 4
+{id:'4a',level:'4',genre:'Nature',lexile:'750L',title:'The Sea Turtle',icon:'🐢',
+text:'Eleven-year-old Marcus spotted the sea turtle tangled in a web of fishing line near the pier. The large loggerhead lay on its side in the shallow water, one flipper caught fast, its movements weak and exhausted. Marcus waded in without thinking. He tried to pull the line free but the knot was too tight. He ran to a nearby shop and borrowed scissors from a startled clerk. It took seven careful cuts and eight minutes to free the turtle without cutting its skin. Afterward, he sat on the sand and watched the animal rest. A wildlife officer arrived twenty minutes later, called by another beachgoer. She examined the turtle and found minor injuries. "You likely saved its life," she told Marcus. "But next time, call us first — some animals panic and can hurt you." Marcus nodded. He had acted from the heart, and the turtle was alive. But he understood now that knowing how to help was as important as wanting to help.',
+vocab:[{w:'loggerhead',d:'A large species of sea turtle'},{w:'exhausted',d:'Completely drained of energy'},{w:'minor',d:'Small or not very serious'}],
+questions:[
+{q:'What problem did Marcus find at the pier?',choices:['A boat had crashed into the pier','A sea turtle was tangled in fishing line','A child had fallen into the water','A fishing rod was broken'],a:1,type:'comprehension',skill:'comprehension',exp:'Marcus found a loggerhead sea turtle tangled in fishing line, lying on its side in the water.'},
+{q:'What did the wildlife officer say Marcus should do differently next time?',choices:['Bring his parents along','Leave the animal alone completely','Call wildlife officers first before approaching an injured animal','Use gloves when handling sea turtles'],a:2,type:'comprehension',skill:'comprehension',exp:'The officer said to call them first because animals can panic and hurt rescuers.'},
+{q:'Why do you think Marcus waded in without thinking?',choices:['He wanted to impress people on the beach','He acted on instinct because he could see a living creature suffering','He thought it would be fun','He was bored and wanted something to do'],a:1,type:'reasoning',skill:'inference',exp:'Marcus acted from pure instinct and compassion — when he saw an animal suffering, his first impulse was to help, without stopping to think about himself.'},
+{q:'What is the most important lesson Marcus learns by the end of the story?',choices:['Sea turtles should never be touched','Always carry scissors at the beach','Wanting to help is good, but knowing how to help safely is equally important','Wildlife officers are unfriendly'],a:2,type:'reasoning',skill:'main_idea',exp:'Marcus acted with good intentions but the officer's words help him see that knowledge and preparation make helping safer and more effective.'},
+]},
+
+{id:'4b',level:'4',genre:'Community',lexile:'780L',title:'The Empty Lot',icon:'🌻',
+text:'For three years the lot on Birch Street had collected weeds, broken glass, and old tires. Neighbors walked past it quickly and looked away. Then twelve-year-old Dani decided she was tired of looking away. She drew a design on graph paper: raised garden beds, a mural wall, benches made from reclaimed wood. She knocked on thirty doors. Twenty-six people turned her away. Four said yes. With those four, she cleared the lot over four weekends, filling sixteen garbage bags. A local hardware store donated seed money — sixty dollars — and her school's art class painted a mural of birds in flight. By June, tomatoes, peppers, and sunflowers were growing. People from the neighborhood began to stop and talk to each other for the first time. An elderly woman named Mrs. Okafor said it was the first time in fifteen years she had spoken to her neighbor across the street. Dani had not planned for that. But somehow, a garden had grown people together too.',
+vocab:[{w:'reclaimed',d:'Rescued and reused from something old or thrown away'},{w:'donated',d:'Given freely without expecting anything in return'},{w:'elderly',d:'Old in age; referring to older people'}],
+questions:[
+{q:'What did Dani design for the empty lot?',choices:['A parking area','A playground','Raised garden beds, a mural wall, and benches','A sports court'],a:2,type:'comprehension',skill:'comprehension',exp:'Dani drew a design with raised garden beds, a mural wall, and benches made from reclaimed wood.'},
+{q:'What unexpected result happened when the garden opened?',choices:['The lot became a parking lot','Neighbors who had not spoken in years began talking to each other','The garden was vandalized','A company bought the land'],a:1,type:'comprehension',skill:'comprehension',exp:'Mrs. Okafor spoke to her neighbor across the street for the first time in fifteen years — the garden brought people together.'},
+{q:'Why do you think most people said no when Dani knocked on their doors?',choices:['They were all unfriendly people','They had given up on the lot and did not believe one person could change it','They did not like gardens','They were all too busy with work'],a:1,type:'reasoning',skill:'inference',exp:'After three years of looking away, most neighbors had given up hope that the lot could change — they could not picture success where they had only seen failure.'},
+{q:'The author writes that "a garden had grown people together too." What does this mean?',choices:['The garden made everyone move closer together physically','The garden, like a living thing, caused the community to grow and connect in ways Dani did not expect','Dani grew sunflowers that people shared','People worked in the garden as a team'],a:1,type:'reasoning',skill:'vocabulary',exp:'This beautiful phrase means the garden's effect went beyond food — it grew human connection and community, just as naturally as it grew plants.'},
+]},
+
+// LEVEL 5
+{id:'5a',level:'5',genre:'Adventure',lexile:'880L',title:'The Ancient Map',icon:'🗺️',
+text:'The map had been folded so many times that its creases had become tears, and its edges crumbled when Nadia unfolded it on the library table. Her great-uncle had died leaving nothing but books, a cat named Ptolemy, and this map tucked inside a water-damaged atlas. The map showed their town as it had existed in 1887: a mill, a river crossing, a structure labeled simply "The Archive." No Archive appeared in any town record Nadia could find. She brought the map to the reference librarian, Ms. Ellison, who studied it for a long time before saying, "The old Hendricks mill burned in 1923. But the river hasn't moved. And this angle —" she traced the line with a pencil without touching the paper "— points to the hill behind the cemetery." They went that Saturday, just the two of them. Under eighteen inches of earth and root, they found a metal box sealed with wax. Inside: 200 handwritten pages describing life in the town from 1871 to 1889, by someone who signed only "A.W." The town historical society called it the most significant local discovery in forty years. Nadia called it proof that her great-uncle had always known something worth finding.',
+vocab:[{w:'creases',d:'Lines made by folding or pressing'},{w:'reference',d:'A library section with resources like encyclopedias and maps for research'},{w:'significant',d:'Important; having great meaning or effect'}],
+questions:[
+{q:'What did Nadia find inside the metal box buried on the hill?',choices:['Gold coins from 1887','A second map with more clues','200 handwritten pages describing town life from 1871 to 1889','Her great-uncle's personal diary'],a:2,type:'comprehension',skill:'comprehension',exp:'Inside the sealed metal box were 200 handwritten pages documenting life in the town, signed only "A.W."'},
+{q:'How did Ms. Ellison help Nadia figure out where to look?',choices:['She looked it up in a computer database','She used the direction of a line on the map to point toward the hill behind the cemetery','She found an old photograph of the Archive building','She remembered a story her grandmother told her'],a:1,type:'comprehension',skill:'comprehension',exp:'Ms. Ellison traced the map's angle with a pencil and deduced it pointed to the hill behind the cemetery.'},
+{q:'Why do you think the author signed the 200 pages only as "A.W."?',choices:['They could not spell their full name','They were too young to have a full name','They may have wanted to protect their identity or be modest, letting the writing matter more than their name','They planned to add their full name later but forgot'],a:2,type:'reasoning',skill:'inference',exp:'Signing with initials only suggests A.W. either wanted privacy, feared consequences for writing honestly, or felt the content should stand alone — a choice that deepens the mystery even after discovery.'},
+{q:'At the end, Nadia says the discovery is "proof that her great-uncle had always known something worth finding." What does this reveal about how she feels?',choices:['She is angry that he did not tell her about it directly','She is confused about why he left no instructions','She feels a deep connection to him and understands that his unusual life had hidden purpose and meaning all along','She is disappointed the discovery was not worth more money'],a:2,type:'reasoning',skill:'inference',exp:'Nadia sees the map as evidence that her great-uncle lived intentionally — he knew about this treasure and left it for her to find, creating a bridge between them across time.'},
+]},
+
+{id:'5b',level:'5',genre:'Community',lexile:'900L',title:'Climate Heroes',icon:'🌍',
+text:'The proposal was simple: replace the school's disposable lunch trays with reusable ones and add a composting station to the cafeteria. Thirteen-year-old Leila had worked on it for six weeks with her friend Tomás, calculating that the school discarded approximately 47,000 plastic trays per year. They presented the data to the principal in October. The principal said she liked it but the budget was tight. The facilities manager said it would create extra work. Three teachers said it was a great idea but someone else should lead it. Leila was frustrated but not surprised. She had read enough history to know that change rarely came without resistance. She and Tomás applied for a state environmental grant — and received $2,400. They trained twelve student volunteers to run the compost station. By January, tray use had dropped 94%. A reporter from the regional newspaper came and wrote a story. Two neighboring schools contacted Leila asking how to do the same. She answered every email personally. "The goal was never to be in a newspaper," she told Tomás. "The goal was the trays." He laughed. "And the trays are done," he said.',
+vocab:[{w:'disposable',d:'Made to be used once and thrown away'},{w:'composting',d:'Turning food waste into natural fertilizer by allowing it to break down'},{w:'resistance',d:'Opposition or pushback against a change or idea'}],
+questions:[
+{q:'What two changes did Leila and Tomás propose for their school?',choices:['Solar panels and a recycling bin','Reusable lunch trays and a composting station','A vegetable garden and water bottle stations','Electric buses and energy-efficient lighting'],a:1,type:'comprehension',skill:'comprehension',exp:'Their proposal was to replace disposable trays with reusable ones and add a composting station to the cafeteria.'},
+{q:'How did Leila and Tomás fund their project after the principal said the budget was tight?',choices:['They sold baked goods at a school fundraiser','Local businesses donated money','They applied for and received a $2,400 state environmental grant','Parents paid a small fee each month'],a:2,type:'comprehension',skill:'comprehension',exp:'They applied for a state environmental grant and received $2,400.'},
+{q:'Leila says she "had read enough history to know that change rarely came without resistance." What does this show about her?',choices:['She knew she would probably fail','She was too confident','She understood real-world obstacles intellectually and was mentally prepared to persist rather than quit','She thought history was boring'],a:2,type:'reasoning',skill:'inference',exp:'This shows Leila is historically literate and emotionally intelligent — she anticipated opposition and used knowledge to stay motivated rather than be defeated by setbacks.'},
+{q:'What is the deeper meaning of Leila's statement: "The goal was never to be in a newspaper. The goal was the trays"?',choices:['She dislikes reporters and journalists','She thinks newspapers are unimportant','She believes that genuine results — actual change — matter more than recognition or fame','She was embarrassed to be in the newspaper'],a:2,type:'reasoning',skill:'main_idea',exp:'This statement reveals her integrity: she did not pursue the project for attention or praise but for the actual environmental outcome. True purpose keeps the focus on impact, not spotlight.'},
+]},
+];
+
+// ============ STATE ============
+let currentStory = null;
+let userAnswers = {};
+let questionAnswered = {};
+let storyStartTime = null;
+let activeTab = 'library';
+let synth = window.speechSynthesis;
+let utterance = null;
+let isSpeaking = false;
+
+function getProgress(){
+  try{return JSON.parse(localStorage.getItem('storyLab_progress')||'{}')}catch(e){return{}}
+}
+function saveProgress(p){localStorage.setItem('storyLab_progress',JSON.stringify(p))}
+
+function getStats(){
+  const p=getProgress();
+  const completed=Object.keys(p).filter(k=>p[k].done).length;
+  const totalStars=Object.values(p).reduce((s,v)=>s+(v.stars||0),0);
+  const perfectScores=Object.values(p).filter(v=>v.percent===100).length;
+  const levelsCompleted=new Set(Object.keys(p).filter(k=>p[k].done).map(k=>{const s=STORIES.find(x=>x.id===k);return s?s.level:null}).filter(Boolean)).size;
+  const genresRead=new Set(Object.keys(p).filter(k=>p[k].done).map(k=>{const s=STORIES.find(x=>x.id===k);return s?s.genre:null}).filter(Boolean)).size;
+  const streak=p.__streak||0;
+  const fastComplete=p.__fast||0;
+  const skillCorrect=p.__skills||{};
+  return{completed,totalStars,perfectScores,levelsCompleted,genresRead,streak,fastComplete,skillCorrect};
+}
+
+// ============ TABS ============
+function showTab(tab){
+  activeTab=tab;
+  document.querySelectorAll('[id^="tab-"]').forEach(el=>el.classList.add('hidden'));
+  document.getElementById('reader-view').style.display='none';
+  document.getElementById('tab-library').classList.remove('hidden');
+  document.getElementById('tab-'+tab).classList.remove('hidden');
+  if(tab!=='library') document.getElementById('tab-library').classList.add('hidden');
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  if(tab==='progress') renderProgress();
+  if(tab==='skills') renderSkills();
+  if(tab==='library') renderStoryGrid(STORIES);
+}
+
+// ============ LIBRARY ============
+const GENRE_ICONS={Animals:'🐾',Adventure:'🗺️',Friendship:'💛',Mystery:'🔍',Science:'🔬',Fantasy:'✨',Nature:'🌿',Community:'🏘️'};
+function renderStoryGrid(stories){
+  const p=getProgress();
+  const grid=document.getElementById('story-grid');
+  if(!stories.length){grid.innerHTML='<div class="empty-state"><div class="icon">📭</div><p>No stories match your search. Try a different filter.</p></div>';return;}
+  grid.innerHTML=stories.map(s=>{
+    const done=p[s.id]&&p[s.id].done;
+    const stars=p[s.id]?p[s.id].stars:0;
+    const starStr=done?'★'.repeat(stars)+'☆'.repeat(3-stars):'☆☆☆';
+    return `<div class="story-card ${done?'completed':''}" onclick="openStory('${s.id}')">
+      <div class="level-badge lv-${s.level}">Grade ${s.level}</div>
+      <div class="genre-icon">${s.icon}</div>
+      <h3>${s.title}</h3>
+      <div class="meta">📖 ${s.genre} &nbsp;·&nbsp; ${s.lexile}</div>
+      <div class="stars">${starStr} ${done?'<small style="color:#888">'+p[s.id].percent+'%</small>':''}</div>
+      ${done?'<div class="completed-check">✓</div>':''}
+    </div>`}).join('');
+}
+
+function filterStories(){
+  const lv=document.getElementById('filter-level').value;
+  const gn=document.getElementById('filter-genre').value;
+  const q=document.getElementById('search-box').value.toLowerCase();
+  const filtered=STORIES.filter(s=>
+    (!lv||s.level===lv)&&
+    (!gn||s.genre===gn)&&
+    (!q||s.title.toLowerCase().includes(q)||s.genre.toLowerCase().includes(q))
+  );
+  renderStoryGrid(filtered);
+}
+
+// ============ READER ============
+function openStory(id){
+  currentStory=STORIES.find(s=>s.id===id);
+  if(!currentStory) return;
+  userAnswers={};questionAnswered={};
+  storyStartTime=Date.now();
+  stopSpeech();
+
+  document.getElementById('tab-library').classList.add('hidden');
+  document.getElementById('reader-view').style.display='block';
+  document.getElementById('reader-title').textContent=currentStory.title;
+  document.getElementById('reader-meta').innerHTML=`
+    <span class="lv-${currentStory.level}" style="border-radius:20px;padding:4px 12px;background:rgba(255,255,255,0.05)">${currentStory.icon} Grade ${currentStory.level}</span>
+    <span style="background:rgba(255,255,255,0.05);border-radius:20px;padding:4px 12px">📖 ${currentStory.genre}</span>
+    <span style="background:rgba(255,255,255,0.05);border-radius:20px;padding:4px 12px">📊 ${currentStory.lexile}</span>
+    <span style="background:rgba(255,255,255,0.05);border-radius:20px;padding:4px 12px">❓ ${currentStory.questions.length} Questions</span>`;
+
+  // Highlight vocab words in text
+  let text=currentStory.text;
+  currentStory.vocab.forEach(v=>{
+    const re=new RegExp('\\b('+v.w+')\\b','gi');
+    text=text.replace(re,'<span class="vocab-word" onclick="showVocabWord(\''+v.w+'\')" title="'+v.d+'">$1</span>');
+  });
+  document.getElementById('story-text').innerHTML='<p>'+text.replace(/\n/g,'</p><p>')+'</p>';
+  document.getElementById('vocab-section').classList.add('hidden');
+  document.getElementById('questions-section').classList.add('hidden');
+  document.getElementById('results-section').classList.add('hidden');
+  document.getElementById('reading-progress-bar').style.width='0%';
+  window.scrollTo(0,0);
+}
+
+function updateReadingProgress(){
+  const el=document.getElementById('story-text');
+  const pct=Math.min(100,Math.round((el.scrollTop/(el.scrollHeight-el.clientHeight))*100));
+  document.getElementById('reading-progress-bar').style.width=pct+'%';
+}
+
+function backToLibrary(){
+  stopSpeech();
+  document.getElementById('reader-view').style.display='none';
+  document.getElementById('tab-library').classList.remove('hidden');
+  renderStoryGrid(STORIES);
+}
+
+// ============ SPEECH ============
+function toggleReadAloud(){
+  if(isSpeaking){stopSpeech();return;}
+  if(!synth) return;
+  const text=currentStory.text;
+  utterance=new SpeechSynthesisUtterance(text);
+  utterance.rate=0.88;utterance.pitch=1.05;
+  const voices=synth.getVoices();
+  const pref=voices.find(v=>v.name.includes('Samantha')||v.name.includes('Google US English')||v.lang==='en-US');
+  if(pref) utterance.voice=pref;
+  utterance.onend=()=>{isSpeaking=false;updateReadAloudBtn();};
+  utterance.onerror=()=>{isSpeaking=false;updateReadAloudBtn();};
+  synth.speak(utterance);
+  isSpeaking=true;updateReadAloudBtn();
+}
+function stopSpeech(){if(synth)synth.cancel();isSpeaking=false;updateReadAloudBtn();}
+function updateReadAloudBtn(){
+  const btn=document.getElementById('read-aloud-btn');
+  if(!btn) return;
+  btn.textContent=isSpeaking?'⏹ Stop Reading':'🔊 Read Aloud';
+}
+
+// ============ VOCAB ============
+function showVocab(){
+  const sec=document.getElementById('vocab-section');
+  const isHidden=sec.classList.contains('hidden');
+  sec.classList.toggle('hidden');
+  if(isHidden){
+    document.getElementById('vocab-list').innerHTML=currentStory.vocab.map(v=>`
+      <div style="background:#1a1a2e;border-radius:10px;padding:14px;border-left:3px solid var(--gold)">
+        <div style="color:var(--gold);font-weight:700;font-size:1rem">${v.w}</div>
+        <div style="color:#ccc;font-size:0.85rem;margin-top:4px">${v.d}</div>
+      </div>`).join('');
+  }
+}
+function showVocabWord(word){
+  const v=currentStory.vocab.find(x=>x.w.toLowerCase()===word.toLowerCase());
+  if(!v) return;
+  const pop=document.getElementById('vocab-popup');
+  pop.textContent=v.w+': '+v.d;pop.style.display='block';
+  setTimeout(()=>{pop.style.display='none';},3500);
+}
+
+// ============ QUESTIONS ============
+function startQuestions(){
+  const qs=document.getElementById('questions-section');
+  qs.classList.remove('hidden');
+  document.getElementById('submit-section').classList.remove('hidden');
+  document.getElementById('results-section').classList.add('hidden');
+  const qList=document.getElementById('questions-list');
+  qList.innerHTML=currentStory.questions.map((q,i)=>`
+    <div class="q-block ${q.type==='reasoning'?'reasoning':''}" id="qblock-${i}">
+      <span class="skill-badge skill-${q.skill}">${SKILLS.find(s=>s.id===q.skill)?SKILLS.find(s=>s.id===q.skill).icon+' '+SKILLS.find(s=>s.id===q.skill).name:'🔍 Comprehension'}</span>
+      <div class="q-text">${i+1}. ${q.q}</div>
+      <div class="choices">
+        ${q.choices.map((c,ci)=>`<button class="choice" id="c-${i}-${ci}" onclick="selectChoice(${i},${ci})">${c}</button>`).join('')}
+      </div>
+      <div class="explanation" id="exp-${i}">${q.exp}</div>
+    </div>`).join('');
+  qs.scrollIntoView({behavior:'smooth'});
+}
+
+function selectChoice(qi,ci){
+  if(questionAnswered[qi]) return;
+  userAnswers[qi]=ci;
+  document.querySelectorAll(`[id^="c-${qi}-"]`).forEach(b=>b.classList.remove('selected'));
+  const btn=document.getElementById(`c-${qi}-${ci}`);
+  if(btn){btn.style.borderColor='var(--gold)';btn.style.background='rgba(245,166,35,0.15)';}
+  // Check if all answered
+  if(Object.keys(userAnswers).length===currentStory.questions.length){
+    document.getElementById('submit-section').querySelector('button').style.animation='pulse-btn 1s infinite';
+  }
+}
+
+function submitAnswers(){
+  let correct=0;
+  const skillResults={};
+  currentStory.questions.forEach((q,i)=>{
+    questionAnswered[i]=true;
+    const chosen=userAnswers[i];
+    const isCorrect=chosen===q.a;
+    if(isCorrect) correct++;
+    skillResults[q.skill]=(skillResults[q.skill]||{correct:0,total:0});
+    skillResults[q.skill].total++;
+    if(isCorrect) skillResults[q.skill].correct++;
+    // Style buttons
+    document.querySelectorAll(`[id^="c-${i}-"]`).forEach(b=>{
+      b.classList.add('locked');b.style.borderColor='';b.style.background='';
+    });
+    const chosenBtn=document.getElementById(`c-${i}-${chosen}`);
+    const correctBtn=document.getElementById(`c-${i}-${q.a}`);
+    if(chosenBtn){chosenBtn.classList.add(isCorrect?'correct':'wrong');}
+    if(!isCorrect&&correctBtn){correctBtn.classList.add('reveal-correct');}
+    document.getElementById(`exp-${i}`).style.display='block';
+  });
+  const pct=Math.round((correct/currentStory.questions.length)*100);
+  const stars=pct===100?3:pct>=75?2:pct>=50?1:0;
+  // Save progress
+  const p=getProgress();
+  p[currentStory.id]={done:true,stars,percent:pct,date:new Date().toISOString()};
+  // Update skill totals
+  const sk=p.__skills||{};
+  Object.keys(skillResults).forEach(s=>{sk[s]=(sk[s]||0)+skillResults[s].correct;});
+  p.__skills=sk;
+  // Fast complete
+  const elapsed=(Date.now()-storyStartTime)/1000/60;
+  if(elapsed<3) p.__fast=(p.__fast||0)+1;
+  saveProgress(p);
+  if(stars===3) confetti();
+  // Show results
+  document.getElementById('submit-section').classList.add('hidden');
+  const res=document.getElementById('results-section');
+  res.classList.remove('hidden');
+  res.innerHTML=`<div class="results-box">
+    <h2>${pct===100?'🎉 Perfect!':pct>=75?'⭐ Great Job!':pct>=50?'👍 Good Try!':'📚 Keep Reading!'}</h2>
+    <div class="score-big">${correct}/${currentStory.questions.length}</div>
+    <div class="star-row">${'★'.repeat(stars)}${'☆'.repeat(3-stars)}</div>
+    <div style="color:#aaa;margin-bottom:20px">${pct}% correct</div>
+    <div class="skill-breakdown">
+      ${Object.keys(skillResults).map(s=>{
+        const sk=SKILLS.find(x=>x.id===s);
+        const r=skillResults[s];
+        return `<div class="skill-item">
+          <div class="skill-name">${sk?sk.icon+' '+sk.name:s}</div>
+          <div class="skill-score" style="color:${r.correct===r.total?'var(--green)':'var(--gold)'}">${r.correct}/${r.total}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="margin-top:24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-gold" onclick="backToLibrary()">📚 More Stories</button>
+      <button class="btn btn-outline" onclick="openStory('${currentStory.id}')">🔄 Try Again</button>
+    </div>
+  </div>`;
+  res.scrollIntoView({behavior:'smooth'});
+}
+
+// ============ PROGRESS ============
+function renderProgress(){
+  const st=getStats();
+  document.getElementById('stats-grid').innerHTML=`
+    <div class="prog-card"><div class="prog-num">${st.completed}</div><div class="prog-label">Stories Completed</div></div>
+    <div class="prog-card"><div class="prog-num">${st.totalStars}⭐</div><div class="prog-label">Total Stars</div></div>
+    <div class="prog-card"><div class="prog-num">${st.perfectScores}</div><div class="prog-label">Perfect Scores</div></div>
+    <div class="prog-card"><div class="prog-num">${st.levelsCompleted}/6</div><div class="prog-label">Levels Explored</div></div>`;
+  document.getElementById('achievements-grid').innerHTML=ACHIEVEMENTS.map(a=>
+    `<div class="ach-card ${a.check(st)?'earned':''}">
+      <div class="ach-icon">${a.icon}</div>
+      <div class="ach-name">${a.name}</div>
+      <div class="ach-desc">${a.desc}</div>
+    </div>`).join('');
+  const p=getProgress();
+  const levels=['K','1','2','3','4','5'];
+  document.getElementById('level-progress').innerHTML=levels.map(lv=>{
+    const total=STORIES.filter(s=>s.level===lv).length;
+    const done=STORIES.filter(s=>s.level===lv&&p[s.id]&&p[s.id].done).length;
+    const pct=Math.round((done/total)*100);
+    return `<div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <span style="font-weight:600">Grade ${lv}</span>
+        <span style="color:#aaa">${done}/${total} stories</span>
+      </div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+    </div>`}).join('');
+}
+
+function renderSkills(){
+  document.getElementById('skills-list').innerHTML=SKILLS.map(s=>`
+    <div style="background:var(--card);border-radius:12px;padding:18px;border-left:4px solid ${s.color}">
+      <div style="font-size:2rem;margin-bottom:10px">${s.icon}</div>
+      <div style="font-weight:700;font-size:1rem;color:${s.color};margin-bottom:6px">${s.name}</div>
+      <div style="color:#aaa;font-size:0.85rem;line-height:1.5">${s.desc}</div>
+    </div>`).join('');
+}
+
+// ============ CONFETTI ============
+function confetti(){
+  const colors=['#f5a623','#00d084','#3742fa','#a855f7','#ec4899','#ff4757'];
+  for(let i=0;i<60;i++){
+    const d=document.createElement('div');
+    d.className='confetti-piece';
+    d.style.left=Math.random()*100+'vw';
+    d.style.background=colors[Math.floor(Math.random()*colors.length)];
+    d.style.width=(Math.random()*10+6)+'px';
+    d.style.height=(Math.random()*10+6)+'px';
+    d.style.animationDuration=(Math.random()*2+1.5)+'s';
+    d.style.animationDelay=(Math.random()*1)+'s';
+    document.body.appendChild(d);
+    setTimeout(()=>d.remove(),4000);
+  }
+}
+
+// ============ INIT ============
+document.addEventListener('DOMContentLoaded',()=>{
+  renderStoryGrid(STORIES);
+  if(synth&&synth.onvoiceschanged!==undefined) synth.onvoiceschanged=()=>{};
+});
+</script>
+</body>
+</html>
