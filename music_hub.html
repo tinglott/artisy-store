@@ -302,23 +302,7 @@ const ALBUMS = [
       'Angel_of_This_Earth.mp3','Angels_Light.mp3','Beyond_All_Words.mp3','Dreams_of_Heaven.mp3','Heights_of_an_Angel.mp3',
       'CarryYourHeart.mp3','LoveAfterLove.mp3','LoveComesQuietly.mp3'
     ]
-  },
-  {
-    id: 'golden', name: 'Golden Ratio Frequencies', emoji: '🌀',
-    songs: [
-      'https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/golden-ratio/Golden_Ratio_3_Min_With_Music.mp3',
-      'https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/golden-ratio/Golden_Ratio_10_Min_With_Music.mp3',
-      'https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/golden-ratio/Golden_Ratio_432hz_Puretone_15_Min.mp3',
-      'https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/golden-ratio/Golden_Ratio_432hz_Single-tone_15_Min.mp3',
-      'https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/golden-ratio/Golden_Ratio_528hz_15_Min.mp3',
-      'https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/golden-ratio/Golden_Ratio_528hz_Single-tone_15_Min.mp3',
-      'https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/golden-ratio/Golden_Ratio_Meditation_24_Min.mp3',
-      'https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/golden-ratio/Golden_Ratio_432hz_Pure_1_Hour.mp3',
-      'https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/golden-ratio/Golden_Ratio_432hz_1_Hour_With_Music.mp3',
-      'https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/golden-ratio/Golden_Ratio_528hz_Pure_1_Hour.mp3'
-    ]
   }
-
 ];
 
 // Build All Songs
@@ -449,5 +433,106 @@ document.getElementById('emailForm').addEventListener('submit', async function(e
 
 buildUI();
 </script>
+
+<!-- ============================================================ -->
+<!-- GOLDEN RATIO FREQUENCIES — DEDICATED HEALING PLAYER          -->
+<!-- ============================================================ -->
+<div id="goldenSection" style="background:linear-gradient(135deg,#071207 0%,#0a1a0a 50%,#071a07 100%);padding:60px 20px 60px;border-top:2px solid rgba(245,158,11,0.5);">
+  <div style="max-width:860px;margin:0 auto;text-align:center;">
+    <div style="display:inline-block;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.5);color:#fcd34d;padding:6px 18px;border-radius:20px;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;">🌀 Healing Frequencies</div>
+    <h2 style="font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;background:linear-gradient(135deg,#fcd34d,#a7f3d0,#fcd34d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:10px;">Golden Ratio Frequencies</h2>
+    <p style="color:#86efac;font-size:1rem;max-width:560px;margin:0 auto 32px;">432Hz &amp; 528Hz therapeutic tones — scientifically tuned frequencies for deep healing, meditation, and restoration of mind &amp; body.</p>
+
+    <!-- GOLDEN PLAYER BAR -->
+    <div style="background:rgba(0,0,0,0.6);border:1px solid rgba(245,158,11,0.4);border-radius:16px;padding:18px 24px;margin-bottom:28px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:200px;text-align:left;">
+        <div id="goldenTitle" style="font-size:1rem;font-weight:700;color:#fcd34d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Select a frequency track ▶</div>
+        <div id="goldenSub" style="font-size:0.75rem;color:#6ee7b7;margin-top:3px;">T. Lott Golden Ratio Series</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button onclick="prevGolden()" title="Previous" style="background:none;border:none;color:#fcd34d;cursor:pointer;font-size:1.4rem;padding:4px 8px;line-height:1;">⏮</button>
+        <button id="goldenPlayBtn" onclick="toggleGolden()" style="background:#d97706;border:none;color:#fff;border-radius:50%;width:46px;height:46px;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">▶</button>
+        <button onclick="nextGolden()" title="Next" style="background:none;border:none;color:#fcd34d;cursor:pointer;font-size:1.4rem;padding:4px 8px;line-height:1;">⏭</button>
+      </div>
+      <audio id="goldenPlayer" controls onended="nextGolden()" onplay="goldenOnPlay()" onpause="goldenOnPause()" style="flex:1;min-width:220px;height:34px;opacity:0.85;"></audio>
+    </div>
+
+    <!-- GOLDEN TRACK LIST -->
+    <div id="goldenGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;text-align:left;"></div>
+  </div>
+</div>
+
+<script>
+const GOLDEN_TRACKS = [
+  { title:'Golden Ratio — 3 Min With Music',   url:'https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/golden-ratio/Golden_Ratio_3_Min_With_Music.mp3',          badge:'🎵 3 min' },
+  { title:'Golden Ratio — 10 Min With Music',  url:'https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/golden-ratio/Golden_Ratio_10_Min_With_Music.mp3',         badge:'🎵 10 min' },
+  { title:'432Hz Puretone — 15 Min',           url:'https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/golden-ratio/Golden_Ratio_432hz_Puretone_15_Min.mp3',      badge:'🔬 432Hz · 15 min' },
+  { title:'432Hz Single-Tone — 15 Min',        url:'https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/golden-ratio/Golden_Ratio_432hz_Single-tone_15_Min.mp3',  badge:'🔬 432Hz · 15 min' },
+  { title:'528Hz Healing — 15 Min',            url:'https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/golden-ratio/Golden_Ratio_528hz_15_Min.mp3',               badge:'💚 528Hz · 15 min' },
+  { title:'528Hz Single-Tone — 15 Min',        url:'https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/golden-ratio/Golden_Ratio_528hz_Single-tone_15_Min.mp3',  badge:'💚 528Hz · 15 min' },
+  { title:'Golden Ratio Meditation — 24 Min',  url:'https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/golden-ratio/Golden_Ratio_Meditation_24_Min.mp3',         badge:'🧘 24 min' },
+  { title:'432Hz Pure Tone — 1 Hour',          url:'https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/golden-ratio/Golden_Ratio_432hz_Pure_1_Hour.mp3',         badge:'🔬 432Hz · 1 hr' },
+  { title:'432Hz With Music — 1 Hour',         url:'https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/golden-ratio/Golden_Ratio_432hz_1_Hour_With_Music.mp3',   badge:'🎵 432Hz · 1 hr' },
+  { title:'528Hz Pure Tone — 1 Hour',          url:'https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/music/golden-ratio/Golden_Ratio_528hz_Pure_1_Hour.mp3',         badge:'💚 528Hz · 1 hr' }
+];
+
+let goldenIndex = 0;
+
+function buildGolden() {
+  const grid = document.getElementById('goldenGrid');
+  GOLDEN_TRACKS.forEach(function(t, i) {
+    const card = document.createElement('div');
+    card.id = 'gcard-' + i;
+    card.setAttribute('style','background:rgba(0,0,0,0.4);border:1px solid rgba(245,158,11,0.2);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all 0.2s;');
+    card.innerHTML = '<div style="width:36px;height:36px;border-radius:50%;background:rgba(245,158,11,0.2);display:flex;align-items:center;justify-content:center;font-size:0.8rem;flex-shrink:0;">▶</div>'
+      + '<div style="flex:1;min-width:0;">'
+      + '<div style="font-size:0.9rem;font-weight:600;color:#fcd34d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + t.title + '</div>'
+      + '<div style="font-size:0.72rem;color:#6ee7b7;margin-top:3px;">' + t.badge + '</div>'
+      + '</div>'
+      + '<div style="font-size:0.7rem;color:#6b7280;flex-shrink:0;">' + (i+1) + '</div>';
+    card.onclick = function() { playGolden(i); };
+    grid.appendChild(card);
+  });
+}
+
+function playGolden(i) {
+  var cards = document.querySelectorAll('#goldenGrid > div');
+  cards.forEach(function(c, idx) {
+    c.style.borderColor = (idx===i) ? 'rgba(245,158,11,0.9)' : 'rgba(245,158,11,0.2)';
+    c.style.background = (idx===i) ? 'rgba(245,158,11,0.1)' : 'rgba(0,0,0,0.4)';
+    var icon = c.querySelector('div');
+    if (icon) icon.textContent = (idx===i) ? '🎵' : '▶';
+  });
+  goldenIndex = i;
+  var t = GOLDEN_TRACKS[i];
+  var audio = document.getElementById('goldenPlayer');
+  audio.src = t.url;
+  audio.play();
+  document.getElementById('goldenTitle').textContent = t.title;
+  document.getElementById('goldenSub').textContent = t.badge + ' — T. Lott Healing Series';
+  document.getElementById('goldenPlayBtn').textContent = '⏸';
+}
+
+function toggleGolden() {
+  var audio = document.getElementById('goldenPlayer');
+  if (audio.paused) { audio.play(); } else { audio.pause(); }
+}
+
+function nextGolden() {
+  goldenIndex = (goldenIndex + 1) % GOLDEN_TRACKS.length;
+  playGolden(goldenIndex);
+}
+
+function prevGolden() {
+  goldenIndex = (goldenIndex - 1 + GOLDEN_TRACKS.length) % GOLDEN_TRACKS.length;
+  playGolden(goldenIndex);
+}
+
+function goldenOnPlay()  { document.getElementById('goldenPlayBtn').textContent = '⏸'; }
+function goldenOnPause() { document.getElementById('goldenPlayBtn').textContent = '▶'; }
+
+buildGolden();
+</script>
+
 </body>
 </html>
