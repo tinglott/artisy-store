@@ -872,10 +872,9 @@ function showJOD(idx) {
 function revealJOD() {
   if (!currentJOD || jodRevealed) return;
   jodRevealed = true;
-  if (currentJOD.punchline) {
-    document.getElementById('jodPunchlineText').textContent = currentJOD.punchline;
-    document.getElementById('jodPunchline').style.display = 'block';
-  }
+  const punchText = currentJOD.punchline || '😄 That's the whole joke — a one-liner!';
+  document.getElementById('jodPunchlineText').textContent = punchText;
+  document.getElementById('jodPunchline').style.display = 'block';
   document.getElementById('jodRevealBtn').textContent = '✓ REVEALED';
   document.getElementById('jodRevealBtn').disabled = true;
   recordLaugh();
@@ -935,6 +934,13 @@ function renderGrid() {
 function revealCard(el, idx) {
   if (el.classList.contains('revealed')) return;
   el.classList.add('revealed');
+  // Direct DOM manipulation — reliable across all browsers
+  const punch = el.querySelector('.card-punchline');
+  const hint = el.querySelector('.card-tap-hint');
+  const actions = el.querySelector('.card-actions');
+  if (punch) { punch.style.display = 'block'; }
+  if (hint) { hint.style.display = 'none'; }
+  if (actions) { actions.style.display = 'flex'; }
   if (!revealed.includes(idx)) {
     revealed.push(idx);
     localStorage.setItem('cnx_revealed', JSON.stringify(revealed));
