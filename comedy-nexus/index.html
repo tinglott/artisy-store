@@ -1068,22 +1068,31 @@ function unlockAchievement(id) {
 }
 
 // ── TTS ──
+function _doSpeak(text, rate=0.9, pitch=1.1) {
+  window.speechSynthesis.cancel();
+  setTimeout(() => {
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.rate = rate;
+    utt.pitch = pitch;
+    const voices = window.speechSynthesis.getVoices();
+    const pick = voices.find(v => v.lang.startsWith('en-US') && v.localService)
+                || voices.find(v => v.lang.startsWith('en'))
+                || voices[0];
+    if (pick) utt.voice = pick;
+    utt.onerror = e => console.warn('TTS error:', e.error);
+    window.speechSynthesis.speak(utt);
+  }, 150);
+}
+
 function speakJoke(j) {
   if (!j) return;
   const text = j.punchline ? j.setup + '... ' + j.punchline : j.setup;
-  const utt = new SpeechSynthesisUtterance(text);
-  utt.rate = 0.9;
-  utt.pitch = 1.1;
-  speechSynthesis.cancel();
-  speechSynthesis.speak(utt);
+  _doSpeak(text);
 }
 
 function speakAI() {
   if (!aiText) return;
-  const utt = new SpeechSynthesisUtterance(aiText);
-  utt.rate = 0.9;
-  speechSynthesis.cancel();
-  speechSynthesis.speak(utt);
+  _doSpeak(aiText);
 }
 
 // ── SHARE ──
