@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Art Gallery — T. Lott Creative | Therapeutic Coloring Art</title>
+    <meta name="description" content="Browse and buy therapeutic art and coloring books by T. Lott Creative. Real-scene healing art — wellness, nature, sacred, sleep, and romance.">
+    <style>
+        :root {
+            --purple: #7c3aed;
+            --purple-light: #a78bfa;
+            --gold: #f59e0b;
+            --teal: #0d9488;
+            --rose: #e11d48;
+            --bg: #0f0e17;
+            --card: #1a1828;
+            --card2: #221f35;
+            --text: #f0eeff;
+            --muted: #9992b8;
+            --border: #2d2a45;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+        /* NAV */
+        .site-nav {
+            background: #0a0914;
+            border-bottom: 1px solid var(--border);
+            padding: 12px 20px;
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .site-nav .brand { font-size: 1rem; font-weight: 900; letter-spacing: 2px; color: var(--gold); text-decoration: none; }
+        .site-nav .nav-links { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+        .site-nav .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.82rem; transition: color 0.2s; }
+        .site-nav .nav-links a:hover { color: var(--gold); }
+        .site-nav .nav-links a.active { color: var(--gold); }
+        .site-nav .nav-links .btn-buy { background: #9f1239; color: #fff; padding: 6px 14px; border-radius: 50px; font-weight: 700; font-size: 0.8rem; }
+
+        /* LOTTIE STRIP */
+        .lottie-strip {
+            background: linear-gradient(90deg, #1e1035 0%, #2d1b69 50%, #1e1035 100%);
+            border-bottom: 1px solid rgba(124,58,237,0.3);
+            padding: 14px 20px;
+            text-align: center;
+        }
+        .lottie-strip p { font-size: 0.9rem; color: var(--purple-light); }
+        .lottie-strip p strong { color: var(--gold); }
+
+        /* HERO */
+        .hero {
+            background: linear-gradient(135deg, #2d1b69 0%, #0f0e17 70%);
+            padding: 50px 20px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '🎨';
+            position: absolute;
+            font-size: 12rem;
+            opacity: 0.04;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .hero-badge { display: inline-block; background: var(--gold); color: #0f0e17; font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; padding: 5px 14px; border-radius: 20px; margin-bottom: 14px; text-transform: uppercase; }
+        .hero h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; margin-bottom: 12px; }
+        .hero h1 span { color: var(--purple-light); }
+        .hero p { font-size: 1rem; color: var(--muted); max-width: 560px; margin: 0 auto 24px; line-height: 1.6; }
+        .hero-pills { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 28px; }
+        .hero-pill { background: rgba(124,58,237,0.2); border: 1px solid rgba(124,58,237,0.4); padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; color: var(--purple-light); }
+        .hero-cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn-hero-primary { background: var(--gold); color: #0f0e17; padding: 14px 28px; border-radius: 12px; font-weight: 800; font-size: 0.95rem; text-decoration: none; }
+        .btn-hero-outline { background: transparent; border: 2px solid var(--purple-light); color: var(--purple-light); padding: 12px 28px; border-radius: 12px; font-weight: 700; font-size: 0.95rem; text-decoration: none; }
+
+        /* FILTER TABS */
+        .filter-wrap { max-width: 1100px; margin: 30px auto 0; padding: 0 16px; }
+        .filters { display: flex; gap: 8px; flex-wrap: wrap; }
+        .filter-btn {
+            padding: 8px 18px; border-radius: 50px; border: 1px solid var(--border);
+            background: var(--card); color: var(--muted); cursor: pointer; font-size: 0.82rem; font-weight: 600;
+            transition: all 0.2s;
+        }
+        .filter-btn.active, .filter-btn:hover { border-color: var(--purple-light); color: var(--text); background: var(--card2); }
+
+        /* GALLERY GRID */
+        .gallery { max-width: 1100px; margin: 24px auto; padding: 0 16px; }
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 20px;
+        }
+        .art-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        .art-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(124,58,237,0.2); }
+        .art-card img { width: 100%; aspect-ratio: 3/4; object-fit: cover; display: block; }
+        .art-card-body { padding: 14px 16px; }
+        .art-card-cat { font-size: 0.7rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--purple-light); margin-bottom: 4px; }
+        .art-card-title { font-weight: 800; font-size: 0.95rem; margin-bottom: 6px; }
+        .art-card-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.5; margin-bottom: 12px; }
+        .art-card-footer { display: flex; align-items: center; justify-content: space-between; }
+        .art-price { font-size: 1.2rem; font-weight: 900; color: var(--gold); }
+        .btn-get { background: linear-gradient(135deg, var(--purple), #5b21b6); color: #fff; padding: 7px 16px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; text-decoration: none; transition: opacity 0.2s; }
+        .btn-get:hover { opacity: 0.88; }
+
+        /* COLORING BOOK SECTION */
+        .coloring-section { max-width: 1100px; margin: 40px auto; padding: 0 16px; }
+        .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+        .section-title { font-size: 1.3rem; font-weight: 900; }
+        .section-title span { color: var(--gold); }
+        .view-all { color: var(--purple-light); font-size: 0.85rem; text-decoration: none; font-weight: 600; }
+        .view-all:hover { color: var(--gold); }
+
+        /* COLORING BOOK CARDS */
+        .cb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+        .cb-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; transition: transform 0.2s; }
+        .cb-card:hover { transform: translateY(-3px); }
+        .cb-card img { width: 100%; height: 180px; object-fit: cover; display: block; }
+        .cb-card-body { padding: 12px 14px; }
+        .cb-card-title { font-weight: 800; font-size: 0.9rem; margin-bottom: 8px; }
+        .cb-card-footer { display: flex; align-items: center; justify-content: space-between; }
+        .cb-price { font-weight: 900; color: var(--gold); font-size: 1.05rem; }
+        .btn-cb { background: var(--purple); color: #fff; padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 0.78rem; text-decoration: none; }
+
+        /* PDF MAKER PROMO */
+        .pdf-promo {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 16px;
+        }
+        .pdf-promo-inner {
+            background: linear-gradient(135deg, #1e1035, #2d1b69);
+            border: 1px solid rgba(124,58,237,0.3);
+            border-radius: 20px;
+            padding: 36px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 24px;
+            align-items: center;
+        }
+        @media (max-width: 600px) { .pdf-promo-inner { grid-template-columns: 1fr; } }
+        .pdf-promo h3 { font-size: 1.3rem; font-weight: 900; margin-bottom: 8px; }
+        .pdf-promo h3 span { color: var(--gold); }
+        .pdf-promo p { color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
+        .btn-pdf { display: inline-flex; align-items: center; gap: 8px; background: var(--gold); color: #0f0e17; padding: 14px 24px; border-radius: 12px; font-weight: 800; text-decoration: none; font-size: 0.95rem; white-space: nowrap; }
+
+        /* MODAL */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: var(--card); border: 1px solid var(--border); border-radius: 20px; max-width: 560px; width: 100%; overflow: hidden; position: relative; }
+        .modal-img img { width: 100%; max-height: 60vh; object-fit: contain; background: #fff; display: block; }
+        .modal-body { padding: 20px 24px; }
+        .modal-cat { font-size: 0.7rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--purple-light); margin-bottom: 4px; }
+        .modal-title { font-size: 1.3rem; font-weight: 900; margin-bottom: 8px; }
+        .modal-desc { font-size: 0.9rem; color: var(--muted); line-height: 1.6; margin-bottom: 16px; }
+        .modal-footer { display: flex; align-items: center; gap: 14px; }
+        .modal-price { font-size: 1.8rem; font-weight: 900; color: var(--gold); }
+        .btn-modal-buy { background: linear-gradient(135deg, var(--purple), #5b21b6); color: #fff; padding: 12px 24px; border-radius: 10px; font-weight: 800; text-decoration: none; font-size: 0.95rem; flex: 1; text-align: center; }
+        .modal-close { position: absolute; top: 14px; right: 14px; background: rgba(0,0,0,0.6); border: none; color: #fff; font-size: 1.4rem; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+        footer { background: #080812; border-top: 1px solid var(--border); padding: 24px 20px; text-align: center; font-size: 0.82rem; color: var(--muted); margin-top: 40px; }
+        footer a { color: var(--gold); text-decoration: none; }
+    </style>
+</head>
+<body>
+
+<nav class="site-nav">
+    <a href="/store.html" class="brand">ARTISY</a>
+    <div class="nav-links">
+        <a href="/">🏠 Home</a>
+        <a href="/store.html">🛍️ Store</a>
+        <a href="/book-nook/">📚 Book Nook</a>
+        <a href="/music_hub.html">🎵 Music</a>
+        <a href="/comedy-nexus/">😂 Comedy</a>
+        <a href="/art-gallery/" class="active">🎨 Art Gallery</a>
+        <a href="/audiobook-previews.html">🎧 Listen Free</a>
+        <a href="https://tlott12.gumroad.com" target="_blank" class="btn-buy">Buy Now</a>
+    </div>
+</nav>
+
+<!-- Lottie brand strip -->
+<div class="lottie-strip">
+    <p>🎨 Welcome to <strong>T. Lott Creative Art Gallery</strong> — Therapeutic coloring art for women who need to exhale. <strong>Lottie approved. ✨</strong></p>
+</div>
+
+<!-- Hero -->
+<section class="hero">
+    <div class="hero-badge">🎨 Therapeutic Art Collection</div>
+    <h1>Art That Heals.<br><span>Color That Calms.</span></h1>
+    <p>Browse original therapeutic art by T. Lott Creative — wellness, sacred, nature, romance, and sleep themes. Print at home. Color your way to peace.</p>
+    <div class="hero-pills">
+        <span class="hero-pill">🌿 Wellness Art</span>
+        <span class="hero-pill">🕊️ Sacred Scenes</span>
+        <span class="hero-pill">🌙 Sleep Themes</span>
+        <span class="hero-pill">💞 Romance</span>
+        <span class="hero-pill">🌸 Nature</span>
+        <span class="hero-pill">👑 Business</span>
+    </div>
+    <div class="hero-cta">
+        <a href="#coloring-books" class="btn-hero-primary">🎨 Shop Coloring Books</a>
+        <a href="/colorwell-studio.html" class="btn-hero-outline">🖨️ Make Your Own PDF</a>
+    </div>
+</section>
+
+<!-- Filters -->
+<div class="filter-wrap">
+    <div class="filters" id="filterRow">
+        <button class="filter-btn active" onclick="filterGallery('all',this)">All Art</button>
+        <button class="filter-btn" onclick="filterGallery('wellness',this)">🌿 Wellness</button>
+        <button class="filter-btn" onclick="filterGallery('sacred',this)">🕊️ Sacred</button>
+        <button class="filter-btn" onclick="filterGallery('nature',this)">🌸 Nature</button>
+        <button class="filter-btn" onclick="filterGallery('sleep',this)">🌙 Sleep</button>
+        <button class="filter-btn" onclick="filterGallery('mindfulness',this)">🧘 Mindfulness</button>
+    </div>
+</div>
+
+<!-- Gallery -->
+<div class="gallery">
+    <div class="gallery-grid" id="galleryGrid">
+        <!-- Wellness -->
+        <div class="art-card" data-cat="wellness" onclick="openModal('wellness','Wellness Yoga Scene','A serene woman in yoga pose surrounded by blooming flowers and soft natural light.','$12.99','https://tlott12.gumroad.com/l/ntcnmw','https://huggingface.co/datasets/ziggylott/coloring-book-previews/resolve/main/wellness/page_1.jpg')">
+            <img src="https://huggingface.co/datasets/ziggylott/coloring-book-previews/resolve/main/wellness/page_1.jpg" alt="Wellness Yoga" loading="lazy">
+            <div class="art-card-body">
+                <div class="art-card-cat">💚 Wellness</div>
+                <div class="art-card-title">Wellness Yoga Scene</div>
+                <div class="art-card-desc">Full-page yoga and self-care coloring art</div>
+                <div class="art-card-footer"><span class="art-price">$12.99</span><a href="https://tlott12.gumroad.com/l/ntcnmw" target="_blank" class="btn-get" onclick="event.stopPropagation()">Get Book →</a></div>
+            </div>
+        </div>
+        <div class="art-card" data-cat="wellness" onclick="openModal('wellness','Self-Care Morning Ritual','A peaceful woman beginning her morning ritual — tea, journaling, and golden light.','$12.99','https://tlott12.gumroad.com/l/ntcnmw','https://huggingface.co/datasets/ziggylott/coloring-book-previews/resolve/main/wellness/page_2.jpg')">
+            <img src="https://huggingface.co/datasets/ziggylott/coloring-book-previews/resolve/main/wellness/page_2.jpg" alt="Self-Care Morning" loading="lazy">
+            <div class="art-card-body">
+                <div class="art-card-cat">💚 Wellness</div>
+                <div class="art-card-title">Morning Ritual</div>
+                <div class="art-card-desc">Tea, journaling, and peaceful morning scenes</div>
+                <div class="art-card-footer"><span class="art-price">$12.99</span><a href="https://tlott12.gumroad.com/l/ntcnmw" target="_blank" class="btn-get" onclick="event.stopPropagation()">Get Book →</a></div>
+            </div>
+        </div>
+        <!-- Mindfulness -->
+        <div class="art-card" data-cat="mindfulness" onclick="openModal('mindfulness','Meditation Garden','A tranquil meditation garden with stone path, lotus pond, and bamboo.','$12.99','https://tlott12.gumroad.com/l/nnicsn','https://huggingface.co/datasets/ziggylott/coloring-book-previews/resolve/main/mindfulness/page_1.jpg')">
+            <img src="https://huggingface.co/datasets/ziggylott/coloring-book-previews/resolve/main/mindfulness/page_1.jpg" alt="Meditation Garden" loading="lazy">
+            <div class="art-card-body">
+                <div class="art-card-cat">🧘 Mindfulness</div>
+                <div class="art-card-title">Meditation Garden</div>
+                <div class="art-card-desc">Stone paths, lotus ponds, and bamboo groves</div>
+                <div class="art-card-footer"><span class="art-price">$12.99</span><a href="https://tlott12.gumroad.com/l/nnicsn" target="_blank" class="btn-get" onclick="event.stopPropagation()">Get Book →</a></div>
+            </div>
+        </div>
+        <div class="art-card" data-cat="mindfulness" onclick="openModal('mindfulness','Peaceful Reading Nook','Cozy reading corner with candles, plants, and a comfortable window seat.','$12.99','https://tlott12.gumroad.com/l/nnicsn','https://huggingface.co/datasets/ziggylott/coloring-book-previews/resolve/main/mindfulness/page_2.jpg')">
+            <img src="https://huggingface.co/datasets/ziggylott/coloring-book-previews/resolve/main/mindfulness/page_2.jpg" alt="Reading Nook" loading="lazy">
+            <div class="art-card-body">
+                <div class="art-card-cat">🧘 Mindfulness</div>
+                <div class="art-card-title">Peaceful Reading Nook</div>
+                <div class="art-card-desc">Cozy corner with candles, books, and greenery</div>
+                <div class="art-card-footer"><span class="art-price">$12.99</span><a href="https://tlott12.gumroad.com/l/nnicsn" target="_blank" class="btn-get" onclick="event.stopPropagation()">Get Book →</a></div>
+            </div>
+        </div>
+        <!-- Nature -->
+        <div class="art-card" data-cat="nature" onclick="openModal('nature','Forest Path Retreat','A winding forest path with towering trees, ferns, and dappled sunlight.','$12.99','https://tlott12.gumroad.com/l/smuad','https://huggingface.co/datasets/ziggylott/coloring-book-previews/resolve/main/nature/page_1.jpg')">
+            <img src="https://huggingface.co/datasets/ziggylott/coloring-book-previews/resolve/main/nature/page_1.jpg" alt="Forest Path" loading="lazy">
+            <div class="art-card-body">
+                <div class="art-card-cat">🌸 Nature</div>
+                <div class="art-card-title">Forest Path Retreat</div>
+                <div class="art-card-desc">Towering trees, ferns, and dappled sunlight</div>
+                <div class="art-card-footer"><span class="art-price">$12.99</span><a href="https://tlott12.gumroad.com/l/smuad" target="_blank" class="btn-get" onclick="event.stopPropagation()">Get Book →</a></div>
+            </div>
+        </div>
+        <div class="art-card" data-cat="nature" onclick="openModal('nature','Waterfall Sanctuary','A cascading waterfall surrounded by tropical flowers and mossy rocks.','$12.99','https://tlott12.gumroad.com/l/smuad','https://huggingface.co/datasets/ziggylott/coloring-book-previews/resolve/main/nature/page_2.jpg')">
+            <img src="https://huggingface.co/datasets/ziggylott/coloring-book-previews/resolve/main/nature/page_2.jpg" alt="Waterfall" loading="lazy">
+            <div class="art-card-body">
+                <div class="art-card-cat">🌸 Nature</div>
+                <div class="art-card-title">Waterfall Sanctuary</div>
+                <div class="art-card-desc">Cascading water, tropical flowers, mossy rocks</div>
+                <div class="art-card-footer"><span class="art-price">$12.99</span><a href="https://tlott12.gumroad.com/l/smuad" target="_blank" class="btn-get" onclick="event.stopPropagation()">Get Book →</a></div>
+            </div>
+        </div>
+        <!-- Sacred -->
+        <div class="art-card" data-cat="sacred" onclick="openModal('sacred','Sacred Journey Scene','A woman on a spiritual pilgrimage surrounded by candles, incense, and sacred symbols.','$12.99','https://tlott12.gumroad.com/l/txdxce','https://huggingface.co/datasets/ziggylott/coloring-book-previews/resolve/main/sacred/page_1.jpg')">
+            <img src="https://huggingface.co/datasets/ziggylott/coloring-book-previews/resolve/main/sacred/page_1.jpg" alt="Sacred Journey" loading="lazy">
+            <div class="art-card-body">
+                <div class="art-card-cat">🕊️ Sacred</div>
+                <div class="art-card-title">Sacred Journey Scene</div>
+                <div class="art-card-desc">Candles, incense, and spiritual symbols</div>
+                <div class="art-card-footer"><span class="art-price">$12.99</span><a href="https://tlott12.gumroad.com/l/txdxce" target="_blank" class="btn-get" onclick="event.stopPropagation()">Get Book →</a></div>
+            </div>
+        </div>
+        <div class="art-card" data-cat="sacred" onclick="openModal('sacred','Grace & Reverence','A moment of quiet prayer surrounded by flowers, doves, and gentle light.','$12.99','https://tlott12.gumroad.com/l/txdxce','https://huggingface.co/datasets/ziggylott/coloring-book-previews/resolve/main/sacred/page_2.jpg')">
+            <img src="https://huggingface.co/datasets/ziggylott/coloring-book-previews/resolve/main/sacred/page_2.jpg" alt="Grace" loading="lazy">
+            <div class="art-card-body">
+                <div class="art-card-cat">🕊️ Sacred</div>
+                <div class="art-card-title">Grace & Reverence</div>
+                <div class="art-card-desc">Quiet prayer, flowers, doves, and gentle light</div>
+                <div class="art-card-footer"><span class="art-price">$12.99</span><a href="https://tlott12.gumroad.com/l/txdxce" target="_blank" class="btn-get" onclick="event.stopPropagation()">Get Book →</a></div>
+            </div>
+        </div>
+        <!-- Sleep -->
+        <div class="art-card" data-cat="sleep" onclick="openModal('sleep','Moonlit Garden Dream','A dreamy moonlit garden with fireflies, sleeping flowers, and a crescent moon.','$12.99','https://tlott12.gumroad.com/l/mycsjf','https://huggingface.co/datasets/ziggylott/coloring-book-previews/resolve/main/sleep/page_1.jpg')">
+            <img src="https://huggingface.co/datasets/ziggylott/coloring-book-previews/resolve/main/sleep/page_1.jpg" alt="Moonlit Garden" loading="lazy">
+            <div class="art-card-body">
+                <div class="art-card-cat">🌙 Sleep</div>
+                <div class="art-card-title">Moonlit Garden Dream</div>
+                <div class="art-card-desc">Fireflies, sleeping flowers, and a crescent moon</div>
+                <div class="art-card-footer"><span class="art-price">$12.99</span><a href="https://tlott12.gumroad.com/l/mycsjf" target="_blank" class="btn-get" onclick="event.stopPropagation()">Get Book →</a></div>
+            </div>
+        </div>
+        <div class="art-card" data-cat="sleep" onclick="openModal('sleep','Cozy Bedtime Corner','A cozy reading chair by the window with starry sky and warm lamplight.','$12.99','https://tlott12.gumroad.com/l/mycsjf','https://huggingface.co/datasets/ziggylott/coloring-book-previews/resolve/main/sleep/page_2.jpg')">
+            <img src="https://huggingface.co/datasets/ziggylott/coloring-book-previews/resolve/main/sleep/page_2.jpg" alt="Cozy Bedtime" loading="lazy">
+            <div class="art-card-body">
+                <div class="art-card-cat">🌙 Sleep</div>
+                <div class="art-card-title">Cozy Bedtime Corner</div>
+                <div class="art-card-desc">Reading chair, starry sky, and warm lamplight</div>
+                <div class="art-card-footer"><span class="art-price">$12.99</span><a href="https://tlott12.gumroad.com/l/mycsjf" target="_blank" class="btn-get" onclick="event.stopPropagation()">Get Book →</a></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Coloring Book Collection -->
+<section class="coloring-section" id="coloring-books">
+    <div class="section-header">
+        <h2 class="section-title">🖍️ Full Coloring Book <span>Collections</span></h2>
+        <a href="/coloring-books.html" class="view-all">View All →</a>
+    </div>
+    <div class="cb-grid">
+        <div class="cb-card">
+            <img src="https://huggingface.co/datasets/ziggylott/coloring-book-previews/resolve/main/wellness/page_1.jpg" alt="Wellness">
+            <div class="cb-card-body">
+                <div class="cb-card-title">💚 Wellness & Self-Care</div>
+                <div class="cb-card-footer"><span class="cb-price">$12.99</span><a href="https://tlott12.gumroad.com/l/ntcnmw" target="_blank" class="btn-cb">Buy →</a></div>
+            </div>
+        </div>
+        <div class="cb-card">
+            <img src="https://huggingface.co/datasets/ziggylott/coloring-book-previews/resolve/main/mindfulness/page_1.jpg" alt="Mindfulness">
+            <div class="cb-card-body">
+                <div class="cb-card-title">🧘 Mindfulness</div>
+                <div class="cb-card-footer"><span class="cb-price">$12.99</span><a href="https://tlott12.gumroad.com/l/nnicsn" target="_blank" class="btn-cb">Buy →</a></div>
+            </div>
+        </div>
+        <div class="cb-card">
+            <img src="https://huggingface.co/datasets/ziggylott/coloring-book-previews/resolve/main/nature/page_1.jpg" alt="Nature">
+            <div class="cb-card-body">
+                <div class="cb-card-title">🌸 Nature Collection</div>
+                <div class="cb-card-footer"><span class="cb-price">$12.99</span><a href="https://tlott12.gumroad.com/l/smuad" target="_blank" class="btn-cb">Buy →</a></div>
+            </div>
+        </div>
+        <div class="cb-card">
+            <img src="https://huggingface.co/datasets/ziggylott/coloring-book-previews/resolve/main/sacred/page_1.jpg" alt="Sacred">
+            <div class="cb-card-body">
+                <div class="cb-card-title">🕊️ Sacred Moments</div>
+                <div class="cb-card-footer"><span class="cb-price">$12.99</span><a href="https://tlott12.gumroad.com/l/txdxce" target="_blank" class="btn-cb">Buy →</a></div>
+            </div>
+        </div>
+        <div class="cb-card">
+            <img src="https://huggingface.co/datasets/ziggylott/coloring-book-previews/resolve/main/sleep/page_1.jpg" alt="Sleep">
+            <div class="cb-card-body">
+                <div class="cb-card-title">🌙 Sleep Stories</div>
+                <div class="cb-card-footer"><span class="cb-price">$12.99</span><a href="https://tlott12.gumroad.com/l/mycsjf" target="_blank" class="btn-cb">Buy →</a></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- PDF Maker Promo -->
+<div class="pdf-promo">
+    <div class="pdf-promo-inner">
+        <div>
+            <h3>🖨️ Make Your Own <span>Coloring Book PDF</span></h3>
+            <p>Upload your PNG coloring pages, arrange them in order, and download a print-ready PDF — completely free. Print at home, sell on Gumroad, or gift to friends.</p>
+        </div>
+        <a href="/colorwell-studio.html" class="btn-pdf">
+            🎨 Open PDF Maker
+        </a>
+    </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="artModal" onclick="if(event.target===this)closeModal()">
+    <div class="modal">
+        <button class="modal-close" onclick="closeModal()">×</button>
+        <div class="modal-img"><img id="modalImg" src="" alt=""></div>
+        <div class="modal-body">
+            <div class="modal-cat" id="modalCat"></div>
+            <div class="modal-title" id="modalTitle"></div>
+            <div class="modal-desc" id="modalDesc"></div>
+            <div class="modal-footer">
+                <span class="modal-price" id="modalPrice"></span>
+                <a id="modalBuyBtn" href="#" target="_blank" class="btn-modal-buy">🛒 Buy Full Book →</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div style="margin-bottom:8px;">🎨 <strong>T. Lott Creative</strong> — <a href="/store.html">Store</a> · <a href="/book-nook/">Book Nook</a> · <a href="/coloring-books.html">Coloring Books</a> · <a href="/colorwell-studio.html">PDF Maker</a></div>
+    <div>© T. Lott Creative · Art Gallery · <a href="https://tlott12.gumroad.com" target="_blank">Shop on Gumroad</a></div>
+</footer>
+
+<script>
+function filterGallery(cat, btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.art-card').forEach(card => {
+        if (cat === 'all' || card.dataset.cat === cat) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function openModal(cat, title, desc, price, link, img) {
+    document.getElementById('modalImg').src = img;
+    document.getElementById('modalCat').textContent = cat.charAt(0).toUpperCase() + cat.slice(1);
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalDesc').textContent = desc;
+    document.getElementById('modalPrice').textContent = price;
+    document.getElementById('modalBuyBtn').href = link;
+    document.getElementById('artModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+    document.getElementById('artModal').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+</script>
+</body>
+</html>
