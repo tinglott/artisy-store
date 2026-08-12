@@ -1081,7 +1081,11 @@ function _doSpeak(text, rate=0.9, pitch=1.1) {
     utt.rate = rate;
     utt.pitch = pitch;
     const voices = window.speechSynthesis.getVoices();
-    const pick = voices.find(v => v.lang.startsWith('en-US') && v.localService)
+    // Prefer male voices for comedy effect
+    const maleNames = ['David', 'Mark', 'Guy', 'James', 'Daniel', 'George', 'Reed', 'Rishi', 'Aaron', 'Arthur', 'Microsoft David', 'Google UK English Male'];
+    const pick = voices.find(v => maleNames.some(n => v.name.includes(n)) && v.lang.startsWith('en'))
+                || voices.find(v => v.name.toLowerCase().includes('male') && v.lang.startsWith('en'))
+                || voices.find(v => v.lang.startsWith('en-US') && v.localService)
                 || voices.find(v => v.lang.startsWith('en'))
                 || voices[0];
     if (pick) utt.voice = pick;
