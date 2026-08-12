@@ -50,7 +50,7 @@ body{background:var(--bg);color:var(--white);font-family:-apple-system,BlinkMacS
 .main{padding:24px 16px;max-width:500px;margin:0 auto}
 
 /* CARD STACK */
-.deck{position:relative;height:var(--card-h);margin-bottom:20px}
+.deck{position:relative;min-height:var(--card-h);margin-bottom:20px}
 .ghost{position:absolute;left:50%;transform:translateX(-50%);border-radius:20px;background:var(--bg3);border:1px solid var(--border);transition:all .3s}
 .ghost-2{width:82%;height:calc(var(--card-h) - 40px);top:20px;opacity:.3}
 .ghost-1{width:90%;height:calc(var(--card-h) - 20px);top:10px;opacity:.6}
@@ -250,41 +250,37 @@ let groans = parseInt(localStorage.getItem('cn-groans')||'0');
 let favorites = JSON.parse(localStorage.getItem('cn-favs')||'[]');
 
 // Voice loading
-function loadVoices() {
-  voices = speechSynthesis.getVoices();
-}
-if (speechSynthesis.onvoiceschanged !== undefined) {
-  speechSynthesis.onvoiceschanged = loadVoices;
-}
-loadVoices();
-setTimeout(loadVoices, 300);
-setTimeout(loadVoices, 1000);
+// TTS — StreamElements Brian (Amazon Polly neural British male voice)
+let _ttsAudio = null;
 
-function getBritishVoice() {
-  const all = voices.length ? voices : speechSynthesis.getVoices();
-  // Priority: explicit male British names
-  const maleNames = ['Google UK English Male','Daniel','Arthur','Microsoft George','Microsoft Ryan','en-GB-News-N'];
-  for (const p of maleNames) {
-    const v = all.find(v => v.name.includes(p));
-    if (v) return v;
-  }
-  // Filter out female voices explicitly
-  const nonFemale = all.filter(v => !v.name.match(/female|Hazel|Fiona|Kate|Zira|Susan|Samantha|Karen|Moira|Tessa|Nicky|Female/i));
-  return nonFemale.find(v => v.lang === 'en-GB')
-      || nonFemale.find(v => v.lang.startsWith('en-GB'))
-      || nonFemale.find(v => v.lang.startsWith('en'))
-      || all[0] || null;
-}
-
-function speak(text) {
+async function speak(text) {
+  // Stop any playing audio
+  if (_ttsAudio) { _ttsAudio.pause(); _ttsAudio = null; }
   speechSynthesis.cancel();
-  setTimeout(() => {
-    const utt = new SpeechSynthesisUtterance(text);
-    const v = getBritishVoice();
-    if (v) utt.voice = v;
-    utt.rate = 0.88; utt.pitch = 1.05; utt.volume = 1;
+  const clean = text.replace(/[<>]/g, '').replace(/&[a-z]+;/gi, ' ').substring(0, 500);
+  try {
+    const url = 'https://api.streamelements.com/kappa/v2/speech?voice=Brian&text=' + encodeURIComponent(clean);
+    const audio = new Audio(url);
+    _ttsAudio = audio;
+    audio.onended = () => { _ttsAudio = null; };
+    await audio.play();
+  } catch(e) {
+    // Fallback: Web Speech API with best available male voice
+    _ttsAudio = null;
+    const utt = new SpeechSynthesisUtterance(clean);
+    const all = speechSynthesis.getVoices();
+    const male = all.find(v => /George|Ryan|Daniel|Arthur|Male/i.test(v.name) && !/female/i.test(v.name))
+               || all.find(v => !/female|Hazel|Fiona|Kate|Zira|Samantha/i.test(v.name) && v.lang.startsWith('en'))
+               || all[0];
+    if (male) utt.voice = male;
+    utt.rate = 0.92; utt.pitch = 0.92; utt.volume = 1;
     speechSynthesis.speak(utt);
-  }, 150);
+  }
+}
+
+function stopAudio() {
+  if (_ttsAudio) { _ttsAudio.pause(); _ttsAudio = null; }
+  speechSynthesis.cancel();
 }
 
 // Filter
@@ -522,28 +518,29 @@ function jumpToJoke(key) {
 }
 
 // TTS
-function speakJoke() {
+async function speakJoke() {
   if (!filtered.length) return;
-  const joke = filtered[current];
   const btn = document.getElementById('btn-tts');
-  if (speechSynthesis.speaking) {
-    speechSynthesis.cancel();
+  // Toggle: if already playing, stop
+  if (_ttsAudio && !_ttsAudio.paused) {
+    stopAudio();
     btn.textContent = '🔊';
     return;
   }
-  btn.textContent = '🔇';
+  const joke = filtered[current];
   let text = joke.setup;
-  if (joke.punchline && joke.punchline.trim()) {
-    if (revealed) text += '. ' + joke.punchline;
+  if (joke.punchline && joke.punchline.trim() && revealed) {
+    text += '... ' + joke.punchline;
   }
-  // One-liners: setup is the full joke — read it all
-  const utt = new SpeechSynthesisUtterance(text);
-  const v = getBritishVoice();
-  if (v) utt.voice = v;
-  utt.rate = 0.88; utt.pitch = 1.05;
-  utt.onend = () => { btn.textContent = '🔊'; };
-  utt.onerror = () => { btn.textContent = '🔊'; };
-  speechSynthesis.speak(utt);
+  btn.textContent = '🔇';
+  await speak(text);
+  // Reset button when done
+  setTimeout(() => {
+    if (!_ttsAudio || _ttsAudio.paused) btn.textContent = '🔊';
+  }, 200);
+  if (_ttsAudio) {
+    _ttsAudio.onended = () => { btn.textContent = '🔊'; _ttsAudio = null; };
+  }
 }
 
 // Share
