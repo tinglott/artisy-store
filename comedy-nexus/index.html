@@ -936,15 +936,17 @@ function renderGrid() {
 }
 
 function revealCard(el, idx) {
-  if (el.classList.contains('revealed')) return;
+  // Guard: use data attribute to prevent double-fire
+  if (el.dataset.revealed === '1') return;
+  el.dataset.revealed = '1';
   el.classList.add('revealed');
-  // Direct DOM manipulation — reliable across all browsers
-  const punch = el.querySelector('.card-punchline');
+  // Force direct style — bypasses any CSS cascade issues
+  const punch = document.getElementById('punch_' + idx);
   const hint = el.querySelector('.card-tap-hint');
   const actions = el.querySelector('.card-actions');
-  if (punch) { punch.style.display = 'block'; }
-  if (hint) { hint.style.display = 'none'; }
-  if (actions) { actions.style.display = 'flex'; }
+  if (punch) { punch.style.cssText = 'display:block !important'; }
+  if (hint) { hint.style.cssText = 'display:none !important'; }
+  if (actions) { actions.style.cssText = 'display:flex !important; gap:8px; flex-wrap:wrap; margin-top:8px;'; }
   if (!revealed.includes(idx)) {
     revealed.push(idx);
     localStorage.setItem('cnx_revealed', JSON.stringify(revealed));
@@ -1078,27 +1080,44 @@ function unlockAchievement(id) {
 }
 
 // ── TTS ──
+// Pre-load voices on page load — Chrome needs onvoiceschanged
+let _cachedVoices = [];
+function _loadVoices() {
+  _cachedVoices = window.speechSynthesis.getVoices();
+}
+window.speechSynthesis.onvoiceschanged = _loadVoices;
+_loadVoices();
+
+function _pickVoice() {
+  const voices = _cachedVoices.length ? _cachedVoices : window.speechSynthesis.getVoices();
+  return voices.find(v => v.name === 'Google UK English Male')
+      || voices.find(v => v.name === 'Daniel')
+      || voices.find(v => v.name === 'Arthur')
+      || voices.find(v => v.name.includes('UK') && v.name.toLowerCase().includes('male'))
+      || voices.find(v => v.name.includes('British') && v.lang.startsWith('en'))
+      || voices.find(v => ['David','Mark','Guy','James','George','Reed'].some(n => v.name.includes(n)) && v.lang.startsWith('en'))
+      || voices.find(v => v.lang === 'en-GB')
+      || voices.find(v => v.lang.startsWith('en'))
+      || voices[0];
+}
+
 function _doSpeak(text, rate=0.9, pitch=1.1) {
   window.speechSynthesis.cancel();
-  setTimeout(() => {
+  const go = () => {
     const utt = new SpeechSynthesisUtterance(text);
     utt.rate = rate;
     utt.pitch = pitch;
-    const voices = window.speechSynthesis.getVoices();
-    // Witty voice priority: British male = maximum comedy effect
-    const pick = voices.find(v => v.name === 'Google UK English Male')
-                || voices.find(v => v.name === 'Daniel')
-                || voices.find(v => v.name === 'Arthur')
-                || voices.find(v => v.name.includes('UK') && v.name.toLowerCase().includes('male'))
-                || voices.find(v => v.name.includes('British') && v.lang.startsWith('en'))
-                || voices.find(v => ['David','Mark','Guy','James','George','Reed'].some(n => v.name.includes(n)) && v.lang.startsWith('en'))
-                || voices.find(v => v.lang === 'en-GB')
-                || voices.find(v => v.lang.startsWith('en'))
-                || voices[0];
+    const pick = _pickVoice();
     if (pick) utt.voice = pick;
     utt.onerror = e => console.warn('TTS error:', e.error);
     window.speechSynthesis.speak(utt);
-  }, 150);
+  };
+  // If voices already loaded, go immediately; else wait 200ms for them
+  if (_cachedVoices.length > 0) {
+    setTimeout(go, 150);
+  } else {
+    setTimeout(() => { _loadVoices(); go(); }, 300);
+  }
 }
 
 function speakJoke(j) {
