@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 Task Master - AI-Powered To-Do List</title>
+    <script src="https://js.puter.com/v2/"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .user-section {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .auth-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .auth-btn:hover {
+            background: #764ba2;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .input-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .input-section input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .input-section input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .add-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .add-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .ai-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            transition: transform 0.2s;
+        }
+
+        .ai-btn:hover {
+            transform: translateY(-2px);
+            background: #ee5a52;
+        }
+
+        .filter-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #e9ecef;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .task-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .task-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s;
+            border-left: 4px solid #667eea;
+        }
+
+        .task-item.completed {
+            opacity: 0.6;
+            border-left-color: #51cf66;
+        }
+
+        .task-item:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .task-text {
+            flex: 1;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .task-item.completed .task-text {
+            text-decoration: line-through;
+            color: #999;
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .priority {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 11px;
+        }
+
+        .priority.high {
+            background: #ffe0e0;
+            color: #c00;
+        }
+
+        .priority.medium {
+            background: #fff3e0;
+            color: #cc7000;
+        }
+
+        .priority.low {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .delete-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.2s;
+        }
+
+        .delete-btn:hover {
+            background: #ee5a52;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            justify-content: space-around;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 5px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .sign-in-section {
+            text-align: center;
+            padding: 40px 30px;
+        }
+
+        .sign-in-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .sign-in-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            transition: transform 0.2s;
+        }
+
+        .sign-in-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .notice {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 12px;
+            color: #1976d2;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 15px;
+            font-size: 12px;
+            color: #999;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 20px;
+            }
+
+            .input-section {
+                flex-direction: column;
+            }
+
+            .add-btn {
+                width: 100%;
+            }
+
+            .stats {
+                flex-direction: row;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Task Master</h1>
+            <p>Your AI-powered to-do list in the cloud</p>
+        </div>
+
+        <div class="user-section" id="userSection" style="display: none;">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">?</div>
+                <div class="user-name" id="userName">User</div>
+            </div>
+            <button class="auth-btn" onclick="signOut()">Sign Out</button>
+        </div>
+
+        <div class="content">
+            <div id="signInPrompt" style="display: none;">
+                <div class="sign-in-section">
+                    <h2>Welcome to Task Master 🎯</h2>
+                    <p style="color: #666; margin-bottom: 20px;">Sign in to your Puter account to sync your tasks across all devices and unlock AI features.</p>
+                    <button class="sign-in-btn" onclick="signIn()">🔐 Sign In with Puter</button>
+                </div>
+            </div>
+
+            <div id="appContent" style="display: none;">
+                <div class="notice">
+                    💡 Tip: Use the AI button to get smart task suggestions!
+                </div>
+
+                <div class="input-section">
+                    <input 
+                        type="text" 
+                        id="taskInput" 
+                        placeholder="Add a new task... (e.g., Buy groceries, Project meeting at 2PM)"
+                        onkeypress="handleEnter(event)"
+                    >
+                    <button class="add-btn" onclick="addTask()">✨ Add</button>
+                    <button class="ai-btn" onclick="getAISuggestions()" title="Get AI task suggestions">🤖 AI Ideas</button>
+                </div>
+
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-value" id="totalCount">0</div>
+                        <div class="stat-label">Total</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="activeCount">0</div>
+                        <div class="stat-label">Active</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="completedCount">0</div>
+                        <div class="stat-label">Completed</div>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <button class="filter-btn active" onclick="setFilter('all')">All</button>
+                    <button class="filter-btn" onclick="setFilter('active')">Active</button>
+                    <button class="filter-btn" onclick="setFilter('completed')">Completed</button>
+                    <button class="filter-btn" onclick="setFilter('high')">🔴 High Priority</button>
+                    <button class="filter-btn" onclick="setFilter('medium')">🟡 Medium</button>
+                    <button class="filter-btn" onclick="setFilter('low')">🟢 Low</button>
+                </div>
+
+                <div class="task-list" id="taskList">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <p>No tasks yet! Add one to get started.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            Powered by <a href="https://developer.puter.com" target="_blank">Puter</a> ✨
+        </div>
+    </div>
+
+    <script>
+        // API key should be configured via environment variable or Puter secrets
+        // For demo, you can add it via: window.GROK_API_KEY = 'your-key-here'
+        const GROK_API_KEY = window.GROK_API_KEY || null;
+        let currentUser = null;
+        let allTasks = [];
+        let currentFilter = 'all';
+
+        async function init() {
+            try {
+                // Check if user is signed in
+                const isSignedIn = await puter.auth.isSignedIn();
+                
+                if (!isSignedIn) {
+                    document.getElementById('signInPrompt').style.display = 'block';
+                    document.getElementById('appContent').style.display = 'none';
+                } else {
+                    currentUser = await puter.auth.getUser();
+                    updateUserSection();
+                    document.getElementById('appContent').style.display = 'block';
+                    document.getElementById('signInPrompt').style.display = 'none';
+                    await loadTasks();
+                }
+            } catch (error) {
+                console.error('Init error:', error);
+            }
+        }
+
+        async function signIn() {
+            try {
+                await puter.ui.authenticateWithPuter();
+                init();
+            } catch (error) {
+                console.error('Sign in error:', error);
+                alert('Sign in failed. Please try again.');
+            }
+        }
+
+        async function signOut() {
+            try {
+                await puter.auth.signOut();
+                currentUser = null;
+                allTasks = [];
+                document.getElementById('userSection').style.display = 'none';
+                document.getElementById('appContent').style.display = 'none';
+                document.getElementById('signInPrompt').style.display = 'block';
+            } catch (error) {
+                console.error('Sign out error:', error);
+            }
+        }
+
+        function updateUserSection() {
+            if (currentUser) {
+                document.getElementById('userSection').style.display = 'flex';
+                document.getElementById('userName').textContent = currentUser.username || 'User';
+                const initials = (currentUser.username || 'U')[0].toUpperCase();
+                document.getElementById('userAvatar').textContent = initials;
+            }
+        }
+
+        function handleEnter(event) {
+            if (event.key === 'Enter') {
+                addTask();
+            }
+        }
+
+        async function addTask() {
+            const input = document.getElementById('taskInput');
+            const text = input.value.trim();
+
+            if (!text) {
+                alert('Please enter a task!');
+                return;
+            }
+
+            // Detect priority from keywords
+            let priority = 'low';
+            const textLower = text.toLowerCase();
+            if (textLower.includes('urgent') || textLower.includes('asap') || textLower.includes('important')) {
+                priority = 'high';
+            } else if (textLower.includes('soon') || textLower.includes('soon')) {
+                priority = 'medium';
+            }
+
+            const task = {
+                id: Date.now(),
+                text: text,
+                completed: false,
+                priority: priority,
+                created: new Date().toISOString()
+            };
+
+            try {
+                const tasks = await puter.kv.get('tasks') || [];
+                tasks.push(task);
+                await puter.kv.set('tasks', tasks);
+                
+                allTasks = tasks;
+                input.value = '';
+                renderTasks();
+            } catch (error) {
+                console.error('Error adding task:', error);
+                alert('Failed to add task. Please try again.');
+            }
+        }
+
+        async function toggleTask(id) {
+            try {
+                const tasks = await puter.kv.get('tasks') || [];
+                const task = tasks.find(t => t.id === id);
+                if (task) {
+                    task.completed = !task.completed;
+                    await puter.kv.set('tasks', tasks);
+                    allTasks = tasks;
+                    renderTasks();
+                }
+            } catch (error) {
+                console.error('Error toggling task:', error);
+            }
+        }
+
+        async function deleteTask(id) {
+            if (!confirm('Delete this task?')) return;
+
+            try {
+                const tasks = await puter.kv.get('tasks') || [];
+                const filtered = tasks.filter(t => t.id !== id);
+                await puter.kv.set('tasks', filtered);
+                allTasks = filtered;
+                renderTasks();
+            } catch (error) {
+                console.error('Error deleting task:', error);
+            }
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            renderTasks();
+        }
+
+        function getFilteredTasks() {
+            let filtered = allTasks;
+
+            if (currentFilter === 'active') {
+                filtered = filtered.filter(t => !t.completed);
+            } else if (currentFilter === 'completed') {
+                filtered = filtered.filter(t => t.completed);
+            } else if (['high', 'medium', 'low'].includes(currentFilter)) {
+                filtered = filtered.filter(t => t.priority === currentFilter);
+            }
+
+            return filtered.sort((a, b) => new Date(b.created) - new Date(a.created));
+        }
+
+        function renderTasks() {
+            const taskList = document.getElementById('taskList');
+            const filtered = getFilteredTasks();
+
+            // Update stats
+            const total = allTasks.length;
+            const active = allTasks.filter(t => !t.completed).length;
+            const completed = allTasks.filter(t => t.completed).length;
+
+            document.getElementById('totalCount').textContent = total;
+            document.getElementById('activeCount').textContent = active;
+            document.getElementById('completedCount').textContent = completed;
+
+            if (filtered.length === 0) {
+                taskList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <p>${currentFilter === 'all' ? 'No tasks yet! Add one to get started.' : 'No tasks match this filter.'}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            taskList.innerHTML = filtered.map(task => `
+                <div class="task-item ${task.completed ? 'completed' : ''}">
+                    <input 
+                        type="checkbox" 
+                        class="task-checkbox" 
+                        ${task.completed ? 'checked' : ''}
+                        onchange="toggleTask(${task.id})"
+                    >
+                    <span class="task-text">${escapeHtml(task.text)}</span>
+                    <div class="task-meta">
+                        <span class="priority ${task.priority}">${task.priority.toUpperCase()}</span>
+                    </div>
+                    <button class="delete-btn" onclick="deleteTask(${task.id})">🗑️</button>
+                </div>
+            `).join('');
+        }
+
+        async function loadTasks() {
+            try {
+                const tasks = await puter.kv.get('tasks') || [];
+                allTasks = tasks;
+                renderTasks();
+            } catch (error) {
+                console.error('Error loading tasks:', error);
+            }
+        }
+
+        async function getAISuggestions() {
+            if (!GROK_API_KEY) {
+                alert('⚠️ AI feature not configured. Add your Grok API key to enable this feature.');
+                return;
+            }
+
+            try {
+                const button = event.target;
+                button.disabled = true;
+                button.innerHTML = '<span class="spinner"></span>Thinking...';
+
+                const response = await fetch('https://api.x.ai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${GROK_API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: 'grok-3-latest',
+                        messages: [{
+                            role: 'user',
+                            content: 'Generate 5 productivity task ideas that are specific, actionable, and suitable for a typical day. Format as a simple comma-separated list. Examples: "Code review PRs, Call dentist, Meal prep for week, Update project docs, Team standup at 10am". Give me NEW ideas different from typical ones.'
+                        }],
+                        temperature: 0.7,
+                        max_tokens: 200
+                    })
+                });
+
+                if (!response.ok) throw new Error('AI API error');
+                
+                const data = await response.json();
+                const suggestions = data.choices[0].message.content
+                    .split(',')
+                    .map(s => s.trim())
+                    .filter(s => s.length > 0)
+                    .slice(0, 5);
+
+                // Add suggestions to task list
+                for (const suggestion of suggestions) {
+                    const task = {
+                        id: Date.now() + Math.random(),
+                        text: suggestion,
+                        completed: false,
+                        priority: 'medium',
+                        created: new Date().toISOString()
+                    };
+                    allTasks.push(task);
+                }
+
+                await puter.kv.set('tasks', allTasks);
+                renderTasks();
+                alert(`✨ Added ${suggestions.length} AI-powered task ideas!`);
+
+            } catch (error) {
+                console.error('AI error:', error);
+                alert('Could not generate suggestions. Try again later.');
+            } finally {
+                button.disabled = false;
+                button.innerHTML = '🤖 AI Ideas';
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Initialize on load
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
