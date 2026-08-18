@@ -1,236 +1,176 @@
-// State
+// STATE
 let currentTopic = null;
 let currentQuestion = 0;
-let score = 0;
-let streak = 0;
-let totalScore = parseInt(localStorage.getItem('totalScore') || 0);
-let bestStreak = parseInt(localStorage.getItem('bestStreak') || 0);
-let topicScores = JSON.parse(localStorage.getItem('topicScores') || '{}');
+let currentScore = 0;
+let currentStreak = 0;
+let totalScore = localStorage.getItem('totalScore') || 0;
+let totalStreak = localStorage.getItem('totalStreak') || 0;
+let topicProgress = JSON.parse(localStorage.getItem('topicProgress')) || {};
 
-// Load Lottie owl
-function loadLottie(id) {
-  lottie.destroy();
-  lottie.render({
-    container: document.getElementById(id),
-    renderer: 'svg',
-    loop: true,
-    autoplay: true,
-    path: 'data:application/json;base64,eyJpIjowLCJzIjp7ImN0YSI6MH0sInYiOiJcL1RoaXMgaXMgYSBzaW1wbGUgYmFzZTY0IGVuY29kZWQgYW5pbWF0aW9uIFwvIn19'
-  });
+// Speech Recognition
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
+if (SpeechRecognition) {
+  recognition = new SpeechRecognition();
+  recognition.lang = 'en-US';
 }
 
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
+// INITIALIZATION
+window.onload = () => {
   renderTopics();
   updateStats();
-});
+  renderOwl('home');
+};
+
+function renderOwl(type) {
+  const owl = type === 'home' ? document.getElementById('lottie-owl') : 
+              type === 'lesson' ? document.getElementById('lottie-lesson') :
+              document.getElementById('lottie-result');
+  
+  if (owl) {
+    owl.innerHTML = lottieAnimations[type] || '🦉';
+  }
+}
 
 function renderTopics() {
   const grid = document.getElementById('topics-grid');
   grid.innerHTML = grammarTopics.map(topic => `
     <button class="topic-btn" onclick="selectTopic(${topic.id})">
-      ${topic.emoji} ${topic.name}
+      <span class="emoji">${topic.emoji}</span>
+      ${topic.name}
     </button>
   `).join('');
 }
 
-function selectTopic(id) {
-  currentTopic = grammarTopics.find(t => t.id === id);
+function updateStats() {
+  document.getElementById('total-score').textContent = totalScore;
+  document.getElementById('total-streak').textContent = totalStreak;
+}
+
+function selectTopic(topicId) {
+  currentTopic = grammarTopics.find(t => t.id === topicId);
+  currentQuestion = 0;
+  currentScore = 0;
+  currentStreak = 0;
+  
+  if (!topicProgress[currentTopic.id]) {
+    topicProgress[currentTopic.id] = { attempts: 0, bestScore: 0 };
+  }
+  
   showScreen('lesson');
   renderLesson();
 }
 
 function renderLesson() {
-  document.getElementById('lesson-title').textContent = currentTopic.name;
+  document.getElementById('lesson-title').textContent = `📖 ${currentTopic.name}`;
   document.getElementById('rule-text').textContent = currentTopic.rule;
-  document.getElementById('rule-source').textContent = `(${currentTopic.source})`;
+  document.getElementById('rule-source').textContent = `— ${currentTopic.source}`;
   document.getElementById('coach-text').textContent = currentTopic.coach;
+  renderOwl('lesson');
 }
 
 function startPractice() {
-  score = 0;
-  streak = 0;
   currentQuestion = 0;
+  currentScore = 0;
+  currentStreak = 0;
   showScreen('practice');
   renderQuestion();
 }
 
 function renderQuestion() {
   if (currentQuestion >= currentTopic.questions.length) {
-    showResults();
+    showResult();
     return;
   }
-
-  const q = currentTopic.questions[currentQuestion];
-  document.getElementById('question-text').textContent = q.q;
+  
+  const question = currentTopic.questions[currentQuestion];
+  document.getElementById('question-text').textContent = question.text;
   document.getElementById('round-num').textContent = currentQuestion + 1;
-  document.getElementById('practice-score').textContent = score;
-  document.getElementById('practice-streak').textContent = streak;
+  document.getElementById('practice-score').textContent = currentScore;
+  document.getElementById('practice-streak').textContent = currentStreak;
   
-  // Clear feedback
-  const feedback = document.getElementById('feedback');
-  feedback.classList.add('hidden');
+  // Update progress bar
+  const progress = ((currentQuestion) / currentTopic.questions.length) * 100;
+  document.getElementById('progress-fill').style.width = progress + '%';
+  
+  // Clear previous answer
   document.getElementById('answer-input').value = '';
-
-  if (q.type === 'text') {
-    document.getElementById('text-input-area').classList.remove('hidden');
-    document.getElementById('options-area').classList.add('hidden');
-  } else if (q.type === 'mc') {
-    document.getElementById('text-input-area').classList.add('hidden');
-    renderOptions(q);
-  }
-
-  updateProgressBar();
-}
-
-function renderOptions(q) {
-  const area = document.getElementById('options-area');
-  area.classList.remove('hidden');
-  area.innerHTML = q.opts.map((opt, i) => `
-    <button class="option-btn" onclick="selectOption('${opt}', '${q.a}')">
-      ${opt}
-    </button>
-  `).join('');
-}
-
-function selectOption(selected, correct) {
-  const isCorrect = selected === correct;
-  updateScore(isCorrect, selected);
+  document.getElementById('feedback').classList.add('hidden');
   
-  const btns = document.querySelectorAll('.option-btn');
-  btns.forEach(btn => {
-    if (btn.textContent.trim() === selected) {
-      btn.classList.add(isCorrect ? 'correct' : 'incorrect');
-    } else if (btn.textContent.trim() === correct) {
-      btn.classList.add('correct');
-    }
-    btn.disabled = true;
-  });
+  const optionsArea = document.getElementById('options-area');
+  const textInputArea = document.getElementById('text-input-area');
+  
+  if (question.type === 'multiple-choice') {
+    optionsArea.classList.remove('hidden');
+    textInputArea.classList.add('hidden');
+    optionsArea.innerHTML = question.options.map(option => `
+      <button class="option-btn" onclick="checkMultipleChoice('${option}')">${option}</button>
+    `).join('');
+  } else {
+    optionsArea.classList.add('hidden');
+    textInputArea.classList.remove('hidden');
+    document.getElementById('answer-input').focus();
+  }
+}
 
-  setTimeout(() => nextQuestion(), 1500);
+function checkMultipleChoice(answer) {
+  const question = currentTopic.questions[currentQuestion];
+  const isCorrect = answer === question.correct;
+  checkAnswerResult(isCorrect);
 }
 
 function checkAnswer() {
-  const input = document.getElementById('answer-input').value.toLowerCase().trim();
-  const q = currentTopic.questions[currentQuestion];
-  
-  let isCorrect = false;
-  if (typeof q.a === 'string') {
-    isCorrect = input === q.a.toLowerCase();
-  } else if (Array.isArray(q.a)) {
-    isCorrect = q.a.some(ans => input === ans.toLowerCase());
+  const answer = document.getElementById('answer-input').value.trim().toLowerCase();
+  if (!answer) {
+    alert('Please type an answer!');
+    return;
   }
-
-  updateScore(isCorrect, input);
-  showFeedback(isCorrect, q.explanation);
   
-  setTimeout(() => nextQuestion(), 2000);
+  const question = currentTopic.questions[currentQuestion];
+  const isCorrect = question.acceptAnswers.some(acc => 
+    answer === acc.toLowerCase()
+  );
+  checkAnswerResult(isCorrect);
 }
 
-function updateScore(isCorrect, userAnswer) {
-  if (isCorrect) {
-    score += 10;
-    streak += 1;
-    totalScore += 10;
-    bestStreak = Math.max(bestStreak, streak);
-  } else {
-    streak = 0;
-  }
-  document.getElementById('practice-score').textContent = score;
-  document.getElementById('practice-streak').textContent = streak;
-}
-
-function showFeedback(isCorrect, explanation) {
+function checkAnswerResult(isCorrect) {
   const feedback = document.getElementById('feedback');
-  feedback.classList.remove('hidden');
-  feedback.classList.toggle('error', !isCorrect);
+  const question = currentTopic.questions[currentQuestion];
   
-  const msg = isCorrect ? '✅ Correct!' : '❌ Try again!';
-  feedback.innerHTML = `
-    <p><strong>${msg}</strong></p>
-    <p>${explanation}</p>
-    <button class="feedback-btn" onclick="nextQuestion()">Continue</button>
-  `;
-}
-
-function nextQuestion() {
-  currentQuestion++;
-  renderQuestion();
-}
-
-function showResults() {
-  showScreen('result');
-  document.getElementById('result-title').textContent = 
-    score >= 40 ? '🎉 Excellent!' : score >= 20 ? '👍 Good job!' : '💪 Keep practicing!';
-  document.getElementById('final-score').textContent = score;
-  document.getElementById('final-streak').textContent = streak;
-  
-  topicScores[currentTopic.name] = Math.max((topicScores[currentTopic.name] || 0), score);
-  localStorage.setItem('topicScores', JSON.stringify(topicScores));
-  localStorage.setItem('totalScore', totalScore);
-  localStorage.setItem('bestStreak', bestStreak);
-  updateStats();
-}
-
-function restartPractice() {
-  startPractice();
-}
-
-function goHome() {
-  showScreen('home');
-}
-
-function openDashboard() {
-  showScreen('dashboard');
-  renderDashboard();
-}
-
-function renderDashboard() {
-  document.getElementById('dash-score').textContent = totalScore;
-  document.getElementById('dash-streak').textContent = bestStreak;
-  document.getElementById('dash-topics').textContent = Object.keys(topicScores).length;
-  
-  const list = document.getElementById('topic-progress-list');
-  list.innerHTML = grammarTopics.map(t => {
-    const topicScore = topicScores[t.name] || 0;
-    return `
-      <div class="topic-progress">
-        <span class="topic-progress-name">${t.emoji} ${t.name}</span>
-        <span class="topic-progress-score">${topicScore}</span>
-      </div>
-    `;
-  }).join('');
-}
-
-function resetProgress() {
-  if (confirm('Reset all progress? This cannot be undone.')) {
-    totalScore = 0;
-    bestStreak = 0;
-    topicScores = {};
-    localStorage.clear();
-    updateStats();
-    renderDashboard();
-    goHome();
+  if (isCorrect) {
+    currentScore++;
+    currentStreak++;
+    feedback.textContent = '✓ Correct! Great job! 🎉';
+    feedback.classList.remove('hidden', 'incorrect');
+    feedback.classList.add('correct');
+  } else {
+    currentStreak = 0;
+    const correct = question.type === 'multiple-choice' ? question.correct : question.acceptAnswers[0];
+    feedback.textContent = `✗ Not quite. The answer is: ${correct}`;
+    feedback.classList.remove('hidden', 'correct');
+    feedback.classList.add('incorrect');
   }
-}
-
-function updateStats() {
-  document.getElementById('total-score').textContent = totalScore;
-  document.getElementById('total-streak').textContent = bestStreak;
-}
-
-function updateProgressBar() {
-  const pct = (currentQuestion / currentTopic.questions.length) * 100;
-  document.getElementById('progress-fill').style.width = pct + '%';
+  
+  document.getElementById('practice-score').textContent = currentScore;
+  document.getElementById('practice-streak').textContent = currentStreak;
+  
+  setTimeout(() => {
+    currentQuestion++;
+    setTimeout(renderQuestion, 1000);
+  }, 2000);
 }
 
 function startVoice() {
-  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.start();
+  if (!recognition) {
+    alert('Speech recognition not available in your browser');
+    return;
+  }
+  
   document.getElementById('voice-btn').textContent = '🎤 Listening...';
+  recognition.start();
   
   recognition.onresult = (event) => {
-    const transcript = event.results[0][0].transcript.toLowerCase();
+    const transcript = event.results[0][0].transcript;
     document.getElementById('answer-input').value = transcript;
     document.getElementById('voice-btn').textContent = '🎤 Speak';
   };
@@ -240,13 +180,85 @@ function startVoice() {
   };
 }
 
+function showResult() {
+  topicProgress[currentTopic.id].attempts++;
+  if (currentScore > (topicProgress[currentTopic.id].bestScore || 0)) {
+    topicProgress[currentTopic.id].bestScore = currentScore;
+  }
+  
+  totalScore = parseInt(totalScore) + currentScore;
+  if (currentStreak > parseInt(totalStreak)) {
+    totalStreak = currentStreak;
+  }
+  
+  localStorage.setItem('totalScore', totalScore);
+  localStorage.setItem('totalStreak', totalStreak);
+  localStorage.setItem('topicProgress', JSON.stringify(topicProgress));
+  
+  document.getElementById('final-score').textContent = currentScore;
+  document.getElementById('final-streak').textContent = currentStreak;
+  
+  const total = currentTopic.questions.length;
+  const percentage = Math.round((currentScore / total) * 100);
+  
+  let message = '';
+  if (percentage === 100) {
+    message = 'Perfect score! You\'re a grammar champion! 🏆';
+  } else if (percentage >= 80) {
+    message = 'Excellent work! You really know your grammar! 🌟';
+  } else if (percentage >= 60) {
+    message = 'Good effort! Keep practicing! 💪';
+  } else {
+    message = 'Keep trying! You\'ll get better! 📚';
+  }
+  
+  document.getElementById('result-title').textContent = `${currentScore}/${total} Correct!`;
+  document.getElementById('result-message').textContent = message;
+  renderOwl('success');
+  showScreen('result');
+}
+
+function restartPractice() {
+  startPractice();
+}
+
+function openDashboard() {
+  document.getElementById('dash-score').textContent = totalScore;
+  document.getElementById('dash-streak').textContent = totalStreak;
+  document.getElementById('dash-topics').textContent = Object.keys(topicProgress).length;
+  
+  const list = document.getElementById('topic-progress-list');
+  list.innerHTML = Object.entries(topicProgress).map(([topicId, progress]) => {
+    const topic = grammarTopics.find(t => t.id === parseInt(topicId));
+    return `
+      <div class="topic-progress">
+        <span class="topic-progress-name">${topic.name}</span>
+        <span class="topic-progress-score">Best: ${progress.bestScore}/5 (${progress.attempts} attempt${progress.attempts !== 1 ? 's' : ''})</span>
+      </div>
+    `;
+  }).join('');
+  
+  showScreen('dashboard');
+}
+
+function resetProgress() {
+  if (confirm('Are you sure? This will reset all progress.')) {
+    totalScore = 0;
+    totalStreak = 0;
+    topicProgress = {};
+    localStorage.clear();
+    alert('Progress reset!');
+    goHome();
+  }
+}
+
+function goHome() {
+  showScreen('home');
+  updateStats();
+  renderTopics();
+}
+
 function showScreen(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(name).classList.add('active');
 }
-
-// Mobile nav
-document.getElementById('mobileNavBtn')?.addEventListener('click', () => {
-  const nav = document.getElementById('navLinks');
-  nav?.classList.toggle('open');
-});

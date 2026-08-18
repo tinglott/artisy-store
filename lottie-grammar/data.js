@@ -2,71 +2,204 @@ const grammarTopics = [
   {
     id: 1,
     name: "Nouns",
-    emoji: "📚",
-    rule: "A noun is a person, place, or thing.",
-    source: "English Grammar Basics",
-    coach: "Nouns are all around us! People like your teacher, places like your school, and things like your pencil are all nouns.",
+    emoji: "📦",
+    rule: "A noun is a person, place, thing, or idea. It's what we name in a sentence.",
+    source: "Elementary Grammar",
+    coach: "Nouns are everywhere! Is it a person? A place? A thing? It's probably a noun!",
     questions: [
-      { type: "text", q: "Is 'dog' a noun?", a: "yes", explanation: "Yes! A dog is an animal (a thing), so it's a noun." },
-      { type: "text", q: "Is 'run' a noun?", a: "no", explanation: "No, 'run' is a verb (an action). But 'a run' can be a noun!" },
-      { type: "text", q: "What noun is a person?", a: ["teacher", "doctor", "child", "student"], explanation: "Great! Any person's job or role can be a noun." },
-      { type: "mc", q: "Which is a noun?", opts: ["jump", "happy", "cat", "quickly"], a: "cat" }
+      {
+        text: "Which word is a noun?",
+        type: "multiple-choice",
+        options: ["run", "happy", "dog", "quickly"],
+        correct: "dog"
+      },
+      {
+        text: "Identify the noun in: 'The blue car is fast.'",
+        type: "multiple-choice",
+        options: ["blue", "car", "fast", "is"],
+        correct: "car"
+      },
+      {
+        text: "Is 'teacher' a noun?",
+        type: "multiple-choice",
+        options: ["Yes", "No", "Sometimes", "Maybe"],
+        correct: "Yes"
+      },
+      {
+        text: "Which is a proper noun (starts with capital)?",
+        type: "multiple-choice",
+        options: ["boy", "Sarah", "dog", "house"],
+        correct: "Sarah"
+      },
+      {
+        text: "Name a noun that is a thing (object).",
+        type: "text",
+        acceptAnswers: ["book", "pen", "chair", "table", "desk", "cup", "box", "ball"]
+      }
     ]
   },
   {
     id: 2,
     name: "Verbs",
-    emoji: "🏃",
-    rule: "A verb is an action or a state of being.",
-    source: "English Grammar Basics",
-    coach: "Verbs are words that show what something does or is. Run, jump, sleep, and 'be' are all verbs!",
+    emoji: "⚡",
+    rule: "A verb is an action word. It's what someone or something does.",
+    source: "Elementary Grammar",
+    coach: "Verbs are action! Running, jumping, thinking... if you can DO it, it's probably a verb!",
     questions: [
-      { type: "text", q: "Is 'jump' a verb?", a: "yes", explanation: "Yes! Jump is an action, so it's a verb." },
-      { type: "text", q: "Is 'blue' a verb?", a: "no", explanation: "No, 'blue' is an adjective (a describing word). But 'to blue' isn't commonly used as a verb." },
-      { type: "text", q: "Name one action verb.", a: ["run", "walk", "eat", "play", "sing", "dance", "jump"], explanation: "Perfect! Any action word is an action verb." },
-      { type: "mc", q: "Which is a verb?", opts: ["green", "sing", "happy", "tree"], a: "sing" }
+      {
+        text: "Which word is a verb?",
+        type: "multiple-choice",
+        options: ["cat", "run", "blue", "happy"],
+        correct: "run"
+      },
+      {
+        text: "What is the verb in: 'She reads a book.'?",
+        type: "multiple-choice",
+        options: ["She", "reads", "a", "book"],
+        correct: "reads"
+      },
+      {
+        text: "Is 'think' a verb?",
+        type: "multiple-choice",
+        options: ["Yes", "No", "Maybe", "Sometimes"],
+        correct: "Yes"
+      },
+      {
+        text: "Find the action verb: 'The dog jumps over the fence.'",
+        type: "multiple-choice",
+        options: ["dog", "jumps", "fence", "over"],
+        correct: "jumps"
+      },
+      {
+        text: "Name an action verb (an action you can do).",
+        type: "text",
+        acceptAnswers: ["jump", "run", "swim", "write", "play", "eat", "dance", "sing"]
+      }
     ]
   },
   {
     id: 3,
     name: "Adjectives",
-    emoji: "✨",
-    rule: "An adjective is a word that describes a noun.",
-    source: "English Grammar Basics",
-    coach: "Adjectives tell us more about nouns. They describe colors, sizes, feelings, and more!",
+    emoji: "🎨",
+    rule: "An adjective describes a noun. It tells us what something is like.",
+    source: "Elementary Grammar",
+    coach: "Adjectives paint pictures! Big, small, colorful, happy—they describe nouns beautifully!",
     questions: [
-      { type: "text", q: "Is 'big' an adjective?", a: "yes", explanation: "Yes! 'Big' describes the size of something." },
-      { type: "text", q: "Is 'run' an adjective?", a: "no", explanation: "No, 'run' is a verb. But 'running' can describe (as in 'running water')." },
-      { type: "text", q: "Name one adjective that describes color.", a: ["red", "blue", "green", "yellow", "purple", "orange"], explanation: "Excellent! Colors are adjectives." },
-      { type: "mc", q: "Which adjective describes how something feels?", opts: ["soft", "fast", "dark", "loud"], a: "soft" }
+      {
+        text: "Which word is an adjective?",
+        type: "multiple-choice",
+        options: ["run", "beautiful", "dog", "jump"],
+        correct: "beautiful"
+      },
+      {
+        text: "What adjective describes the noun in: 'The tall building'?",
+        type: "multiple-choice",
+        options: ["tall", "building", "the", "is"],
+        correct: "tall"
+      },
+      {
+        text: "Is 'bright' an adjective?",
+        type: "multiple-choice",
+        options: ["Yes", "No", "Maybe", "Unsure"],
+        correct: "Yes"
+      },
+      {
+        text: "Find the adjective: 'She has a blue bicycle.'",
+        type: "multiple-choice",
+        options: ["She", "has", "blue", "bicycle"],
+        correct: "blue"
+      },
+      {
+        text: "Name an adjective that describes a color or feeling.",
+        type: "text",
+        acceptAnswers: ["red", "blue", "happy", "sad", "green", "yellow", "angry", "calm"]
+      }
     ]
   },
   {
     id: 4,
     name: "Subject-Verb Agreement",
     emoji: "🤝",
-    rule: "The subject and verb must match in number (singular or plural).",
-    source: "Grammar Rules",
-    coach: "If the subject is one thing (singular), the verb should match. If it's more than one (plural), the verb changes too!",
+    rule: "The subject and verb must agree. Singular subjects need singular verbs. Plural subjects need plural verbs.",
+    source: "Elementary Grammar",
+    coach: "One cat runs. Two cats run. See? They match! That's agreement!",
     questions: [
-      { type: "mc", q: "Choose the correct sentence:", opts: ["The cat are sleeping.", "The cat is sleeping.", "The cat am sleeping."], a: "The cat is sleeping." },
-      { type: "mc", q: "Which is correct?", opts: ["Dogs runs fast.", "Dogs run fast.", "Dog run fast."], a: "Dogs run fast." },
-      { type: "text", q: "Does 'She _____ a book.' want 'read' or 'reads'?", a: "reads", explanation: "Correct! 'She reads' because 'she' is singular." },
-      { type: "text", q: "Does 'They _____ to school.' want 'go' or 'goes'?", a: "go", explanation: "Right! 'They go' because 'they' is plural." }
+      {
+        text: "Complete: 'The cat ___' (runs / run)?",
+        type: "multiple-choice",
+        options: ["runs", "run", "running", "ran"],
+        correct: "runs"
+      },
+      {
+        text: "Which is correct?",
+        type: "multiple-choice",
+        options: ["The dogs runs", "The dogs run", "The dog run", "Dogs is running"],
+        correct: "The dogs run"
+      },
+      {
+        text: "Does 'She go' agree?",
+        type: "multiple-choice",
+        options: ["Yes", "No", "Sometimes", "Maybe"],
+        correct: "No"
+      },
+      {
+        text: "Complete: 'They ___ to school.' (goes / go)?",
+        type: "multiple-choice",
+        options: ["goes", "go", "going", "gone"],
+        correct: "go"
+      },
+      {
+        text: "Is 'I am' correct agreement?",
+        type: "text",
+        acceptAnswers: ["yes", "Yes", "YES", "y"]
+      }
     ]
   },
   {
     id: 5,
     name: "Punctuation",
-    emoji: "❗",
-    rule: "Punctuation marks help us read and understand sentences clearly.",
-    source: "Grammar Rules",
-    coach: "Periods end sentences. Commas pause. Question marks ask. Exclamation points show excitement!",
+    emoji: "✍️",
+    rule: "Punctuation marks help us understand sentences. Periods end sentences. Question marks ask questions. Exclamation marks show excitement!",
+    source: "Elementary Grammar",
+    coach: "Punctuation is like traffic signs for words! They guide us where to pause and stop.",
     questions: [
-      { type: "text", q: "What punctuation ends a sentence?", a: ["period", ".", "full stop"], explanation: "Great! A period (.) ends a sentence." },
-      { type: "text", q: "What punctuation asks a question?", a: ["question mark", "?"], explanation: "Perfect! A question mark (?) shows we're asking something." },
-      { type: "mc", q: "Which sentence is punctuated correctly?", opts: ["Do you like cats.", "Do you like cats?", "Do you like cats"], a: "Do you like cats?" },
-      { type: "text", q: "What punctuation shows strong feeling?", a: ["exclamation mark", "!", "exclamation point"], explanation: "Awesome! An exclamation mark (!) shows excitement or strong feeling!" }
+      {
+        text: "What punctuation ends a question?",
+        type: "multiple-choice",
+        options: [".", "?", "!", ","],
+        correct: "?"
+      },
+      {
+        text: "Which sentence is correct?",
+        type: "multiple-choice",
+        options: ["I like dogs", "I like dogs.", "I like dogs!", "All are correct"],
+        correct: "All are correct"
+      },
+      {
+        text: "What mark shows excitement?",
+        type: "multiple-choice",
+        options: [".", "?", "!", ","],
+        correct: "!"
+      },
+      {
+        text: "Complete: 'What is your name_'",
+        type: "multiple-choice",
+        options: [".", "?", "!", "-"],
+        correct: "?"
+      },
+      {
+        text: "Name one punctuation mark you use in sentences.",
+        type: "text",
+        acceptAnswers: ["period", ".", "question mark", "?", "exclamation", "!", "comma", ","]
+      }
     ]
   }
 ];
+
+// Lottie animations (owl emoji for now; can be replaced with actual Lottie JSON)
+const lottieAnimations = {
+  home: "🦉",
+  lesson: "🦉",
+  success: "🎉",
+  thinking: "🤔"
+};
