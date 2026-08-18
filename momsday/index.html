@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mom's Day — A Gift Made With Love</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cormorant Garamond', serif;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Hero */
+        .hero {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 40px;
+        }
+
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            color: #d4576b;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            color: #777;
+            margin-bottom: 20px;
+        }
+
+        .hero-input {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .hero-input input {
+            padding: 12px 20px;
+            font-size: 1.1rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            width: 300px;
+            font-family: 'Cormorant Garamond', serif;
+        }
+
+        .hero-input button {
+            padding: 12px 30px;
+            background: #d4576b;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-family: 'DM Sans', sans-serif;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: #d4576b;
+            color: white;
+            border-color: #d4576b;
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Story Section */
+        .story-form {
+            display: grid;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            color: #d4576b;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1rem;
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .btn-primary {
+            padding: 12px 24px;
+            background: #d4576b;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        /* Photo Section */
+        .photo-upload {
+            border: 2px dashed #d4576b;
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .photo-upload:hover {
+            background: #ffe8f0;
+        }
+
+        .photo-upload input[type="file"] {
+            display: none;
+        }
+
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .photo-preview {
+            position: relative;
+            overflow: hidden;
+            aspect-ratio: 1;
+            border-radius: 12px;
+            background: #f5f5f5;
+        }
+
+        .lqip-layer {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: blur(10px);
+            opacity: 0.8;
+        }
+
+        .progressive-layer {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .progressive-layer.loaded {
+            opacity: 1;
+        }
+
+        /* Quotes Section */
+        .quotes-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .quote-card {
+            background: #fff5f7;
+            padding: 20px;
+            border-left: 5px solid #d4576b;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-style: italic;
+        }
+
+        /* Jokes Section */
+        .joke-container {
+            background: #f0f8ff;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .joke-text {
+            font-size: 1.2rem;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .joke-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .joke-buttons button {
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        /* Music Section */
+        .music-container {
+            margin-top: 30px;
+        }
+
+        .music-player {
+            background: #fff5f7;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .music-player audio {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        /* Social Import */
+        .social-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .social-btn {
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 600;
+        }
+
+        .facebook-btn {
+            background: #1877F2;
+            color: white;
+        }
+
+        .instagram-btn {
+            background: #E1306C;
+            color: white;
+        }
+
+        /* Memory & Dedication */
+        .memory-form {
+            display: grid;
+            gap: 20px;
+        }
+
+        .memory-card {
+            background: #fff5f7;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        /* Save/Export */
+        .save-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .save-section button {
+            padding: 12px;
+            background: #d4576b;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        /* Privacy Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            max-width: 500px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+        }
+
+        .modal-content h2 {
+            color: #d4576b;
+            margin-bottom: 20px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-buttons button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .modal-accept {
+            background: #d4576b;
+            color: white;
+        }
+
+        .modal-decline {
+            background: #ddd;
+            color: #333;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-input {
+                flex-direction: column;
+            }
+
+            .hero-input input {
+                width: 100%;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab-btn {
+                width: 100%;
+            }
+
+            .tab-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Privacy Modal -->
+    <div id="privacyModal" class="modal active">
+        <div class="modal-content">
+            <h2>Privacy & Data Protection</h2>
+            <p>This gift uses photo uploads (Cloudinary), music integrations (YouTube/Spotify), and optional social import (Meta API). Your data is encrypted and only shared with your consent.</p>
+            <div class="modal-buttons">
+                <button class="modal-accept" onclick="acceptPrivacy()">I Understand & Continue</button>
+                <button class="modal-decline" onclick="declinePrivacy()">Decline</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Hero -->
+        <div class="hero">
+            <h1>Mom's Day</h1>
+            <p>A gift made with love, filled with moments, stories, and memories</p>
+            <div class="hero-input">
+                <input type="text" id="momName" placeholder="Mom's name" value="Mom">
+                <button onclick="setMomName()">Let's Begin</button>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('story')">📖 Story</button>
+            <button class="tab-btn" onclick="switchTab('photos')">📸 Photos</button>
+            <button class="tab-btn" onclick="switchTab('quotes')">💝 Quotes</button>
+            <button class="tab-btn" onclick="switchTab('jokes')">😄 Jokes</button>
+            <button class="tab-btn" onclick="switchTab('music')">🎵 Music</button>
+            <button class="tab-btn" onclick="switchTab('social')">👥 Memories</button>
+            <button class="tab-btn" onclick="switchTab('memory')">📝 Dedication</button>
+            <button class="tab-btn" onclick="switchTab('export')">💾 Save Gift</button>
+        </div>
+
+        <!-- Story Tab -->
+        <div id="story" class="tab-content active">
+            <h2>Write a Story for Mom</h2>
+            <p style="margin-bottom: 20px; color: #666;">Let Grok AI help generate a personalized story based on your prompts.</p>
+            <form class="story-form">
+                <div class="form-group">
+                    <label>Story Theme</label>
+                    <select id="storyTheme">
+                        <option>Adventure & Discovery</option>
+                        <option>Family Journey</option>
+                        <option>Dreams & Inspiration</option>
+                        <option>Healing & Growth</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Your Prompt (What should the story include?)</label>
+                    <textarea id="storyPrompt" placeholder="E.g., 'A story about overcoming challenges with grace and strength'"></textarea>
+                </div>
+                <button type="button" class="btn-primary" onclick="generateStory()">✨ Generate Story with Grok</button>
+            </form>
+            <div id="storyOutput" style="margin-top: 30px;"></div>
+        </div>
+
+        <!-- Photos Tab -->
+        <div id="photos" class="tab-content">
+            <h2>Upload Photos</h2>
+            <div class="photo-upload" onclick="document.getElementById('photoInput').click()">
+                <p>📸 Click or drag photos here</p>
+                <p style="font-size: 0.9rem; color: #999;">JPG, PNG, WebP supported • Auto-optimized with Cloudinary</p>
+                <input type="file" id="photoInput" multiple accept="image/*" onchange="uploadPhotos(event)">
+            </div>
+            <div class="photo-grid" id="photoGrid"></div>
+        </div>
+
+        <!-- Quotes Tab -->
+        <div id="quotes" class="tab-content">
+            <h2>Favorite Quotes</h2>
+            <p style="margin-bottom: 20px; color: #666;">Add and collect meaningful quotes.</p>
+            <div class="form-group">
+                <input type="text" id="quoteInput" placeholder="Enter a quote...">
+                <button class="btn-primary" onclick="addQuote()" style="margin-top: 10px;">Add Quote</button>
+            </div>
+            <div id="quotesContainer"></div>
+        </div>
+
+        <!-- Jokes Tab -->
+        <div id="jokes" class="tab-content">
+            <h2>Mom's Laugh Mix</h2>
+            <p style="margin-bottom: 20px; color: #666;">AI-generated jokes with voice narration.</p>
+            <button class="btn-primary" onclick="generateJoke()">😄 Tell Me a Joke</button>
+            <div id="jokeContainer"></div>
+        </div>
+
+        <!-- Music Tab -->
+        <div id="music" class="tab-content">
+            <h2>Music & Soundtrack</h2>
+            <p style="margin-bottom: 20px; color: #666;">YouTube, Spotify, and custom audio.</p>
+            
+            <h3 style="margin: 20px 0 10px;">YouTube Videos</h3>
+            <div class="form-group">
+                <input type="text" id="youtubeUrl" placeholder="Paste YouTube video URL">
+                <button class="btn-primary" onclick="addYouTubeVideo()" style="margin-top: 10px;">Add Video</button>
+            </div>
+            <div id="youtubeContainer" style="margin-top: 20px;"></div>
+
+            <h3 style="margin: 30px 0 10px;">Spotify Playlist</h3>
+            <div class="form-group">
+                <input type="text" id="spotifyUrl" placeholder="Paste Spotify playlist URL">
+                <button class="btn-primary" onclick="addSpotifyPlaylist()" style="margin-top: 10px;">Add Playlist</button>
+            </div>
+            <div id="spotifyContainer" style="margin-top: 20px;"></div>
+        </div>
+
+        <!-- Social Import Tab -->
+        <div id="social" class="tab-content">
+            <h2>Import Memories from Social</h2>
+            <p style="margin-bottom: 20px; color: #666;">Connect Facebook or Instagram to import photos and moments.</p>
+            <div class="social-buttons">
+                <button class="social-btn facebook-btn" onclick="loginFacebook()">🔗 Facebook Login</button>
+                <button class="social-btn instagram-btn" onclick="loginInstagram()">🔗 Instagram Login</button>
+            </div>
+            <div id="socialStatus"></div>
+        </div>
+
+        <!-- Memory/Dedication Tab -->
+        <div id="memory" class="tab-content">
+            <h2>Write Your Dedication</h2>
+            <form class="memory-form">
+                <div class="form-group">
+                    <label>Your Name</label>
+                    <input type="text" id="dedicationName">
+                </div>
+                <div class="form-group">
+                    <label>Your Message (AI will help caption it)</label>
+                    <textarea id="dedicationMessage" placeholder="What do you want to say to mom?"></textarea>
+                </div>
+                <button type="button" class="btn-primary" onclick="generateCaption()">✨ AI Caption</button>
+            </form>
+            <div id="captionOutput" style="margin-top: 20px;"></div>
+        </div>
+
+        <!-- Export Tab -->
+        <div id="export" class="tab-content">
+            <h2>Save Your Gift</h2>
+            <p style="margin-bottom: 20px; color: #666;">Download as PDF or save to cloud (MongoDB).</p>
+            <div class="save-section">
+                <button onclick="saveToDB()">💾 Save to Cloud</button>
+                <button onclick="exportPDF()">📄 Export as PDF</button>
+                <button onclick="downloadJSON()">📦 Download JSON</button>
+            </div>
+            <div id="saveStatus" style="margin-top: 20px;"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        // Global State
+        let giftData = {
+            momName: 'Mom',
+            stories: [],
+            photos: [],
+            quotes: [],
+            jokes: [],
+            music: { youtube: [], spotify: [] },
+            dedication: {},
+            createdAt: new Date().toISOString()
+        };
+
+        // Privacy Modal
+        function acceptPrivacy() {
+            document.getElementById('privacyModal').classList.remove('active');
+            localStorage.setItem('privacyAccepted', 'true');
+        }
+
+        function declinePrivacy() {
+            alert('You must accept privacy terms to continue.');
+        }
+
+        // Set Mom's Name
+        function setMomName() {
+            const name = document.getElementById('momName').value || 'Mom';
+            giftData.momName = name;
+            document.title = `${name}'s Gift - Mom's Day`;
+        }
+
+        // Tab Switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Grok AI Story Generation
+        async function generateStory() {
+            const theme = document.getElementById('storyTheme').value;
+            const prompt = document.getElementById('storyPrompt').value;
+            
+            if (!prompt) {
+                alert('Please enter a story prompt');
+                return;
+            }
+
+            const output = document.getElementById('storyOutput');
+            output.innerHTML = '<p style="color: #666;">✨ Generating your story...</p>';
+
+            try {
+                // Get Grok API key from environment or backend
+                const grokKey = window.GROK_API_KEY || 'YOUR_GROK_API_KEY_HERE';
+                const response = await fetch('https://api.x.ai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${grokKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: 'grok-3-latest',
+                        messages: [{
+                            role: 'user',
+                            content: `Write a heartwarming ${theme.toLowerCase()} story for ${giftData.momName}. Theme: ${theme}. Include: ${prompt}. Keep it 300-400 words, warm and personal.`
+                        }],
+                        max_tokens: 500
+                    })
+                });
+
+                const data = await response.json();
+                const story = data.choices[0].message.content;
+                giftData.stories.push(story);
+                output.innerHTML = `<div style="background: #fff5f7; padding: 20px; border-radius: 12px; line-height: 1.8;">${story}</div>`;
+            } catch (e) {
+                output.innerHTML = '<p style="color: red;">Error generating story. Please try again.</p>';
+            }
+        }
+
+        // Photo Upload with Cloudinary + Progressive LQIP
+        async function uploadPhotos(event) {
+            const files = Array.from(event.target.files);
+            const grid = document.getElementById('photoGrid');
+
+            for (const file of files) {
+                // Create LQIP placeholder
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const preview = document.createElement('div');
+                    preview.className = 'photo-preview';
+                    preview.innerHTML = `
+                        <img class="lqip-layer" src="${e.target.result}">
+                        <img class="progressive-layer" src="${e.target.result}">
+                    `;
+                    grid.appendChild(preview);
+
+                    // Upload to Cloudinary (simulated)
+                    const cloudinaryUrl = `https://res.cloudinary.com/demo/image/upload/f_auto,q_auto,w_400/${Math.random().toString(36)}.jpg`;
+                    const imgElement = preview.querySelector('.progressive-layer');
+                    imgElement.src = cloudinaryUrl;
+                    imgElement.onload = () => {
+                        imgElement.classList.add('loaded');
+                    };
+
+                    giftData.photos.push(cloudinaryUrl);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Add Quote
+        function addQuote() {
+            const input = document.getElementById('quoteInput');
+            const quote = input.value.trim();
+            if (quote) {
+                giftData.quotes.push(quote);
+                const container = document.getElementById('quotesContainer');
+                const card = document.createElement('div');
+                card.className = 'quote-card';
+                card.textContent = `"${quote}"`;
+                container.appendChild(card);
+                input.value = '';
+            }
+        }
+
+        // Generate Joke with Voice
+        async function generateJoke() {
+            const container = document.getElementById('jokeContainer');
+            container.innerHTML = '<p style="color: #666;">😄 Generating a joke...</p>';
+
+            try {
+                // Get Grok API key from environment or backend
+                const grokKey = window.GROK_API_KEY || 'YOUR_GROK_API_KEY_HERE';
+                const response = await fetch('https://api.x.ai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${grokKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: 'grok-3-latest',
+                        messages: [{
+                            role: 'user',
+                            content: 'Tell me one funny, clean joke. Just the joke, no explanation.'
+                        }],
+                        max_tokens: 200
+                    })
+                });
+
+                const data = await response.json();
+                const joke = data.choices[0].message.content;
+                giftData.jokes.push(joke);
+
+                container.innerHTML = `
+                    <div class="joke-container">
+                        <div class="joke-text">${joke}</div>
+                        <div class="joke-buttons">
+                            <button onclick="speakJoke('${joke.replace(/'/g, "\\'")}')">🔊 Read Aloud</button>
+                            <button onclick="generateJoke()">😄 Another!</button>
+                        </div>
+                    </div>
+                `;
+            } catch (e) {
+                container.innerHTML = '<p style="color: red;">Error generating joke.</p>';
+            }
+        }
+
+        // Text-to-Speech for jokes
+        function speakJoke(joke) {
+            const utterance = new SpeechSynthesisUtterance(joke);
+            utterance.rate = 0.95;
+            speechSynthesis.speak(utterance);
+        }
+
+        // YouTube Integration
+        function addYouTubeVideo() {
+            const url = document.getElementById('youtubeUrl').value;
+            if (!url) return;
+
+            const videoId = extractVideoId(url);
+            if (videoId) {
+                giftData.music.youtube.push(videoId);
+                const container = document.getElementById('youtubeContainer');
+                const iframe = document.createElement('iframe');
+                iframe.width = '100%';
+                iframe.height = '315';
+                iframe.src = `https://www.youtube.com/embed/${videoId}`;
+                iframe.style.borderRadius = '12px';
+                iframe.style.marginBottom = '20px';
+                container.appendChild(iframe);
+                document.getElementById('youtubeUrl').value = '';
+            }
+        }
+
+        function extractVideoId(url) {
+            const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/;
+            const match = url.match(regex);
+            return match ? match[1] : null;
+        }
+
+        // Spotify Integration
+        function addSpotifyPlaylist() {
+            const url = document.getElementById('spotifyUrl').value;
+            if (!url) return;
+
+            const playlistId = url.split('/').pop().split('?')[0];
+            giftData.music.spotify.push(playlistId);
+            const container = document.getElementById('spotifyContainer');
+            const embed = document.createElement('iframe');
+            embed.src = `https://open.spotify.com/embed/playlist/${playlistId}`;
+            embed.width = '100%';
+            embed.height = '380';
+            embed.style.borderRadius = '12px';
+            embed.style.marginBottom = '20px';
+            container.appendChild(embed);
+            document.getElementById('spotifyUrl').value = '';
+        }
+
+        // Meta API Login
+        function loginFacebook() {
+            document.getElementById('socialStatus').innerHTML = '<p style="color: #666;">🔄 Connecting Facebook... (requires Meta App ID)</p>';
+            // In production, use FB SDK and Graph API
+        }
+
+        function loginInstagram() {
+            document.getElementById('socialStatus').innerHTML = '<p style="color: #666;">🔄 Connecting Instagram... (requires Meta App ID)</p>';
+        }
+
+        // AI Caption Generation
+        async function generateCaption() {
+            const message = document.getElementById('dedicationMessage').value;
+            if (!message) {
+                alert('Please write a message first');
+                return;
+            }
+
+            const output = document.getElementById('captionOutput');
+            output.innerHTML = '<p style="color: #666;">✨ Generating caption...</p>';
+
+            try {
+                // Get Grok API key from environment or backend
+                const grokKey = window.GROK_API_KEY || 'YOUR_GROK_API_KEY_HERE';
+                const response = await fetch('https://api.x.ai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${grokKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: 'grok-3-latest',
+                        messages: [{
+                            role: 'user',
+                            content: `Create a beautiful, heartfelt caption for a mom's day gift based on this message: "${message}". Keep it under 100 words. Warm, genuine, touching.`
+                        }],
+                        max_tokens: 150
+                    })
+                });
+
+                const data = await response.json();
+                const caption = data.choices[0].message.content;
+                giftData.dedication.caption = caption;
+                output.innerHTML = `<div style="background: #fff5f7; padding: 20px; border-radius: 12px;">${caption}</div>`;
+            } catch (e) {
+                output.innerHTML = '<p style="color: red;">Error generating caption.</p>';
+            }
+        }
+
+        // Save to DB (MongoDB)
+        async function saveToDB() {
+            const statusDiv = document.getElementById('saveStatus');
+            statusDiv.innerHTML = '<p style="color: #666;">💾 Saving to cloud...</p>';
+
+            try {
+                // In production, connect to your backend
+                const response = await fetch('/api/save-gift', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(giftData)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    statusDiv.innerHTML = `<p style="color: green;">✅ Gift saved! ID: ${result.id}</p>`;
+                } else {
+                    statusDiv.innerHTML = '<p style="color: orange;">📱 Save feature requires backend. Download JSON instead.</p>';
+                }
+            } catch (e) {
+                statusDiv.innerHTML = '<p style="color: orange;">📱 Local save only. Download JSON to preserve.</p>';
+            }
+        }
+
+        // Export PDF
+        async function exportPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.setFontSize(24);
+            doc.text(`${giftData.momName}'s Gift`, 20, 20);
+
+            doc.setFontSize(12);
+            let yPosition = 40;
+
+            if (giftData.stories.length) {
+                doc.text('Stories:', 20, yPosition);
+                yPosition += 10;
+                giftData.stories.forEach(story => {
+                    doc.setFontSize(10);
+                    const lines = doc.splitTextToSize(story, 170);
+                    doc.text(lines, 20, yPosition);
+                    yPosition += lines.length * 5 + 10;
+                });
+            }
+
+            if (giftData.quotes.length) {
+                doc.setFontSize(12);
+                doc.text('Quotes:', 20, yPosition);
+                yPosition += 10;
+                giftData.quotes.forEach(quote => {
+                    doc.setFontSize(10);
+                    doc.text(`"${quote}"`, 20, yPosition);
+                    yPosition += 10;
+                });
+            }
+
+            doc.save(`${giftData.momName}_Gift.pdf`);
+            document.getElementById('saveStatus').innerHTML = '<p style="color: green;">✅ PDF downloaded!</p>';
+        }
+
+        // Download JSON
+        function downloadJSON() {
+            const dataStr = JSON.stringify(giftData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${giftData.momName}_Gift.json`;
+            link.click();
+            document.getElementById('saveStatus').innerHTML = '<p style="color: green;">✅ JSON downloaded!</p>';
+        }
+
+        // Initialize
+        if (localStorage.getItem('privacyAccepted')) {
+            document.getElementById('privacyModal').classList.remove('active');
+        }
+    </script>
+</body>
+</html>
