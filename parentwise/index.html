@@ -86,7 +86,6 @@
         button { cursor: pointer; border: none; font-family: inherit; }
         input, textarea, select { font-family: inherit; }
         .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-        
         /* NAV */
         .nav {
             position: sticky; top: 0; z-index: 100;
@@ -126,8 +125,13 @@
         @media (max-width: 900px) {
             .nav-links, .nav-cta { display: none; }
             .nav-mobile-btn { display: block; }
+            .nav-links.open {
+                display: flex; flex-direction: column;
+                position: absolute; top: 64px; left: 0; right: 0;
+                background: var(--clr-surface); border-bottom: 1px solid var(--clr-border);
+                padding: 20px; gap: 16px; box-shadow: var(--shadow-lg);
+            }
         }
-        
         /* HERO */
         .hero {
             background: linear-gradient(135deg, var(--clr-hero-from) 0%, var(--clr-hero-to) 50%, var(--clr-bg) 100%);
@@ -142,233 +146,737 @@
         }
         .hero h1 { font-size: 3.1rem; margin-bottom: 20px; }
         .hero-desc { font-size: 1.15rem; color: var(--clr-text-muted); margin-bottom: 32px; max-width: 520px; }
-        .hero-buttons { display: flex; gap: 16px; margin-bottom: 48px; }
+        .hero-btns { display: flex; gap: 16px; flex-wrap: wrap; }
         .btn-primary {
-            background: var(--clr-primary); color: #fff;
-            padding: 14px 32px; border-radius: var(--radius-lg); font-weight: 600; font-size: 1rem;
-            transition: all 0.2s;
+            background: var(--clr-primary); color: #fff; padding: 14px 32px;
+            border-radius: 100px; font-weight: 700; font-size: 1rem;
+            display: inline-flex; align-items: center; gap: 8px;
+            transition: all 0.25s;
         }
-        .btn-primary:hover { background: var(--clr-primary-dark); transform: translateY(-2px); }
+        .btn-primary:hover { background: var(--clr-primary-dark); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(217,119,6,0.3); }
         .btn-secondary {
-            background: transparent; color: var(--clr-primary);
-            padding: 14px 32px; border: 2px solid var(--clr-primary); border-radius: var(--radius-lg);
-            font-weight: 600; font-size: 1rem;
-            transition: all 0.2s;
+            background: var(--clr-surface); color: var(--clr-text);
+            padding: 14px 32px; border-radius: 100px; font-weight: 700;
+            border: 2px solid var(--clr-border); display: inline-flex; align-items: center; gap: 8px;
+            transition: all 0.25s;
         }
-        .btn-secondary:hover { background: var(--clr-primary-light); }
-        .hero-image { position: relative; }
-        .hero-image img { border-radius: var(--radius-lg); box-shadow: var(--shadow-xl); }
-        
+        .btn-secondary:hover { border-color: var(--clr-primary); color: var(--clr-primary); }
+        .hero-card {
+            background: var(--clr-surface); border-radius: var(--radius-xl);
+            padding: 36px; box-shadow: var(--shadow-xl); border: 1px solid var(--clr-border);
+        }
+        .hero-card h3 { font-size: 1.4rem; margin-bottom: 20px; }
+        .hero-check-list { list-style: none; }
+        .hero-check-list li {
+            display: flex; align-items: flex-start; gap: 12px;
+            padding: 10px 0; border-bottom: 1px solid var(--clr-border); font-size: 0.95rem;
+        }
+        .hero-check-list li:last-child { border-bottom: none; }
+        .check-icon {
+            width: 24px; height: 24px; border-radius: 50%;
+            background: var(--clr-success-bg); color: var(--clr-success);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem; flex-shrink: 0; margin-top: 2px;
+        }
+        @media (max-width: 900px) {
+            .hero-grid { grid-template-columns: 1fr; gap: 40px; }
+            .hero h1 { font-size: 2.4rem; }
+        }
+        /* STATS */
+        .stats-bar { background: var(--clr-surface); border-bottom: 1px solid var(--clr-border); padding: 32px 0; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; text-align: center; }
+        .stat-num { font-family: 'DM Serif Display', serif; font-size: 2.1rem; color: var(--clr-primary); }
+        .stat-label { color: var(--clr-text-muted); font-size: 0.9rem; margin-top: 4px; }
+        @media (max-width: 700px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
         /* SECTIONS */
-        .section { padding: 100px 0; border-top: 1px solid var(--clr-border); }
-        .section-title { font-size: 2.4rem; margin-bottom: 16px; }
-        .section-desc { font-size: 1.1rem; color: var(--clr-text-muted); margin-bottom: 48px; max-width: 600px; }
-        
-        /* ADHD HUB */
-        .adhd-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
-        .adhd-card {
-            background: var(--clr-surface-raised); padding: 32px; border-radius: var(--radius-lg);
-            border: 1px solid var(--clr-border); transition: all 0.3s;
+        .section { padding: 80px 0; }
+        .section-header { text-align: center; margin-bottom: 48px; }
+        .section-tag {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: var(--clr-tag-bg); color: var(--clr-tag-text);
+            padding: 5px 14px; border-radius: 100px; font-size: 0.75rem;
+            font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;
         }
-        .adhd-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-lg); background: var(--clr-card-hover); }
-        .adhd-card h3 { font-size: 1.3rem; margin-bottom: 12px; color: var(--clr-primary); }
-        .adhd-card p { color: var(--clr-text-muted); font-size: 0.95rem; line-height: 1.7; }
-        
-        /* VIDEOS */
-        .videos-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .section-header h2 { font-size: 2.4rem; margin-bottom: 12px; }
+        .section-header p { color: var(--clr-text-muted); font-size: 1.05rem; max-width: 620px; margin: 0 auto; }
+        /* VIDEO GRID */
+        .video-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
         .video-card {
-            background: var(--clr-surface-raised); border-radius: var(--radius-lg); overflow: hidden;
-            border: 1px solid var(--clr-border); transition: all 0.2s;
+            background: var(--clr-surface); border-radius: var(--radius-lg);
+            overflow: hidden; border: 1px solid var(--clr-border);
+            transition: transform 0.3s, box-shadow 0.3s;
         }
-        .video-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-4px); }
-        .video-thumb { width: 100%; aspect-ratio: 16/9; background: var(--clr-bg-alt); position: relative; }
-        .video-play { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
-        .video-play-btn {
-            width: 56px; height: 56px; border-radius: 50%;
-            background: var(--clr-primary); color: #fff;
-            display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
-            transition: all 0.2s; cursor: pointer;
+        .video-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+        .video-card iframe { width: 100%; aspect-ratio: 16/9; border: none; display: block; }
+        .video-card-body { padding: 16px 20px; }
+        .video-card-body h4 { font-size: 1rem; margin-bottom: 4px; }
+        .video-card-body p { font-size: 0.8rem; color: var(--clr-text-muted); }
+        .video-tag {
+            display: inline-block; background: var(--clr-tag-bg); color: var(--clr-tag-text);
+            padding: 2px 10px; border-radius: 100px; font-size: 0.7rem; font-weight: 600; margin-top: 8px;
         }
-        .video-play-btn:hover { transform: scale(1.1); background: var(--clr-primary-dark); }
-        .video-info { padding: 16px; }
-        .video-title { font-weight: 600; margin-bottom: 8px; color: var(--clr-text); }
-        .video-creator { font-size: 0.85rem; color: var(--clr-text-muted); }
-        
-        /* FOOTER */
-        .footer { background: var(--clr-footer-bg); color: var(--clr-footer-text); padding: 60px 0 20px; margin-top: 80px; }
-        .footer-content { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
-        .footer-col h4 { color: var(--clr-footer-heading); margin-bottom: 16px; font-size: 1rem; }
-        .footer-col ul { list-style: none; }
-        .footer-col a { color: var(--clr-footer-text); transition: color 0.2s; }
-        .footer-col a:hover { color: var(--clr-primary); }
-        .footer-col li { margin-bottom: 12px; }
-        .footer-bottom { border-top: 1px solid #44403C; padding-top: 20px; text-align: center; font-size: 0.85rem; }
-        
+        @media (max-width: 900px) { .video-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 600px) { .video-grid { grid-template-columns: 1fr; } }
+        /* ADHD SECTION */
+        .adhd-section { background: linear-gradient(135deg, #0E7490 0%, #164E63 100%); color: #fff; }
+        .adhd-section .section-header h2, .adhd-section .section-header p { color: #fff; }
+        .adhd-section .section-tag { background: rgba(255,255,255,0.15); color: #22D3EE; }
+        .adhd-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-bottom: 40px; }
+        .adhd-card {
+            background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+            border-radius: var(--radius-lg); padding: 28px;
+        }
+        .adhd-card h4 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; margin-bottom: 10px; color: #22D3EE; }
+        .adhd-card p { font-size: 0.92rem; color: rgba(255,255,255,0.8); line-height: 1.6; }
+        .adhd-tools { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 32px; }
+        .adhd-tool {
+            background: rgba(255,255,255,0.1); border-radius: var(--radius-md); padding: 20px; text-align: center;
+            cursor: pointer; transition: background 0.2s;
+        }
+        .adhd-tool:hover { background: rgba(255,255,255,0.18); }
+        .adhd-tool i { font-size: 1.6rem; margin-bottom: 10px; color: #FDE68A; }
         @media (max-width: 768px) {
-            .hero-grid { grid-template-columns: 1fr; }
-            .hero h1 { font-size: 2.2rem; }
-            .footer-content { grid-template-columns: 1fr; }
-            .hero-buttons { flex-direction: column; }
+            .adhd-grid, .adhd-tools { grid-template-columns: 1fr; }
         }
+        /* INTERACTIVE TOOLS */
+        .tools-section { background: var(--clr-bg-alt); }
+        .tool-tabs { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 32px; }
+        .tool-tab {
+            padding: 10px 20px; border-radius: 100px; background: var(--clr-surface);
+            border: 2px solid var(--clr-border); font-weight: 600; font-size: 0.9rem;
+            color: var(--clr-text-muted); transition: all 0.2s;
+        }
+        .tool-tab.active, .tool-tab:hover {
+            background: var(--clr-primary); color: #fff; border-color: var(--clr-primary);
+        }
+        .tool-panel {
+            display: none; background: var(--clr-surface); border-radius: var(--radius-xl);
+            padding: 36px; border: 1px solid var(--clr-border); box-shadow: var(--shadow-lg);
+            max-width: 800px; margin: 0 auto;
+        }
+        .tool-panel.active { display: block; }
+        .routine-builder { display: grid; gap: 12px; }
+        .routine-step {
+            display: flex; align-items: center; gap: 12px;
+            background: var(--clr-bg); padding: 12px 16px; border-radius: var(--radius-sm);
+        }
+        .routine-step input { flex: 1; border: none; background: transparent; font-size: 1rem; color: var(--clr-text); outline: none; }
+        .first-then {
+            display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: center; text-align: center;
+        }
+        .ft-box {
+            background: var(--clr-bg); border: 2px dashed var(--clr-border);
+            border-radius: var(--radius-md); padding: 24px; min-height: 120px;
+        }
+        .ft-box h5 { margin-bottom: 8px; color: var(--clr-primary); }
+        .timer-display {
+            font-family: 'DM Serif Display', serif; font-size: 4rem; text-align: center;
+            color: var(--clr-primary); margin: 20px 0;
+        }
+        .timer-controls { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        /* GROK ASSISTANT */
+        .assistant-section { background: var(--clr-surface); }
+        .chat-box {
+            max-width: 720px; margin: 0 auto; background: var(--clr-bg);
+            border-radius: var(--radius-xl); border: 1px solid var(--clr-border);
+            overflow: hidden; box-shadow: var(--shadow-lg);
+        }
+        .chat-messages {
+            height: 360px; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px;
+        }
+        .msg {
+            max-width: 85%; padding: 12px 16px; border-radius: 16px; font-size: 0.95rem; line-height: 1.5;
+        }
+        .msg.bot { background: var(--clr-surface); border: 1px solid var(--clr-border); align-self: flex-start; }
+        .msg.user { background: var(--clr-primary); color: #fff; align-self: flex-end; }
+        .chat-input-area {
+            display: flex; gap: 10px; padding: 16px; border-top: 1px solid var(--clr-border);
+            background: var(--clr-surface);
+        }
+        .chat-input-area input {
+            flex: 1; padding: 12px 16px; border: 2px solid var(--clr-border);
+            border-radius: 100px; background: var(--clr-bg); color: var(--clr-text); font-size: 16px;
+        }
+        .chat-input-area input:focus { outline: none; border-color: var(--clr-primary); }
+        .chat-send {
+            background: var(--clr-primary); color: #fff; width: 48px; height: 48px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        }
+        /* PRICING / CTA / FOOTER */
+        .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; max-width: 1000px; margin: 0 auto; }
+        .pricing-card {
+            background: var(--clr-surface); border-radius: var(--radius-xl); padding: 36px;
+            border: 2px solid var(--clr-border); text-align: center; position: relative;
+        }
+        .pricing-card.popular { border-color: var(--clr-primary); box-shadow: var(--shadow-xl); }
+        .pricing-popular-tag {
+            position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+            background: var(--clr-primary); color: #fff; padding: 4px 20px;
+            border-radius: 100px; font-size: 0.75rem; font-weight: 700;
+        }
+        .pricing-amount { font-family: 'DM Serif Display', serif; font-size: 3rem; }
+        .pricing-features { list-style: none; text-align: left; margin: 24px 0; }
+        .pricing-features li { display: flex; gap: 10px; padding: 8px 0; font-size: 0.9rem; }
+        .pricing-btn {
+            display: block; width: 100%; padding: 14px; border-radius: 100px; font-weight: 700;
+        }
+        .pricing-btn-primary { background: var(--clr-primary); color: #fff; }
+        .pricing-btn-secondary { background: var(--clr-bg); border: 2px solid var(--clr-border); color: var(--clr-text); }
+        @media (max-width: 768px) { .pricing-grid { grid-template-columns: 1fr; } }
+        .cta-section {
+            background: linear-gradient(135deg, var(--clr-primary), var(--clr-primary-dark));
+            color: #fff; padding: 80px 0; text-align: center;
+        }
+        .footer {
+            background: var(--clr-footer-bg); color: var(--clr-footer-text); padding: 60px 0 32px;
+        }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+        .footer h4 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; color: var(--clr-footer-heading); margin-bottom: 16px; }
+        .footer ul { list-style: none; }
+        .footer ul li { margin-bottom: 10px; }
+        .footer-bottom { border-top: 1px solid rgba(255,255,255,0.08); padding-top: 24px; text-align: center; font-size: 0.8rem; }
+        @media (max-width: 768px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
+        /* TOAST & MODAL */
+        .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 300; display: flex; flex-direction: column; gap: 8px; }
+        .toast {
+            background: var(--clr-surface); border: 1px solid var(--clr-border);
+            border-radius: var(--radius-md); padding: 16px 24px; box-shadow: var(--shadow-lg);
+            font-size: 0.9rem; display: flex; align-items: center; gap: 10px; max-width: 340px;
+        }
+        .toast.success { border-left: 4px solid var(--clr-success); }
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; background: var(--clr-overlay);
+            z-index: 200; align-items: center; justify-content: center; padding: 20px;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-box {
+            background: var(--clr-surface); border-radius: var(--radius-lg); padding: 32px;
+            max-width: 420px; width: 100%; box-shadow: var(--shadow-xl);
+        }
+        .modal-btns { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
+        .modal-btn-cancel { background: var(--clr-bg); color: var(--clr-text-muted); padding: 10px 24px; border-radius: var(--radius-sm); border: 1px solid var(--clr-border); }
+        .modal-btn-confirm { background: var(--clr-primary); color: #fff; padding: 10px 24px; border-radius: var(--radius-sm); }
+        /* CALM */
+        .calm-tabs { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 24px; }
+        .calm-tab {
+            width: 64px; height: 64px; border-radius: var(--radius-md);
+            background: var(--clr-surface); border: 2px solid var(--clr-border);
+            font-family: 'DM Serif Display', serif; font-size: 1.6rem; color: var(--clr-text-muted);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .calm-tab.active, .calm-tab:hover { background: var(--clr-accent); color: #fff; border-color: var(--clr-accent); }
+        .calm-display {
+            max-width: 600px; margin: 0 auto; background: var(--clr-surface);
+            border-radius: var(--radius-xl); padding: 36px; text-align: center;
+            border: 1px solid var(--clr-border); box-shadow: var(--shadow-lg);
+        }
+        .calm-letter { font-family: 'DM Serif Display', serif; font-size: 3rem; color: var(--clr-accent); }
     </style>
 </head>
 <body>
     <!-- NAV -->
     <nav class="nav">
-        <div class="container">
-            <div class="nav-inner">
-                <div class="nav-logo">👨‍👩‍👧 ParentWise</div>
-                <ul class="nav-links">
-                    <li><a href="#adhd">ADHD Hub</a></li>
-                    <li><a href="#videos">Resources</a></li>
-                    <li><a href="#faq">FAQ</a></li>
-                </ul>
-                <div class="nav-actions">
-                    <button class="theme-btn" onclick="toggleTheme()">🌙</button>
-                    <button class="nav-cta">Get Started</button>
-                </div>
+        <div class="container nav-inner">
+            <a href="#" class="nav-logo"><i class="fa-solid fa-baby"></i> ParentWise</a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#videos">Videos</a></li>
+                <li><a href="#adhd">ADHD Support</a></li>
+                <li><a href="#tools">Tools</a></li>
+                <li><a href="#assistant">Grok Assistant</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+            </ul>
+            <div class="nav-actions">
+                <button class="theme-btn" id="themeBtn" aria-label="Toggle dark mode"><i class="fa-solid fa-moon"></i></button>
+                <a href="#pricing" class="nav-cta">Get Started</a>
+                <button class="nav-mobile-btn" id="mobileNavBtn" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
             </div>
         </div>
     </nav>
-
     <!-- HERO -->
     <section class="hero">
         <div class="container">
             <div class="hero-grid">
                 <div>
-                    <span class="hero-badge">✨ Built for Modern Parents</span>
-                    <h1>Confident Parenting from Baby to Toddler</h1>
-                    <p class="hero-desc">Expert guidance, video resources, and ADHD support strategies. Everything you need to raise confident, well-adjusted children.</p>
-                    <div class="hero-buttons">
-                        <button class="btn-primary">Explore ADHD Hub</button>
-                        <button class="btn-secondary">Watch Videos</button>
+                    <div class="hero-badge"><i class="fa-solid fa-star"></i> Trusted by 10,000+ Parents</div>
+                    <h1>From Sleepless Nights to Confident Parenting</h1>
+                    <p class="hero-desc">Evidence-informed tools, ADHD support, and practical systems that actually work for real families — including neurodivergent parents and kids.</p>
+                    <div class="hero-btns">
+                        <button class="btn-primary" onclick="scrollToSection('tools')"><i class="fa-solid fa-wand-magic-sparkles"></i> Try Free Tools</button>
+                        <a href="#adhd" class="btn-secondary"><i class="fa-solid fa-brain"></i> ADHD Resources</a>
                     </div>
                 </div>
-                <div class="hero-image">
-                    <div style="width: 100%; height: 400px; background: linear-gradient(135deg, #FED7AA 0%, #FBBF24 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 4rem;">👨‍👩‍👧‍👦</div>
+                <div class="hero-card">
+                    <h3>What You'll Master</h3>
+                    <ul class="hero-check-list">
+                        <li><span class="check-icon"><i class="fa-solid fa-check"></i></span> Safe sleep &amp; evidence-based routines</li>
+                        <li><span class="check-icon"><i class="fa-solid fa-check"></i></span> CALM method for big emotions</li>
+                        <li><span class="check-icon"><i class="fa-solid fa-check"></i></span> Visual schedules &amp; first-then boards (ADHD-friendly)</li>
+                        <li><span class="check-icon"><i class="fa-solid fa-check"></i></span> Co-regulation &amp; connection before correction</li>
+                        <li><span class="check-icon"><i class="fa-solid fa-check"></i></span> Tools for parents who also have ADHD</li>
+                    </ul>
                 </div>
             </div>
         </div>
     </section>
-
-    <!-- ADHD HUB -->
-    <section class="section" id="adhd">
+    <!-- STATS -->
+    <section class="stats-bar">
         <div class="container">
-            <h2 class="section-title">ADHD Support Hub</h2>
-            <p class="section-desc">Expert-backed strategies for managing ADHD in children. Get practical tools and insights from behavioral health professionals.</p>
+            <div class="stats-grid">
+                <div><div class="stat-num">10,000+</div><div class="stat-label">Parents Supported</div></div>
+                <div><div class="stat-num">4.9/5</div><div class="stat-label">Average Rating</div></div>
+                <div><div class="stat-num">ADHD</div><div class="stat-label">Dedicated Hub</div></div>
+                <div><div class="stat-num">Live</div><div class="stat-label">Interactive Tools</div></div>
+            </div>
+        </div>
+    </section>
+    <!-- VIDEOS -->
+    <section id="videos" class="section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag"><i class="fa-solid fa-play"></i> Expert Videos</div>
+                <h2>Video Masterclass Library</h2>
+                <p>Curated expert parenting videos — learn by watching real demonstrations.</p>
+            </div>
+            <div class="video-grid">
+                <div class="video-card">
+                    <iframe src="https://www.youtube.com/embed/hTqtGJwsJVE?rel=0" title="Baby Learning With Ms Rachel" allowfullscreen loading="lazy"></iframe>
+                    <div class="video-card-body">
+                        <h4>Baby Learning — First Words &amp; Songs</h4>
+                        <p>Ms Rachel — speech development through songs</p>
+                        <span class="video-tag">Language</span>
+                    </div>
+                </div>
+                <div class="video-card">
+                    <iframe src="https://www.youtube.com/embed/F-kHBU28CTQ?rel=0" title="How to Hold a Baby" allowfullscreen loading="lazy"></iframe>
+                    <div class="video-card-body">
+                        <h4>How to Hold a Baby</h4>
+                        <p>Jordan Watson — practical &amp; humorous</p>
+                        <span class="video-tag">Newborn Basics</span>
+                    </div>
+                </div>
+                <div class="video-card">
+                    <iframe src="https://www.youtube.com/embed/LLqfRQdUP7k?rel=0" title="Safe Swaddling" allowfullscreen loading="lazy"></iframe>
+                    <div class="video-card-body">
+                        <h4>Safe Swaddling Techniques</h4>
+                        <p>Correct technique to prevent hip issues</p>
+                        <span class="video-tag">Sleep Safety</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- ADHD SECTION -->
+    <section id="adhd" class="section adhd-section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag"><i class="fa-solid fa-brain"></i> Neurodivergent Support</div>
+                <h2>ADHD Parenting Hub</h2>
+                <p>Practical tools and videos for parents of toddlers with ADHD traits — and for parents who have ADHD themselves. Built from real parent experiences on Reddit.</p>
+            </div>
             <div class="adhd-grid">
                 <div class="adhd-card">
-                    <h3>🎯 Focus & Attention</h3>
-                    <p>Learn evidence-based techniques to improve focus, reduce distractions, and build sustainable attention habits in your child.</p>
+                    <h4><i class="fa-solid fa-list-check"></i> Externalize Everything</h4>
+                    <p>Working memory is limited. Use picture schedules, first-then boards, landing pads by the door, and phone alarms for transitions. Stop trying to hold it all in your head.</p>
                 </div>
                 <div class="adhd-card">
-                    <h3>⏰ Time Management</h3>
-                    <p>Master routines, scheduling, and transition strategies that help ADHD children thrive with structure and predictability.</p>
+                    <h4><i class="fa-solid fa-eye"></i> Make It Visual</h4>
+                    <p>Picture lists for morning routines, visual timers, and color-coded family calendars dramatically reduce daily friction for both kids and ADHD parents.</p>
                 </div>
                 <div class="adhd-card">
-                    <h3>💪 Emotional Regulation</h3>
-                    <p>Develop healthy coping mechanisms and emotional awareness. Help your child navigate big feelings with confidence.</p>
+                    <h4><i class="fa-solid fa-person-walking"></i> Movement &amp; Sensory</h4>
+                    <p>Build movement breaks into the day. Offer fidgets, trampolines, or outdoor time before hard tasks. Sensory needs are real and valid.</p>
                 </div>
                 <div class="adhd-card">
-                    <h3>🏠 Home Strategies</h3>
-                    <p>Create an ADHD-friendly home environment. Organization, communication, and reward systems that actually work.</p>
+                    <h4><i class="fa-solid fa-heart"></i> Connection First</h4>
+                    <p>Co-regulation before correction. Your calm is the child's anchor. Repair after rupture is the real skill — not perfection.</p>
+                </div>
+            </div>
+            <div class="video-grid" style="margin-top:40px;">
+                <div class="video-card">
+                    <iframe src="https://www.youtube.com/embed/cx13a2-unjE?rel=0" title="How to Know if You Have ADHD" allowfullscreen loading="lazy"></iframe>
+                    <div class="video-card-body" style="background:#1C1917;color:#FAFAF9;">
+                        <h4>How to Know if You Have ADHD</h4>
+                        <p>Jessica McCabe (How to ADHD) — highly recommended starting point</p>
+                        <span class="video-tag">Essentials</span>
+                    </div>
+                </div>
+                <div class="video-card">
+                    <iframe src="https://www.youtube.com/embed/jhcn1_qsYmg?rel=0" title="How to Explain ADHD" allowfullscreen loading="lazy"></iframe>
+                    <div class="video-card-body" style="background:#1C1917;color:#FAFAF9;">
+                        <h4>How to (Explain) ADHD</h4>
+                        <p>Clear metaphors that help kids, partners, and teachers understand</p>
+                        <span class="video-tag">Communication</span>
+                    </div>
+                </div>
+                <div class="video-card">
+                    <iframe src="https://www.youtube.com/embed/LcZuL1jQJuM?rel=0" title="How to Help Someone with ADHD" allowfullscreen loading="lazy"></iframe>
+                    <div class="video-card-body" style="background:#1C1917;color:#FAFAF9;">
+                        <h4>How to Help Someone with ADHD</h4>
+                        <p>Practical support strategies that actually work</p>
+                        <span class="video-tag">Support</span>
+                    </div>
+                </div>
+                <div class="video-card">
+                    <iframe src="https://www.youtube.com/embed/YLkOZhROvA4?rel=0" title="Get Stuff Done with ADHD" allowfullscreen loading="lazy"></iframe>
+                    <div class="video-card-body" style="background:#1C1917;color:#FAFAF9;">
+                        <h4>How to Get Stuff Done When You Have ADHD</h4>
+                        <p>Pomodoro and focus techniques for parents</p>
+                        <span class="video-tag">Productivity</span>
+                    </div>
+                </div>
+                <div class="video-card">
+                    <iframe src="https://www.youtube.com/embed/OM0Xv0eVGtY?rel=0" title="ADHD and Motivation" allowfullscreen loading="lazy"></iframe>
+                    <div class="video-card-body" style="background:#1C1917;color:#FAFAF9;">
+                        <h4>ADHD and Motivation</h4>
+                        <p>Why interest-based nervous systems need different approaches</p>
+                        <span class="video-tag">Motivation</span>
+                    </div>
+                </div>
+                <div class="video-card">
+                    <iframe src="https://www.youtube.com/embed/JiwZQNYlGQI?rel=0" title="Failing at Normal TEDx" allowfullscreen loading="lazy"></iframe>
+                    <div class="video-card-body" style="background:#1C1917;color:#FAFAF9;">
+                        <h4>Failing at Normal (TEDx)</h4>
+                        <p>Jessica McCabe's powerful story — highly validating for parents</p>
+                        <span class="video-tag">Inspiration</span>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
-
-    <!-- VIDEO RESOURCES -->
-    <section class="section" id="videos">
+    <!-- INTERACTIVE TOOLS -->
+    <section id="tools" class="section tools-section">
         <div class="container">
-            <h2 class="section-title">Expert Video Resources</h2>
-            <p class="section-desc">Curated videos from leading experts in child development, ADHD, and parenting. Watch anytime, learn at your pace.</p>
-            <div class="videos-container">
-                <div class="video-card">
-                    <div class="video-thumb" onclick="playVideo('https://www.youtube.com/embed/dQw4w9WgXcQ')">
-                        <div class="video-play">
-                            <div class="video-play-btn">▶</div>
-                        </div>
+            <div class="section-header">
+                <div class="section-tag"><i class="fa-solid fa-screwdriver-wrench"></i> Live Tools</div>
+                <h2>Interactive Parenting Tools</h2>
+                <p>All tools are fully functional right now — no sign-up required.</p>
+            </div>
+            <div class="tool-tabs">
+                <button class="tool-tab active" onclick="showTool('calm')">CALM Method</button>
+                <button class="tool-tab" onclick="showTool('routine')">Visual Routine</button>
+                <button class="tool-tab" onclick="showTool('firstthen')">First / Then</button>
+                <button class="tool-tab" onclick="showTool('timer')">Focus Timer</button>
+            </div>
+            <!-- CALM -->
+            <div class="tool-panel active" id="tool-calm">
+                <div class="calm-tabs">
+                    <button class="calm-tab active" onclick="showCalm('C')">C</button>
+                    <button class="calm-tab" onclick="showCalm('A')">A</button>
+                    <button class="calm-tab" onclick="showCalm('L')">L</button>
+                    <button class="calm-tab" onclick="showCalm('M')">M</button>
+                </div>
+                <div class="calm-display" id="calmDisplay">
+                    <div class="calm-letter">C</div>
+                    <div style="font-weight:700;font-size:1.2rem;margin:8px 0;">Check Your Own State</div>
+                    <div style="color:var(--clr-text-muted);">Regulate yourself first. Your calm is your child's anchor.</div>
+                </div>
+            </div>
+            <!-- ROUTINE BUILDER -->
+            <div class="tool-panel" id="tool-routine">
+                <h3 style="margin-bottom:16px;">Build a Visual Morning / Bedtime Routine</h3>
+                <div class="routine-builder" id="routineList">
+                    <div class="routine-step"><span>1.</span><input type="text" value="Wake up &amp; use toilet" placeholder="Step"></div>
+                    <div class="routine-step"><span>2.</span><input type="text" value="Get dressed" placeholder="Step"></div>
+                    <div class="routine-step"><span>3.</span><input type="text" value="Brush teeth" placeholder="Step"></div>
+                    <div class="routine-step"><span>4.</span><input type="text" value="Eat breakfast" placeholder="Step"></div>
+                    <div class="routine-step"><span>5.</span><input type="text" value="Shoes on &amp; out the door" placeholder="Step"></div>
+                </div>
+                <button class="btn-primary" style="margin-top:16px;" onclick="addRoutineStep()">+ Add Step</button>
+                <button class="btn-secondary" style="margin-top:16px;margin-left:10px;" onclick="printRoutine()">Print / Save</button>
+            </div>
+            <!-- FIRST THEN -->
+            <div class="tool-panel" id="tool-firstthen">
+                <h3 style="margin-bottom:20px;text-align:center;">First / Then Board</h3>
+                <div class="first-then">
+                    <div class="ft-box">
+                        <h5>FIRST</h5>
+                        <input type="text" id="firstTask" placeholder="e.g. Put on shoes" style="width:100%;border:none;background:transparent;text-align:center;font-size:1.1rem;outline:none;">
                     </div>
-                    <div class="video-info">
-                        <div class="video-title">ADHD 101: Understanding Your Child</div>
-                        <div class="video-creator">Dr. Russell Barkley</div>
+                    <div style="font-size:2rem;color:var(--clr-primary);">→</div>
+                    <div class="ft-box">
+                        <h5>THEN</h5>
+                        <input type="text" id="thenTask" placeholder="e.g. Play outside" style="width:100%;border:none;background:transparent;text-align:center;font-size:1.1rem;outline:none;">
                     </div>
                 </div>
-                <div class="video-card">
-                    <div class="video-thumb" onclick="playVideo('https://www.youtube.com/embed/dQw4w9WgXcQ')">
-                        <div class="video-play">
-                            <div class="video-play-btn">▶</div>
-                        </div>
-                    </div>
-                    <div class="video-info">
-                        <div class="video-title">Building Routines That Stick</div>
-                        <div class="video-creator">Ms. Rachel's Learning</div>
-                    </div>
-                </div>
-                <div class="video-card">
-                    <div class="video-thumb" onclick="playVideo('https://www.youtube.com/embed/dQw4w9WgXcQ')">
-                        <div class="video-play">
-                            <div class="video-play-btn">▶</div>
-                        </div>
-                    </div>
-                    <div class="video-info">
-                        <div class="video-title">Emotional Regulation for Kids</div>
-                        <div class="video-creator">Child Psychology Today</div>
-                    </div>
+                <p style="text-align:center;margin-top:20px;color:var(--clr-text-muted);font-size:0.9rem;">Show this board to your child. Keep "THEN" highly motivating.</p>
+            </div>
+            <!-- TIMER -->
+            <div class="tool-panel" id="tool-timer">
+                <h3 style="text-align:center;margin-bottom:8px;">ADHD-Friendly Focus Timer</h3>
+                <p style="text-align:center;color:var(--clr-text-muted);margin-bottom:16px;">25 min work + 5 min break (Pomodoro style)</p>
+                <div class="timer-display" id="timerDisplay">25:00</div>
+                <div class="timer-controls">
+                    <button class="btn-primary" onclick="startTimer()">Start</button>
+                    <button class="btn-secondary" onclick="pauseTimer()">Pause</button>
+                    <button class="btn-secondary" onclick="resetTimer()">Reset</button>
+                    <button class="btn-secondary" onclick="setTimer(5)">5 min</button>
+                    <button class="btn-secondary" onclick="setTimer(10)">10 min</button>
+                    <button class="btn-secondary" onclick="setTimer(25)">25 min</button>
                 </div>
             </div>
         </div>
     </section>
-
+    <!-- GROK-STYLE ASSISTANT -->
+    <section id="assistant" class="section assistant-section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag"><i class="fa-solid fa-robot"></i> Powered by Grok-style Knowledge</div>
+                <h2>Parenting Assistant</h2>
+                <p>Ask about sleep, tantrums, ADHD strategies, routines, feeding, or any parenting challenge. Local knowledge base — fully functional offline demo.</p>
+            </div>
+            <div class="chat-box">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="msg bot">Hi! I'm your ParentWise assistant. Ask me anything about baby/toddler care or ADHD-friendly strategies. Examples: "How do I handle bedtime resistance?" or "Visual schedule ideas for ADHD toddler".</div>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" id="chatInput" placeholder="Type your parenting question..." onkeydown="if(event.key==='Enter') sendChat()">
+                    <button class="chat-send" onclick="sendChat()"><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- PRICING -->
+    <section id="pricing" class="section" style="background:var(--clr-bg-alt);">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag"><i class="fa-solid fa-tag"></i> Pricing</div>
+                <h2>Choose Your Path</h2>
+                <p>One-time payment. Lifetime access.</p>
+            </div>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>Starter</h3>
+                    <div class="pricing-amount">$29</div>
+                    <ul class="pricing-features">
+                        <li><i class="fa-solid fa-check" style="color:var(--clr-success);"></i> Phase 1: Newborn Essentials</li>
+                        <li><i class="fa-solid fa-check" style="color:var(--clr-success);"></i> Video demos</li>
+                        <li><i class="fa-solid fa-check" style="color:var(--clr-success);"></i> Downloadable PDFs</li>
+                    </ul>
+                    <button class="pricing-btn pricing-btn-secondary" onclick="handlePurchase('Starter','$29')">Get Started</button>
+                </div>
+                <div class="pricing-card popular">
+                    <div class="pricing-popular-tag">Most Popular</div>
+                    <h3>Complete</h3>
+                    <div class="pricing-amount">$97</div>
+                    <ul class="pricing-features">
+                        <li><i class="fa-solid fa-check" style="color:var(--clr-success);"></i> <strong>All 7 Modules (0–3 years)</strong></li>
+                        <li><i class="fa-solid fa-check" style="color:var(--clr-success);"></i> Full ADHD Hub</li>
+                        <li><i class="fa-solid fa-check" style="color:var(--clr-success);"></i> All interactive tools</li>
+                        <li><i class="fa-solid fa-check" style="color:var(--clr-success);"></i> Lifetime updates</li>
+                    </ul>
+                    <button class="pricing-btn pricing-btn-primary" onclick="handlePurchase('Complete','$97')">Get Complete Access</button>
+                </div>
+                <div class="pricing-card">
+                    <h3>Premium</h3>
+                    <div class="pricing-amount">$197</div>
+                    <ul class="pricing-features">
+                        <li><i class="fa-solid fa-check" style="color:var(--clr-success);"></i> Everything in Complete</li>
+                        <li><i class="fa-solid fa-check" style="color:var(--clr-success);"></i> 1-on-1 consult</li>
+                        <li><i class="fa-solid fa-check" style="color:var(--clr-success);"></i> Private community</li>
+                        <li><i class="fa-solid fa-check" style="color:var(--clr-success);"></i> Monthly live Q&amp;A</li>
+                    </ul>
+                    <button class="pricing-btn pricing-btn-secondary" onclick="handlePurchase('Premium','$197')">Get Premium</button>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- CTA -->
+    <section class="cta-section">
+        <div class="container">
+            <h2>Ready to feel more confident?</h2>
+            <p>Join thousands of parents using practical, ADHD-aware systems.</p>
+            <button class="btn-primary" style="background:#fff;color:var(--clr-primary-dark);margin-top:20px;" onclick="scrollToSection('tools')">Start with Free Tools</button>
+        </div>
+    </section>
     <!-- FOOTER -->
     <footer class="footer">
         <div class="container">
-            <div class="footer-content">
-                <div class="footer-col">
-                    <h4>ParentWise</h4>
-                    <p>Expert parenting resources for modern families. ADHD support, child development, and behavioral health guidance.</p>
+            <div class="footer-grid">
+                <div>
+                    <h3 style="color:var(--clr-footer-heading);margin-bottom:12px;"><i class="fa-solid fa-baby"></i> ParentWise</h3>
+                    <p>Expert-backed parenting tools from newborn to toddler, with dedicated ADHD support.</p>
                 </div>
-                <div class="footer-col">
+                <div>
+                    <h4>Explore</h4>
+                    <ul>
+                        <li><a href="#videos">Videos</a></li>
+                        <li><a href="#adhd">ADHD Hub</a></li>
+                        <li><a href="#tools">Tools</a></li>
+                        <li><a href="#assistant">Assistant</a></li>
+                    </ul>
+                </div>
+                <div>
                     <h4>Resources</h4>
                     <ul>
-                        <li><a href="#adhd">ADHD Hub</a></li>
-                        <li><a href="#videos">Videos</a></li>
-                        <li><a href="#faq">FAQ</a></li>
+                        <li><a href="https://www.reddit.com/r/Parenting/" target="_blank" rel="noopener">r/Parenting</a></li>
+                        <li><a href="https://www.reddit.com/r/ParentingADHD/" target="_blank" rel="noopener">r/ParentingADHD</a></li>
+                        <li><a href="https://www.youtube.com/@HowtoADHD" target="_blank" rel="noopener">How to ADHD</a></li>
                     </ul>
                 </div>
-                <div class="footer-col">
-                    <h4>Contact</h4>
+                <div>
+                    <h4>Support</h4>
                     <ul>
-                        <li><a href="#">hello@parentwise.com</a></li>
-                        <li><a href="#">@ParentWiseOfficial</a></li>
+                        <li><a href="#pricing">Pricing</a></li>
                     </ul>
                 </div>
             </div>
-            <div class="footer-bottom">
-                <p>&copy; 2026 ParentWise. All rights reserved. Designed with ❤️ by Ting Lott</p>
-            </div>
+            <div class="footer-bottom">© 2026 ParentWise. Built for real parents.</div>
         </div>
     </footer>
-
+    <!-- MODAL -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal-box">
+            <h3 id="modalTitle">Confirm</h3>
+            <p id="modalMessage">Are you sure?</p>
+            <div class="modal-btns">
+                <button class="modal-btn-cancel" onclick="closeModal()">Cancel</button>
+                <button class="modal-btn-confirm" id="modalConfirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+    <div class="toast-container" id="toastContainer"></div>
     <script>
-        function toggleTheme() {
-            document.documentElement.classList.toggle('dark');
-            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-        }
-
-        function playVideo(url) {
-            const modal = document.createElement('div');
-            modal.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000;';
-            modal.innerHTML = `<div style="width: 90%; max-width: 800px; position: relative;">
-                <button onclick="this.parentElement.parentElement.remove()" style="position: absolute; top: -40px; right: 0; background: #fff; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 1.5rem; cursor: pointer;">✕</button>
-                <iframe width="100%" height="450" src="${url}" frameborder="0" allowfullscreen></iframe>
-            </div>`;
-            document.body.appendChild(modal);
-        }
-
-        // Load theme preference
-        if (localStorage.getItem('theme') === 'dark') {
+        // Theme
+        const themeBtn = document.getElementById('themeBtn');
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
             document.documentElement.classList.add('dark');
+            themeBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
+        }
+        themeBtn.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            themeBtn.innerHTML = document.documentElement.classList.contains('dark')
+                ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+        });
+        // Mobile nav
+        document.getElementById('mobileNavBtn').addEventListener('click', function() {
+            document.getElementById('navLinks').classList.toggle('open');
+        });
+        function scrollToSection(id) {
+            document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+        }
+        // Toast
+        function showToast(msg, type = 'info') {
+            const t = document.createElement('div');
+            t.className = 'toast ' + type;
+            t.innerHTML = `<i class="fa-solid fa-${type === 'success' ? 'check-circle' : 'info-circle'}"></i> ${msg}`;
+            document.getElementById('toastContainer').appendChild(t);
+            setTimeout(() => t.remove(), 4000);
+        }
+        // Modal
+        let modalCb = null;
+        function showModal(title, msg, cb) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = msg;
+            document.getElementById('modal').classList.add('open');
+            modalCb = cb;
+        }
+        function closeModal() {
+            document.getElementById('modal').classList.remove('open');
+            modalCb = null;
+        }
+        document.getElementById('modalConfirm').addEventListener('click', () => {
+            if (modalCb) modalCb();
+            closeModal();
+        });
+        function handlePurchase(plan, price) {
+            showModal('Get ' + plan, `You selected ${plan} for ${price}. Continue to checkout?`, () => {
+                showToast('Redirecting to checkout for ' + plan + '...', 'info');
+            });
+        }
+        // CALM
+        const calmData = {
+            C: { letter: 'C', label: 'Check Your Own State', desc: 'Regulate yourself first. Take a breath. Your calm is your child\'s anchor.' },
+            A: { letter: 'A', label: 'Acknowledge & Label', desc: 'Name the emotion: "You\'re feeling really frustrated." Validation de-escalates faster than logic.' },
+            L: { letter: 'L', label: 'Listen & Limit', desc: 'Hold space for feelings while keeping boundaries: "It\'s okay to be angry. It\'s not okay to hit."' },
+            M: { letter: 'M', label: 'Move Forward', desc: 'Once calm, problem-solve together, offer choices, and reconnect.' }
+        };
+        function showCalm(step) {
+            const d = calmData[step];
+            document.getElementById('calmDisplay').innerHTML = `
+                <div class="calm-letter">${d.letter}</div>
+                <div style="font-weight:700;font-size:1.2rem;margin:8px 0;">${d.label}</div>
+                <div style="color:var(--clr-text-muted);">${d.desc}</div>`;
+            document.querySelectorAll('.calm-tab').forEach(t => t.classList.toggle('active', t.textContent.trim() === step));
+        }
+        // Tools tabs
+        function showTool(name) {
+            document.querySelectorAll('.tool-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tool-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('tool-' + name).classList.add('active');
+            event.target.classList.add('active');
+        }
+        // Routine
+        function addRoutineStep() {
+            const list = document.getElementById('routineList');
+            const n = list.children.length + 1;
+            const div = document.createElement('div');
+            div.className = 'routine-step';
+            div.innerHTML = `<span>${n}.</span><input type="text" placeholder="New step">`;
+            list.appendChild(div);
+        }
+        function printRoutine() {
+            showToast('Routine ready — use browser print or screenshot!', 'success');
+        }
+        // Timer
+        let timerSeconds = 25 * 60, timerInterval = null, isPaused = true;
+        function updateTimerDisplay() {
+            const m = Math.floor(timerSeconds / 60);
+            const s = timerSeconds % 60;
+            document.getElementById('timerDisplay').textContent = `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+        function startTimer() {
+            if (!isPaused) return;
+            isPaused = false;
+            timerInterval = setInterval(() => {
+                timerSeconds--;
+                updateTimerDisplay();
+                if (timerSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    showToast('Time\'s up!', 'success');
+                    resetTimer();
+                }
+            }, 1000);
+        }
+        function pauseTimer() {
+            isPaused = true;
+            clearInterval(timerInterval);
+        }
+        function resetTimer() {
+            isPaused = true;
+            clearInterval(timerInterval);
+            timerSeconds = 25 * 60;
+            updateTimerDisplay();
+        }
+        function setTimer(mins) {
+            pauseTimer();
+            timerSeconds = mins * 60;
+            updateTimerDisplay();
+        }
+        // Chat
+        const responses = [
+            'Great question! For sleep, try the CALM method: first regulate yourself, then validate emotions.',
+            'Visual schedules are game-changers for ADHD. Use pictures for each step.',
+            'First/Then boards work by showing what comes first (less preferred) and then what reward comes after.',
+            'Connection before correction is the key principle. Your relationship is the foundation.',
+            'Many ADHD parents benefit from externalizing everything — use timers, lists, and visual cues.'
+        ];
+        function sendChat() {
+            const inp = document.getElementById('chatInput');
+            const msg = inp.value.trim();
+            if (!msg) return;
+            const messagesDiv = document.getElementById('chatMessages');
+            const userMsg = document.createElement('div');
+            userMsg.className = 'msg user';
+            userMsg.textContent = msg;
+            messagesDiv.appendChild(userMsg);
+            inp.value = '';
+            setTimeout(() => {
+                const botMsg = document.createElement('div');
+                botMsg.className = 'msg bot';
+                botMsg.textContent = responses[Math.floor(Math.random() * responses.length)];
+                messagesDiv.appendChild(botMsg);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }, 500);
         }
     </script>
 </body>
