@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ARIA Writer — AI Writing Assistant | T. Lott Creative</title>
+<meta name="description" content="ARIA is your free AI writing assistant. Fix grammar, improve writing, create social captions, email copy, hooks, and more — powered by Groq AI." />
+<style>
+:root {
+  --bg: #0d0f1a;
+  --surface: #161929;
+  --surface2: #1e2235;
+  --border: #2a2f45;
+  --text: #e8eaf0;
+  --muted: #8890b0;
+  --accent: #a78bfa;
+  --accent2: #60a5fa;
+  --success: #34d399;
+  --danger: #f87171;
+  --warn: #fbbf24;
+  --radius: 12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Inter,system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh;}
+.container{max-width:1400px;margin:0 auto;padding:16px;}
+
+/* HEADER */
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;}
+.logo{display:flex;align-items:center;gap:12px;}
+.logo-icon{font-size:2rem;line-height:1;}
+h1{font-size:1.5rem;font-weight:800;background:linear-gradient(90deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.tagline{font-size:0.73rem;color:var(--muted);margin-top:2px;}
+.badge{background:#1e1b4b;color:var(--accent);padding:3px 10px;border-radius:999px;font-size:0.72rem;font-weight:700;border:1px solid #3730a3;}
+.header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+
+/* ONBOARDING BANNER */
+#setupBanner{background:linear-gradient(135deg,#1e1b4b,#1a2744);border:1px solid var(--accent);border-radius:var(--radius);padding:16px 20px;margin-bottom:14px;}
+#setupBanner h2{font-size:1rem;margin-bottom:6px;color:var(--accent);}
+#setupBanner p{font-size:0.84rem;color:var(--muted);margin-bottom:12px;}
+#setupBanner .setup-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+#setupBanner a{color:var(--accent2);text-decoration:none;font-weight:600;}
+#setupBanner a:hover{text-decoration:underline;}
+
+/* SETTINGS BAR */
+.settings{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:grid;grid-template-columns:160px 1fr 1fr auto;gap:10px;align-items:end;}
+@media(max-width:800px){.settings{grid-template-columns:1fr;}}
+label{font-size:0.73rem;color:var(--muted);display:block;margin-bottom:3px;font-weight:600;letter-spacing:.3px;}
+input,select,textarea{width:100%;background:#0c0e1a;border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:8px;font-size:0.85rem;outline:none;transition:border .15s;}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);}
+input[type="password"]{letter-spacing:2px;}
+input[type="password"]::placeholder{letter-spacing:0;}
+
+/* BUTTONS */
+.btn-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px;}
+button{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:7px 13px;border-radius:8px;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;min-height:34px;}
+button:hover:not(:disabled){background:var(--surface2);border-color:var(--accent);}
+button.primary{background:linear-gradient(135deg,#6d28d9,#4f46e5);color:#fff;border-color:#6d28d9;}
+button.primary:hover:not(:disabled){background:linear-gradient(135deg,#7c3aed,#6366f1);}
+button.ghost{background:transparent;color:var(--muted);border-color:transparent;}
+button.ghost:hover:not(:disabled){background:var(--surface2);color:var(--text);border-color:var(--border);}
+button.success-btn{background:#064e3b;color:#6ee7b7;border-color:#065f46;}
+button:disabled{opacity:.4;cursor:not-allowed;}
+
+/* CUSTOM ROW */
+#customRow{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:12px;display:none;}
+#customRow .inner{display:flex;gap:8px;align-items:flex-end;}
+#customRow label{font-size:0.73rem;color:var(--muted);margin-bottom:4px;display:block;}
+#customRow input{flex:1;}
+
+/* STATUS */
+#status{padding:9px 13px;border-radius:8px;font-size:0.84rem;margin-bottom:10px;display:none;align-items:center;gap:8px;}
+#status.show{display:flex;}
+#status.info{background:#1e3a5f;color:#93c5fd;}
+#status.success{background:#064e3b;color:#6ee7b7;}
+#status.error{background:#7f1d1d;color:#fca5a5;}
+#status.warning{background:#451a03;color:#fcd34d;}
+
+/* EDITORS */
+.editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:12px;}
+@media(max-width:800px){.editor-grid{grid-template-columns:1fr;}}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column;}
+.panel-hdr{padding:9px 13px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:0.8rem;background:rgba(167,139,250,.04);}
+textarea.editor{flex:1;min-height:320px;border:none;border-radius:0;resize:vertical;padding:13px;font-size:0.9rem;line-height:1.65;background:transparent;color:var(--text);font-family:inherit;outline:none;}
+textarea.editor::placeholder{color:var(--muted);opacity:.7;}
+
+/* STATS */
+.stats-bar{display:flex;gap:16px;flex-wrap:wrap;padding:8px 0;color:var(--muted);font-size:0.78rem;border-top:1px solid var(--border);margin-bottom:2px;}
+.stats-bar strong{color:var(--text);}
+
+/* SPINNER */
+.spinner{display:inline-block;width:12px;height:12px;border:2px solid transparent;border-top-color:currentColor;border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* FOOTER */
+footer{text-align:center;color:var(--muted);font-size:0.73rem;margin-top:14px;padding-top:12px;border-top:1px solid var(--border);}
+footer a{color:var(--accent2);text-decoration:none;}
+footer a:hover{text-decoration:underline;}
+
+/* KEY INDICATOR */
+.key-status{display:inline-flex;align-items:center;gap:5px;font-size:0.76rem;padding:4px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted);}
+.key-status.active{background:#064e3b22;color:var(--success);border-color:#065f46;}
+.key-status.inactive{background:#7f1d1d22;color:var(--danger);border-color:#991b1b;}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="logo">
+      <div class="logo-icon">🤖</div>
+      <div>
+        <h1>ARIA Writer</h1>
+        <div class="tagline">AI Writing Assistant · T. Lott Creative</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <span id="keyIndicator" class="key-status inactive">🔑 No API Key</span>
+      <span class="badge">✨ Free Tool</span>
+    </div>
+  </header>
+
+  <!-- Setup Banner (hidden once key is saved) -->
+  <div id="setupBanner">
+    <h2>🚀 Get Started — It's Free!</h2>
+    <p>ARIA uses Groq AI (free tier — no credit card). Get your key in 30 seconds, paste it below, and start writing smarter.</p>
+    <div class="setup-row">
+      <a href="https://console.groq.com/keys" target="_blank" rel="noopener">👉 Get Free Groq API Key</a>
+      <span style="color:var(--muted)">→ then paste it in the settings bar below and click Save.</span>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div class="settings">
+    <div>
+      <label>AI PROVIDER</label>
+      <select id="provider" onchange="onProviderChange()">
+        <option value="groq">🟢 Groq (Free · Fast)</option>
+        <option value="openai">🔵 OpenAI (GPT-4)</option>
+        <option value="mistral">🟡 Mistral</option>
+        <option value="custom">⚙️ Custom Endpoint</option>
+      </select>
+    </div>
+    <div>
+      <label>MODEL</label>
+      <select id="model"></select>
+    </div>
+    <div>
+      <label>API KEY <span style="font-weight:400;color:var(--muted)">(stored in your browser only)</span></label>
+      <input type="password" id="apiKey" placeholder="Paste your API key here…" />
+    </div>
+    <div>
+      <button class="success-btn" onclick="saveKey()">💾 Save Key</button>
+    </div>
+  </div>
+
+  <div id="status" role="status" aria-live="polite"></div>
+
+  <!-- Action Buttons -->
+  <div class="btn-row">
+    <button class="primary" onclick="runAction('grammar')">✨ Fix Grammar</button>
+    <button onclick="runAction('improve')">📈 Improve</button>
+    <button onclick="runAction('professional')">💼 Professional</button>
+    <button onclick="runAction('casual')">😊 Casual</button>
+    <button onclick="runAction('hook')">🎣 Hook</button>
+    <button onclick="runAction('caption')">📱 Caption</button>
+    <button onclick="runAction('email')">📧 Email Copy</button>
+    <button onclick="runAction('cta')">🚀 Add CTA</button>
+    <button onclick="runAction('simplify')">✂️ Simplify</button>
+    <button onclick="runAction('expand')">📝 Expand</button>
+    <button onclick="runAction('summarize')">📋 Summarize</button>
+    <button onclick="runAction('bullets')">• Bullets</button>
+    <button onclick="runAction('seo')">🔍 SEO</button>
+    <button onclick="showCustom()">🎯 Custom</button>
+    <button class="ghost" onclick="copyResult()">📋 Copy</button>
+    <button class="ghost" onclick="swapText()">🔄 Use Output</button>
+    <button class="ghost" onclick="clearAll()">🗑️ Clear</button>
+  </div>
+
+  <!-- Custom Instruction Row -->
+  <div id="customRow">
+    <div class="inner">
+      <div style="flex:1">
+        <label>CUSTOM INSTRUCTION</label>
+        <input type="text" id="customInstr" placeholder="e.g. Rewrite this as a TikTok script for a wellness audience" />
+      </div>
+      <button class="primary" onclick="executeCustom()">▶ Run</button>
+      <button class="ghost" onclick="hideCustom()">✕</button>
+    </div>
+  </div>
+
+  <!-- Editors -->
+  <div class="editor-grid">
+    <div class="panel">
+      <div class="panel-hdr">
+        <span>✍️ Original Text</span>
+        <span id="origStats" style="font-weight:400;color:var(--muted);font-size:0.75rem;"></span>
+      </div>
+      <textarea id="inputText" class="editor" placeholder="Paste or type your text here…&#10;&#10;Example: Me and my team builded a new product last week and we want to get peoples attention on social media so they can see what we doing."></textarea>
+    </div>
+    <div class="panel">
+      <div class="panel-hdr">
+        <span>✅ ARIA Output</span>
+        <span id="resultStats" style="font-weight:400;color:var(--muted);font-size:0.75rem;"></span>
+      </div>
+      <textarea id="outputText" class="editor" placeholder="ARIA's response appears here…&#10;&#10;Click any action button to get started." readonly></textarea>
+    </div>
+  </div>
+
+  <div class="stats-bar">
+    <div>Words: <strong id="wordCount">0</strong></div>
+    <div>Characters: <strong id="charCount">0</strong></div>
+    <div>Reading time: <strong id="readTime">0 min</strong></div>
+    <div>Readability: <strong id="readability">—</strong></div>
+  </div>
+
+  <footer>
+    ARIA Writer 🤖 — Free AI Writing Tool by <a href="https://shop.artistrystore.com" target="_blank">T. Lott Creative</a> · Your API key never leaves your browser · Powered by Groq
+  </footer>
+</div>
+
+<script>
+// ─── Provider Config ─────────────────────────────────────────────
+const PROVIDERS = {
+  groq: {
+    url: 'https://api.groq.com/openai/v1/chat/completions',
+    models: [
+      ['llama-3.3-70b-versatile', 'Llama 3.3 70B (Best)'],
+      ['llama-3.1-8b-instant', 'Llama 3.1 8B (Fastest)'],
+      ['mixtral-8x7b-32768', 'Mixtral 8x7B']
+    ]
+  },
+  openai: {
+    url: 'https://api.openai.com/v1/chat/completions',
+    models: [
+      ['gpt-4o-mini', 'GPT-4o Mini (Fast)'],
+      ['gpt-4o', 'GPT-4o (Best)'],
+      ['gpt-3.5-turbo', 'GPT-3.5 Turbo']
+    ]
+  },
+  mistral: {
+    url: 'https://api.mistral.ai/v1/chat/completions',
+    models: [
+      ['mistral-small-latest', 'Mistral Small (Fast)'],
+      ['mistral-large-latest', 'Mistral Large (Best)']
+    ]
+  },
+  custom: {
+    url: '',
+    models: [['custom-model', 'Custom Model']]
+  }
+};
+
+// ─── Prompts ─────────────────────────────────────────────────────
+const PROMPTS = {
+  grammar:      `You are an expert English grammar corrector. Fix ALL grammar, spelling, punctuation, and clarity issues. Return ONLY the corrected text, no explanations.`,
+  improve:      `You are a professional writing coach. Improve clarity, flow, vocabulary, and quality while keeping the original meaning. Return ONLY the improved text.`,
+  professional: `Rewrite the following in a polished, professional business tone. Keep the meaning intact. Return ONLY the rewritten text.`,
+  casual:       `Rewrite the following in a warm, friendly, casual conversational tone. Return ONLY the rewritten text.`,
+  hook:         `You are a viral content strategist. Write a powerful scroll-stopping hook that grabs attention in the first 3 seconds. Return ONLY the hook.`,
+  caption:      `You are a social media expert. Write an engaging caption with relevant emojis and a clear CTA. Return ONLY the caption.`,
+  email:        `Transform this into compelling email marketing copy: subject line, opening, body, and CTA. Return ONLY the email copy.`,
+  cta:          `Add a powerful call-to-action at the end of this text. Keep the original text intact and append the CTA. Return the full text with CTA.`,
+  simplify:     `Simplify the following to a 6th-grade reading level. Keep the core meaning. Return ONLY the simplified text.`,
+  expand:       `Expand with more detail, vivid examples, and emotional depth while staying true to the original intent. Return ONLY the expanded version.`,
+  summarize:    `Summarize clearly and concisely while preserving all key points. Return ONLY the summary.`,
+  bullets:      `Convert the following into clear, well-structured bullet points with action verbs. Return ONLY the bullet list.`,
+  seo:          `Rewrite this to be SEO-optimized: weave in relevant keywords naturally, improve structure, use subheadings if needed. Return ONLY the optimized content.`
+};
+
+// ─── Provider Change ──────────────────────────────────────────────
+function onProviderChange() {
+  const p = document.getElementById('provider').value;
+  const info = PROVIDERS[p];
+  const modelSel = document.getElementById('model');
+  modelSel.innerHTML = info.models.map(([v, t]) =>
+    `<option value="${v}">${t}</option>`
+  ).join('');
+  loadSavedKey();
+}
+
+// ─── Key Management (localStorage) ──────────────────────────────
+function getKeyName() {
+  return 'aria_key_' + document.getElementById('provider').value;
+}
+
+function loadSavedKey() {
+  const key = localStorage.getItem(getKeyName()) || '';
+  document.getElementById('apiKey').value = key;
+  updateKeyIndicator(key);
+  if (key) document.getElementById('setupBanner').style.display = 'none';
+}
+
+function saveKey() {
+  const key = document.getElementById('apiKey').value.trim();
+  const p = document.getElementById('provider').value;
+  const m = document.getElementById('model').value;
+  if (key) {
+    localStorage.setItem(getKeyName(), key);
+    localStorage.setItem('aria_provider', p);
+    localStorage.setItem('aria_model_' + p, m);
+    updateKeyIndicator(key);
+    document.getElementById('setupBanner').style.display = 'none';
+    showStatus('✅ API key saved to your browser!', 'success');
+  } else {
+    localStorage.removeItem(getKeyName());
+    updateKeyIndicator('');
+    showStatus('Key cleared.', 'info');
+  }
+}
+
+function updateKeyIndicator(key) {
+  const el = document.getElementById('keyIndicator');
+  if (key) {
+    el.className = 'key-status active';
+    el.textContent = '🔑 Key Active';
+  } else {
+    el.className = 'key-status inactive';
+    el.textContent = '🔑 No API Key';
+  }
+}
+
+// ─── Stats ────────────────────────────────────────────────────────
+function updateStats() {
+  const text = document.getElementById('inputText').value;
+  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+  const chars = text.length;
+  const minutes = Math.max(1, Math.round(words / 200));
+  const sentences = (text.match(/[.!?]+/g) || []).length || 1;
+  let score = 0;
+  if (words > 0) {
+    const syllables = Math.round(words * 1.5);
+    score = Math.max(0, Math.min(100, Math.round(206.835 - 1.015 * (words / sentences) - 84.6 * (syllables / words))));
+  }
+  const label = score > 70 ? 'Easy' : score > 50 ? 'Standard' : 'Difficult';
+  document.getElementById('wordCount').textContent = words;
+  document.getElementById('charCount').textContent = chars;
+  document.getElementById('readTime').textContent = minutes + ' min';
+  document.getElementById('readability').textContent = words > 0 ? `${score} (${label})` : '—';
+  document.getElementById('origStats').textContent = words > 0 ? `${words} words` : '';
+}
+document.getElementById('inputText').addEventListener('input', updateStats);
+
+// ─── Core LLM Call ────────────────────────────────────────────────
+async function callLLM(systemPrompt, userText) {
+  const provider = document.getElementById('provider').value;
+  const model    = document.getElementById('model').value;
+  const key      = (document.getElementById('apiKey').value || localStorage.getItem(getKeyName()) || '').trim();
+
+  if (!key) throw new Error('No API key found. Paste your key in the settings bar above and click Save.');
+
+  const info = PROVIDERS[provider];
+  const url = provider === 'custom'
+    ? (localStorage.getItem('aria_custom_url') || '')
+    : info.url;
+
+  if (!url) throw new Error('Custom endpoint URL not set. Enter your API base URL.');
+
+  const body = JSON.stringify({
+    model,
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user',   content: userText }
+    ],
+    temperature: 0.3,
+    max_tokens: 4096
+  });
+
+  const resp = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + key
+    },
+    body
+  });
+
+  const data = await resp.json();
+  if (!resp.ok || data.error) throw new Error(data.error?.message || `API error ${resp.status}`);
+  return (data.choices?.[0]?.message?.content || '').trim();
+}
+
+// ─── Run Action ───────────────────────────────────────────────────
+async function runAction(type, customPrompt) {
+  const text = document.getElementById('inputText').value.trim();
+  if (!text) { showStatus('Please enter some text first.', 'error'); return; }
+
+  const systemPrompt = customPrompt || PROMPTS[type];
+  if (!systemPrompt) return;
+
+  setLoading(true, 'ARIA is writing…');
+  document.getElementById('outputText').value = '';
+  document.getElementById('resultStats').textContent = '';
+
+  try {
+    const result = await callLLM(systemPrompt, text);
+    document.getElementById('outputText').value = result;
+    const words = result.trim() ? result.trim().split(/\s+/).length : 0;
+    document.getElementById('resultStats').textContent = words > 0 ? `${words} words` : '';
+    showStatus('✅ Done! Review ARIA\'s output →', 'success');
+  } catch (err) {
+    console.error(err);
+    showStatus('❌ ' + err.message, 'error');
+  } finally {
+    setLoading(false);
+  }
+}
+
+// ─── Custom Action ────────────────────────────────────────────────
+function showCustom() {
+  document.getElementById('customRow').style.display = 'block';
+  document.getElementById('customInstr').focus();
+}
+function hideCustom() { document.getElementById('customRow').style.display = 'none'; }
+function executeCustom() {
+  const instr = document.getElementById('customInstr').value.trim();
+  if (!instr) { showStatus('Enter an instruction first.', 'warning'); return; }
+  hideCustom();
+  runAction('custom', `Follow this instruction carefully and return ONLY the resulting text:\n\n${instr}`);
+}
+document.getElementById('customInstr').addEventListener('keydown', e => {
+  if (e.key === 'Enter') executeCustom();
+  if (e.key === 'Escape') hideCustom();
+});
+
+// ─── Utils ────────────────────────────────────────────────────────
+function copyResult() {
+  const text = document.getElementById('outputText').value;
+  if (!text) { showStatus('Nothing to copy yet.', 'warning'); return; }
+  navigator.clipboard.writeText(text)
+    .then(() => showStatus('📋 Copied to clipboard!', 'success'))
+    .catch(() => showStatus('Copy failed — select text manually.', 'error'));
+}
+function swapText() {
+  const out = document.getElementById('outputText').value;
+  if (!out) { showStatus('No output yet.', 'warning'); return; }
+  document.getElementById('inputText').value = out;
+  document.getElementById('outputText').value = '';
+  document.getElementById('resultStats').textContent = '';
+  updateStats();
+  showStatus('🔄 Output moved to input — ready for another pass!', 'info');
+}
+function clearAll() {
+  document.getElementById('inputText').value = '';
+  document.getElementById('outputText').value = '';
+  document.getElementById('resultStats').textContent = '';
+  updateStats();
+  showStatus('🗑️ Cleared', 'info');
+}
+
+let _statusTimer;
+function showStatus(msg, type) {
+  const el = document.getElementById('status');
+  el.innerHTML = msg;
+  el.className = 'status show ' + type;
+  clearTimeout(_statusTimer);
+  if (type !== 'info') _statusTimer = setTimeout(() => el.classList.remove('show'), 5000);
+}
+function setLoading(on, msg) {
+  document.querySelectorAll('button').forEach(b => b.disabled = on);
+  if (on) showStatus(`<span class="spinner"></span> ${msg}`, 'info');
+}
+
+// ─── Init ─────────────────────────────────────────────────────────
+(function init() {
+  const savedProvider = localStorage.getItem('aria_provider');
+  if (savedProvider && PROVIDERS[savedProvider]) {
+    document.getElementById('provider').value = savedProvider;
+  }
+  onProviderChange();
+  const savedModel = localStorage.getItem('aria_model_' + document.getElementById('provider').value);
+  if (savedModel) {
+    const opt = [...document.getElementById('model').options].find(o => o.value === savedModel);
+    if (opt) document.getElementById('model').value = savedModel;
+  }
+  updateStats();
+})();
+</script>
+</body>
+</html>
