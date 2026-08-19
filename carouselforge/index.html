@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CarouselStudio v2 — AI Carousel Generator</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #0f1117 0%, #1a1f2e 100%);
+      color: #e0e0e0;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    header {
+      background: rgba(15, 17, 23, 0.95);
+      border-bottom: 2px solid #7c9cff;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #7c9cff;
+    }
+
+    .header-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      background: #7c9cff;
+      color: #0f1117;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 14px;
+    }
+
+    button:hover {
+      background: #9bb3ff;
+      transform: translateY(-2px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button.secondary {
+      background: rgba(124, 156, 255, 0.2);
+      color: #7c9cff;
+      border: 1px solid #7c9cff;
+    }
+
+    button.secondary:hover {
+      background: rgba(124, 156, 255, 0.3);
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 2fr 1fr;
+      gap: 20px;
+      padding: 20px;
+      max-width: 1600px;
+      margin: 0 auto;
+      height: calc(100vh - 80px);
+    }
+
+    .panel {
+      background: rgba(26, 31, 46, 0.8);
+      border: 1px solid #7c9cff;
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-header {
+      background: rgba(124, 156, 255, 0.1);
+      padding: 15px;
+      border-bottom: 1px solid #7c9cff;
+      font-weight: 600;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .panel-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 15px;
+    }
+
+    .slide-item {
+      background: rgba(124, 156, 255, 0.08);
+      border: 1px solid rgba(124, 156, 255, 0.3);
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .slide-item:hover,
+    .slide-item.active {
+      background: rgba(124, 156, 255, 0.2);
+      border-color: #7c9cff;
+    }
+
+    .slide-item-title {
+      font-weight: 600;
+      font-size: 13px;
+      color: #7c9cff;
+      margin-bottom: 4px;
+    }
+
+    .slide-item-text {
+      font-size: 12px;
+      color: #a0a0a0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .preview-canvas {
+      width: 100%;
+      height: 100%;
+      background: #000;
+      border-radius: 8px;
+    }
+
+    .editor-section {
+      margin-bottom: 20px;
+    }
+
+    .editor-section label {
+      display: block;
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      color: #7c9cff;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="range"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(124, 156, 255, 0.3);
+      border-radius: 6px;
+      color: #e0e0e0;
+      font-size: 13px;
+      font-family: inherit;
+      margin-bottom: 8px;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    input[type="range"]:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: #7c9cff;
+      background: rgba(124, 156, 255, 0.1);
+    }
+
+    .color-picker-group {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    input[type="color"] {
+      width: 50px;
+      height: 40px;
+      border: 1px solid #7c9cff;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .small-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 4px;
+      background: rgba(124, 156, 255, 0.2);
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: #7c9cff;
+      width: 0%;
+      transition: width 0.2s ease;
+    }
+
+    .image-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .image-item {
+      position: relative;
+      aspect-ratio: 1;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid rgba(124, 156, 255, 0.3);
+      cursor: pointer;
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    .image-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .image-item:hover {
+      border-color: #7c9cff;
+    }
+
+    .image-item-delete {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: rgba(255, 65, 65, 0.9);
+      color: white;
+      border: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 0;
+      display: none;
+    }
+
+    .image-item:hover .image-item-delete {
+      display: block;
+    }
+
+    .upload-zone {
+      border: 2px dashed rgba(124, 156, 255, 0.5);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: rgba(124, 156, 255, 0.05);
+      margin-bottom: 10px;
+    }
+
+    .upload-zone:hover {
+      border-color: #7c9cff;
+      background: rgba(124, 156, 255, 0.1);
+    }
+
+    .upload-zone p {
+      font-size: 12px;
+      color: #a0a0a0;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 1200px) {
+      .container {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+
+      .panel {
+        min-height: 400px;
+      }
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(124, 156, 255, 0.9);
+      color: white;
+      padding: 15px 20px;
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      animation: slideIn 0.3s ease;
+      z-index: 1000;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .menu-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .menu-buttons button {
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🎬 CarouselStudio v2</h1>
+    <div class="header-buttons">
+      <button onclick="newProject()" class="secondary">New Project</button>
+      <button onclick="exportCarousel()">Export MP4</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Left Panel: Slides -->
+    <div class="panel">
+      <div class="panel-header">Slides</div>
+      <div class="panel-content" id="slide-list"></div>
+      <div style="padding: 15px; border-top: 1px solid rgba(124, 156, 255, 0.2);">
+        <button onclick="addSlide()" style="width: 100%; margin-bottom: 10px;">+ New Slide</button>
+        <button onclick="deleteSlide()" class="secondary" style="width: 100%;">Delete Slide</button>
+      </div>
+    </div>
+
+    <!-- Center: Preview -->
+    <div class="panel">
+      <div class="panel-header">Preview</div>
+      <div class="panel-content" style="padding: 0; display: flex; justify-content: center; align-items: center;">
+        <canvas id="preview-canvas" class="preview-canvas"></canvas>
+      </div>
+    </div>
+
+    <!-- Right Panel: Editor -->
+    <div class="panel">
+      <div class="panel-header">Editor</div>
+      <div class="panel-content">
+        <div class="menu-buttons">
+          <button onclick="playPreview()" class="secondary">▶ Play</button>
+          <button onclick="stopPreview()" class="secondary">⏹ Stop</button>
+        </div>
+
+        <div class="editor-section">
+          <label>Slide Title</label>
+          <input type="text" id="slide-title" placeholder="Enter slide title..." onchange="updateSlide()">
+        </div>
+
+        <div class="editor-section">
+          <label>Slide Text</label>
+          <textarea id="slide-text" placeholder="Enter slide content..." onchange="updateSlide()"></textarea>
+        </div>
+
+        <div class="editor-section">
+          <label>Duration (seconds)</label>
+          <input type="number" id="slide-duration" value="3" min="1" max="30" onchange="updateSlide()">
+        </div>
+
+        <div class="editor-section">
+          <label>Upload Images</label>
+          <div class="upload-zone" id="upload-zone">
+            <p>📁 Drag images here or click to upload</p>
+          </div>
+          <input type="file" id="file-input" multiple accept="image/*" style="display: none;">
+          <div class="image-grid" id="image-grid"></div>
+        </div>
+
+        <div class="editor-section">
+          <label>Overlay Color</label>
+          <div class="color-picker-group">
+            <input type="color" id="overlay-color" value="#7c9cff" onchange="updatePreview()">
+            <span id="color-text">#7c9cff</span>
+          </div>
+        </div>
+
+        <div class="editor-section">
+          <label>Overlay Opacity</label>
+          <input type="range" id="overlay-opacity" min="0" max="100" value="45" onchange="updatePreview()">
+          <span id="opacity-text">45%</span>
+        </div>
+
+        <div class="editor-section">
+          <label>Aspect Ratio</label>
+          <select id="aspect-ratio" onchange="updatePreview()">
+            <option value="16:9">16:9 (Landscape)</option>
+            <option value="9:16">9:16 (Portrait)</option>
+            <option value="1:1">1:1 (Square)</option>
+          </select>
+        </div>
+
+        <div class="progress-bar" id="export-progress" style="display: none;">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let slides = [];
+    let currentSlideIndex = 0;
+    let images = [];
+    let isPlaying = false;
+    let previewAnimationId = null;
+    let exportCancelled = false;
+
+    const canvas = document.getElementById('preview-canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Initialize
+    function init() {
+      loadProject();
+      setupEventListeners();
+      renderSlideList();
+      if (slides.length === 0) {
+        addSlide();
+      } else {
+        selectSlide(0);
+      }
+      resizeCanvas();
+      updatePreview();
+    }
+
+    function setupEventListeners() {
+      const uploadZone = document.getElementById('upload-zone');
+      const fileInput = document.getElementById('file-input');
+
+      uploadZone.addEventListener('click', () => fileInput.click());
+      uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.style.borderColor = '#7c9cff';
+        uploadZone.style.background = 'rgba(124, 156, 255, 0.15)';
+      });
+      uploadZone.addEventListener('dragleave', () => {
+        uploadZone.style.borderColor = 'rgba(124, 156, 255, 0.5)';
+        uploadZone.style.background = 'rgba(124, 156, 255, 0.05)';
+      });
+      uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.style.borderColor = 'rgba(124, 156, 255, 0.5)';
+        uploadZone.style.background = 'rgba(124, 156, 255, 0.05)';
+        const files = Array.from(e.dataTransfer.files);
+        handleFileUpload(files);
+      });
+
+      fileInput.addEventListener('change', (e) => {
+        handleFileUpload(Array.from(e.target.files));
+        e.target.value = '';
+      });
+
+      document.getElementById('overlay-color').addEventListener('change', (e) => {
+        document.getElementById('color-text').textContent = e.target.value;
+        updatePreview();
+      });
+
+      document.getElementById('overlay-opacity').addEventListener('input', (e) => {
+        document.getElementById('opacity-text').textContent = e.target.value + '%';
+        updatePreview();
+      });
+
+      window.addEventListener('resize', resizeCanvas);
+    }
+
+    function handleFileUpload(files) {
+      files.forEach((file) => {
+        if (!file.type.startsWith('image/')) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          images.push({
+            id: Date.now() + Math.random(),
+            url: e.target.result,
+            name: file.name,
+          });
+          renderImageGrid();
+          showToast(`Added ${file.name}`);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function renderImageGrid() {
+      const grid = document.getElementById('image-grid');
+      grid.innerHTML = images
+        .map((img) => `
+          <div class="image-item">
+            <img src="${img.url}" alt="${img.name}">
+            <button class="image-item-delete" onclick="deleteImage(${img.id})">✕</button>
+          </div>
+        `)
+        .join('');
+    }
+
+    function deleteImage(id) {
+      images = images.filter((img) => img.id !== id);
+      renderImageGrid();
+    }
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      updatePreview();
+    }
+
+    function addSlide() {
+      slides.push({
+        id: Date.now(),
+        title: `Slide ${slides.length + 1}`,
+        text: '',
+        duration: 3,
+        imageIndex: 0,
+      });
+      renderSlideList();
+      selectSlide(slides.length - 1);
+      saveProject();
+    }
+
+    function deleteSlide() {
+      if (slides.length <= 1) {
+        showToast('Keep at least one slide');
+        return;
+      }
+      slides.splice(currentSlideIndex, 1);
+      currentSlideIndex = Math.min(currentSlideIndex, slides.length - 1);
+      renderSlideList();
+      selectSlide(currentSlideIndex);
+      saveProject();
+    }
+
+    function selectSlide(index) {
+      currentSlideIndex = index;
+      document.getElementById('slide-title').value = slides[index].title;
+      document.getElementById('slide-text').value = slides[index].text;
+      document.getElementById('slide-duration').value = slides[index].duration;
+      renderSlideList();
+      updatePreview();
+    }
+
+    function updateSlide() {
+      const slide = slides[currentSlideIndex];
+      slide.title = document.getElementById('slide-title').value;
+      slide.text = document.getElementById('slide-text').value;
+      slide.duration = parseFloat(document.getElementById('slide-duration').value);
+      saveProject();
+      updatePreview();
+    }
+
+    function renderSlideList() {
+      const list = document.getElementById('slide-list');
+      list.innerHTML = slides
+        .map(
+          (slide, idx) => `
+        <div class="slide-item ${idx === currentSlideIndex ? 'active' : ''}" onclick="selectSlide(${idx})">
+          <div class="slide-item-title">${slide.title}</div>
+          <div class="slide-item-text">${slide.text || '(empty)'}</div>
+        </div>
+      `
+        )
+        .join('');
+    }
+
+    function updatePreview() {
+      if (slides.length === 0) return;
+
+      const slide = slides[currentSlideIndex];
+      const ratio = document.getElementById('aspect-ratio').value;
+      const [w, h] = ratio === '16:9' ? [16, 9] : ratio === '9:16' ? [9, 16] : [1, 1];
+      const targetW = canvas.width;
+      const targetH = (targetW / w) * h;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw image with Ken Burns effect
+      if (images.length > 0) {
+        const img = new Image();
+        img.src = images[slide.imageIndex % images.length].url;
+        img.onload = () => {
+          drawImageWithKenBurns(img, targetW, targetH, 0);
+        };
+      }
+
+      // Draw overlay
+      const overlayColor = document.getElementById('overlay-color').value;
+      const overlayOpacity = parseFloat(document.getElementById('overlay-opacity').value) / 100;
+      ctx.fillStyle = overlayColor + Math.floor(overlayOpacity * 255)
+        .toString(16)
+        .padStart(2, '0');
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw text
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 48px system-ui';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.shadowColor = 'rgba(0,0,0,0.7)';
+      ctx.shadowBlur = 10;
+      ctx.fillText(slide.title, canvas.width / 2, canvas.height / 2 - 40);
+
+      ctx.font = '24px system-ui';
+      ctx.shadowBlur = 8;
+      const maxWidth = canvas.width - 100;
+      const lines = wrapText(slide.text, maxWidth, 24);
+      lines.forEach((line, i) => {
+        ctx.fillText(line, canvas.width / 2, canvas.height / 2 + 20 + i * 35);
+      });
+    }
+
+    function drawImageWithKenBurns(img, targetW, targetH, progress) {
+      const scale = 1 + (Math.sin(progress * Math.PI * 2) * 0.1);
+      const sx = (img.width - img.width / scale) / 2;
+      const sy = (img.height - img.height / scale) / 2;
+
+      ctx.drawImage(img, sx, sy, img.width / scale, img.height / scale, 0, 0, canvas.width, canvas.height);
+    }
+
+    function wrapText(text, maxWidth, fontSize) {
+      const words = text.split(' ');
+      const lines = [];
+      let line = '';
+
+      words.forEach((word) => {
+        ctx.font = `${fontSize}px system-ui`;
+        const metrics = ctx.measureText(line + word + ' ');
+        if (metrics.width > maxWidth && line) {
+          lines.push(line);
+          line = word;
+        } else {
+          line += (line ? ' ' : '') + word;
+        }
+      });
+
+      if (line) lines.push(line);
+      return lines;
+    }
+
+    function playPreview() {
+      isPlaying = true;
+      let slideIndex = 0;
+      let slideStart = Date.now();
+
+      function render() {
+        if (!isPlaying) return;
+
+        currentSlideIndex = slideIndex;
+        const elapsed = (Date.now() - slideStart) / 1000;
+        const slideDuration = slides[slideIndex].duration;
+
+        updatePreview();
+
+        if (elapsed >= slideDuration) {
+          slideIndex = (slideIndex + 1) % slides.length;
+          slideStart = Date.now();
+        }
+
+        previewAnimationId = requestAnimationFrame(render);
+      }
+
+      render();
+    }
+
+    function stopPreview() {
+      isPlaying = false;
+      if (previewAnimationId) cancelAnimationFrame(previewAnimationId);
+      updatePreview();
+    }
+
+    async function exportCarousel() {
+      const button = event.target;
+      button.disabled = true;
+      button.textContent = 'Exporting...';
+
+      try {
+        const progressBar = document.getElementById('export-progress');
+        progressBar.style.display = 'block';
+        exportCancelled = false;
+
+        const totalFrames = slides.reduce((sum, slide) => sum + slide.duration * 30, 0);
+        let frameCount = 0;
+
+        const canvas2 = document.createElement('canvas');
+        canvas2.width = 1280;
+        canvas2.height = 720;
+        const ctx2 = canvas2.getContext('2d');
+
+        const chunks = [];
+        const stream = canvas2.captureStream(30);
+        const recorder = new MediaRecorder(stream, {
+          mimeType: 'video/webm;codecs=vp9',
+          videoBitsPerSecond: 5000000,
+        });
+
+        recorder.ondataavailable = (e) => chunks.push(e.data);
+        recorder.start();
+
+        for (let slideIdx = 0; slideIdx < slides.length; slideIdx++) {
+          const slide = slides[slideIdx];
+          const framesToRender = Math.round(slide.duration * 30);
+
+          for (let frame = 0; frame < framesToRender; frame++) {
+            if (exportCancelled) break;
+
+            ctx2.fillStyle = '#000';
+            ctx2.fillRect(0, 0, canvas2.width, canvas2.height);
+
+            // Render slide
+            if (images.length > 0) {
+              const img = new Image();
+              img.src = images[slide.imageIndex % images.length].url;
+              img.onload = () => {
+                drawImageWithKenBurns(img, canvas2.width, canvas2.height, frame / framesToRender);
+              };
+            }
+
+            const overlayColor = document.getElementById('overlay-color').value;
+            const overlayOpacity = parseFloat(document.getElementById('overlay-opacity').value) / 100;
+            ctx2.fillStyle = overlayColor + Math.floor(overlayOpacity * 255)
+              .toString(16)
+              .padStart(2, '0');
+            ctx2.fillRect(0, 0, canvas2.width, canvas2.height);
+
+            ctx2.fillStyle = '#fff';
+            ctx2.font = 'bold 56px system-ui';
+            ctx2.textAlign = 'center';
+            ctx2.fillText(slide.title, canvas2.width / 2, canvas2.height / 2 - 50);
+
+            ctx2.font = '28px system-ui';
+            const lines = wrapText(slide.text, canvas2.width - 120, 28);
+            lines.forEach((line, i) => {
+              ctx2.fillText(line, canvas2.width / 2, canvas2.height / 2 + 30 + i * 40);
+            });
+
+            frameCount++;
+            const progress = (frameCount / totalFrames) * 100;
+            document.getElementById('progress-fill').style.width = progress + '%';
+
+            await new Promise((resolve) => setTimeout(resolve, 33));
+          }
+        }
+
+        recorder.stop();
+        await new Promise((resolve) => (recorder.onstop = resolve));
+
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'carousel.webm';
+        a.click();
+        URL.revokeObjectURL(url);
+
+        progressBar.style.display = 'none';
+        showToast('✅ Carousel exported successfully!');
+      } catch (error) {
+        console.error('Export error:', error);
+        showToast('❌ Export failed: ' + error.message);
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Export MP4';
+      }
+    }
+
+    function newProject() {
+      if (confirm('Start a new project? Current work will be lost if not saved.')) {
+        localStorage.removeItem('carouselProject');
+        location.reload();
+      }
+    }
+
+    function saveProject() {
+      localStorage.setItem(
+        'carouselProject',
+        JSON.stringify({
+          slides,
+          images: images.map((img) => ({ id: img.id, name: img.name, url: img.url })),
+        })
+      );
+    }
+
+    function loadProject() {
+      const saved = localStorage.getItem('carouselProject');
+      if (saved) {
+        const data = JSON.parse(saved);
+        slides = data.slides || [];
+        images = data.images || [];
+        renderImageGrid();
+      }
+    }
+
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    init();
+  </script>
+</body>
+</html>
