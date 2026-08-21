@@ -1,0 +1,1619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AetherRead — Reading Comprehension for Every Grade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=OpenDyslexic:wght@400;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        sky: { 50:'#f0f9ff',100:'#e0f2fe',200:'#bae6fd',300:'#7dd3fc',400:'#38bdf8',500:'#0ea5e9',600:'#0284c7',700:'#0369a1' },
+        mint: { 50:'#f0fdf4',100:'#dcfce7',200:'#bbf7d0',300:'#86efac',400:'#4ade80',500:'#22c55e',600:'#16a34a' },
+        amber: { 50:'#fffbeb',100:'#fef3c7',200:'#fde68a',300:'#fcd34d',400:'#fbbf24',500:'#f59e0b',600:'#d97706' },
+        rose: { 50:'#fff1f2',100:'#ffe4e6',200:'#fecdd3',300:'#fda4af',400:'#fb7185',500:'#f43f5e' },
+        violet: { 50:'#f5f3ff',100:'#ede9fe',200:'#ddd6fe',300:'#c4b5fd',400:'#a78bfa',500:'#8b5cf6',600:'#7c3aed' }
+      },
+      fontFamily: { nunito: ['Nunito','sans-serif'], dyslexic: ['OpenDyslexic','sans-serif'] }
+    }
+  }
+}
+</script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Nunito',sans-serif;background:#f0f9ff;min-height:100vh}
+  .dyslexic-mode *{font-family:'OpenDyslexic',sans-serif!important;letter-spacing:0.05em;line-height:1.8}
+  .screen{display:none}
+  .screen.active{display:block}
+  .nav-btn.active{background:#0ea5e9;color:white}
+  .theme-badge{display:inline-flex;align-items:center;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700}
+  .ring-progress{transition:stroke-dashoffset 0.8s ease}
+  .passage-card:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(14,165,233,0.15)}
+  .passage-card{transition:transform 0.2s,box-shadow 0.2s}
+  .btn-primary{background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white;border:none;border-radius:12px;padding:12px 28px;font-family:'Nunito',sans-serif;font-weight:800;font-size:16px;cursor:pointer;transition:opacity 0.2s,transform 0.1s}
+  .btn-primary:hover{opacity:0.92;transform:translateY(-1px)}
+  .btn-secondary{background:white;color:#0ea5e9;border:2px solid #0ea5e9;border-radius:12px;padding:10px 24px;font-family:'Nunito',sans-serif;font-weight:700;font-size:15px;cursor:pointer;transition:all 0.2s}
+  .btn-secondary:hover{background:#e0f2fe}
+  .mc-option{border:2px solid #e0f2fe;border-radius:12px;padding:14px 18px;cursor:pointer;transition:all 0.2s;font-weight:600;text-align:left;width:100%;font-family:'Nunito',sans-serif;font-size:15px;background:white}
+  .mc-option:hover{border-color:#0ea5e9;background:#f0f9ff}
+  .mc-option.correct{border-color:#22c55e;background:#dcfce7;color:#15803d}
+  .mc-option.wrong{border-color:#f43f5e;background:#fff1f2;color:#be123c}
+  .mc-option.selected{border-color:#0ea5e9;background:#e0f2fe}
+  .highlight-word{background:#fde68a;border-radius:3px;transition:background 0.3s}
+  .progress-ring{transform:rotate(-90deg)}
+  .fade-in{animation:fadeIn 0.4s ease}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  .streak-flame{animation:pulse 1.5s infinite}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+  .tooltip{position:relative}
+  .tooltip:hover::after{content:attr(data-tip);position:absolute;bottom:110%;left:50%;transform:translateX(-50%);background:#0369a1;color:white;padding:4px 10px;border-radius:8px;font-size:12px;white-space:nowrap;z-index:100}
+  textarea{font-family:'Nunito',sans-serif;resize:vertical}
+  .mastery-bar{height:8px;border-radius:4px;background:#e0f2fe;overflow:hidden}
+  .mastery-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#0ea5e9,#22c55e);transition:width 0.8s ease}
+  .notification{position:fixed;top:20px;right:20px;z-index:1000;background:white;border-radius:14px;padding:14px 20px;box-shadow:0 4px 20px rgba(0,0,0,0.12);border-left:4px solid #0ea5e9;animation:slideIn 0.3s ease;max-width:300px}
+  @keyframes slideIn{from{transform:translateX(100px);opacity:0}to{transform:translateX(0);opacity:1}}
+  .dark-mode{background:#0f172a!important;color:#e2e8f0!important}
+  .dark-mode .bg-white{background:#1e293b!important}
+  .dark-mode .text-gray-700,.dark-mode .text-gray-600,.dark-mode .text-gray-800{color:#cbd5e1!important}
+  .dark-mode .border-gray-200,.dark-mode .border-sky-100{border-color:#334155!important}
+  .dark-mode .bg-sky-50,.dark-mode .bg-sky-100{background:#1e3a5f!important}
+  .dark-mode .passage-card{background:#1e293b!important;border-color:#334155!important}
+  ::-webkit-scrollbar{width:6px}
+  ::-webkit-scrollbar-track{background:#f0f9ff}
+  ::-webkit-scrollbar-thumb{background:#7dd3fc;border-radius:3px}
+</style>
+</head>
+<body id="appBody">
+
+<!-- ===== SPLASH SCREEN ===== -->
+<div id="splash" class="screen active fixed inset-0 flex items-center justify-center" style="background:linear-gradient(135deg,#0ea5e9 0%,#0369a1 50%,#1d4ed8 100%);z-index:999">
+  <div class="text-center text-white fade-in">
+    <div style="font-size:80px;margin-bottom:16px">📚</div>
+    <h1 style="font-size:52px;font-weight:900;letter-spacing:-1px">AetherRead</h1>
+    <p style="font-size:20px;opacity:0.85;margin-top:8px;font-weight:600">Reading Comprehension for Every Mind</p>
+    <div style="margin-top:40px;width:60px;height:4px;background:rgba(255,255,255,0.4);border-radius:2px;margin-left:auto;margin-right:auto;overflow:hidden">
+      <div id="splashBar" style="width:0%;height:100%;background:white;border-radius:2px;transition:width 2s ease"></div>
+    </div>
+    <p style="margin-top:12px;font-size:14px;opacity:0.6">Loading your learning adventure...</p>
+  </div>
+</div>
+
+<!-- ===== ONBOARDING ===== -->
+<div id="onboarding" class="screen min-h-screen flex items-center justify-center p-6" style="background:linear-gradient(135deg,#f0f9ff,#e0f2fe)">
+  <div class="bg-white rounded-3xl shadow-xl p-8 w-full max-w-md fade-in">
+    <div class="text-center mb-8">
+      <div style="font-size:56px">📚</div>
+      <h2 style="font-size:28px;font-weight:900;color:#0369a1;margin-top:8px">Welcome to AetherRead!</h2>
+      <p class="text-gray-500 mt-2 font-semibold">Let's set up your reading profile</p>
+    </div>
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-800 text-gray-700 mb-1" style="font-weight:700">Your Name</label>
+        <input id="onboardName" type="text" placeholder="e.g. Alex" class="w-full border-2 border-sky-200 rounded-xl px-4 py-3 text-base font-semibold focus:outline-none focus:border-sky-400" style="font-family:Nunito,sans-serif"/>
+      </div>
+      <div>
+        <label class="block text-sm font-800 text-gray-700 mb-2" style="font-weight:700">I am a...</label>
+        <div class="grid grid-cols-3 gap-2">
+          <button onclick="setRole('student')" id="roleStudent" class="role-btn border-2 border-sky-200 rounded-xl py-3 text-sm font-700 text-sky-600 hover:bg-sky-50" style="font-weight:700">👧 Student</button>
+          <button onclick="setRole('parent')" id="roleParent" class="role-btn border-2 border-sky-200 rounded-xl py-3 text-sm font-700 text-sky-600 hover:bg-sky-50" style="font-weight:700">👨‍👩‍👧 Parent</button>
+          <button onclick="setRole('teacher')" id="roleTeacher" class="role-btn border-2 border-sky-200 rounded-xl py-3 text-sm font-700 text-sky-600 hover:bg-sky-50" style="font-weight:700">👩‍🏫 Teacher</button>
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-800 text-gray-700 mb-2" style="font-weight:700">Grade Level</label>
+        <select id="onboardGrade" class="w-full border-2 border-sky-200 rounded-xl px-4 py-3 text-base font-semibold focus:outline-none focus:border-sky-400" style="font-family:Nunito,sans-serif">
+          <option value="">Select grade...</option>
+          <option value="1">1st Grade</option><option value="2">2nd Grade</option>
+          <option value="3">3rd Grade</option><option value="4">4th Grade</option>
+          <option value="5">5th Grade</option><option value="6">6th Grade</option>
+          <option value="7">7th Grade</option><option value="8">8th Grade</option>
+          <option value="9">9th Grade</option><option value="10">10th Grade</option>
+          <option value="11">11th Grade</option><option value="12">12th Grade</option>
+          <option value="13">College</option>
+        </select>
+      </div>
+      <button onclick="completeOnboarding()" class="btn-primary w-full mt-2" style="padding:16px;font-size:18px">Start Reading! 🚀</button>
+    </div>
+    <p class="text-center text-xs text-gray-400 mt-4">No account needed · All progress saved locally · Free forever</p>
+  </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="app" class="screen">
+  <!-- Top Nav -->
+  <nav id="topNav" class="fixed top-0 left-0 right-0 z-50 bg-white border-b border-sky-100" style="box-shadow:0 2px 12px rgba(14,165,233,0.1)">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span style="font-size:24px">📚</span>
+        <span style="font-size:20px;font-weight:900;color:#0369a1">AetherRead</span>
+      </div>
+      <div class="hidden md:flex items-center gap-2">
+        <button onclick="showTab('dashboard')" id="navDash" class="nav-btn px-4 py-2 rounded-xl font-700 text-sm text-gray-600 hover:bg-sky-50 transition-all" style="font-weight:700">🏠 Home</button>
+        <button onclick="showTab('library')" id="navLib" class="nav-btn px-4 py-2 rounded-xl font-700 text-sm text-gray-600 hover:bg-sky-50 transition-all" style="font-weight:700">📖 Library</button>
+        <button onclick="showTab('progress')" id="navProg" class="nav-btn px-4 py-2 rounded-xl font-700 text-sm text-gray-600 hover:bg-sky-50 transition-all" style="font-weight:700">📊 Progress</button>
+        <button onclick="showSettingsPanel()" class="nav-btn px-4 py-2 rounded-xl font-700 text-sm text-gray-600 hover:bg-sky-50 transition-all" style="font-weight:700">⚙️ Settings</button>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-1 bg-amber-50 px-3 py-1.5 rounded-xl">
+          <span class="streak-flame">🔥</span>
+          <span id="navStreak" style="font-weight:800;color:#d97706;font-size:14px">0</span>
+        </div>
+        <div id="navAvatar" class="w-9 h-9 rounded-full bg-sky-500 flex items-center justify-center text-white font-800 text-sm" style="font-weight:800;cursor:pointer" onclick="showTab('progress')">A</div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile bottom nav -->
+  <nav class="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-sky-100 md:hidden" style="box-shadow:0 -2px 12px rgba(14,165,233,0.1)">
+    <div class="flex justify-around py-2">
+      <button onclick="showTab('dashboard')" class="flex flex-col items-center gap-0.5 p-2 text-sky-600">
+        <span style="font-size:22px">🏠</span><span style="font-size:10px;font-weight:700">Home</span>
+      </button>
+      <button onclick="showTab('library')" class="flex flex-col items-center gap-0.5 p-2 text-gray-400">
+        <span style="font-size:22px">📖</span><span style="font-size:10px;font-weight:700">Library</span>
+      </button>
+      <button onclick="showTab('progress')" class="flex flex-col items-center gap-0.5 p-2 text-gray-400">
+        <span style="font-size:22px">📊</span><span style="font-size:10px;font-weight:700">Progress</span>
+      </button>
+      <button onclick="showSettingsPanel()" class="flex flex-col items-center gap-0.5 p-2 text-gray-400">
+        <span style="font-size:22px">⚙️</span><span style="font-size:10px;font-weight:700">Settings</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Content area -->
+  <div style="padding-top:72px;padding-bottom:72px">
+
+    <!-- DASHBOARD TAB -->
+    <div id="tab-dashboard" class="tab-content max-w-6xl mx-auto px-4 py-6 fade-in">
+      <!-- Hero welcome -->
+      <div class="rounded-3xl p-6 mb-6 text-white" style="background:linear-gradient(135deg,#0ea5e9,#0369a1)">
+        <div class="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <p style="font-size:14px;opacity:0.8;font-weight:600">Welcome back,</p>
+            <h2 id="dashName" style="font-size:28px;font-weight:900">Reader! 👋</h2>
+            <p id="dashLevel" style="font-size:14px;opacity:0.85;margin-top:4px;font-weight:600">Grade 3 · Lexile 520L</p>
+          </div>
+          <div class="flex gap-4">
+            <div class="text-center">
+              <div id="dashStreak" style="font-size:36px;font-weight:900">0</div>
+              <div style="font-size:12px;opacity:0.8;font-weight:600">Day Streak 🔥</div>
+            </div>
+            <div class="text-center">
+              <div id="dashTotal" style="font-size:36px;font-weight:900">0</div>
+              <div style="font-size:12px;opacity:0.8;font-weight:600">Passages Read</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick stats -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-2xl p-4 text-center" style="border:2px solid #bae6fd">
+          <div style="font-size:28px">🎯</div>
+          <div id="dashAccuracy" style="font-size:22px;font-weight:800;color:#0369a1">--</div>
+          <div style="font-size:12px;color:#64748b;font-weight:600">Accuracy</div>
+        </div>
+        <div class="bg-white rounded-2xl p-4 text-center" style="border:2px solid #bbf7d0">
+          <div style="font-size:28px">⭐</div>
+          <div id="dashLevel2" style="font-size:22px;font-weight:800;color:#16a34a">Gr <span id="dashGradeNum">1</span></div>
+          <div style="font-size:12px;color:#64748b;font-weight:600">Current Level</div>
+        </div>
+        <div class="bg-white rounded-2xl p-4 text-center" style="border:2px solid #ddd6fe">
+          <div style="font-size:28px">🏆</div>
+          <div id="dashBadges" style="font-size:22px;font-weight:800;color:#7c3aed">0</div>
+          <div style="font-size:12px;color:#64748b;font-weight:600">Badges</div>
+        </div>
+        <div class="bg-white rounded-2xl p-4 text-center" style="border:2px solid #fde68a">
+          <div style="font-size:28px">📝</div>
+          <div id="dashQuestions" style="font-size:22px;font-weight:800;color:#d97706">0</div>
+          <div style="font-size:12px;color:#64748b;font-weight:600">Questions Done</div>
+        </div>
+      </div>
+
+      <!-- Concept Mastery -->
+      <div class="bg-white rounded-3xl p-6 mb-6" style="border:2px solid #e0f2fe">
+        <h3 style="font-size:18px;font-weight:800;color:#0369a1;margin-bottom:16px">🧠 Concept Mastery</h3>
+        <div id="masteryGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+      </div>
+
+      <!-- Recommended + Recent -->
+      <div class="grid md:grid-cols-2 gap-6">
+        <div>
+          <h3 style="font-size:18px;font-weight:800;color:#0369a1;margin-bottom:12px">✨ Recommended for You</h3>
+          <div id="dashRecommended" class="space-y-3"></div>
+        </div>
+        <div>
+          <h3 style="font-size:18px;font-weight:800;color:#0369a1;margin-bottom:12px">🕐 Recently Read</h3>
+          <div id="dashRecent" class="space-y-3">
+            <p class="text-gray-400 font-semibold text-sm">No passages read yet. Dive in!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIBRARY TAB -->
+    <div id="tab-library" class="tab-content hidden max-w-6xl mx-auto px-4 py-6 fade-in">
+      <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div>
+          <h2 style="font-size:26px;font-weight:900;color:#0369a1">📖 Passage Library</h2>
+          <p class="text-gray-500 font-semibold text-sm">10 curated passages · More coming soon</p>
+        </div>
+        <input id="libSearch" type="search" placeholder="🔍 Search passages..." oninput="filterPassages()" class="border-2 border-sky-200 rounded-xl px-4 py-2.5 font-semibold w-full md:w-72 focus:outline-none focus:border-sky-400" style="font-family:Nunito,sans-serif"/>
+      </div>
+
+      <!-- Filters -->
+      <div class="flex flex-wrap gap-2 mb-4">
+        <span class="text-sm font-700 text-gray-600 self-center" style="font-weight:700">Theme:</span>
+        <button onclick="setThemeFilter('all')" class="theme-filter-btn theme-badge" data-theme="all" style="background:#0ea5e9;color:white">All</button>
+        <button onclick="setThemeFilter('bees')" class="theme-filter-btn theme-badge" data-theme="bees" style="background:#fde68a;color:#92400e">🐝 Bees</button>
+        <button onclick="setThemeFilter('birds')" class="theme-filter-btn theme-badge" data-theme="birds" style="background:#ddd6fe;color:#4c1d95">🐦 Birds</button>
+        <button onclick="setThemeFilter('animals')" class="theme-filter-btn theme-badge" data-theme="animals" style="background:#bbf7d0;color:#14532d">🦁 Animals</button>
+        <button onclick="setThemeFilter('franklin')" class="theme-filter-btn theme-badge" data-theme="franklin" style="background:#fed7aa;color:#7c2d12">⚡ Franklin</button>
+        <button onclick="setThemeFilter('spring')" class="theme-filter-btn theme-badge" data-theme="spring" style="background:#fce7f3;color:#831843">🌸 Spring</button>
+        <button onclick="setThemeFilter('nature')" class="theme-filter-btn theme-badge" data-theme="nature" style="background:#d1fae5;color:#064e3b">🌿 Nature</button>
+        <button onclick="setThemeFilter('history')" class="theme-filter-btn theme-badge" data-theme="history" style="background:#e0e7ff;color:#3730a3">📜 History</button>
+      </div>
+      <div class="flex flex-wrap gap-2 mb-6">
+        <span class="text-sm font-700 text-gray-600 self-center" style="font-weight:700">Grade:</span>
+        <button onclick="setGradeFilter('all')" class="grade-filter-btn theme-badge" data-grade="all" style="background:#0ea5e9;color:white">All</button>
+        <button onclick="setGradeFilter('1-3')" class="grade-filter-btn theme-badge" data-grade="1-3" style="background:#f0fdf4;color:#166534;border:2px solid #bbf7d0">Gr 1–3</button>
+        <button onclick="setGradeFilter('4-6')" class="grade-filter-btn theme-badge" data-grade="4-6" style="background:#fefce8;color:#713f12;border:2px solid #fde68a">Gr 4–6</button>
+        <button onclick="setGradeFilter('7-9')" class="grade-filter-btn theme-badge" data-grade="7-9" style="background:#f0f9ff;color:#0c4a6e;border:2px solid #bae6fd">Gr 7–9</button>
+        <button onclick="setGradeFilter('10+')" class="grade-filter-btn theme-badge" data-grade="10+" style="background:#fdf2f8;color:#701a75;border:2px solid #f5d0fe">Gr 10+</button>
+      </div>
+
+      <div id="passageGrid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+    </div>
+
+    <!-- PROGRESS TAB -->
+    <div id="tab-progress" class="tab-content hidden max-w-4xl mx-auto px-4 py-6 fade-in">
+      <div class="flex items-center gap-3 mb-6">
+        <div id="progAvatar" class="w-14 h-14 rounded-2xl bg-sky-500 flex items-center justify-center text-white text-2xl font-900" style="font-weight:900">A</div>
+        <div>
+          <h2 id="progName" style="font-size:22px;font-weight:900;color:#0369a1">Reader</h2>
+          <p id="progRole" class="text-gray-500 font-semibold text-sm">Student · Grade 3</p>
+        </div>
+      </div>
+
+      <!-- Summary cards -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-2xl p-4 text-center" style="border:2px solid #bae6fd">
+          <div id="progTotal" style="font-size:28px;font-weight:900;color:#0369a1">0</div>
+          <div class="text-xs text-gray-500 font-600">Passages</div>
+        </div>
+        <div class="bg-white rounded-2xl p-4 text-center" style="border:2px solid #fde68a">
+          <div id="progStreak" style="font-size:28px;font-weight:900;color:#d97706">0🔥</div>
+          <div class="text-xs text-gray-500 font-600">Day Streak</div>
+        </div>
+        <div class="bg-white rounded-2xl p-4 text-center" style="border:2px solid #bbf7d0">
+          <div id="progAccuracy" style="font-size:28px;font-weight:900;color:#16a34a">--</div>
+          <div class="text-xs text-gray-500 font-600">Accuracy</div>
+        </div>
+        <div class="bg-white rounded-2xl p-4 text-center" style="border:2px solid #ddd6fe">
+          <div id="progBadgeCount" style="font-size:28px;font-weight:900;color:#7c3aed">0</div>
+          <div class="text-xs text-gray-500 font-600">Badges</div>
+        </div>
+      </div>
+
+      <!-- Concept mastery full view -->
+      <div class="bg-white rounded-3xl p-6 mb-6" style="border:2px solid #e0f2fe">
+        <h3 style="font-size:18px;font-weight:800;color:#0369a1;margin-bottom:16px">🧠 Skill Mastery</h3>
+        <div id="progMastery" class="space-y-4"></div>
+      </div>
+
+      <!-- Badges -->
+      <div class="bg-white rounded-3xl p-6 mb-6" style="border:2px solid #e0f2fe">
+        <h3 style="font-size:18px;font-weight:800;color:#0369a1;margin-bottom:16px">🏆 Badges Earned</h3>
+        <div id="badgesGrid" class="grid grid-cols-3 md:grid-cols-6 gap-4"></div>
+      </div>
+
+      <!-- History -->
+      <div class="bg-white rounded-3xl p-6" style="border:2px solid #e0f2fe">
+        <h3 style="font-size:18px;font-weight:800;color:#0369a1;margin-bottom:16px">📋 Reading History</h3>
+        <div id="historyList" class="space-y-3"></div>
+      </div>
+    </div>
+
+    <!-- READER TAB -->
+    <div id="tab-reader" class="tab-content hidden max-w-3xl mx-auto px-4 py-6 fade-in">
+      <div class="flex items-center gap-3 mb-4">
+        <button onclick="showTab('library')" class="btn-secondary py-2 px-4 text-sm">← Back</button>
+        <h2 id="readerTitle" style="font-size:20px;font-weight:800;color:#0369a1">Passage Title</h2>
+      </div>
+      <!-- Reader controls -->
+      <div class="bg-white rounded-2xl p-4 mb-4 flex flex-wrap gap-3 items-center" style="border:2px solid #e0f2fe">
+        <div class="flex items-center gap-2">
+          <span class="text-sm font-700 text-gray-600" style="font-weight:700">Font:</span>
+          <button onclick="changeFontSize(-1)" class="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 font-800 flex items-center justify-center hover:bg-sky-200" style="font-weight:800">A-</button>
+          <button onclick="changeFontSize(1)" class="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 font-800 flex items-center justify-center hover:bg-sky-200" style="font-weight:800">A+</button>
+        </div>
+        <button onclick="toggleDyslexic()" id="dyslexicBtn" class="px-3 py-1.5 rounded-lg bg-violet-100 text-violet-700 text-sm font-700 hover:bg-violet-200" style="font-weight:700">OpenDyslexic</button>
+        <button onclick="toggleDark()" id="darkBtn" class="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-sm font-700 hover:bg-gray-200" style="font-weight:700">🌙 Dark</button>
+        <button onclick="startTTS()" id="ttsBtn" class="px-3 py-1.5 rounded-lg bg-mint-100 text-mint-700 text-sm font-700 hover:bg-mint-200" style="background:#dcfce7;color:#16a34a;font-weight:700">🔊 Listen</button>
+        <button onclick="stopTTS()" class="px-3 py-1.5 rounded-lg bg-rose-100 text-rose-600 text-sm font-700 hover:bg-rose-200" style="font-weight:700">⏹ Stop</button>
+      </div>
+      <!-- Passage info -->
+      <div class="flex flex-wrap gap-2 mb-4">
+        <span id="readerGradeBadge" class="theme-badge" style="background:#e0f2fe;color:#0369a1"></span>
+        <span id="readerThemeBadge" class="theme-badge" style="background:#dcfce7;color:#16a34a"></span>
+        <span id="readerLexile" class="theme-badge" style="background:#fefce8;color:#92400e"></span>
+      </div>
+      <!-- Timer -->
+      <div id="readingTimer" class="bg-amber-50 rounded-2xl p-3 mb-4 hidden" style="border:2px solid #fde68a">
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-700 text-amber-700" style="font-weight:700">⏱ Minimum reading time</span>
+          <span id="timerDisplay" class="font-800 text-amber-700" style="font-weight:800">0:30</span>
+        </div>
+        <div class="mastery-bar mt-2" style="background:#fde68a">
+          <div id="timerBar" class="mastery-fill" style="background:linear-gradient(90deg,#f59e0b,#d97706);width:0%"></div>
+        </div>
+      </div>
+      <!-- Passage text -->
+      <div id="passageText" class="bg-white rounded-3xl p-8" style="border:2px solid #e0f2fe;line-height:1.9;font-size:18px;color:#1e293b"></div>
+      <!-- Take quiz button -->
+      <div class="text-center mt-6">
+        <button id="startQuizBtn" onclick="startQuiz()" class="btn-primary disabled:opacity-50" disabled style="padding:16px 48px;font-size:18px">
+          📝 Take Comprehension Quiz
+        </button>
+        <p id="quizWaitMsg" class="text-sm text-amber-600 font-600 mt-2" style="font-weight:600">Please finish reading first...</p>
+      </div>
+    </div>
+
+    <!-- QUIZ TAB -->
+    <div id="tab-quiz" class="tab-content hidden max-w-2xl mx-auto px-4 py-6 fade-in">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 id="quizTitle" style="font-size:20px;font-weight:800;color:#0369a1">Quiz</h2>
+          <p id="quizProgress" class="text-gray-500 font-semibold text-sm">Question 1 of 5</p>
+        </div>
+        <div class="flex gap-2">
+          <span id="quizScore" class="bg-sky-100 text-sky-700 px-3 py-1.5 rounded-xl font-800 text-sm" style="font-weight:800">Score: 0</span>
+        </div>
+      </div>
+      <!-- Progress bar -->
+      <div class="mastery-bar mb-6" style="height:10px">
+        <div id="quizProgressBar" class="mastery-fill" style="width:0%"></div>
+      </div>
+      <div id="questionArea" class="fade-in"></div>
+    </div>
+
+    <!-- RESULTS TAB -->
+    <div id="tab-results" class="tab-content hidden max-w-2xl mx-auto px-4 py-6 fade-in">
+      <div class="text-center mb-8">
+        <div id="resultsEmoji" style="font-size:72px">🌟</div>
+        <h2 id="resultsTitle" style="font-size:28px;font-weight:900;color:#0369a1;margin-top:8px">Great job!</h2>
+        <p id="resultsSubtitle" class="text-gray-500 font-semibold mt-2">Here's how you did</p>
+      </div>
+      <div class="grid grid-cols-3 gap-4 mb-6">
+        <div class="bg-white rounded-2xl p-4 text-center" style="border:2px solid #bae6fd">
+          <div id="resMC" style="font-size:24px;font-weight:900;color:#0369a1">--</div>
+          <div class="text-xs text-gray-500 font-600">MC Score</div>
+        </div>
+        <div class="bg-white rounded-2xl p-4 text-center" style="border:2px solid #bbf7d0">
+          <div id="resSA" style="font-size:24px;font-weight:900;color:#16a34a">--</div>
+          <div class="text-xs text-gray-500 font-600">Short Answer</div>
+        </div>
+        <div class="bg-white rounded-2xl p-4 text-center" style="border:2px solid #fde68a">
+          <div id="resTotal" style="font-size:24px;font-weight:900;color:#d97706">--</div>
+          <div class="text-xs text-gray-500 font-600">Overall</div>
+        </div>
+      </div>
+      <div id="resultsFeedback" class="space-y-3 mb-6"></div>
+      <div id="newBadge" class="hidden bg-amber-50 rounded-3xl p-6 text-center mb-6" style="border:2px solid #fde68a">
+        <div style="font-size:48px" id="newBadgeEmoji">🏆</div>
+        <h3 style="font-weight:800;color:#d97706;font-size:18px">New Badge Earned!</h3>
+        <p id="newBadgeName" class="font-semibold text-amber-700"></p>
+      </div>
+      <!-- Memory bank recap -->
+      <div class="bg-sky-50 rounded-3xl p-5 mb-6" style="border:2px solid #bae6fd">
+        <h3 style="font-size:16px;font-weight:800;color:#0369a1;margin-bottom:12px">🧠 Skills Updated</h3>
+        <div id="masteryUpdates" class="space-y-2"></div>
+      </div>
+      <div class="flex gap-3 justify-center flex-wrap">
+        <button onclick="showTab('library')" class="btn-secondary">📚 Read More</button>
+        <button onclick="showTab('dashboard')" class="btn-primary">🏠 Dashboard</button>
+      </div>
+    </div>
+
+  </div><!-- end content area -->
+</div><!-- end app -->
+
+<!-- SETTINGS PANEL -->
+<div id="settingsPanel" class="fixed inset-0 z-50 hidden" style="background:rgba(0,0,0,0.4)">
+  <div class="absolute right-0 top-0 bottom-0 w-80 bg-white p-6 shadow-xl overflow-y-auto">
+    <div class="flex items-center justify-between mb-6">
+      <h3 style="font-size:20px;font-weight:900;color:#0369a1">⚙️ Settings</h3>
+      <button onclick="closeSettingsPanel()" style="font-size:22px;background:none;border:none;cursor:pointer;color:#64748b">✕</button>
+    </div>
+    <div class="space-y-5">
+      <div>
+        <label class="block text-sm font-700 text-gray-700 mb-1" style="font-weight:700">Your Name</label>
+        <input id="settingsName" type="text" class="w-full border-2 border-sky-200 rounded-xl px-3 py-2 font-semibold" style="font-family:Nunito,sans-serif" onchange="saveSettings()"/>
+      </div>
+      <div>
+        <label class="block text-sm font-700 text-gray-700 mb-1" style="font-weight:700">Grade Level</label>
+        <select id="settingsGrade" class="w-full border-2 border-sky-200 rounded-xl px-3 py-2 font-semibold" style="font-family:Nunito,sans-serif" onchange="saveSettings()">
+          <option value="1">1st Grade</option><option value="2">2nd Grade</option>
+          <option value="3">3rd Grade</option><option value="4">4th Grade</option>
+          <option value="5">5th Grade</option><option value="6">6th Grade</option>
+          <option value="7">7th Grade</option><option value="8">8th Grade</option>
+          <option value="9">9th Grade</option><option value="10">10th Grade</option>
+          <option value="11">11th Grade</option><option value="12">12th Grade</option>
+          <option value="13">College</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-700 text-gray-700 mb-2" style="font-weight:700">Display Options</label>
+        <div class="space-y-2">
+          <label class="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" id="settingsDyslexic" onchange="toggleDyslexic()" class="w-4 h-4 rounded accent-sky-500"/>
+            <span class="font-semibold text-sm text-gray-700">OpenDyslexic font</span>
+          </label>
+          <label class="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" id="settingsDark" onchange="toggleDark()" class="w-4 h-4 rounded accent-sky-500"/>
+            <span class="font-semibold text-sm text-gray-700">Dark mode</span>
+          </label>
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-700 text-gray-700 mb-1" style="font-weight:700">TTS Speed</label>
+        <input type="range" id="ttsSpeed" min="0.5" max="2" step="0.1" value="1" class="w-full accent-sky-500" oninput="updateTTSSpeed(this.value)"/>
+        <div class="flex justify-between text-xs text-gray-400 font-600">
+          <span>Slow</span><span id="ttsSpeedLabel">1.0x</span><span>Fast</span>
+        </div>
+      </div>
+      <div class="pt-4 border-t border-gray-100">
+        <button onclick="resetProgress()" class="w-full btn-secondary text-rose-500 border-rose-300 hover:bg-rose-50 text-sm py-2">🗑 Reset All Progress</button>
+        <p class="text-xs text-gray-400 text-center mt-2">This cannot be undone</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICATION -->
+<div id="notification" class="notification hidden"></div>
+
+<script>
+// ============================================================
+// DATA — 10 COMPLETE PASSAGES WITH QUESTIONS
+// ============================================================
+const PASSAGES = [
+  {
+    id:'p1', title:'The Busy Honeybee', theme:'bees', grade:2, lexile:'490L',
+    text:`Honeybees are some of the hardest-working creatures in the animal kingdom. Each bee in a hive has an important job to do, and together they keep the colony alive and healthy.
+
+A queen bee is the most important bee in the hive. She is the only bee that lays eggs. Every day, she can lay up to 2,000 eggs! Without the queen, the hive could not survive.
+
+Worker bees are always female. They gather nectar from flowers and bring it back to the hive. The nectar is then turned into honey, which feeds the whole colony during the cold winter months. Worker bees also protect the hive and take care of the baby bees.
+
+Drone bees are the only male bees. Their main job is to mate with a new queen. After they do this job, they do not survive for much longer.
+
+Bees are also very important to us. As they fly from flower to flower collecting nectar, they carry pollen on their fuzzy bodies. When they land on a new flower, some of that pollen rubs off. This is called pollination. Without bees to pollinate plants, many fruits and vegetables would not grow. Scientists estimate that about one-third of all the food humans eat depends on bee pollination.
+
+Sadly, bee populations are declining. Pesticides, habitat loss, and disease are all threats to bees. We can help bees by planting flowers, avoiding harmful chemicals, and supporting local beekeepers.`,
+    concepts:['mainIdea','vocabulary','details'],
+    mc:[
+      {q:'What is the MAIN job of a queen bee?',opts:['Gather nectar from flowers','Lay eggs to create new bees','Protect the hive from enemies','Make honey for the colony'],ans:1,exp:'The passage states the queen bee can lay up to 2,000 eggs per day — her most important job.'},
+      {q:'What does the word "pollination" mean in this passage?',opts:['Collecting honey from bees','Planting more flowers','When pollen from one flower moves to another','Building a beehive'],ans:2,exp:'Pollination is when bees carry pollen from flower to flower, helping plants reproduce.'},
+      {q:'Why are honeybees important to humans?',opts:['They produce wax for candles','They pollinate plants that grow our food','They help predict the weather','They keep other insects away'],ans:1,exp:'The passage says one-third of all food humans eat depends on bee pollination.'},
+      {q:'Which type of bee is female?',opts:['Only the queen','Only the drones','Both queen and worker bees','Only the worker bees'],ans:2,exp:'The passage states the queen and worker bees are female; drone bees are the only males.'}
+    ],
+    sa:[
+      {q:'Why do scientists say bees are in danger? List two threats mentioned in the passage.',model:'Pesticides and habitat loss (also disease) are threats to bees.',keywords:['pesticides','habitat','disease','chemicals'],rubric:'2 pts for 2 threats, 1 pt for 1 threat',concept:'details'},
+      {q:'Explain in your own words why bees flying from flower to flower helps humans.',model:'When bees fly between flowers collecting nectar, they transfer pollen. This pollination helps plants grow fruit and vegetables that people eat.',keywords:['pollen','pollination','food','flowers','fruit','vegetables','grow'],rubric:'4 pts: explains movement of pollen + connection to food',concept:'inference'}
+    ]
+  },
+  {
+    id:'p2', title:'The Waggle Dance: How Bees Talk', theme:'bees', grade:5, lexile:'720L',
+    text:`Communication is essential for any complex society, and honeybee colonies are no exception. Among the most fascinating discoveries in animal behavior is the honeybee's "waggle dance" — a sophisticated system of movement that conveys precise information about the location of food sources.
+
+Karl von Frisch, an Austrian scientist, spent decades studying bee behavior and eventually decoded the meaning of the waggle dance, earning him the Nobel Prize in Physiology in 1973. His research revealed that when a worker bee returns to the hive after finding a rich source of nectar, she performs a figure-eight movement on the surface of the honeycomb.
+
+The duration of the waggle portion of the dance communicates distance: a longer waggle run indicates a more distant food source. The angle of the waggle run, measured relative to vertical, corresponds to the angle between the food source and the sun. In this way, bees use the sun as a compass and translate direction into body angle — a remarkable feat of abstraction.
+
+Other bees in the hive follow the dancer closely, learning both the direction and the approximate distance of the food. After watching the dance, they fly off in precisely the right direction to find the flowers.
+
+What makes the waggle dance extraordinary is that it represents a true symbolic language — one of only a handful known to exist in the animal kingdom. Unlike most animal communication, which is triggered by immediate stimuli (a growl when threatened, a call when predators approach), the waggle dance describes something the bee is not currently experiencing. It refers to a past experience and future destination.
+
+Scientists are now using insights from bee communication to inspire "swarm intelligence" algorithms that help robots navigate and find resources efficiently.`,
+    concepts:['mainIdea','inference','vocabulary','authorPurpose'],
+    mc:[
+      {q:'What is the central idea of this passage?',opts:['Bees are endangered and need protection','Honeybees use a complex dance to communicate location of food','Karl von Frisch was a famous scientist','Bees are smarter than any other insect'],ans:1,exp:'The entire passage explains how the waggle dance communicates food source location.'},
+      {q:'How does the length of the waggle run communicate information?',opts:['Longer waggle = sweeter flowers','Longer waggle = food source farther away','Shorter waggle = food source farther away','Length does not communicate anything'],ans:1,exp:'The passage states a longer waggle run indicates a more distant food source.'},
+      {q:'What makes the waggle dance remarkable compared to most animal communication?',opts:['It is the only dance in the animal kingdom','It uses color instead of movement','It refers to something not currently happening — a past experience','It is only performed by the queen'],ans:2,exp:'Unlike most communication triggered by immediate stimuli, the dance describes a past experience and future destination.'},
+      {q:'What did Karl von Frisch win for decoding the waggle dance?',opts:['The Presidential Medal','A Grammy Award','The Nobel Prize','The Fields Medal'],ans:2,exp:'The passage states he earned the Nobel Prize in Physiology in 1973.'}
+    ],
+    sa:[
+      {q:'Explain how a bee uses the waggle dance to tell other bees both the direction AND distance of a food source.',model:'The angle of the waggle run (relative to vertical) indicates direction using the sun as a compass. The duration of the waggle run indicates distance — longer means farther away.',keywords:['angle','direction','sun','compass','duration','distance','longer','farther'],rubric:'4 pts: correctly explains both direction (angle) and distance (duration)',concept:'details'},
+      {q:'The author compares bee waggle dancing to a "true symbolic language." What evidence from the passage supports this comparison?',model:'The waggle dance describes something not currently present — a past experience (finding nectar) for a future action (flying there). It uses abstract symbols: angle = direction, duration = distance. This is unlike most animal communication that reacts to immediate stimuli.',keywords:['symbolic','abstract','past','future','language','direction','distance','angle'],rubric:'3 pts: references abstraction, past/future reference, and comparison to other animals',concept:'inference'}
+    ]
+  },
+  {
+    id:'p3', title:'Why Birds Fly South', theme:'birds', grade:1, lexile:'380L',
+    text:`Have you ever noticed that some birds disappear in the fall and come back in the spring? Where do they go?
+
+Many birds fly south when the weather gets cold. This is called migration. The birds travel to warmer places where they can find food and stay warm.
+
+Some birds fly very far! The Arctic tern is a tiny bird that flies from the top of the world all the way to the bottom — that is more than 25,000 miles every year! That is the longest trip of any animal on Earth.
+
+Birds know when it is time to fly south because the days get shorter. Less sunlight is a sign that winter is coming. Birds can also feel the cooler air.
+
+When spring comes, the birds fly north again. They return to their summer homes to build nests and have babies. This is the cycle of bird migration — south in fall, north in spring.
+
+Not all birds migrate. Some birds, like cardinals and chickadees, stay home all winter long. They have thick feathers that keep them warm. They find seeds and berries to eat when the ground is frozen.
+
+Next time you see a bird flying overhead in autumn, wave goodbye — and look for it again in spring!`,
+    concepts:['mainIdea','details','sequence'],
+    mc:[
+      {q:'What is migration?',opts:['When birds build nests in trees','When birds fly to warmer places in cold weather','When birds eat seeds in winter','When birds molt their feathers'],ans:1,exp:'Migration is when birds fly to warmer places when the weather gets cold.'},
+      {q:'How do birds know when it is time to fly south?',opts:['Their feathers fall off','They hear thunder','The days get shorter and the air gets cooler','Other birds tell them to leave'],ans:2,exp:'The passage says less sunlight and cooler air signal that winter is coming.'},
+      {q:'Which bird makes the longest migration journey?',opts:['The cardinal','The robin','The hummingbird','The Arctic tern'],ans:3,exp:'The Arctic tern flies more than 25,000 miles — the longest trip of any animal.'},
+      {q:'Why do cardinals NOT need to migrate?',opts:['They fly faster than other birds','They have thick feathers and can find food all winter','They sleep underground during winter','They turn into a different bird'],ans:1,exp:'Cardinals have thick feathers for warmth and can find seeds and berries to eat in winter.'}
+    ],
+    sa:[
+      {q:'Put these events in the right order: Birds return north → Days get shorter → Birds fly south → Spring arrives.',model:'1. Days get shorter 2. Birds fly south 3. Spring arrives 4. Birds return north.',keywords:['shorter','south','spring','north'],rubric:'2 pts for correct order',concept:'sequence'},
+      {q:'How are cardinals DIFFERENT from birds that migrate? Write one complete sentence.',model:'Cardinals do not migrate because they have thick feathers to keep warm and can find food like seeds and berries all winter.',keywords:['feathers','warm','seeds','food','winter','stay'],rubric:'2 pts: mentions staying + reason (feathers or food)',concept:'details'}
+    ]
+  },
+  {
+    id:'p4', title:'Migration Mysteries: How Birds Navigate', theme:'birds', grade:6, lexile:'830L',
+    text:`Every autumn, billions of birds embark on extraordinary journeys — some crossing entire continents or oceans — with pinpoint accuracy that would impress even the most sophisticated GPS system. How do they do it?
+
+Scientists have identified several navigation mechanisms working in concert. The simplest is landmark recognition: birds learn the distinctive shapes of coastlines, rivers, and mountain ranges. Young birds, however, must migrate before they could possibly have memorized any route. This observation suggests that at least some navigational ability is innate.
+
+One of the most intriguing discoveries is magnetoreception — the ability to sense Earth's magnetic field. Iron-rich cells have been found in the beaks and inner ears of several bird species, functioning somewhat like a biological compass. Migratory birds appear to use the inclination of the magnetic field (the angle at which it tilts relative to Earth's surface) to determine latitude.
+
+Birds also navigate by the stars. Experiments in which young birds were raised under artificial planetarium skies revealed that they learn the "fixed" point around which the night sky rotates — the North Star — and use this as a reference point. Even on cloudy nights, some species use infrasound (very low-frequency sound waves) produced by oceans and mountains to orient themselves.
+
+Perhaps most remarkably, birds may "see" magnetic fields. Cryptochrome proteins in their eyes appear to produce quantum-mechanical effects sensitive to magnetic orientation. This would mean birds literally perceive the magnetic field as part of their visual landscape.
+
+Navigation is just one piece of the migration puzzle. Fuel management is another: birds must store enough energy (as fat) to survive multi-day non-stop flights while crossing oceans, then rapidly refuel at stopover sites. Climate change threatens to disrupt these careful calculations by shifting when flowers bloom, insects emerge, and winds favor migration.`,
+    concepts:['mainIdea','inference','vocabulary','details'],
+    mc:[
+      {q:'What is the main question this passage explores?',opts:['Why birds migrate south in autumn','How birds know where to fly when migrating','Whether migration is harmful to birds','How many birds migrate each year'],ans:1,exp:'The passage begins by asking "How do they do it?" and explores multiple navigation mechanisms.'},
+      {q:'What does "magnetoreception" allow birds to do?',opts:['See in the dark','Sense Earth\'s magnetic field','Communicate with other birds','Store more energy as fat'],ans:1,exp:'Magnetoreception is the ability to sense Earth\'s magnetic field, functioning like a biological compass.'},
+      {q:'What evidence suggests some navigation ability in birds is INNATE (not learned)?',opts:['Birds navigate by the stars','Adult birds teach young birds the route','Young birds migrate accurately before they could have learned any route','Iron-rich cells are found in bird beaks'],ans:2,exp:'Young birds must migrate before memorizing routes, suggesting some navigational ability is inherited.'},
+      {q:'How might climate change affect bird migration?',opts:['Birds will stop migrating entirely','Magnetic fields will weaken','Timing will be disrupted as flowers, insects, and winds shift','Birds will evolve larger wings'],ans:2,exp:'The passage states climate change may shift when flowers bloom, insects emerge, and winds favor migration.'}
+    ],
+    sa:[
+      {q:'Describe THREE different navigation methods birds use when migrating.',model:'(1) Landmark recognition — remembering coastlines, rivers, mountains. (2) Magnetoreception — sensing Earth\'s magnetic field using iron-rich cells as a compass. (3) Star navigation — finding the North Star as a fixed reference point. (Also: infrasound from oceans and mountains.)',keywords:['landmark','magnetic','stars','north','compass','infrasound','magnetic field','beaks'],rubric:'4 pts: 3 mechanisms accurately described with key details',concept:'details'},
+      {q:'The author says birds may "see" magnetic fields. What does this mean and why is it described as remarkable?',model:'Cryptochrome proteins in bird eyes may create quantum effects sensitive to magnetic orientation, meaning the magnetic field becomes part of their visual perception — they see it. This is remarkable because it means birds have a fundamentally different visual experience than humans.',keywords:['cryptochrome','quantum','visual','see','remarkable','magnetic','perception'],rubric:'3 pts: explains mechanism + why remarkable',concept:'inference'}
+    ]
+  },
+  {
+    id:'p5', title:'A Day at the Zoo', theme:'animals', grade:3, lexile:'570L',
+    text:`Last Saturday, Mia's family went to the city zoo. Mia was so excited she could barely eat breakfast.
+
+When they arrived, the first thing Mia wanted to see was the elephants. The African elephant is the largest land animal on Earth. An adult elephant can weigh as much as 13,000 pounds — about as much as two large cars! Elephants use their long trunks to smell, drink, breathe, and pick up objects.
+
+At the giraffe exhibit, Mia learned something surprising: giraffes have the same number of neck bones as humans — seven! They are just much, much bigger. Giraffes can reach leaves at the very top of tall acacia trees that no other animal can reach. This gives them a special advantage when food is scarce.
+
+Next, Mia's little brother wanted to see the penguins. They watched the zoo keepers feed the penguins fish, one by one. Even though penguins cannot fly, they are excellent swimmers. Their wings have evolved into flippers perfect for gliding through water at up to 25 miles per hour.
+
+At the reptile house, Mia learned that all reptiles are cold-blooded. This means they cannot make their own body heat and depend on the sun to warm up. That is why you often see lizards sunbathing on rocks.
+
+By the end of the day, Mia could not choose her favorite animal. Each one was amazing in its own way. "Maybe I'll be a zoologist someday," she told her mom. Her mom smiled. "You'd be a great one," she said.`,
+    concepts:['details','vocabulary','inference'],
+    mc:[
+      {q:'How much can an adult African elephant weigh?',opts:['500 pounds','5,000 pounds','13,000 pounds','1,000 pounds'],ans:2,exp:'The passage states an adult elephant can weigh as much as 13,000 pounds.'},
+      {q:'What does "cold-blooded" mean, according to the passage?',opts:['The animal lives in cold climates','The animal cannot make its own body heat','The animal is unfriendly to humans','The animal has cold blood running through it'],ans:1,exp:'The passage explains that cold-blooded animals cannot make their own body heat and depend on the sun.'},
+      {q:'What surprising fact did Mia learn about giraffe neck bones?',opts:['Giraffes have no neck bones','Giraffes have 20 neck bones','Giraffes have 7 neck bones — same as humans','Giraffes grow new bones every year'],ans:2,exp:'Giraffes have the same number of neck bones as humans — seven — just much bigger ones.'},
+      {q:'Why do penguins make good swimmers even though they cannot fly?',opts:['They have strong legs for kicking','Their wings evolved into flippers','They hold their breath longer than any animal','They learned to swim from other birds'],ans:1,exp:'Penguin wings have evolved into flippers perfect for swimming at up to 25 mph.'}
+    ],
+    sa:[
+      {q:'What does it mean that giraffes have a "special advantage" when food is scarce? Explain using details from the passage.',model:'Giraffes can reach leaves at the very top of tall acacia trees that no other animal can reach. When food is scarce, they can still eat while other animals cannot reach those leaves.',keywords:['tall','reach','leaves','acacia','advantage','food','scarce','other animals'],rubric:'2 pts: explains both ability to reach + why it matters',concept:'inference'},
+      {q:'Name TWO things elephants use their trunks for.',model:'Elephants use their trunks to smell, drink, breathe, and pick up objects (any two).',keywords:['smell','drink','breathe','pick up'],rubric:'1 pt each, max 2 pts',concept:'details'}
+    ]
+  },
+  {
+    id:'p6', title:'Benjamin Franklin: Inventor and Statesman', theme:'franklin', grade:4, lexile:'670L',
+    text:`Benjamin Franklin was one of the most remarkable Americans who ever lived. He was born in Boston in 1706, one of seventeen children. Although he received very little formal education, he became a writer, scientist, inventor, and statesman — and helped found the United States of America.
+
+As a young man, Franklin taught himself to write by copying the style of articles he admired. He eventually became the owner and publisher of the Pennsylvania Gazette, one of the most successful newspapers in the colonies. He believed strongly in the power of the written word to educate and inspire.
+
+Franklin's scientific curiosity led him to one of history's most famous experiments. In 1752, he flew a kite in a thunderstorm with a metal key attached to the string. When lightning struck nearby, electricity traveled down the wet string and made a spark at the key. This proved that lightning was a form of electricity. As a result, he invented the lightning rod — a metal rod placed on top of buildings to safely conduct lightning into the ground, preventing fires.
+
+He also invented bifocal glasses, the Franklin stove (which heated homes more efficiently), and swim fins. He proved that ocean currents called the Gulf Stream influenced weather and navigation. And in his spare time, he founded the first public library in America and helped establish the University of Pennsylvania.
+
+Franklin served as a diplomat to France during the Revolutionary War and persuaded the French to become America's ally. Without French support, the colonies might not have won independence. He later helped draft the Declaration of Independence and the Constitution.
+
+Franklin's famous motto, "An investment in knowledge pays the best interest," reflects the belief that guided his entire life: that learning is the foundation of everything worthwhile.`,
+    concepts:['mainIdea','details','inference','vocabulary'],
+    mc:[
+      {q:'What is the MAIN IDEA of this passage?',opts:['Benjamin Franklin loved to fly kites','Benjamin Franklin was a gifted inventor but a poor statesman','Benjamin Franklin contributed to science, writing, and the founding of America in many important ways','Benjamin Franklin invented the lightning rod'],ans:2,exp:'The passage covers Franklin\'s achievements across writing, science, inventions, and statesmanship.'},
+      {q:'What did Franklin\'s kite experiment prove?',opts:['That metal rods could stop fires','That lightning is dangerous','That lightning is a form of electricity','That storms could be predicted'],ans:2,exp:'The experiment showed that electricity traveled down the string and sparked at the key, proving lightning is electrical.'},
+      {q:'How did Franklin help America win independence?',opts:['He commanded troops in battle','He wrote the entire Constitution alone','He persuaded France to become America\'s ally','He discovered gunpowder'],ans:2,exp:'Franklin served as a diplomat and persuaded the French to support the colonists.'},
+      {q:'Which of these did Franklin NOT invent, according to the passage?',opts:['Bifocal glasses','Swim fins','The lightning rod','The printing press'],ans:3,exp:'The passage mentions bifocals, swim fins, and the lightning rod, but not the printing press.'}
+    ],
+    sa:[
+      {q:'Why was the lightning rod such an important invention? Explain what problem it solved.',model:'Before the lightning rod, lightning could strike buildings and cause fires. The lightning rod safely conducts electricity from lightning down into the ground, preventing those fires and protecting buildings and people.',keywords:['lightning','electricity','ground','fires','protect','buildings','safely'],rubric:'3 pts: identifies problem (fire from lightning) + explains how rod solves it',concept:'inference'},
+      {q:'What does Franklin\'s motto, "An investment in knowledge pays the best interest," tell us about his values?',model:'The motto means that learning (knowledge) is the best thing you can spend time and effort on, because it returns the most value. Franklin valued education deeply, which explains why he taught himself, founded the first library, and worked to share knowledge through his newspaper.',keywords:['knowledge','learning','education','value','best','library','writing'],rubric:'3 pts: interprets motto + connects to actions in the passage',concept:'inference'}
+    ]
+  },
+  {
+    id:'p7', title:"Franklin's Electrical Experiments", theme:'franklin', grade:8, lexile:'1040L',
+    text:`When Benjamin Franklin published "Experiments and Observations on Electricity" in 1751, he transformed natural philosophy — what we today call science — in ways that continue to shape modern understanding of electromagnetism. Franklin was not merely a tinkerer; he was a rigorous empiricist who formulated hypotheses, designed controlled observations, and drew conclusions that anticipated much of what would later become foundational physics.
+
+Franklin's single most influential conceptual contribution was the single-fluid theory of electricity. Prior to his work, the dominant European model posited two separate electrical fluids: vitreous (produced by rubbing glass) and resinous (produced by rubbing amber). Franklin proposed instead that electricity consisted of a single fluid whose excess produced what he termed a "positive" charge and whose deficiency produced a "negative" charge. Though the modern understanding of electricity involves electrons (negatively charged particles), Franklin's fundamental insight — that charge is a conserved quantity that is transferred rather than created — remains correct and forms the basis of the law of conservation of charge.
+
+The kite-and-key experiment of 1752, while not the only means by which Franklin demonstrated the electrical nature of lightning, became iconic because of its elegant simplicity and the practical application it spawned: the lightning rod. His reasoning was sophisticated: if pointed conductors draw electrical charge silently and gradually from charged clouds, they might discharge the tension before a destructive strike could occur. He tested this, published the results, and watched as lightning rods were rapidly adopted across Europe and America, saving countless buildings, ships, and lives.
+
+Less celebrated but equally significant were Franklin's investigations into the Gulf Stream, grounded in careful temperature measurements from trans-Atlantic voyages, and his design of the "Philadelphia stove" based on thermodynamic principles about convection and combustion efficiency.
+
+What separated Franklin from contemporaries who pursued similar questions was his insistence that knowledge must serve human welfare. In an era when natural philosophers might jealously patent discoveries, Franklin refused to patent a single invention, believing that innovations born of nature's principles belonged to all people. This philosophy of open science arguably makes him one of the earliest advocates of what today we call open-source culture.`,
+    concepts:['mainIdea','vocabulary','inference','authorPurpose'],
+    mc:[
+      {q:'What was Franklin\'s "single-fluid theory" about?',opts:['Electricity consists of water-like fluid in wires','Two separate electrical fluids create positive and negative charges','A single electrical fluid transfers between objects; excess = positive, deficiency = negative','Electricity flows only in one direction through metals'],ans:2,exp:'Franklin proposed a single fluid whose excess = positive charge and deficiency = negative charge.'},
+      {q:'Why does the author say Franklin\'s single-fluid theory "remains correct" despite being different from modern electron theory?',opts:['Scientists never updated Franklin\'s theory','The fundamental idea that charge is conserved and transferred — not created — is accurate','Both theories use the word "negative" the same way','Franklin later revised his theory to match modern physics'],ans:1,exp:'Though electrons weren\'t known then, the core insight — charge is conserved and transferred — is still foundational.'},
+      {q:'What does the passage imply about Franklin\'s decision not to patent his inventions?',opts:['He could not legally patent them','He didn\'t realize his inventions had commercial value','He believed scientific discoveries should benefit all people freely','He was too busy with political work'],ans:2,exp:'Franklin believed innovations derived from nature\'s principles belonged to all people.'},
+      {q:'Which word best describes the author\'s tone toward Franklin in this passage?',opts:['Critical and skeptical','Neutral and purely factual','Admiring and analytical','Informal and humorous'],ans:2,exp:'The author presents thorough evidence of Franklin\'s achievements while analyzing their significance — admiring yet analytical.'}
+    ],
+    sa:[
+      {q:'How did the two-fluid theory differ from Franklin\'s single-fluid theory, and why did Franklin\'s model represent an advance?',model:'The dominant two-fluid theory held that two separate electrical substances (vitreous and resinous) caused positive and negative charges. Franklin\'s single-fluid theory proposed one fluid that could be in excess (positive) or deficiency (negative). This was an advance because it correctly identified charge as a conserved, transferred quantity — not two created substances.',keywords:['two','single','fluid','excess','deficiency','positive','negative','conserved','transferred'],rubric:'4 pts: accurately contrasts both theories + explains why Franklin\'s is better',concept:'details'},
+      {q:'The passage describes Franklin as "one of the earliest advocates of open-source culture." Using evidence from the text, explain what this comparison means and whether you find it convincing.',model:'Franklin refused to patent any invention, believing nature\'s discoveries belong to all people. Open-source culture similarly holds that software/knowledge should be freely shared. The comparison is convincing because the underlying philosophy — that knowledge is a public good — is identical, even if the context differs by 250 years.',keywords:['patent','open','free','share','knowledge','public','belong','nature'],rubric:'4 pts: explains the comparison + evaluates with textual evidence',concept:'inference'}
+    ]
+  },
+  {
+    id:'p8', title:'Signs of Spring', theme:'spring', grade:2, lexile:'430L',
+    text:`After the long cold winter, spring finally arrives! How do we know spring is here? Nature gives us many clues.
+
+One of the first signs of spring is the return of robins. These red-breasted birds spent the winter in warmer places. When you see a robin hopping across the grass looking for worms, you know spring is near.
+
+Another sign is the blooming of flowers. Crocuses are often the first flowers to appear, sometimes poking through the last of the snow! Daffodils and tulips soon follow. These flowers need cold winters to wake them up when spring warmth arrives.
+
+Trees begin to bud in spring too. At first, only tiny bumps appear on bare branches. Slowly, these buds open into bright green leaves. Soon the whole tree is covered in fresh new growth.
+
+In many parts of the world, Easter and other spring holidays are celebrated at this time of year. Eggs are a symbol of spring and new life. People dye eggs in bright colors and hide them for children to find. Flowers and baby animals — like chicks, lambs, and bunnies — appear on cards and decorations because they represent the new beginnings of spring.
+
+Farmers are busy in spring, planting seeds in the freshly thawed ground. Rain falls more often, watering the new plants. Warmer temperatures and longer days give plants the energy they need to grow.
+
+Spring is a season of waking up, growing, and beginning again. After the quiet of winter, the world feels alive and full of hope.`,
+    concepts:['mainIdea','details','sequence'],
+    mc:[
+      {q:'Which flower often blooms FIRST in spring, sometimes pushing through snow?',opts:['Tulip','Daffodil','Crocus','Daisy'],ans:2,exp:'The passage states crocuses are often the first flowers, sometimes coming through the last snow.'},
+      {q:'Why do some flowers NEED cold winters, according to the passage?',opts:['Cold keeps insects away from flowers','Cold gives flowers bright colors','Cold winters are needed to wake them up when spring arrives','Flowers store food during cold weather'],ans:2,exp:'The passage says these flowers need cold winters to wake up when spring warmth arrives.'},
+      {q:'What do eggs symbolize in spring celebrations?',opts:['The cold winter that passed','New life and new beginnings','The return of migrating birds','The planting of seeds'],ans:1,exp:'Eggs are described as a symbol of spring and new life.'},
+      {q:'What is the MAIN IDEA of this passage?',opts:['Robins are the only sign that spring has arrived','Farmers work very hard in the spring season','Spring shows itself through many signs in nature and human celebrations','Easter is the most important spring holiday'],ans:2,exp:'The passage covers multiple signs of spring: birds, flowers, trees, holidays, and farming.'}
+    ],
+    sa:[
+      {q:'List THREE signs from the passage that tell us spring has arrived.',model:'Robins returning, flowers (crocuses, daffodils, tulips) blooming, trees budding with leaves, more rain, warmer temperatures, longer days, farmers planting seeds.',keywords:['robins','flowers','trees','buds','crocus','rain','warm','longer'],rubric:'3 pts for 3 accurate signs from the text',concept:'details'},
+      {q:'The passage says spring is "a season of waking up, growing, and beginning again." Do you think this is a good description? Use TWO examples from the passage to explain.',model:'Yes — flowers that slept all winter "wake up" when warmth comes (waking up), and seeds planted by farmers grow into crops (growing). Also, baby animals are born in spring, which is a new beginning.',keywords:['flowers','wake','seeds','grow','baby','new','beginning','winter'],rubric:'3 pts: expresses opinion + 2 examples with explanation',concept:'inference'}
+    ]
+  },
+  {
+    id:'p9', title:"Rainforests: Earth's Green Lungs", theme:'nature', grade:7, lexile:'930L',
+    text:`Tropical rainforests cover only about 6% of Earth's land surface, yet they harbor more than half of the world's plant and animal species. Their extraordinary biodiversity — accumulated over millions of years of evolution in a stable, warm, wet environment — makes them indispensable to the health of the entire planet. Scientists frequently describe them as "Earth's green lungs," and the comparison is not merely poetic.
+
+Rainforests absorb enormous quantities of carbon dioxide through photosynthesis and release oxygen. The Amazon rainforest alone — stretching across nine South American countries — produces approximately 20% of the Earth's oxygen and absorbs billions of tons of carbon dioxide each year. This carbon sequestration function has become critically important in the context of climate change: as humans release carbon dioxide through burning fossil fuels, intact forests act as a partial counterbalance.
+
+The biological richness of rainforests is staggering. A single hectare (about 2.5 acres) of Amazon rainforest may contain 400–600 species of trees — roughly as many as in all of North America. These trees support an intricate web of life: thousands of insect species, hundreds of bird and mammal species, amphibians, reptiles, and fungi, many of which remain undiscovered and unnamed. Ethnobotanists estimate that at least 25% of modern medicines were first derived from rainforest plants.
+
+Despite their importance, rainforests are under severe threat. Approximately 17% of the Amazon has been deforested in the past 50 years, primarily to create cattle ranches and soybean farms. When forests are cleared, the carbon stored in their biomass is released, accelerating climate change. The soil beneath rainforests, paradoxically, is nutrient-poor; almost all nutrients cycle rapidly through living organisms rather than accumulating in the ground. Once cleared, the land is typically productive for only a few years before becoming barren.
+
+The fate of rainforests is increasingly understood as inseparable from the fate of Earth's climate, biodiversity, and medicine supply. Protecting them is not a choice between human welfare and environmental idealism — it is a matter of long-term human survival.`,
+    concepts:['mainIdea','vocabulary','details','inference'],
+    mc:[
+      {q:'What does "carbon sequestration" mean in the context of rainforests?',opts:['Releasing oxygen into the atmosphere','Absorbing and storing carbon dioxide from the air','Converting carbon into fossil fuels','Filtering water through tree roots'],ans:1,exp:'Carbon sequestration refers to absorbing and storing carbon dioxide — which rainforests do in enormous quantities.'},
+      {q:'Why is cleared rainforest land quickly exhausted for farming?',opts:['Rainforest animals eat the crops','The climate is too wet for farmland','Rainforest soil is nutrient-poor; nutrients cycle through living organisms, not the ground','Rain washes away all the topsoil within one year'],ans:2,exp:'The passage explains that almost all nutrients cycle rapidly through living organisms rather than accumulating in the soil.'},
+      {q:'According to the passage, what fraction of modern medicines came originally from rainforest plants?',opts:['10%','At least 25%','More than 50%','Less than 5%'],ans:1,exp:'Ethnobotanists estimate at least 25% of modern medicines were first derived from rainforest plants.'},
+      {q:'What is the author\'s main purpose in the final paragraph?',opts:['To describe the history of deforestation','To argue that protecting rainforests is essential to human survival, not just environmentalism','To compare rainforests to other ecosystems','To summarize the biodiversity statistics'],ans:1,exp:'The author reframes forest protection as a matter of long-term human survival, not just idealism.'}
+    ],
+    sa:[
+      {q:'The author calls rainforests "Earth\'s green lungs." Based on the passage, is this an accurate comparison? Support your answer with specific evidence.',model:'Yes, it is accurate. Lungs absorb oxygen and release carbon dioxide; rainforests do the reverse — absorbing CO₂ and producing oxygen. The Amazon alone produces 20% of Earth\'s oxygen and absorbs billions of tons of CO₂ annually. Like lungs are essential for human survival, rainforests are essential for planetary health.',keywords:['oxygen','carbon dioxide','absorb','20%','amazon','lungs','essential','survival'],rubric:'4 pts: explains the comparison + provides specific evidence + evaluates accuracy',concept:'inference'},
+      {q:'Explain the paradox of rainforest soil described in the passage. Why does this make deforestation particularly damaging?',model:'Although rainforests support extraordinary life, the soil beneath them is actually nutrient-poor. Nutrients don\'t accumulate in the ground — they cycle rapidly through living organisms. When the forest is cleared, those living organisms are gone, so the land becomes barren within a few years. This means the deforestation is permanent in practice — you can\'t restore productivity.',keywords:['soil','poor','nutrients','cycle','organisms','cleared','barren','permanent'],rubric:'4 pts: identifies paradox + explains mechanism + explains why deforestation is especially damaging',concept:'details'}
+    ]
+  },
+  {
+    id:'p10', title:'The Girl Who Crossed the Prairie', theme:'history', grade:5, lexile:'760L',
+    text:`The wagon train had been rolling west for six weeks when twelve-year-old Hannah Whitfield first saw the Platte River shimmering like a silver ribbon in the midday sun. After the cramped streets of Cincinnati, the endless sky of Nebraska felt like something between freedom and terror.
+
+"How much farther, Papa?" she asked, clutching her journal to her chest. She had been writing everything down — the ruts carved deep into the earth by thousands of wagons before theirs, the buffalo skull bleaching white on a hilltop, the way the prairie wind never stopped.
+
+"Oregon," her father said. "Another three months, God willing."
+
+Three months. Hannah calculated: that would be late October. She had read enough about mountain passes to know that late was dangerous. The Donner Party had been late. She did not say this aloud.
+
+Her mother had insisted on bringing the family Bible and the iron skillet. Hannah had insisted on three blank journals. "What good are books in Oregon?" her older brother James had scoffed. Hannah had ignored him. She understood, already, something James did not: the people who wrote things down were the people history remembered.
+
+The days had a grinding rhythm — wake before dawn, hitch the oxen, walk twelve miles (she rarely rode; it spared the animals), cook over a fire of buffalo chips, sleep exhausted. She had blistered and healed and blistered again. She had seen a child buried by the trail — a tiny mound marked with a wooden cross — and had written about it, because forgetting seemed like a second death.
+
+Years later, Hannah Whitfield's journals would be donated to the Oregon Historical Society, where they would be studied by historians as one of the few detailed accounts of the overland trail written by a child. She had been right about writing things down.`,
+    concepts:['inference','details','authorPurpose','vocabulary'],
+    mc:[
+      {q:'Why does Hannah NOT say aloud what she knows about the Donner Party?',opts:['She forgot what she read about them','She does not want to worry her family about being late','She thinks Oregon will be reached before October','She is not sure if the story is true'],ans:1,exp:'Hannah calculates the arrival would be in late October; she knows being late is dangerous (Donner Party), but doesn\'t say it aloud — implying she doesn\'t want to alarm her family.'},
+      {q:'What does Hannah believe that her brother James does NOT understand?',opts:['How to care for the oxen properly','That Oregon is farther than he thinks','That people who write things down are remembered by history','That their wagon is too heavy'],ans:2,exp:'Hannah "understood something James did not: the people who wrote things down were the people history remembered."'},
+      {q:'Why did Hannah rarely ride in the wagon?',opts:['She preferred walking for exercise','It spared the animals, which was more important','Her mother would not allow it','The wagon was too full'],ans:1,exp:'The passage states "she rarely rode; it spared the animals."'},
+      {q:'What is the significance of the final sentence: "She had been right about writing things down"?',opts:['Her journals were later published as a novel','Her journals became the only surviving record of the trail','Her journals were studied by historians as a rare child\'s account of the overland trail','She won an award for her writing'],ans:2,exp:'Her journals were donated to the Oregon Historical Society and studied as one of few detailed child accounts.'}
+    ],
+    sa:[
+      {q:'Hannah observes the "ruts carved deep into the earth by thousands of wagons before theirs." What does this detail reveal about the history of the Oregon Trail?',model:'The deep ruts show that thousands of people had made this journey before Hannah\'s family — it was a well-traveled route with a long history. The physical mark on the land becomes evidence of all those journeys, connecting Hannah\'s family to a larger human story of westward migration.',keywords:['thousands','before','wagons','history','trail','journey','migration','evidence'],rubric:'3 pts: interprets detail + connects to broader historical meaning',concept:'inference'},
+      {q:'Why does Hannah write about the child buried by the trail? What does she mean by "forgetting seemed like a second death"?',model:'Hannah writes about the buried child because she believes documenting the experience prevents that child from being completely forgotten. "A second death" means that if no one records someone\'s existence, it is as though they die a second time — erased from memory and history entirely.',keywords:['forget','record','write','memory','existence','death','erase','history'],rubric:'4 pts: explains why she writes it + interprets the "second death" metaphor',concept:'inference'}
+    ]
+  }
+];
+
+// ============================================================
+// CONCEPT DEFINITIONS
+// ============================================================
+const CONCEPTS = {
+  mainIdea: { label:'Main Idea', icon:'🎯', color:'#0ea5e9' },
+  inference: { label:'Inference', icon:'🔍', color:'#7c3aed' },
+  vocabulary: { label:'Vocabulary', icon:'📝', color:'#d97706' },
+  details: { label:'Supporting Details', icon:'📋', color:'#16a34a' },
+  sequence: { label:'Sequence & Order', icon:'🔢', color:'#0369a1' },
+  authorPurpose: { label:"Author's Purpose", icon:'✍️', color:'#be185d' }
+};
+
+// ============================================================
+// BADGES
+// ============================================================
+const ALL_BADGES = [
+  {id:'first_read', icon:'📖', name:'First Read', desc:'Complete your first passage'},
+  {id:'bee_expert', icon:'🐝', name:'Bee Expert', desc:'Complete 2 Bee passages'},
+  {id:'bird_watcher', icon:'🐦', name:'Bird Watcher', desc:'Complete 2 Bird passages'},
+  {id:'franklin_scholar', icon:'⚡', name:'Franklin Scholar', desc:'Complete 2 Franklin passages'},
+  {id:'streak_3', icon:'🔥', name:'On Fire!', desc:'3-day reading streak'},
+  {id:'perfect_mc', icon:'🎯', name:'Sharp Shooter', desc:'Score 100% on MC quiz'},
+  {id:'wordsmith', icon:'📝', name:'Wordsmith', desc:'Complete 5 short-answer questions'},
+  {id:'bookworm', icon:'🐛', name:'Bookworm', desc:'Read 5 passages'},
+  {id:'explorer', icon:'🌍', name:'Explorer', desc:'Read passages from 4 different themes'},
+  {id:'memory_bank', icon:'🧠', name:'Memory Bank', desc:'Achieve 75%+ mastery in any concept'},
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let state = {
+  profile: null,
+  memoryBank: {},
+  history: [],
+  favorites: [],
+  badges: [],
+  settings: { fontSize: 18, dyslexic: false, dark: false, ttsSpeed: 1 },
+  currentPassage: null,
+  quizState: null,
+  themeFilter: 'all',
+  gradeFilter: 'all',
+  readingComplete: false,
+  timerInterval: null,
+  ttsUtterance: null,
+  ttsWords: [],
+  ttsWordIndex: 0,
+  ttsInterval: null
+};
+
+// ============================================================
+// INIT
+// ============================================================
+function init() {
+  loadState();
+  // Splash
+  setTimeout(() => {
+    document.getElementById('splashBar').style.width = '100%';
+  }, 100);
+  setTimeout(() => {
+    document.getElementById('splash').style.opacity = '0';
+    document.getElementById('splash').style.transition = 'opacity 0.5s';
+    setTimeout(() => {
+      document.getElementById('splash').style.display = 'none';
+      if (state.profile) {
+        showApp();
+      } else {
+        showScreen('onboarding');
+      }
+    }, 500);
+  }, 2000);
+}
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('aetherread_state');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      state = { ...state, ...parsed };
+    }
+  } catch(e) { console.log('Fresh start'); }
+  // Init memory bank concepts
+  Object.keys(CONCEPTS).forEach(k => {
+    if (!state.memoryBank[k]) state.memoryBank[k] = 50;
+  });
+}
+
+function saveState() {
+  try {
+    localStorage.setItem('aetherread_state', JSON.stringify(state));
+  } catch(e) {}
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ============================================================
+// ONBOARDING
+// ============================================================
+let selectedRole = 'student';
+function setRole(role) {
+  selectedRole = role;
+  document.querySelectorAll('.role-btn').forEach(b => {
+    b.style.background = '';
+    b.style.color = '#0ea5e9';
+    b.style.borderColor = '#bae6fd';
+  });
+  document.getElementById('role'+role.charAt(0).toUpperCase()+role.slice(1)).style.background = '#0ea5e9';
+  document.getElementById('role'+role.charAt(0).toUpperCase()+role.slice(1)).style.color = 'white';
+}
+
+function completeOnboarding() {
+  const name = document.getElementById('onboardName').value.trim() || 'Reader';
+  const grade = document.getElementById('onboardGrade').value || '3';
+  state.profile = { name, grade: parseInt(grade), role: selectedRole, streak: 0, lastLogin: Date.now(), totalPassages: 0, totalQuestions: 0, correctQuestions: 0 };
+  // Init streak
+  checkStreak();
+  saveState();
+  showApp();
+}
+
+function checkStreak() {
+  if (!state.profile) return;
+  const now = Date.now();
+  const lastLogin = state.profile.lastLogin || 0;
+  const hoursSince = (now - lastLogin) / 3600000;
+  if (hoursSince < 48 && hoursSince > 24) {
+    state.profile.streak = (state.profile.streak || 0) + 1;
+    checkBadges();
+  } else if (hoursSince >= 48) {
+    state.profile.streak = 1;
+  } else {
+    state.profile.streak = Math.max(1, state.profile.streak || 1);
+  }
+  state.profile.lastLogin = now;
+}
+
+function showApp() {
+  showScreen('app');
+  updateNavProfile();
+  showTab('dashboard');
+}
+
+function updateNavProfile() {
+  if (!state.profile) return;
+  const initial = state.profile.name.charAt(0).toUpperCase();
+  document.getElementById('navAvatar').textContent = initial;
+  document.getElementById('navStreak').textContent = state.profile.streak || 0;
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const el = document.getElementById('tab-'+tab);
+  if (el) el.classList.remove('hidden');
+  const navMap = { dashboard:'navDash', library:'navLib', progress:'navProg' };
+  if (navMap[tab]) document.getElementById(navMap[tab])?.classList.add('active');
+  // Render
+  if (tab==='dashboard') renderDashboard();
+  else if (tab==='library') renderLibrary();
+  else if (tab==='progress') renderProgress();
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function renderDashboard() {
+  if (!state.profile) return;
+  const p = state.profile;
+  document.getElementById('dashName').textContent = p.name + '! 👋';
+  const lexile = gradeLexile(p.grade);
+  document.getElementById('dashLevel').textContent = 'Grade '+p.grade+' · '+lexile;
+  document.getElementById('dashGradeNum').textContent = p.grade;
+  document.getElementById('dashStreak').textContent = p.streak || 0;
+  document.getElementById('dashTotal').textContent = p.totalPassages || 0;
+  document.getElementById('navStreak').textContent = p.streak || 0;
+  // Accuracy
+  const acc = p.totalQuestions > 0 ? Math.round((p.correctQuestions/p.totalQuestions)*100)+'%' : '--';
+  document.getElementById('dashAccuracy').textContent = acc;
+  document.getElementById('dashBadges').textContent = state.badges.length;
+  document.getElementById('dashQuestions').textContent = p.totalQuestions || 0;
+  // Mastery grid
+  const grid = document.getElementById('masteryGrid');
+  grid.innerHTML = Object.entries(CONCEPTS).map(([k,v]) => {
+    const score = state.memoryBank[k] || 50;
+    return `<div class="flex items-center gap-3">
+      <span style="font-size:20px">${v.icon}</span>
+      <div class="flex-1">
+        <div class="flex justify-between mb-1">
+          <span class="text-sm font-700 text-gray-700" style="font-weight:700">${v.label}</span>
+          <span class="text-sm font-800" style="color:${v.color};font-weight:800">${score}%</span>
+        </div>
+        <div class="mastery-bar"><div class="mastery-fill" style="width:${score}%;background:${v.color}"></div></div>
+      </div>
+    </div>`;
+  }).join('');
+  // Recommended
+  const grade = p.grade;
+  const rec = PASSAGES.filter(pp => {
+    const read = state.history.find(h=>h.passageId===pp.id);
+    return !read;
+  }).sort((a,b) => Math.abs(a.grade-grade) - Math.abs(b.grade-grade)).slice(0,3);
+  const recEl = document.getElementById('dashRecommended');
+  recEl.innerHTML = rec.length ? rec.map(pp => passageMiniCard(pp)).join('') : '<p class="text-gray-400 font-semibold text-sm">You\'ve read everything! Great work! 🎉</p>';
+  // Recent
+  const recent = [...state.history].reverse().slice(0,3);
+  const recentEl = document.getElementById('dashRecent');
+  recentEl.innerHTML = recent.length ? recent.map(h => {
+    const pp = PASSAGES.find(p=>p.id===h.passageId);
+    if (!pp) return '';
+    return `<div class="bg-white rounded-2xl p-4 flex items-center justify-between" style="border:2px solid #e0f2fe">
+      <div>
+        <p class="font-700 text-gray-800 text-sm" style="font-weight:700">${pp.title}</p>
+        <p class="text-xs text-gray-500 font-600">Score: ${h.score}% · ${themeEmoji(pp.theme)} ${pp.theme}</p>
+      </div>
+      <button onclick="openPassage('${pp.id}')" class="text-sky-500 hover:text-sky-700 font-700 text-sm" style="font-weight:700">Reread →</button>
+    </div>`;
+  }).join('') : '<p class="text-gray-400 font-semibold text-sm">No passages read yet. Dive in!</p>';
+}
+
+function gradeLexile(g) {
+  const map = {1:'100-200L',2:'250-350L',3:'400-500L',4:'500-650L',5:'650-750L',6:'750-900L',7:'900-1000L',8:'1000-1100L',9:'1100-1200L',10:'1150-1300L',11:'1200-1350L',12:'1250-1450L',13:'1300-1500L'};
+  return map[g] || '700-900L';
+}
+
+function themeEmoji(t) {
+  const m={bees:'🐝',birds:'🐦',animals:'🦁',franklin:'⚡',spring:'🌸',nature:'🌿',history:'📜'};
+  return m[t]||'📚';
+}
+
+function passageMiniCard(pp) {
+  return `<div class="bg-white rounded-2xl p-4 passage-card cursor-pointer" style="border:2px solid #e0f2fe" onclick="openPassage('${pp.id}')">
+    <div class="flex items-start justify-between gap-2">
+      <div>
+        <p class="font-800 text-gray-800 text-sm" style="font-weight:800">${pp.title}</p>
+        <div class="flex gap-2 mt-1 flex-wrap">
+          <span class="theme-badge" style="background:#e0f2fe;color:#0369a1;font-size:11px">Grade ${pp.grade}</span>
+          <span class="theme-badge" style="background:#dcfce7;color:#15803d;font-size:11px">${themeEmoji(pp.theme)} ${pp.theme}</span>
+          <span class="theme-badge" style="background:#fefce8;color:#92400e;font-size:11px">${pp.lexile}</span>
+        </div>
+      </div>
+      <span style="font-size:24px">${themeEmoji(pp.theme)}</span>
+    </div>
+    <button class="btn-primary mt-3 w-full py-2 text-sm">Read →</button>
+  </div>`;
+}
+
+// ============================================================
+// LIBRARY
+// ============================================================
+function renderLibrary() {
+  filterPassages();
+}
+
+function setThemeFilter(t) {
+  state.themeFilter = t;
+  document.querySelectorAll('.theme-filter-btn').forEach(b => {
+    if (b.dataset.theme===t) { b.style.opacity='1'; b.style.outline='3px solid #0369a1'; }
+    else { b.style.opacity='0.7'; b.style.outline='none'; }
+  });
+  filterPassages();
+}
+
+function setGradeFilter(g) {
+  state.gradeFilter = g;
+  document.querySelectorAll('.grade-filter-btn').forEach(b => {
+    if (b.dataset.grade===g) { b.style.outline='3px solid #0369a1'; }
+    else { b.style.outline='none'; }
+  });
+  filterPassages();
+}
+
+function filterPassages() {
+  const search = document.getElementById('libSearch')?.value.toLowerCase() || '';
+  let filtered = PASSAGES.filter(pp => {
+    const themeOk = state.themeFilter==='all' || pp.theme===state.themeFilter;
+    let gradeOk = state.gradeFilter==='all';
+    if (state.gradeFilter==='1-3') gradeOk = pp.grade>=1 && pp.grade<=3;
+    else if (state.gradeFilter==='4-6') gradeOk = pp.grade>=4 && pp.grade<=6;
+    else if (state.gradeFilter==='7-9') gradeOk = pp.grade>=7 && pp.grade<=9;
+    else if (state.gradeFilter==='10+') gradeOk = pp.grade>=10;
+    const searchOk = !search || pp.title.toLowerCase().includes(search) || pp.theme.toLowerCase().includes(search);
+    return themeOk && gradeOk && searchOk;
+  });
+  const grid = document.getElementById('passageGrid');
+  if (!filtered.length) {
+    grid.innerHTML = '<p class="text-gray-400 font-semibold col-span-3 py-8 text-center">No passages match your filters.</p>';
+    return;
+  }
+  grid.innerHTML = filtered.map(pp => {
+    const done = state.history.find(h=>h.passageId===pp.id);
+    const fav = state.favorites.includes(pp.id);
+    const score = done ? done.score : null;
+    return `<div class="bg-white rounded-3xl p-5 passage-card cursor-pointer" style="border:2px solid ${done?'#bbf7d0':'#e0f2fe'}">
+      <div class="flex items-start justify-between mb-3">
+        <span style="font-size:36px">${themeEmoji(pp.theme)}</span>
+        <div class="flex gap-1">
+          <button onclick="event.stopPropagation();toggleFavorite('${pp.id}')" style="font-size:18px;background:none;border:none;cursor:pointer" title="${fav?'Remove favorite':'Add favorite'}">${fav?'❤️':'🤍'}</button>
+          ${done ? '<span class="theme-badge" style="background:#dcfce7;color:#15803d;font-size:11px">✓ Done</span>' : ''}
+        </div>
+      </div>
+      <h3 style="font-size:16px;font-weight:800;color:#1e293b;margin-bottom:8px">${pp.title}</h3>
+      <div class="flex flex-wrap gap-1 mb-3">
+        <span class="theme-badge" style="background:#e0f2fe;color:#0369a1;font-size:11px">Grade ${pp.grade}</span>
+        <span class="theme-badge" style="background:#f0f9ff;color:#0369a1;font-size:11px">${pp.lexile}</span>
+        <span class="theme-badge" style="background:#fefce8;color:#92400e;font-size:11px">${themeEmoji(pp.theme)} ${pp.theme}</span>
+      </div>
+      <p class="text-xs text-gray-500 font-600 mb-3">${pp.text.substring(0,120)}...</p>
+      <div class="flex items-center justify-between">
+        ${score!==null ? `<span class="text-xs font-700 text-mint-600" style="color:#16a34a;font-weight:700">Last score: ${score}%</span>` : '<span class="text-xs text-gray-400">Not yet read</span>'}
+        <button onclick="openPassage('${pp.id}')" class="btn-primary py-2 px-4 text-sm">${done?'Read Again':'Read →'}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleFavorite(id) {
+  if (state.favorites.includes(id)) {
+    state.favorites = state.favorites.filter(f=>f!==id);
+  } else {
+    state.favorites.push(id);
+  }
+  saveState();
+  filterPassages();
+}
+
+// ============================================================
+// READER
+// ============================================================
+function openPassage(id) {
+  const pp = PASSAGES.find(p=>p.id===id);
+  if (!pp) return;
+  state.currentPassage = pp;
+  state.readingComplete = false;
+  clearInterval(state.timerInterval);
+  stopTTS();
+
+  document.getElementById('readerTitle').textContent = pp.title;
+  document.getElementById('readerGradeBadge').textContent = 'Grade '+pp.grade;
+  document.getElementById('readerThemeBadge').textContent = themeEmoji(pp.theme)+' '+pp.theme;
+  document.getElementById('readerLexile').textContent = pp.lexile;
+
+  // Render text
+  const words = pp.text.split(' ');
+  state.ttsWords = words;
+  state.ttsWordIndex = 0;
+  document.getElementById('passageText').innerHTML = words.map((w,i) => `<span id="tw${i}" data-idx="${i}">${w} </span>`).join('');
+  document.getElementById('passageText').style.fontSize = state.settings.fontSize+'px';
+
+  // Timer
+  const minTime = Math.max(30, Math.floor(words.length / 200 * 60)); // words / 200wpm * 60
+  startReadingTimer(minTime);
+
+  showTab('reader');
+}
+
+function startReadingTimer(seconds) {
+  const timerEl = document.getElementById('readingTimer');
+  const timerDisplay = document.getElementById('timerDisplay');
+  const timerBar = document.getElementById('timerBar');
+  const quizBtn = document.getElementById('startQuizBtn');
+  const waitMsg = document.getElementById('quizWaitMsg');
+  timerEl.classList.remove('hidden');
+  quizBtn.disabled = true;
+  let remaining = seconds;
+  timerDisplay.textContent = formatTime(remaining);
+  timerBar.style.width = '0%';
+  state.timerInterval = setInterval(() => {
+    remaining--;
+    const pct = ((seconds-remaining)/seconds*100);
+    timerBar.style.width = pct+'%';
+    timerDisplay.textContent = formatTime(remaining);
+    if (remaining <= 0) {
+      clearInterval(state.timerInterval);
+      timerEl.classList.add('hidden');
+      quizBtn.disabled = false;
+      waitMsg.textContent = '✅ Ready to take the quiz!';
+      waitMsg.style.color = '#16a34a';
+      state.readingComplete = true;
+    }
+  }, 1000);
+}
+
+function formatTime(s) {
+  return Math.floor(s/60)+':'+(s%60).toString().padStart(2,'0');
+}
+
+// ============================================================
+// TTS
+// ============================================================
+function startTTS() {
+  if (!state.currentPassage) return;
+  stopTTS();
+  if ('speechSynthesis' in window) {
+    const words = state.ttsWords;
+    let idx = 0;
+    function speakNext() {
+      if (idx >= words.length) return;
+      state.ttsUtterance = new SpeechSynthesisUtterance(words[idx]);
+      state.ttsUtterance.rate = state.settings.ttsSpeed;
+      // Highlight current word
+      document.querySelectorAll('.highlight-word').forEach(el => el.classList.remove('highlight-word'));
+      const el = document.getElementById('tw'+idx);
+      if (el) { el.classList.add('highlight-word'); el.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+      const currentIdx = idx;
+      state.ttsUtterance.onend = () => { idx++; speakNext(); };
+      window.speechSynthesis.speak(state.ttsUtterance);
+      idx;
+    }
+    // Actually, speak full passage with boundary events
+    const utt = new SpeechSynthesisUtterance(state.currentPassage.text);
+    utt.rate = state.settings.ttsSpeed;
+    utt.onboundary = (e) => {
+      const charIdx = e.charIndex;
+      // Find word index by char position
+      let pos = 0;
+      for (let i=0; i<words.length; i++) {
+        if (pos >= charIdx) {
+          document.querySelectorAll('.highlight-word').forEach(el=>el.classList.remove('highlight-word'));
+          const el = document.getElementById('tw'+i);
+          if (el) { el.classList.add('highlight-word'); el.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+          break;
+        }
+        pos += words[i].length + 1;
+      }
+    };
+    utt.onend = () => { document.querySelectorAll('.highlight-word').forEach(el=>el.classList.remove('highlight-word')); };
+    state.ttsUtterance = utt;
+    window.speechSynthesis.speak(utt);
+  } else {
+    notify('Text-to-speech is not supported in your browser.', 'warning');
+  }
+}
+
+function stopTTS() {
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  document.querySelectorAll('.highlight-word').forEach(el=>el.classList.remove('highlight-word'));
+}
+
+function updateTTSSpeed(v) {
+  state.settings.ttsSpeed = parseFloat(v);
+  document.getElementById('ttsSpeedLabel').textContent = v+'x';
+}
+
+// ============================================================
+// DISPLAY SETTINGS
+// ============================================================
+function changeFontSize(delta) {
+  state.settings.fontSize = Math.min(28, Math.max(12, (state.settings.fontSize||18) + delta));
+  const el = document.getElementById('passageText');
+  if (el) el.style.fontSize = state.settings.fontSize+'px';
+}
+
+function toggleDyslexic() {
+  state.settings.dyslexic = !state.settings.dyslexic;
+  document.body.classList.toggle('dyslexic-mode', state.settings.dyslexic);
+  const cb = document.getElementById('settingsDyslexic');
+  if (cb) cb.checked = state.settings.dyslexic;
+  saveState();
+}
+
+function toggleDark() {
+  state.settings.dark = !state.settings.dark;
+  document.body.classList.toggle('dark-mode', state.settings.dark);
+  const cb = document.getElementById('settingsDark');
+  if (cb) cb.checked = state.settings.dark;
+  saveState();
+}
+
+// ============================================================
+// QUIZ
+// ============================================================
+function startQuiz() {
+  if (!state.currentPassage || !state.readingComplete) return;
+  const pp = state.currentPassage;
+  // Build question list: all MC + all SA
+  const questions = [
+    ...pp.mc.map((q,i) => ({...q, type:'mc', idx:i})),
+    ...pp.sa.map((q,i) => ({...q, type:'sa', idx:i}))
+  ];
+  state.quizState = {
+    passage: pp,
+    questions,
+    current: 0,
+    mcScore: 0,
+    mcTotal: pp.mc.length,
+    saScores: [],
+    answers: [],
+    locked: false
+  };
+  document.getElementById('quizTitle').textContent = pp.title;
+  renderQuestion();
+  showTab('quiz');
+}
+
+function renderQuestion() {
+  const qs = state.quizState;
+  const q = qs.questions[qs.current];
+  const total = qs.questions.length;
+  document.getElementById('quizProgress').textContent = `Question ${qs.current+1} of ${total}`;
+  document.getElementById('quizProgressBar').style.width = ((qs.current/total)*100)+'%';
+  document.getElementById('quizScore').textContent = 'Score: '+qs.mcScore;
+  qs.locked = false;
+
+  const area = document.getElementById('questionArea');
+  const concept = q.concept || (qs.passage.concepts ? qs.passage.concepts[qs.current] || 'details' : 'details');
+  const conceptInfo = CONCEPTS[concept] || CONCEPTS.details;
+
+  if (q.type==='mc') {
+    area.innerHTML = `
+      <div class="bg-sky-50 rounded-2xl p-3 mb-4 flex items-center gap-2" style="border:2px solid #bae6fd">
+        <span style="font-size:18px">${conceptInfo.icon}</span>
+        <span class="text-sm font-700" style="color:${conceptInfo.color};font-weight:700">${conceptInfo.label}</span>
+      </div>
+      <p class="font-800 text-gray-800 mb-5" style="font-size:18px;font-weight:800;line-height:1.5">${q.q}</p>
+      <div class="space-y-3" id="mcOptions">
+        ${q.opts.map((o,i) => `<button class="mc-option" onclick="selectMC(${i})">${String.fromCharCode(65+i)}. ${o}</button>`).join('')}
+      </div>
+      <div id="mcFeedback" class="hidden mt-4 p-4 rounded-2xl">
+        <p id="mcFeedbackText" class="font-700" style="font-weight:700"></p>
+        <p id="mcExplanation" class="text-sm text-gray-600 mt-1 font-600"></p>
+      </div>
+    `;
+  } else {
+    area.innerHTML = `
+      <div class="bg-violet-50 rounded-2xl p-3 mb-4 flex items-center gap-2" style="border:2px solid #ddd6fe">
+        <span style="font-size:18px">✍️</span>
+        <span class="text-sm font-700 text-violet-700" style="font-weight:700">Short Answer — Write in your own words</span>
+      </div>
+      <p class="font-800 text-gray-800 mb-4" style="font-size:18px;font-weight:800;line-height:1.5">${q.q}</p>
+      <textarea id="saInput" placeholder="Write your answer here..." rows="5" class="w-full border-2 border-violet-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-violet-400" style="font-size:16px"></textarea>
+      <div class="flex gap-2 mt-4">
+        <button onclick="submitSA()" class="btn-primary flex-1">Submit Answer</button>
+        <button onclick="skipQuestion()" class="btn-secondary">Skip</button>
+      </div>
+      <div id="saFeedback" class="hidden mt-4 p-5 rounded-2xl" style="background:#f5f3ff;border:2px solid #ddd6fe"></div>
+    `;
+  }
+}
+
+function selectMC(chosen) {
+  const qs = state.quizState;
+  if (qs.locked) return;
+  qs.locked = true;
+  const q = qs.questions[qs.current];
+  const correct = q.ans;
+  const btns = document.querySelectorAll('.mc-option');
+  btns.forEach((b,i) => {
+    b.disabled = true;
+    if (i===correct) b.classList.add('correct');
+    else if (i===chosen && chosen!==correct) b.classList.add('wrong');
+  });
+  const isCorrect = chosen===correct;
+  if (isCorrect) {
+    qs.mcScore++;
+    if (state.profile) { state.profile.correctQuestions = (state.profile.correctQuestions||0)+1; }
+  }
+  if (state.profile) state.profile.totalQuestions = (state.profile.totalQuestions||0)+1;
+  const fb = document.getElementById('mcFeedback');
+  const fbt = document.getElementById('mcFeedbackText');
+  const fbe = document.getElementById('mcExplanation');
+  fb.classList.remove('hidden');
+  fb.style.background = isCorrect ? '#dcfce7' : '#fff1f2';
+  fb.style.border = '2px solid '+(isCorrect?'#bbf7d0':'#fecdd3');
+  fbt.textContent = isCorrect ? '✅ Correct!' : '❌ Not quite — the answer was '+String.fromCharCode(65+correct)+'.';
+  fbt.style.color = isCorrect ? '#15803d' : '#be123c';
+  fbe.textContent = q.exp;
+  qs.answers.push({ type:'mc', correct: isCorrect });
+  // Update concept mastery
+  const concept = qs.passage.concepts ? qs.passage.concepts[qs.current % qs.passage.concepts.length] : 'details';
+  updateMastery(concept, isCorrect ? 10 : -5);
+  setTimeout(() => nextQuestion(), 2000);
+}
+
+function submitSA() {
+  const qs = state.quizState;
+  const q = qs.questions[qs.current];
+  const input = document.getElementById('saInput')?.value.trim() || '';
+  if (input.length < 10) { notify('Please write a longer answer (at least a sentence!)', 'warning'); return; }
+  // Keyword-based grading
+  const score = gradeSA(input, q.keywords || [], q.model || '');
+  const pct = Math.round(score*100);
+  qs.saScores.push(pct);
+  if (state.profile) {
+    state.profile.totalQuestions = (state.profile.totalQuestions||0)+1;
+    if (pct >= 60) state.profile.correctQuestions = (state.profile.correctQuestions||0)+1;
+  }
+  const fb = document.getElementById('saFeedback');
+  fb.classList.remove('hidden');
+  const emoji = pct>=80?'🌟':pct>=60?'✅':pct>=40?'💡':'📝';
+  const level = pct>=80?'Excellent!':pct>=60?'Good answer!':pct>=40?'Keep developing!':'Try to include more details.';
+  fb.innerHTML = `
+    <div class="flex items-center gap-3 mb-3">
+      <span style="font-size:28px">${emoji}</span>
+      <div>
+        <p class="font-800" style="font-weight:800;color:#7c3aed;font-size:18px">${level}</p>
+        <p class="text-sm text-gray-500 font-600">Concept score: ${pct}%</p>
+      </div>
+    </div>
+    <p class="text-sm font-700 text-gray-700 mb-1" style="font-weight:700">Model answer:</p>
+    <p class="text-sm text-gray-600 font-600 mb-3" style="background:white;padding:10px;border-radius:10px">${q.model}</p>
+    <p class="text-sm font-700 text-gray-700 mb-1" style="font-weight:700">Key concepts to include: ${(q.keywords||[]).join(', ')}</p>
+  `;
+  document.getElementById('saInput').disabled = true;
+  document.querySelector('#questionArea button[onclick="submitSA()"]').textContent = 'Next Question →';
+  document.querySelector('#questionArea button[onclick="submitSA()"]').onclick = nextQuestion;
+  // Mastery update
+  updateMastery(q.concept || 'inference', pct>=60 ? 8 : -3);
+  qs.answers.push({type:'sa', score: pct});
+}
+
+function gradeSA(answer, keywords, model) {
+  const ans = answer.toLowerCase();
+  const mod = model.toLowerCase();
+  let matched = keywords.filter(k => ans.includes(k.toLowerCase())).length;
+  const keywordScore = Math.min(1, matched / Math.max(1, keywords.length));
+  // Length check
+  const lengthScore = Math.min(1, answer.split(' ').length / 20);
+  return Math.round((keywordScore*0.7 + lengthScore*0.3)*10)/10;
+}
+
+function skipQuestion() {
+  const qs = state.quizState;
+  qs.answers.push({type:'sa', score:0});
+  qs.saScores.push(0);
+  nextQuestion();
+}
+
+function nextQuestion() {
+  const qs = state.quizState;
+  qs.current++;
+  if (qs.current >= qs.questions.length) {
+    finishQuiz();
+  } else {
+    renderQuestion();
+    document.getElementById('questionArea').classList.remove('fade-in');
+    setTimeout(()=>document.getElementById('questionArea').classList.add('fade-in'),10);
+  }
+}
+
+function updateMastery(concept, delta) {
+  if (!CONCEPTS[concept]) return;
+  state.memoryBank[concept] = Math.min(100, Math.max(0, (state.memoryBank[concept]||50) + delta));
+}
+
+// ============================================================
+// RESULTS
+// ============================================================
+function finishQuiz() {
+  const qs = state.quizState;
+  const pp = qs.passage;
+  // Calc scores
+  const mcCorrect = qs.answers.filter(a=>a.type==='mc'&&a.correct).length;
+  const mcPct = Math.round((mcCorrect/qs.mcTotal)*100);
+  const saAvg = qs.saScores.length ? Math.round(qs.saScores.reduce((a,b)=>a+b,0)/qs.saScores.length) : 0;
+  const total = Math.round(mcPct*0.6 + saAvg*0.4);
+
+  // Record history
+  const historyEntry = {
+    passageId: pp.id,
+    date: Date.now(),
+    score: total,
+    mcScore: mcPct,
+    saScore: saAvg
+  };
+  state.history = state.history.filter(h=>h.passageId!==pp.id);
+  state.history.push(historyEntry);
+  if (state.profile) {
+    state.profile.totalPassages = (state.profile.totalPassages||0)+1;
+  }
+  checkBadges();
+  saveState();
+
+  // Show results
+  const emoji = total>=90?'🌟':total>=75?'🎉':total>=60?'✅':total>=40?'💡':'📝';
+  const msg = total>=90?'Outstanding work!':total>=75?'Great job!':total>=60?'Good effort!':total>=40?'Keep practicing!':'Nice try — keep reading!';
+  document.getElementById('resultsEmoji').textContent = emoji;
+  document.getElementById('resultsTitle').textContent = msg;
+  document.getElementById('resultsSubtitle').textContent = `You finished "${pp.title}"`;
+  document.getElementById('resMC').textContent = mcPct+'%';
+  document.getElementById('resSA').textContent = saAvg+'%';
+  document.getElementById('resTotal').textContent = total+'%';
+
+  // Mastery updates
+  const updates = document.getElementById('masteryUpdates');
+  updates.innerHTML = Object.entries(CONCEPTS).map(([k,v]) => {
+    const score = state.memoryBank[k]||50;
+    return `<div class="flex items-center gap-3">
+      <span>${v.icon}</span>
+      <div class="flex-1">
+        <div class="flex justify-between">
+          <span class="text-sm font-700 text-gray-700" style="font-weight:700">${v.label}</span>
+          <span class="text-sm font-800" style="color:${v.color};font-weight:800">${score}%</span>
+        </div>
+        <div class="mastery-bar mt-1"><div class="mastery-fill" style="width:${score}%;background:${v.color}"></div></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Check new badge
+  document.getElementById('newBadge').classList.add('hidden');
+
+  showTab('results');
+}
+
+// ============================================================
+// BADGES
+// ============================================================
+function checkBadges() {
+  const newBadges = [];
+  const earned = state.badges.map(b=>b.id);
+  const p = state.profile;
+  if (!p) return;
+
+  if (!earned.includes('first_read') && p.totalPassages >= 1) newBadges.push('first_read');
+  if (!earned.includes('bookworm') && p.totalPassages >= 5) newBadges.push('bookworm');
+  if (!earned.includes('streak_3') && (p.streak||0) >= 3) newBadges.push('streak_3');
+  if (!earned.includes('wordsmith') && p.totalQuestions >= 5) newBadges.push('wordsmith');
+  // Theme badges
+  const beeReads = state.history.filter(h=>PASSAGES.find(pp=>pp.id===h.passageId)?.theme==='bees').length;
+  if (!earned.includes('bee_expert') && beeReads >= 2) newBadges.push('bee_expert');
+  const birdReads = state.history.filter(h=>PASSAGES.find(pp=>pp.id===h.passageId)?.theme==='birds').length;
+  if (!earned.includes('bird_watcher') && birdReads >= 2) newBadges.push('bird_watcher');
+  const franklinReads = state.history.filter(h=>PASSAGES.find(pp=>pp.id===h.passageId)?.theme==='franklin').length;
+  if (!earned.includes('franklin_scholar') && franklinReads >= 2) newBadges.push('franklin_scholar');
+  // Mastery
+  const highMastery = Object.values(state.memoryBank).some(v=>v>=75);
+  if (!earned.includes('memory_bank') && highMastery) newBadges.push('memory_bank');
+  // Theme explorer
+  const themes = [...new Set(state.history.map(h=>PASSAGES.find(pp=>pp.id===h.passageId)?.theme))].filter(Boolean);
+  if (!earned.includes('explorer') && themes.length >= 4) newBadges.push('explorer');
+
+  newBadges.forEach(bid => {
+    const badge = ALL_BADGES.find(b=>b.id===bid);
+    if (badge) {
+      state.badges.push(badge);
+      // Show badge notification
+      document.getElementById('newBadge').classList.remove('hidden');
+      document.getElementById('newBadgeEmoji').textContent = badge.icon;
+      document.getElementById('newBadgeName').textContent = badge.name+': '+badge.desc;
+      notify('🏆 Badge earned: '+badge.name, 'success');
+    }
+  });
+}
+
+// ============================================================
+// PROGRESS
+// ============================================================
+function renderProgress() {
+  if (!state.profile) return;
+  const p = state.profile;
+  document.getElementById('progName').textContent = p.name;
+  document.getElementById('progAvatar').textContent = p.name.charAt(0).toUpperCase();
+  document.getElementById('progRole').textContent = (p.role||'Student')+' · Grade '+p.grade;
+  document.getElementById('progTotal').textContent = p.totalPassages || 0;
+  document.getElementById('progStreak').textContent = (p.streak||0)+'🔥';
+  const acc = p.totalQuestions>0 ? Math.round((p.correctQuestions/p.totalQuestions)*100)+'%' : '--';
+  document.getElementById('progAccuracy').textContent = acc;
+  document.getElementById('progBadgeCount').textContent = state.badges.length;
+
+  // Mastery
+  const mastEl = document.getElementById('progMastery');
+  mastEl.innerHTML = Object.entries(CONCEPTS).map(([k,v]) => {
+    const score = state.memoryBank[k]||50;
+    const level = score>=80?'Advanced':score>=60?'Proficient':score>=40?'Developing':'Beginning';
+    return `<div class="flex items-center gap-4">
+      <span style="font-size:24px;width:32px">${v.icon}</span>
+      <div class="flex-1">
+        <div class="flex justify-between mb-1">
+          <span class="font-700 text-gray-800 text-sm" style="font-weight:700">${v.label}</span>
+          <div class="flex gap-2 items-center">
+            <span class="theme-badge text-xs" style="background:#f0f9ff;color:${v.color};border:1px solid ${v.color}">${level}</span>
+            <span class="font-800 text-sm" style="color:${v.color};font-weight:800">${score}%</span>
+          </div>
+        </div>
+        <div class="mastery-bar"><div class="mastery-fill" style="width:${score}%;background:${v.color}"></div></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Badges
+  const bGrid = document.getElementById('badgesGrid');
+  bGrid.innerHTML = ALL_BADGES.map(b => {
+    const earned = state.badges.find(eb=>eb.id===b.id);
+    return `<div class="text-center tooltip" data-tip="${b.name}: ${b.desc}">
+      <div style="font-size:32px;${earned?'':'filter:grayscale(1);opacity:0.3'}">${b.icon}</div>
+      <div style="font-size:11px;font-weight:700;color:${earned?'#d97706':'#94a3b8'};margin-top:4px">${b.name}</div>
+    </div>`;
+  }).join('');
+
+  // History
+  const hist = document.getElementById('historyList');
+  const sorted = [...state.history].reverse();
+  hist.innerHTML = sorted.length ? sorted.map(h => {
+    const pp = PASSAGES.find(p=>p.id===h.passageId);
+    if (!pp) return '';
+    const date = new Date(h.date).toLocaleDateString();
+    const bar = h.score>=80?'#22c55e':h.score>=60?'#f59e0b':'#f43f5e';
+    return `<div class="flex items-center gap-4 p-3 bg-sky-50 rounded-2xl" style="border:2px solid #e0f2fe">
+      <span style="font-size:28px">${themeEmoji(pp.theme)}</span>
+      <div class="flex-1">
+        <p class="font-700 text-gray-800 text-sm" style="font-weight:700">${pp.title}</p>
+        <p class="text-xs text-gray-500 font-600">${date} · Grade ${pp.grade}</p>
+        <div class="mastery-bar mt-1" style="height:6px">
+          <div class="mastery-fill" style="width:${h.score}%;background:${bar}"></div>
+        </div>
+      </div>
+      <div class="text-right">
+        <div style="font-size:18px;font-weight:800;color:${bar}">${h.score}%</div>
+        <div class="text-xs text-gray-400 font-600">Total</div>
+      </div>
+    </div>`;
+  }).join('') : '<p class="text-gray-400 font-semibold text-sm">No reading history yet!</p>';
+}
+
+// ============================================================
+// SETTINGS
+// ============================================================
+function showSettingsPanel() {
+  document.getElementById('settingsPanel').classList.remove('hidden');
+  if (state.profile) {
+    document.getElementById('settingsName').value = state.profile.name || '';
+    document.getElementById('settingsGrade').value = state.profile.grade || 3;
+  }
+  document.getElementById('settingsDyslexic').checked = state.settings.dyslexic;
+  document.getElementById('settingsDark').checked = state.settings.dark;
+  document.getElementById('ttsSpeed').value = state.settings.ttsSpeed || 1;
+  document.getElementById('ttsSpeedLabel').textContent = (state.settings.ttsSpeed||1)+'x';
+}
+
+function closeSettingsPanel() {
+  document.getElementById('settingsPanel').classList.add('hidden');
+}
+
+function saveSettings() {
+  if (state.profile) {
+    state.profile.name = document.getElementById('settingsName').value || state.profile.name;
+    state.profile.grade = parseInt(document.getElementById('settingsGrade').value) || state.profile.grade;
+    document.getElementById('navAvatar').textContent = state.profile.name.charAt(0).toUpperCase();
+  }
+  saveState();
+  notify('Settings saved!', 'success');
+}
+
+function resetProgress() {
+  if (confirm('Are you sure? This will erase ALL your reading history, badges, and progress.')) {
+    localStorage.removeItem('aetherread_state');
+    location.reload();
+  }
+}
+
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
+function notify(msg, type='info') {
+  const el = document.getElementById('notification');
+  const colors = {success:'#22c55e',warning:'#f59e0b',error:'#f43f5e',info:'#0ea5e9'};
+  el.style.borderLeftColor = colors[type] || colors.info;
+  el.textContent = msg;
+  el.classList.remove('hidden');
+  setTimeout(() => el.classList.add('hidden'), 3500);
+}
+
+// Click outside settings to close
+document.getElementById('settingsPanel').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('settingsPanel')) closeSettingsPanel();
+});
+
+// ============================================================
+// BOOT
+// ============================================================
+window.addEventListener('load', init);
+</script>
+</body>
+</html>
