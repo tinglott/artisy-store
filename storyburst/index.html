@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>StoryBurst 🪄 — Interactive Kids Stories</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@500;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: { baloo: ["'Baloo 2'", "sans-serif"], nunito: ["Nunito", "sans-serif"] }
+    }
+  }
+}
+</script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Nunito', sans-serif; }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-thumb { background: #c4b5fd; border-radius: 3px; }
+  .animate-bounce-slow { animation: bounce 2s infinite; }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+  .spin { animation: spin 1s linear infinite; }
+  @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+  .fade-in { animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// 100% FREE — Powered by Pollinations AI (no key required!)
+const STORY_SYSTEM = `You are a warm, playful storyteller for children ages 5-10. Keep language simple, vivid, and gentle — no violence, fear, or scary content, always a kind and encouraging tone. Respond with ONLY raw JSON, nothing else, matching exactly:
+{"segment": "2-4 sentences continuing the story", "choices": ["short choice 1","short choice 2","short choice 3"], "isEnding": false}
+When the story reaches a satisfying, happy conclusion (after 4-6 segments), set "isEnding": true and "choices": [].`;
+
+const QUIZ_SYSTEM = `You write simple reading-comprehension quizzes for young children based on a story they just read. Respond with ONLY raw JSON matching exactly:
+{"questions":[{"question":"...","options":["...","...","..."],"correctIndex":0}]} with exactly 3 questions.`;
+
+const IDEA_CHIPS = [
+  "A dragon who's afraid of fire",
+  "A robot learning to dance",
+  "A mermaid who can't swim",
+  "The last cookie in the jar",
+  "A cloud that lost its rain",
+];
+
+const PALETTE = ["#FF6B6B","#FFD166","#06D6A0","#4D96FF","#B983FF","#FF9F45","#2B2D42","#FFFFFF"];
+const STAMPS = ["⭐","❤️","🌈","☀️","🌸","🐾"];
+
+// ---------- Pollinations AI helper (FREE — no key needed!) ----------
+async function askGroq(messages, systemPrompt) {
+  try {
+    const res = await fetch("https://text.pollinations.ai/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "openai",
+        messages: [{ role: "system", content: systemPrompt }, ...messages],
+        temperature: 0.85,
+        max_tokens: 600,
+        seed: Math.floor(Math.random() * 9999)
+      })
+    });
+    const text = await res.text();
+    const clean = text.replace(/```json|```/g, "").trim();
+    // Extract JSON from response
+    const jsonMatch = clean.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error("No JSON found");
+    return JSON.parse(jsonMatch[0]);
+  } catch(e) {
+    console.error("Pollinations error:", e);
+    return null;
+  }
+}
+
+// ---------- Storage (localStorage) ----------
+const storage = {
+  list() {
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k.startsWith("item:")) keys.push(k);
+    }
+    return keys;
+  },
+  get(key) { return localStorage.getItem(key); },
+  set(key, val) { localStorage.setItem(key, val); },
+  del(key) { localStorage.removeItem(key); }
+};
+
+// ---------- speak ----------
+function speak(text) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.rate = 0.95; u.pitch = 1.15;
+  window.speechSynthesis.speak(u);
+}
+
+// ========== HomeView ==========
+function HomeView({ onStart }) {
+  const [idea, setIdea] = useState("");
+  return (
+    <div className="flex flex-col items-center justify-center flex-1 px-6 text-center">
+      <div className="text-6xl mb-3 animate-bounce-slow">🪄</div>
+      <h1 className="text-4xl font-black text-white mb-2" style={{fontFamily:"'Baloo 2',sans-serif"}}>
+        What should we imagine today?
+      </h1>
+      <p className="text-white/80 mb-6 max-w-md">Type an idea, or tap one below, and watch a brand new story come to life!</p>
+      <div className="flex flex-wrap gap-2 justify-center mb-6 max-w-xl">
+        {IDEA_CHIPS.map(chip => (
+          <button key={chip} onClick={() => setIdea(chip)}
+            className="px-4 py-2 rounded-full bg-white/20 text-white text-sm font-semibold hover:bg-white/30 transition-colors border border-white/30">
+            {chip}
+          </button>
+        ))}
+      </div>
+      <div className="flex w-full max-w-md gap-2">
+        <input value={idea} onChange={e => setIdea(e.target.value)}
+          placeholder="A tiny dinosaur who loves pancakes..."
+          className="flex-1 rounded-2xl px-4 py-3 text-lg outline-none shadow-lg"
+          onKeyDown={e => e.key === "Enter" && idea.trim() && onStart(idea.trim())}
+        />
+        <button disabled={!idea.trim()} onClick={() => onStart(idea.trim())}
+          className="rounded-2xl px-5 bg-yellow-300 disabled:opacity-40 font-black text-purple-900 shadow-lg hover:scale-105 transition-transform flex items-center gap-1">
+          Go →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ========== StoryView ==========
+function StoryView({ idea, onSaved }) {
+  const [messages, setMessages] = useState([]);
+  const [segments, setSegments] = useState([]);
+  const [choices, setChoices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [ended, setEnded] = useState(false);
+  const [quiz, setQuiz] = useState(null);
+  const [quizAnswers, setQuizAnswers] = useState({});
+  const [saved, setSaved] = useState(false);
+  const title = idea.length > 40 ? idea.slice(0, 40) + "…" : idea;
+  const started = useRef(false);
+  const bottomRef = useRef(null);
+
+  const advance = useCallback(async (userMsg, history) => {
+    setLoading(true);
+    const newHistory = [...history, { role: "user", content: userMsg }];
+    const result = await askGroq(newHistory, STORY_SYSTEM);
+    setLoading(false);
+    if (!result) return;
+    setSegments(s => [...s, result.segment]);
+    setChoices(result.choices || []);
+    setEnded(!!result.isEnding);
+    setMessages([...newHistory, { role: "assistant", content: JSON.stringify(result) }]);
+  }, []);
+
+  useEffect(() => {
+    if (started.current) return;
+    started.current = true;
+    advance(`Start a brand new story based on this idea: "${idea}"`, []);
+  }, [idea, advance]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [segments, quiz]);
+
+  const pickChoice = c => advance(`The reader chose: "${c}". Continue the story.`, messages);
+
+  const fullText = segments.join(" ");
+
+  const saveStory = () => {
+    onSaved({ type: "story", title, text: fullText, date: Date.now() });
+    setSaved(true);
+  };
+
+  const startQuiz = async () => {
+    setLoading(true);
+    const q = await askGroq([{ role: "user", content: `Here is the story:\n\n${fullText}\n\nMake the quiz now.` }], QUIZ_SYSTEM);
+    setLoading(false);
+    setQuiz(q?.questions || []);
+  };
+
+  return (
+    <div className="flex-1 flex flex-col px-4 py-4 max-w-2xl mx-auto w-full">
+      <h2 className="text-2xl font-black text-white mb-3" style={{fontFamily:"'Baloo 2',sans-serif"}}>{title}</h2>
+      <div className="bg-white rounded-3xl p-5 shadow-xl flex-1 overflow-y-auto space-y-3 max-h-[50vh]">
+        {segments.map((seg, i) => (
+          <p key={i} className="text-lg leading-relaxed text-gray-800 fade-in">{seg}</p>
+        ))}
+        {loading && (
+          <div className="flex items-center gap-2 text-purple-500">
+            <span className="spin inline-block">⟳</span> writing the next bit...
+          </div>
+        )}
+        {!loading && ended && !quiz && (
+          <div className="pt-3 flex flex-wrap gap-2">
+            <span className="inline-flex items-center gap-1 text-green-600 font-bold">✨ The End!</span>
+          </div>
+        )}
+        <div ref={bottomRef}/>
+      </div>
+
+      {!loading && !ended && choices.length > 0 && (
+        <div className="mt-4 grid gap-2">
+          {choices.map(c => (
+            <button key={c} onClick={() => pickChoice(c)}
+              className="bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-2xl py-3 px-4 text-left shadow-md transition-colors">
+              {c}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {!loading && ended && !quiz && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button onClick={() => speak(fullText)}
+            className="flex items-center gap-2 bg-blue-400 hover:bg-blue-500 text-white font-bold rounded-2xl py-3 px-4 shadow-md">
+            🔊 Read it to me
+          </button>
+          <button onClick={saveStory} disabled={saved}
+            className="flex items-center gap-2 bg-green-400 hover:bg-green-500 disabled:opacity-60 text-white font-bold rounded-2xl py-3 px-4 shadow-md">
+            {saved ? "✅ Saved!" : "⭐ Save story"}
+          </button>
+          <button onClick={startQuiz}
+            className="flex items-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-purple-900 font-bold rounded-2xl py-3 px-4 shadow-md">
+            ✔ Quiz me!
+          </button>
+        </div>
+      )}
+
+      {quiz && (
+        <div className="mt-4 bg-white rounded-3xl p-5 shadow-xl space-y-4 max-h-[50vh] overflow-y-auto">
+          <h3 className="font-black text-xl text-purple-700">Story Quiz</h3>
+          {quiz.map((q, qi) => (
+            <div key={qi}>
+              <p className="font-semibold text-gray-800 mb-2">{q.question}</p>
+              <div className="grid gap-2">
+                {q.options.map((opt, oi) => {
+                  const picked = quizAnswers[qi];
+                  const isCorrect = oi === q.correctIndex;
+                  const show = picked !== undefined;
+                  return (
+                    <button key={oi}
+                      onClick={() => setQuizAnswers(a => ({...a, [qi]: oi}))}
+                      className={`text-left px-4 py-2 rounded-xl border-2 font-medium transition-colors ${
+                        show && oi === picked
+                          ? isCorrect ? "bg-green-100 border-green-400" : "bg-red-100 border-red-400"
+                          : "border-gray-200 hover:border-purple-300"
+                      }`}>
+                      {opt}{show && oi === picked && (isCorrect ? " ✅" : " ❌")}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ========== DrawView ==========
+function DrawView({ onSaved }) {
+  const canvasRef = useRef(null);
+  const drawing = useRef(false);
+  const lastStamp = useRef("⭐");
+  const [color, setColor] = useState(PALETTE[0]);
+  const [size, setSize] = useState(10);
+  const [mode, setMode] = useState("brush");
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }, []);
+
+  const pos = e => {
+    const rect = canvasRef.current.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+      x: ((clientX - rect.left) / rect.width) * canvasRef.current.width,
+      y: ((clientY - rect.top) / rect.height) * canvasRef.current.height
+    };
+  };
+
+  const start = e => {
+    if (mode === "stamp") {
+      const ctx = canvasRef.current.getContext("2d");
+      const {x, y} = pos(e);
+      ctx.font = `${size*4}px serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(lastStamp.current, x, y);
+      return;
+    }
+    drawing.current = true;
+    const ctx = canvasRef.current.getContext("2d");
+    const {x, y} = pos(e);
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  };
+
+  const move = e => {
+    if (!drawing.current) return;
+    const ctx = canvasRef.current.getContext("2d");
+    const {x, y} = pos(e);
+    ctx.lineTo(x, y);
+    ctx.strokeStyle = mode === "eraser" ? "white" : color;
+    ctx.lineWidth = mode === "eraser" ? size * 2.5 : size;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.stroke();
+  };
+
+  const stop = () => { drawing.current = false; };
+
+  const clear = () => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    setSaved(false);
+  };
+
+  const save = () => {
+    const dataUrl = canvasRef.current.toDataURL("image/png");
+    onSaved({ type: "drawing", title: "My drawing", image: dataUrl, date: Date.now() });
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  return (
+    <div className="flex-1 flex flex-col items-center px-4 py-4">
+      <div className="bg-white rounded-3xl p-3 shadow-xl w-full max-w-2xl">
+        <canvas ref={canvasRef} width={600} height={400}
+          className="rounded-2xl touch-none cursor-crosshair w-full"
+          style={{touchAction:"none"}}
+          onMouseDown={start} onMouseMove={move} onMouseUp={stop} onMouseLeave={stop}
+          onTouchStart={e=>{e.preventDefault();start(e);}} onTouchMove={e=>{e.preventDefault();move(e);}} onTouchEnd={stop}
+        />
+      </div>
+      <div className="flex flex-wrap items-center gap-3 mt-4 bg-white/90 rounded-2xl px-4 py-3 shadow-lg max-w-2xl w-full">
+        {PALETTE.map(c => (
+          <button key={c} onClick={() => { setColor(c); setMode("brush"); }}
+            className={`w-8 h-8 rounded-full border-2 transition-transform ${color===c&&mode==="brush"?"border-purple-600 scale-110":"border-gray-300"}`}
+            style={{background:c}}/>
+        ))}
+        <div className="w-px h-6 bg-gray-300"/>
+        {STAMPS.map(s => (
+          <button key={s} onClick={() => { lastStamp.current=s; setMode("stamp"); }}
+            className={`text-xl transition-transform ${mode==="stamp"&&lastStamp.current===s?"scale-125":""}`}>{s}</button>
+        ))}
+        <div className="w-px h-6 bg-gray-300"/>
+        <input type="range" min="4" max="30" value={size} onChange={e => setSize(+e.target.value)} className="w-20"/>
+        <button onClick={() => setMode("eraser")}
+          className={`px-3 py-1 rounded-lg text-sm font-bold ${mode==="eraser"?"bg-purple-200":"bg-gray-100"}`}>Eraser</button>
+        <button onClick={clear} className="px-3 py-1 rounded-lg bg-gray-100 text-sm font-bold">Clear</button>
+        <button onClick={save}
+          className="flex items-center gap-1 bg-green-400 hover:bg-green-500 text-white font-bold rounded-xl px-3 py-2 text-sm">
+          {saved ? "✅ Saved!" : "⭐ Save"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ========== LibraryView ==========
+function StoryReader({ story, onClose }) {
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-3xl p-6 max-w-lg w-full max-h-[80vh] overflow-y-auto shadow-2xl">
+        <h3 className="font-black text-xl text-purple-700 mb-3">{story.title}</h3>
+        <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">{story.text}</p>
+        <div className="flex gap-2 mt-4">
+          <button onClick={() => speak(story.text)}
+            className="flex items-center gap-1 bg-blue-400 text-white font-bold rounded-xl px-3 py-2">🔊 Read aloud</button>
+          <button onClick={onClose}
+            className="bg-gray-200 rounded-xl px-3 py-2 font-bold">Close</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LibraryView({ items, onDelete, onOpenStory }) {
+  if (items.length === 0) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center text-white/80 px-6 text-center">
+        <div className="text-5xl mb-3">📚</div>
+        <p>Nothing saved yet — make a story or a drawing and it'll show up here!</p>
+      </div>
+    );
+  }
+  return (
+    <div className="flex-1 px-4 py-4 max-w-2xl mx-auto w-full">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {items.map(item => (
+          <div key={item.key} className="bg-white rounded-2xl p-2 shadow-lg flex flex-col">
+            {item.type === "drawing" ? (
+              <img src={item.image} alt={item.title} className="rounded-xl aspect-square object-cover"/>
+            ) : (
+              <button onClick={() => onOpenStory(item)}
+                className="bg-purple-100 rounded-xl aspect-square flex items-center justify-center text-3xl hover:bg-purple-200 transition-colors">
+                📖
+              </button>
+            )}
+            <p className="text-xs font-bold text-gray-700 mt-1 truncate">{item.title}</p>
+            <button onClick={() => onDelete(item.key)} className="text-red-400 self-end mt-1 text-xs">🗑 Delete</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ========== App ==========
+function App() {
+  const [view, setView] = useState("home");
+  const [storyIdea, setStoryIdea] = useState(null);
+  const [library, setLibrary] = useState([]);
+  const [openStory, setOpenStory] = useState(null);
+
+  const loadLibrary = useCallback(() => {
+    try {
+      const keys = storage.list();
+      const items = [];
+      for (const key of keys) {
+        try {
+          const val = storage.get(key);
+          if (val) items.push({ ...JSON.parse(val), key });
+        } catch(_) {}
+      }
+      items.sort((a,b) => b.date - a.date);
+      setLibrary(items);
+    } catch(_) { setLibrary([]); }
+  }, []);
+
+  useEffect(() => { loadLibrary(); }, [loadLibrary]);
+
+  const saveItem = item => {
+    const key = `item:${item.date}`;
+    try { storage.set(key, JSON.stringify(item)); loadLibrary(); } catch(_) {}
+  };
+
+  const deleteItem = key => {
+    try { storage.del(key); loadLibrary(); } catch(_) {}
+  };
+
+  const nav = [
+    { id: "home", label: "Home", icon: "🏠" },
+    { id: "draw", label: "Draw", icon: "🎨" },
+    { id: "library", label: "Library", icon: "📚" },
+  ];
+
+  return (
+    <div className="min-h-screen flex flex-col" style={{background:"linear-gradient(160deg,#7C3AED,#EC4899 60%,#F59E0B)"}}>
+      <header className="flex items-center justify-between px-5 py-4">
+        <div className="flex items-center gap-2 text-white font-black text-xl" style={{fontFamily:"'Baloo 2',sans-serif"}}>
+          🪄 StoryBurst
+        </div>
+        <nav className="flex gap-1 bg-white/15 rounded-full p-1">
+          {nav.map(n => (
+            <button key={n.id} onClick={() => { setView(n.id); setStoryIdea(null); }}
+              className={`flex items-center gap-1 px-3 py-2 rounded-full text-sm font-bold transition-colors ${view===n.id?"bg-white text-purple-700":"text-white/90 hover:bg-white/20"}`}>
+              {n.icon} {n.label}
+            </button>
+          ))}
+        </nav>
+      </header>
+
+      {view === "home" && !storyIdea && (
+        <HomeView onStart={idea => { setStoryIdea(idea); setView("story"); }}/>
+      )}
+      {view === "story" && storyIdea && (
+        <StoryView idea={storyIdea} onSaved={saveItem}/>
+      )}
+      {view === "draw" && <DrawView onSaved={saveItem}/>}
+      {view === "library" && (
+        <LibraryView items={library} onDelete={deleteItem} onOpenStory={s => setOpenStory(s)}/>
+      )}
+
+      {openStory && <StoryReader story={openStory} onClose={() => setOpenStory(null)}/>}
+
+      <footer className="text-center text-white/50 text-xs py-3" style={{fontFamily:"'Nunito',sans-serif"}}>
+        Made with 🪄 by T. Lott Creative
+      </footer>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App/>);
+</script>
+</body>
+</html>
