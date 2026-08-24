@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ComicForge Studio — AI Comic Creator</title>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:wght@400;700&family=Permanent+Marker&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --ink: #0a0a0a;
+    --panel-bg: #fff;
+    --accent: #e63946;
+    --gold: #ffd166;
+    --blue: #118ab2;
+    --green: #06d6a0;
+    --purple: #7b2d8b;
+    --shadow: 4px 4px 0 #000;
+    --panel-border: 3px solid #000;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #1a1a2e; font-family: 'Comic Neue', cursive; color: #fff; min-height: 100vh; }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #e63946 0%, #7b2d8b 50%, #118ab2 100%);
+    padding: 20px;
+    text-align: center;
+    border-bottom: 4px solid #000;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.05) 10px, rgba(0,0,0,0.05) 20px);
+  }
+  .header h1 {
+    font-family: 'Bangers', cursive;
+    font-size: clamp(2.5rem, 7vw, 5rem);
+    letter-spacing: 4px;
+    text-shadow: 4px 4px 0 #000, -2px -2px 0 #000;
+    color: #fff;
+    position: relative;
+  }
+  .header .tagline {
+    font-size: 1rem;
+    opacity: 0.9;
+    position: relative;
+    margin-top: 4px;
+  }
+
+  /* MAIN LAYOUT */
+  .app { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+  /* STEP INDICATOR */
+  .steps {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .step-dot {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bangers', cursive;
+    font-size: 1.2rem;
+    transition: all 0.3s;
+    cursor: default;
+  }
+  .step-dot.active { background: var(--gold); color: #000; border-color: var(--gold); box-shadow: 0 0 0 3px #000; }
+  .step-dot.done { background: var(--green); color: #000; border-color: var(--green); }
+  .step-dot.inactive { background: rgba(255,255,255,0.1); }
+  .step-line { width: 30px; height: 3px; background: rgba(255,255,255,0.3); align-self: center; }
+  .step-line.done { background: var(--green); }
+
+  /* PANELS / CARDS */
+  .card {
+    background: #fff;
+    border: 3px solid #000;
+    border-radius: 8px;
+    box-shadow: 6px 6px 0 #000;
+    padding: 24px;
+    margin-bottom: 20px;
+    color: #000;
+  }
+  .card-title {
+    font-family: 'Bangers', cursive;
+    font-size: 1.8rem;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+    color: var(--ink);
+    border-bottom: 3px solid #000;
+    padding-bottom: 8px;
+  }
+
+  /* GENRE GRID */
+  .genre-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .genre-btn {
+    border: 3px solid #000;
+    border-radius: 8px;
+    padding: 12px 8px;
+    text-align: center;
+    cursor: pointer;
+    font-family: 'Comic Neue', cursive;
+    font-weight: 700;
+    font-size: 0.9rem;
+    transition: all 0.15s;
+    background: #f8f8f8;
+  }
+  .genre-btn:hover { transform: translate(-2px, -2px); box-shadow: 4px 4px 0 #000; }
+  .genre-btn.selected { background: var(--gold); box-shadow: 4px 4px 0 #000; transform: translate(-2px, -2px); }
+  .genre-btn .emoji { font-size: 1.8rem; display: block; margin-bottom: 4px; }
+
+  /* INPUTS */
+  .form-row { margin-bottom: 14px; }
+  .form-row label { display: block; font-weight: 700; margin-bottom: 4px; font-size: 0.95rem; }
+  .form-row input, .form-row select, .form-row textarea {
+    width: 100%;
+    border: 3px solid #000;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-family: 'Comic Neue', cursive;
+    font-size: 1rem;
+    background: #fffef0;
+    transition: box-shadow 0.15s;
+  }
+  .form-row input:focus, .form-row select:focus, .form-row textarea:focus {
+    outline: none; box-shadow: 4px 4px 0 #000;
+  }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media(max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+
+  /* TONE CHIPS */
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    border: 2px solid #000;
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    background: #f0f0f0;
+    transition: all 0.15s;
+  }
+  .chip.selected { background: var(--accent); color: #fff; }
+  .chip:hover { transform: translate(-1px, -1px); box-shadow: 2px 2px 0 #000; }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 14px 28px;
+    border: 3px solid #000;
+    border-radius: 8px;
+    font-family: 'Bangers', cursive;
+    font-size: 1.3rem;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+    box-shadow: 4px 4px 0 #000;
+  }
+  .btn:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 #000; }
+  .btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 #000; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-secondary { background: var(--blue); color: #fff; }
+  .btn-gold { background: var(--gold); color: #000; }
+  .btn-green { background: var(--green); color: #000; }
+  .btn-purple { background: var(--purple); color: #fff; }
+  .btn-sm { padding: 8px 16px; font-size: 1rem; }
+  .btn-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+
+  /* PROGRESS */
+  .progress-bar { width: 100%; height: 12px; background: #e0e0e0; border-radius: 6px; border: 2px solid #000; margin: 12px 0; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--gold)); transition: width 0.5s; }
+
+  /* GENERATING STATE */
+  .generating {
+    text-align: center;
+    padding: 40px 20px;
+    color: #fff;
+  }
+  .generating .spinner {
+    width: 60px; height: 60px;
+    border: 6px solid rgba(255,255,255,0.2);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .gen-msg { font-family: 'Bangers', cursive; font-size: 1.4rem; letter-spacing: 2px; color: var(--gold); }
+  .gen-sub { opacity: 0.8; margin-top: 6px; }
+
+  /* COMIC LAYOUT */
+  .comic-wrapper {
+    background: #fff;
+    border: 4px solid #000;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 8px 8px 0 #000;
+  }
+
+  .comic-cover {
+    background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+    padding: 40px 30px;
+    text-align: center;
+    border-bottom: 4px solid #000;
+    position: relative;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .comic-cover::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(255,255,255,0.03) 8px, rgba(255,255,255,0.03) 16px);
+  }
+  .comic-title-text {
+    font-family: 'Bangers', cursive;
+    font-size: clamp(2rem, 6vw, 4rem);
+    letter-spacing: 4px;
+    text-shadow: 4px 4px 0 #000;
+    color: var(--gold);
+    position: relative;
+    line-height: 1.1;
+  }
+  .comic-issue { color: rgba(255,255,255,0.6); font-size: 0.85rem; position: relative; margin-top: 8px; }
+  .comic-genre-badge {
+    background: var(--accent);
+    border: 2px solid #000;
+    border-radius: 4px;
+    padding: 4px 12px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    position: relative;
+    margin-top: 10px;
+    display: inline-block;
+  }
+
+  /* PANELS */
+  .page-header {
+    background: #000;
+    color: var(--gold);
+    font-family: 'Bangers', cursive;
+    letter-spacing: 3px;
+    font-size: 1rem;
+    padding: 6px 16px;
+    text-align: center;
+  }
+
+  .panel-grid {
+    display: grid;
+    gap: 0;
+    border-top: 3px solid #000;
+  }
+
+  /* Different layout modes */
+  .layout-2col { grid-template-columns: 1fr 1fr; }
+  .layout-3col { grid-template-columns: 1fr 1fr 1fr; }
+  .layout-featured { grid-template-columns: 2fr 1fr; }
+  .layout-spotlight { grid-template-columns: 1fr; }
+
+  .comic-panel {
+    border-right: 3px solid #000;
+    border-bottom: 3px solid #000;
+    position: relative;
+    background: #fff;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .comic-panel:last-child { border-right: none; }
+
+  .panel-img-wrap {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    background: #f0f0f0;
+    min-height: 220px;
+  }
+  .panel-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .panel-img-loading {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    gap: 10px;
+    background: #f0f0f0;
+  }
+  .panel-img-loading .mini-spin {
+    width: 30px; height: 30px;
+    border: 4px solid rgba(0,0,0,0.15);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  .panel-img-loading span { font-size: 0.75rem; color: #555; font-weight: 700; }
+
+  .panel-number {
+    position: absolute;
+    top: 8px; left: 8px;
+    background: #000;
+    color: var(--gold);
+    font-family: 'Bangers', cursive;
+    font-size: 1rem;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 2;
+    border: 2px solid var(--gold);
+  }
+
+  /* Speech bubbles */
+  .speech-area {
+    padding: 10px 12px;
+    background: #fff;
+    border-top: 2px solid #000;
+    position: relative;
+  }
+  .speech-bubble {
+    background: #fff;
+    border: 2px solid #000;
+    border-radius: 12px;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    line-height: 1.4;
+    position: relative;
+    margin-bottom: 4px;
+  }
+  .speech-bubble::before {
+    content: '';
+    position: absolute;
+    bottom: -10px; left: 20px;
+    border: 10px solid transparent;
+    border-top-color: #000;
+  }
+  .speech-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -7px; left: 22px;
+    border: 8px solid transparent;
+    border-top-color: #fff;
+  }
+  .speech-bubble.thought {
+    border-radius: 20px;
+    border-style: dashed;
+  }
+  .caption-box {
+    background: var(--gold);
+    border: 2px solid #000;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    font-style: italic;
+    line-height: 1.3;
+    margin-top: 6px;
+  }
+
+  /* SFX */
+  .sfx {
+    position: absolute;
+    font-family: 'Bangers', cursive;
+    font-size: 2rem;
+    letter-spacing: 2px;
+    color: var(--accent);
+    text-shadow: 3px 3px 0 #000, -1px -1px 0 #000;
+    z-index: 3;
+    transform: rotate(-8deg);
+    pointer-events: none;
+  }
+
+  /* PRINT */
+  @media print {
+    body { background: #fff !important; color: #000 !important; }
+    .header, .steps, .card, .btn-row, .no-print, #setup-section { display: none !important; }
+    .comic-wrapper { box-shadow: none !important; border: 2px solid #000 !important; }
+    .panel-img-wrap { min-height: 250px !important; }
+    .panel-img-loading { display: none !important; }
+    @page { margin: 0.4in; size: letter portrait; }
+    .comic-wrapper { page-break-inside: avoid; }
+    .comic-panel { page-break-inside: avoid; min-height: 250px; }
+  }
+
+  /* STATUS */
+  .toast {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    background: #000;
+    color: var(--gold);
+    border: 3px solid var(--gold);
+    border-radius: 8px;
+    padding: 14px 20px;
+    font-family: 'Bangers', cursive;
+    font-size: 1.1rem;
+    letter-spacing: 1px;
+    z-index: 9999;
+    box-shadow: 4px 4px 0 var(--gold);
+    animation: slideIn 0.3s ease;
+    max-width: 280px;
+  }
+  @keyframes slideIn { from { transform: translateX(120%); } to { transform: translateX(0); } }
+
+  /* SECTIONS */
+  .hidden { display: none !important; }
+
+  /* PANEL COUNTER */
+  .panel-count-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+  .count-btn {
+    width: 36px; height: 36px;
+    border: 3px solid #000;
+    border-radius: 6px;
+    font-family: 'Bangers', cursive;
+    font-size: 1.1rem;
+    cursor: pointer;
+    background: #f0f0f0;
+    transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .count-btn.selected { background: var(--accent); color: #fff; box-shadow: 3px 3px 0 #000; }
+
+  .art-style-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .art-btn {
+    border: 3px solid #000;
+    border-radius: 8px;
+    padding: 10px 6px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 700;
+    background: #f8f8f8;
+    transition: all 0.15s;
+  }
+  .art-btn:hover { transform: translate(-2px,-2px); box-shadow: 3px 3px 0 #000; }
+  .art-btn.selected { background: var(--purple); color: #fff; box-shadow: 3px 3px 0 #000; transform: translate(-2px,-2px); }
+  .art-btn .emoji { display: block; font-size: 1.5rem; margin-bottom: 3px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>⚡ ComicForge Studio</h1>
+  <p class="tagline">AI-Powered Comic Book Creator — Generate, Read & Print to Color!</p>
+</div>
+
+<div class="app">
+
+  <!-- STEP DOTS -->
+  <div class="steps" id="stepDots">
+    <div class="step-dot active" id="s1">1</div>
+    <div class="step-line" id="sl1"></div>
+    <div class="step-dot inactive" id="s2">2</div>
+    <div class="step-line" id="sl2"></div>
+    <div class="step-dot inactive" id="s3">3</div>
+    <div class="step-line" id="sl3"></div>
+    <div class="step-dot inactive" id="s4">🖨</div>
+  </div>
+
+  <!-- STEP 1: SETUP -->
+  <div id="setup-section">
+
+    <!-- Genre -->
+    <div class="card">
+      <div class="card-title">⚡ Step 1 — Pick Your Genre</div>
+      <div class="genre-grid" id="genreGrid">
+        <div class="genre-btn" data-genre="Superhero" onclick="selectGenre(this)"><span class="emoji">🦸</span>Superhero</div>
+        <div class="genre-btn" data-genre="Sci-Fi" onclick="selectGenre(this)"><span class="emoji">🚀</span>Sci-Fi</div>
+        <div class="genre-btn" data-genre="Fantasy" onclick="selectGenre(this)"><span class="emoji">🧙</span>Fantasy</div>
+        <div class="genre-btn" data-genre="Horror" onclick="selectGenre(this)"><span class="emoji">👻</span>Horror</div>
+        <div class="genre-btn" data-genre="Action Adventure" onclick="selectGenre(this)"><span class="emoji">⚔️</span>Adventure</div>
+        <div class="genre-btn" data-genre="Mystery" onclick="selectGenre(this)"><span class="emoji">🕵️</span>Mystery</div>
+        <div class="genre-btn" data-genre="Romance" onclick="selectGenre(this)"><span class="emoji">💕</span>Romance</div>
+        <div class="genre-btn" data-genre="Post-Apocalyptic" onclick="selectGenre(this)"><span class="emoji">☢️</span>Post-Apoc</div>
+        <div class="genre-btn" data-genre="Cyberpunk" onclick="selectGenre(this)"><span class="emoji">🤖</span>Cyberpunk</div>
+        <div class="genre-btn" data-genre="Western" onclick="selectGenre(this)"><span class="emoji">🤠</span>Western</div>
+        <div class="genre-btn" data-genre="Magical Realism" onclick="selectGenre(this)"><span class="emoji">✨</span>Magical</div>
+        <div class="genre-btn" data-genre="Comedy" onclick="selectGenre(this)"><span class="emoji">😂</span>Comedy</div>
+      </div>
+    </div>
+
+    <!-- Characters -->
+    <div class="card">
+      <div class="card-title">🦸 Step 2 — Your Characters</div>
+      <div class="form-grid">
+        <div class="form-row">
+          <label>Hero Name *</label>
+          <input type="text" id="heroName" placeholder="e.g. Zara Voss, Marcus Kane..." maxlength="40"/>
+        </div>
+        <div class="form-row">
+          <label>Hero Power / Trait *</label>
+          <input type="text" id="heroPower" placeholder="e.g. controls lightning, genius hacker..." maxlength="60"/>
+        </div>
+        <div class="form-row">
+          <label>Villain / Antagonist</label>
+          <input type="text" id="villainName" placeholder="e.g. The Shadow King..." maxlength="40"/>
+        </div>
+        <div class="form-row">
+          <label>Setting / World</label>
+          <input type="text" id="setting" placeholder="e.g. Neo Tokyo 2087, haunted mansion..." maxlength="60"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Story Hook (optional)</label>
+        <input type="text" id="storyHook" placeholder="e.g. The artifact has been stolen. The city has 24 hours..." maxlength="120"/>
+      </div>
+    </div>
+
+    <!-- Art Style + Tone -->
+    <div class="card">
+      <div class="card-title">🎨 Step 3 — Art Style & Tone</div>
+      <div style="font-weight:700; margin-bottom:8px;">Art Style:</div>
+      <div class="art-style-grid" id="artGrid">
+        <div class="art-btn" data-art="bold comic book ink style, black and white line art, coloring book style, thick outlines, white background" onclick="selectArt(this)"><span class="emoji">🖊️</span>Line Art<br><small>Color-able</small></div>
+        <div class="art-btn" data-art="classic Marvel Comics style, dramatic shadows, bold colors, halftone dots" onclick="selectArt(this)"><span class="emoji">💥</span>Marvel Style</div>
+        <div class="art-btn" data-art="Japanese manga style, expressive eyes, dynamic action lines, black and white" onclick="selectArt(this)"><span class="emoji">🌸</span>Manga</div>
+        <div class="art-btn" data-art="DC Comics dark graphic novel style, painted noir shadows, dramatic lighting" onclick="selectArt(this)"><span class="emoji">🦇</span>Dark Noir</div>
+        <div class="art-btn" data-art="retro silver age comics style, bright primary colors, Ben-Day dots, 1960s" onclick="selectArt(this)"><span class="emoji">⭐</span>Retro 60s</div>
+        <div class="art-btn" data-art="modern graphic novel style, painted textures, cinematic composition, detailed backgrounds" onclick="selectArt(this)"><span class="emoji">🎬</span>Cinematic</div>
+        <div class="art-btn" data-art="anime style, vibrant colors, expressive characters, action speed lines" onclick="selectArt(this)"><span class="emoji">⚡</span>Anime</div>
+        <div class="art-btn" data-art="cartoon style, thick outlines, simple shapes, family friendly bright colors" onclick="selectArt(this)"><span class="emoji">🎠</span>Cartoon</div>
+      </div>
+      <div style="font-weight:700; margin:12px 0 8px;">Tone:</div>
+      <div class="chips" id="toneChips">
+        <div class="chip" onclick="toggleTone(this)">Epic</div>
+        <div class="chip" onclick="toggleTone(this)">Dark & Gritty</div>
+        <div class="chip" onclick="toggleTone(this)">Humorous</div>
+        <div class="chip" onclick="toggleTone(this)">Emotional</div>
+        <div class="chip" onclick="toggleTone(this)">Suspenseful</div>
+        <div class="chip" onclick="toggleTone(this)">Action-Packed</div>
+        <div class="chip" onclick="toggleTone(this)">Romantic</div>
+        <div class="chip" onclick="toggleTone(this)">Mysterious</div>
+      </div>
+    </div>
+
+    <!-- Panels -->
+    <div class="card">
+      <div class="card-title">📖 Step 4 — Comic Length</div>
+      <div style="font-weight:700; margin-bottom:10px;">Number of Panels:</div>
+      <div class="panel-count-row" id="panelCountRow">
+        <div class="count-btn" data-count="4" onclick="selectCount(this)">4</div>
+        <div class="count-btn" data-count="6" onclick="selectCount(this)">6</div>
+        <div class="count-btn selected" data-count="8" onclick="selectCount(this)">8</div>
+        <div class="count-btn" data-count="12" onclick="selectCount(this)">12</div>
+        <span style="font-size:0.85rem; color:#555; font-family:'Comic Neue'; font-weight:700;">panels</span>
+      </div>
+      <div style="font-size:0.85rem; color:#555; font-weight:700;">💡 Line Art style = print & color with crayons!</div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="startGeneration()">⚡ CREATE MY COMIC!</button>
+    </div>
+
+  </div><!-- /setup-section -->
+
+  <!-- GENERATING STATE -->
+  <div id="generating-section" class="hidden">
+    <div class="generating">
+      <div class="spinner"></div>
+      <div class="gen-msg" id="genMsg">WRITING YOUR STORY...</div>
+      <p class="gen-sub" id="genSub">Our AI is crafting your comic book script...</p>
+      <div class="progress-bar" style="max-width:400px; margin:20px auto 0;">
+        <div class="progress-fill" id="progressFill" style="width:5%"></div>
+      </div>
+      <p style="margin-top:8px; opacity:0.6; font-size:0.85rem;" id="progressLabel">Step 1 of 3</p>
+    </div>
+  </div>
+
+  <!-- COMIC OUTPUT -->
+  <div id="comic-section" class="hidden">
+    <div class="btn-row no-print" id="topBtns">
+      <button class="btn btn-gold" onclick="window.print()">🖨️ PRINT TO COLOR</button>
+      <button class="btn btn-green" onclick="downloadComic()">💾 SAVE AS PDF</button>
+      <button class="btn btn-purple" onclick="regenerateImages()">🎨 REGENERATE ART</button>
+      <button class="btn btn-secondary" onclick="resetAll()">🔄 NEW COMIC</button>
+    </div>
+    <div class="comic-wrapper" id="comicWrapper"></div>
+    <div class="btn-row no-print" style="margin-top:20px;">
+      <button class="btn btn-gold" onclick="window.print()">🖨️ PRINT TO COLOR</button>
+      <button class="btn btn-secondary" onclick="resetAll()">🔄 MAKE ANOTHER</button>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<script>
+// ==============================
+// STATE
+// ==============================
+let selectedGenre = '';
+let selectedArt = 'bold comic book ink style, black and white line art, coloring book style, thick outlines, white background';
+let selectedTones = [];
+let selectedCount = 8;
+let comicData = null; // { title, tagline, panels: [{number, dialogue, sfx, caption, imgPrompt}] }
+
+// ==============================
+// UI SELECTORS
+// ==============================
+function selectGenre(el) {
+  document.querySelectorAll('.genre-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedGenre = el.dataset.genre;
+}
+function selectArt(el) {
+  document.querySelectorAll('.art-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedArt = el.dataset.art;
+}
+function toggleTone(el) {
+  el.classList.toggle('selected');
+  selectedTones = Array.from(document.querySelectorAll('.chip.selected')).map(c => c.textContent);
+}
+function selectCount(el) {
+  document.querySelectorAll('.count-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedCount = parseInt(el.dataset.count);
+}
+
+// Default art selection
+document.querySelector('[data-art="bold comic book ink style, black and white line art, coloring book style, thick outlines, white background"]').classList.add('selected');
+
+// ==============================
+// STEP INDICATOR
+// ==============================
+function setStep(n) {
+  for (let i = 1; i <= 4; i++) {
+    const dot = document.getElementById('s' + i);
+    const line = document.getElementById('sl' + (i-1));
+    if (!dot) continue;
+    if (i < n) { dot.classList.add('done'); dot.classList.remove('active','inactive'); dot.textContent = '✓'; }
+    else if (i === n) { dot.classList.add('active'); dot.classList.remove('done','inactive'); }
+    else { dot.classList.add('inactive'); dot.classList.remove('active','done'); }
+    if (line) { if (i <= n) line.classList.add('done'); else line.classList.remove('done'); }
+  }
+}
+
+// ==============================
+// TOAST
+// ==============================
+function toast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+// ==============================
+// POLLINATIONS TEXT API
+// ==============================
+async function pollinationsText(prompt) {
+  const encoded = encodeURIComponent(prompt);
+  const url = `https://text.pollinations.ai/${encoded}?model=openai&seed=${Math.floor(Math.random()*9999)}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Text API failed');
+  return res.text();
+}
+
+// ==============================
+// BUILD STORY PROMPT
+// ==============================
+function buildStoryPrompt() {
+  const hero = document.getElementById('heroName').value || 'Nova';
+  const power = document.getElementById('heroPower').value || 'superhuman strength';
+  const villain = document.getElementById('villainName').value || 'The Shadow';
+  const setting = document.getElementById('setting').value || 'a futuristic city';
+  const hook = document.getElementById('storyHook').value || '';
+  const toneStr = selectedTones.length ? selectedTones.join(', ') : 'epic, action-packed';
+  const genre = selectedGenre || 'Action Adventure';
+
+  return `You are a professional comic book writer. Create a ${genre} comic script with exactly ${selectedCount} panels.
+
+HERO: ${hero} — power/trait: ${power}
+VILLAIN: ${villain}
+SETTING: ${setting}
+${hook ? 'STORY HOOK: ' + hook : ''}
+TONE: ${toneStr}
+
+OUTPUT VALID JSON ONLY. No markdown, no code blocks, no explanation. Just the JSON object.
+
+{
+  "title": "COMIC TITLE (2-5 dramatic words)",
+  "tagline": "One punchy tagline sentence",
+  "panels": [
+    {
+      "number": 1,
+      "dialogue": "Short punchy dialogue or narration (max 20 words)",
+      "sfx": "OPTIONAL sound effect word like POW, CRASH, BOOM (or empty string)",
+      "caption": "Optional location/time caption (or empty string)",
+      "scene": "Vivid visual description for the artist: who, what action, emotion, setting (2-3 sentences)"
+    }
+  ]
+}
+
+Rules:
+- Exactly ${selectedCount} panel objects
+- Make it dramatic, visual, comic-book authentic
+- Vary panel types: action, dialogue, reaction, establishing
+- Build tension across panels — strong opening hook, rising action, climax at panel ${Math.floor(selectedCount*0.75)}, ending
+- Keep dialogue SHORT — comics have limited space
+- "scene" field must be visually specific for illustration`;
+}
+
+// ==============================
+// IMAGE GENERATION (Pollinations)
+// ==============================
+function buildImageUrl(scene, artStyle) {
+  const prompt = `${scene}, ${artStyle}, comic book panel, no text, no speech bubbles`;
+  const encoded = encodeURIComponent(prompt);
+  const seed = Math.floor(Math.random() * 99999);
+  return `https://image.pollinations.ai/prompt/${encoded}?width=512&height=512&model=flux&seed=${seed}&nologo=true`;
+}
+
+// ==============================
+// PARSE STORY JSON
+// ==============================
+function parseStoryJSON(raw) {
+  // Strip any markdown fences
+  let clean = raw.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
+  // Find first { to last }
+  const start = clean.indexOf('{');
+  const end = clean.lastIndexOf('}');
+  if (start === -1 || end === -1) throw new Error('No JSON found');
+  clean = clean.slice(start, end+1);
+  return JSON.parse(clean);
+}
+
+// ==============================
+// RENDER COMIC
+// ==============================
+function renderComic(data) {
+  const hero = document.getElementById('heroName').value || 'Nova';
+  const genre = selectedGenre || 'Action Adventure';
+  const wrapper = document.getElementById('comicWrapper');
+  wrapper.innerHTML = '';
+
+  // COVER
+  const cover = document.createElement('div');
+  cover.className = 'comic-cover';
+  cover.innerHTML = `
+    <div class="comic-title-text">${data.title}</div>
+    <div class="comic-issue">Issue #1 &nbsp;|&nbsp; Featuring: ${hero}</div>
+    <div class="comic-genre-badge">${genre.toUpperCase()}</div>
+    <div style="color:rgba(255,255,255,0.7); font-size:0.85rem; margin-top:10px; position:relative; font-style:italic;">"${data.tagline}"</div>
+  `;
+  wrapper.appendChild(cover);
+
+  // PANELS — split into pages of 4
+  const panels = data.panels;
+  const panelsPerPage = 4;
+  const pages = Math.ceil(panels.length / panelsPerPage);
+
+  for (let pg = 0; pg < pages; pg++) {
+    const pagePanels = panels.slice(pg * panelsPerPage, (pg+1) * panelsPerPage);
+
+    // Page header
+    const ph = document.createElement('div');
+    ph.className = 'page-header';
+    ph.textContent = `— PAGE ${pg+1} —`;
+    wrapper.appendChild(ph);
+
+    // Panel grid
+    const grid = document.createElement('div');
+    grid.className = 'panel-grid';
+
+    // Layout logic
+    if (pagePanels.length === 1) grid.classList.add('layout-spotlight');
+    else if (pagePanels.length === 2) grid.classList.add('layout-2col');
+    else if (pagePanels.length === 3) grid.classList.add('layout-featured');
+    else grid.classList.add('layout-2col');
+
+    pagePanels.forEach(panel => {
+      const pEl = document.createElement('div');
+      pEl.className = 'comic-panel';
+
+      // Image
+      const imgWrap = document.createElement('div');
+      imgWrap.className = 'panel-img-wrap';
+
+      const loading = document.createElement('div');
+      loading.className = 'panel-img-loading';
+      loading.innerHTML = `<div class="mini-spin"></div><span>Drawing panel ${panel.number}...</span>`;
+      imgWrap.appendChild(loading);
+
+      const img = document.createElement('img');
+      img.alt = `Panel ${panel.number}`;
+      const imgUrl = buildImageUrl(panel.scene, selectedArt);
+      img.onload = () => { loading.remove(); };
+      img.onerror = () => { loading.innerHTML = `<span style="font-size:2rem">🎨</span><span>Art loading...</span>`; };
+      img.src = imgUrl;
+      imgWrap.appendChild(img);
+
+      // Panel number badge
+      const num = document.createElement('div');
+      num.className = 'panel-number';
+      num.textContent = panel.number;
+      imgWrap.appendChild(num);
+
+      // SFX
+      if (panel.sfx) {
+        const sfx = document.createElement('div');
+        sfx.className = 'sfx';
+        sfx.style.cssText = `top:${30+Math.random()*40}%; right:${10+Math.random()*20}%; font-size:${1.5+Math.random()}rem;`;
+        sfx.textContent = panel.sfx;
+        imgWrap.appendChild(sfx);
+      }
+
+      pEl.appendChild(imgWrap);
+
+      // Speech + caption
+      const speech = document.createElement('div');
+      speech.className = 'speech-area';
+
+      if (panel.caption) {
+        const cap = document.createElement('div');
+        cap.className = 'caption-box';
+        cap.textContent = panel.caption;
+        speech.appendChild(cap);
+      }
+
+      if (panel.dialogue) {
+        const bub = document.createElement('div');
+        bub.className = 'speech-bubble' + (panel.number % 5 === 0 ? ' thought' : '');
+        bub.textContent = panel.dialogue;
+        speech.appendChild(bub);
+      }
+
+      pEl.appendChild(speech);
+      grid.appendChild(pEl);
+    });
+
+    wrapper.appendChild(grid);
+  }
+
+  // Back cover
+  const back = document.createElement('div');
+  back.style.cssText = 'background:#000; color:#fff; text-align:center; padding:24px; border-top:4px solid #000;';
+  back.innerHTML = `
+    <div style="font-family:Bangers,cursive; font-size:1.5rem; letter-spacing:3px; color:var(--gold);">CREATED WITH COMICFORGE STUDIO</div>
+    <div style="opacity:0.6; font-size:0.8rem; margin-top:6px;">shop.artistrystore.com | Powered by AI — Imagined by You</div>
+    <div style="margin-top:12px; font-size:0.9rem; font-weight:700;">🖨️ TIP: Select "Line Art" style for black & white coloring pages!</div>
+  `;
+  wrapper.appendChild(back);
+}
+
+// ==============================
+// MAIN GENERATION FLOW
+// ==============================
+async function startGeneration() {
+  // Validate
+  if (!document.getElementById('heroName').value.trim()) {
+    toast('⚡ Give your hero a name!'); return;
+  }
+
+  // Show generating
+  document.getElementById('setup-section').classList.add('hidden');
+  document.getElementById('generating-section').classList.remove('hidden');
+  setStep(2);
+
+  const msgs = [
+    ['WRITING YOUR STORY...', 'AI is crafting your comic book script...', '15%', 'Step 1 of 3'],
+    ['SCRIPTING PANELS...', 'Building dramatic panel-by-panel action...', '40%', 'Step 2 of 3'],
+    ['PREPARING ART...', 'Generating your panel illustrations...', '70%', 'Step 3 of 3'],
+    ['ASSEMBLING COMIC...', 'Putting it all together...', '90%', 'Almost done!'],
+  ];
+
+  let msgIdx = 0;
+  const msgInterval = setInterval(() => {
+    if (msgIdx < msgs.length) {
+      const m = msgs[msgIdx++];
+      document.getElementById('genMsg').textContent = m[0];
+      document.getElementById('genSub').textContent = m[1];
+      document.getElementById('progressFill').style.width = m[2];
+      document.getElementById('progressLabel').textContent = m[3];
+    }
+  }, 2500);
+
+  try {
+    // Generate story
+    const prompt = buildStoryPrompt();
+    const rawStory = await pollinationsText(prompt);
+    comicData = parseStoryJSON(rawStory);
+
+    clearInterval(msgInterval);
+    document.getElementById('progressFill').style.width = '100%';
+    document.getElementById('genMsg').textContent = 'COMIC COMPLETE!';
+
+    await new Promise(r => setTimeout(r, 600));
+
+    // Show comic
+    document.getElementById('generating-section').classList.add('hidden');
+    document.getElementById('comic-section').classList.remove('hidden');
+    setStep(4);
+    renderComic(comicData);
+    toast('🎉 Your comic is ready! Images loading...');
+
+  } catch(err) {
+    clearInterval(msgInterval);
+    console.error(err);
+    // Fallback: generate offline comic
+    comicData = generateOfflineComic();
+    document.getElementById('generating-section').classList.add('hidden');
+    document.getElementById('comic-section').classList.remove('hidden');
+    setStep(4);
+    renderComic(comicData);
+    toast('⚡ Created with offline mode!');
+  }
+}
+
+// ==============================
+// OFFLINE FALLBACK
+// ==============================
+function generateOfflineComic() {
+  const hero = document.getElementById('heroName').value || 'Nova';
+  const villain = document.getElementById('villainName').value || 'The Shadow';
+  const setting = document.getElementById('setting').value || 'the city';
+  const genre = selectedGenre || 'Adventure';
+  const panels = [];
+  const templates = [
+    { dialogue: `${setting}. Something dark stirs in the shadows...`, sfx: '', caption: 'DAWN' },
+    { dialogue: `${hero}: "I've been waiting for you."`, sfx: 'CRACK', caption: '' },
+    { dialogue: `${villain}: "You can't stop what's coming."`, sfx: '', caption: '' },
+    { dialogue: `${hero} leaps into action!`, sfx: 'WHOOSH', caption: '' },
+    { dialogue: `The battle shakes the very ground.`, sfx: 'BOOM', caption: '' },
+    { dialogue: `${hero}: "This ends NOW."`, sfx: 'POW', caption: '' },
+    { dialogue: `${villain} retreats into darkness...`, sfx: '', caption: '' },
+    { dialogue: `${hero} stands victorious. For now.`, sfx: '', caption: 'TO BE CONTINUED...' },
+    { dialogue: `The city is safe... or is it?`, sfx: '', caption: '' },
+    { dialogue: `A new threat watches from afar.`, sfx: '', caption: 'NEXT ISSUE' },
+    { dialogue: `The adventure never truly ends.`, sfx: '', caption: '' },
+    { dialogue: `${hero} walks into the sunset.`, sfx: '', caption: 'FIN' },
+  ];
+  for (let i = 0; i < selectedCount; i++) {
+    const t = templates[i] || templates[templates.length-1];
+    panels.push({ number: i+1, dialogue: t.dialogue, sfx: t.sfx, caption: t.caption, scene: `${genre} scene with ${hero} in ${setting}, dramatic pose, action shot` });
+  }
+  return { title: `${hero.toUpperCase()}: RISE`, tagline: `One hero. One chance. One comic.`, panels };
+}
+
+// ==============================
+// REGENERATE IMAGES
+// ==============================
+function regenerateImages() {
+  if (!comicData) return;
+  document.querySelectorAll('.panel-img-wrap img').forEach((img, i) => {
+    const panel = comicData.panels[i];
+    if (!panel) return;
+    const loading = document.createElement('div');
+    loading.className = 'panel-img-loading';
+    loading.innerHTML = `<div class="mini-spin"></div><span>Redrawing...</span>`;
+    img.parentNode.appendChild(loading);
+    const newUrl = buildImageUrl(panel.scene, selectedArt);
+    img.onload = () => loading.remove();
+    img.src = newUrl;
+  });
+  toast('🎨 Regenerating all panel art...');
+}
+
+// ==============================
+// DOWNLOAD / PRINT
+// ==============================
+function downloadComic() {
+  toast('🖨️ Use browser Print → Save as PDF for best results!');
+  setTimeout(() => window.print(), 800);
+}
+
+// ==============================
+// RESET
+// ==============================
+function resetAll() {
+  document.getElementById('setup-section').classList.remove('hidden');
+  document.getElementById('comic-section').classList.add('hidden');
+  document.getElementById('generating-section').classList.add('hidden');
+  document.getElementById('comicWrapper').innerHTML = '';
+  setStep(1);
+  comicData = null;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>

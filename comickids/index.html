@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ComicKids Studio — AI Comic Book Creator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;800&family=Nunito:wght@400;700;900&family=Bangers&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/prettier@3/standalone.js"></script>
+  <script src="https://unpkg.com/prettier@3/plugins/babel.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Nunito', sans-serif; background: #fffbeb; }
+    .baloo { font-family: 'Baloo 2', cursive; }
+    .bangers { font-family: 'Bangers', cursive; letter-spacing: 2px; }
+
+    .comic-panel {
+      border: 4px solid #111;
+      background: #fff;
+      position: relative;
+      overflow: hidden;
+      min-height: 260px;
+      display: flex;
+      flex-direction: column;
+    }
+    .comic-panel:nth-child(odd) { background: #fef9c3; }
+    .comic-panel:nth-child(even) { background: #fce7f3; }
+
+    .speech-bubble {
+      background: white;
+      border: 2.5px solid #111;
+      border-radius: 16px;
+      padding: 5px 10px;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 0.7rem;
+      position: relative;
+      display: inline-block;
+    }
+    .speech-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 16px;
+      border: 7px solid transparent;
+      border-top-color: #111;
+    }
+    .speech-bubble::before {
+      content: '';
+      position: absolute;
+      bottom: -7px;
+      left: 18px;
+      border: 5px solid transparent;
+      border-top-color: white;
+      z-index: 1;
+    }
+
+    .halftone {
+      background-image: radial-gradient(circle, rgba(0,0,0,0.08) 1px, transparent 1px);
+      background-size: 8px 8px;
+    }
+    .polka {
+      background-image: radial-gradient(circle, rgba(139,92,246,0.12) 2px, transparent 2px);
+      background-size: 14px 14px;
+    }
+    .comic-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-top: 4px solid #111;
+    }
+    .comic-grid > div {
+      border-right: 4px solid #111;
+      border-bottom: 4px solid #111;
+    }
+    .comic-grid > div:nth-child(even) { border-right: none; }
+
+    /* Zap effect */
+    .zap-btn {
+      position: relative;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .zap-btn:hover { transform: translate(2px,2px); }
+
+    /* Print styles */
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white !important; margin: 0; padding: 0; }
+      #print-area {
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+      .comic-panel { page-break-inside: avoid; min-height: 260px; }
+      .comic-grid { page-break-inside: avoid; }
+    }
+
+    /* Loading animation */
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+    .float { animation: float 1.6s ease-in-out infinite; }
+
+    /* Star burst */
+    .starburst {
+      clip-path: polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+    }
+    input, select {
+      border: 2.5px solid #111 !important;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-family: 'Baloo 2', cursive;
+      font-weight: 600;
+      font-size: 1rem;
+      width: 100%;
+      background: #fff;
+      outline: none;
+    }
+    input:focus, select:focus { box-shadow: 0 0 0 3px #fde047; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    // ─── DATA ─────────────────────────────────────────────────────────────
+    const SETTINGS = [
+      '🌲 Enchanted Forest','🚀 Outer Space','🌊 Underwater Kingdom',
+      '🏰 Magic Castle','🦕 Dinosaur Land','🐉 Dragon Mountain',
+      '🍬 Candy Kingdom','🤖 Robot City','🏔️ Ice Glacier','🌴 Jungle Ruins'
+    ];
+    const ADVENTURES = [
+      '🏆 Save the treasure','🤝 Rescue a friend','🦹 Stop the villain',
+      '📜 Find the magic spell','🥇 Win the championship','🔍 Solve the mystery',
+      '🐉 Defeat the monster','🏗️ Build something amazing','🗺️ Map a lost land','💌 Deliver a secret message'
+    ];
+    const PANEL_BG = ['#fef9c3','#fce7f3','#d1fae5','#e0e7ff'];
+
+    // ─── API ───────────────────────────────────────────────────────────────
+    async function generateStory(hero, sidekick, setting, adventure) {
+      const sys = 'You are a cheerful children\'s comic book writer for ages 4-10. Always return valid JSON only — no markdown, no explanation.';
+      const user = `Write a 4-panel comic story. Hero: "${hero}", Sidekick: "${sidekick}", Setting: "${setting}", Adventure: "${adventure}".
+
+Return ONLY this JSON shape:
+{
+  "title": "Short exciting comic title (4-6 words)",
+  "panels": [
+    {
+      "panel": 1,
+      "caption": "Opening scene narrator text, 1-2 short exciting sentences.",
+      "speech": "What ${hero} says — max 8 words.",
+      "imagePrompt": "Coloring book line art: ${hero} and ${sidekick} in ${setting}, [describe action for panel 1], black and white bold outlines, no shading, white background, simple kid-friendly cartoon style, printable coloring page"
+    },
+    {
+      "panel": 2,
+      "caption": "Rising action, 1-2 sentences.",
+      "speech": "What ${hero} says in panel 2 — max 8 words.",
+      "imagePrompt": "Coloring book line art: ${hero} and ${sidekick} encountering obstacle in ${setting}, [describe action for panel 2], black and white bold outlines, no shading, white background, simple kid-friendly cartoon style, printable coloring page"
+    },
+    {
+      "panel": 3,
+      "caption": "Exciting climax, 1-2 sentences.",
+      "speech": "Exciting battle cry — max 8 words.",
+      "imagePrompt": "Coloring book line art: ${hero} defeating challenge in ${setting}, [describe action for panel 3], black and white bold outlines, no shading, white background, simple kid-friendly cartoon style, printable coloring page"
+    },
+    {
+      "panel": 4,
+      "caption": "Happy ending, 1-2 sentences.",
+      "speech": "Victory cheer — max 8 words.",
+      "imagePrompt": "Coloring book line art: ${hero} and ${sidekick} celebrating in ${setting}, [describe action for panel 4], black and white bold outlines, no shading, white background, simple kid-friendly cartoon style, printable coloring page"
+    }
+  ]
+}`;
+
+      const res = await fetch('https://text.pollinations.ai/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [
+            { role: 'system', content: sys },
+            { role: 'user', content: user }
+          ],
+          model: 'openai',
+          jsonMode: true,
+          seed: Math.floor(Math.random() * 9999)
+        })
+      });
+      if (!res.ok) throw new Error('Story API failed');
+      const text = await res.text();
+      const match = text.match(/\{[\s\S]*\}/);
+      if (!match) throw new Error('No JSON found');
+      return JSON.parse(match[0]);
+    }
+
+    function makeImageUrl(prompt, seed) {
+      const full = prompt + ', coloring book for children, bold thick black outlines, pure white background, no gray shading, high contrast, printable';
+      return `https://image.pollinations.ai/prompt/${encodeURIComponent(full)}?width=512&height=512&nologo=true&seed=${seed}&model=flux`;
+    }
+
+    // ─── HOME SCREEN ──────────────────────────────────────────────────────
+    function HomeScreen({ onStart }) {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center p-6 polka">
+          <div className="max-w-sm w-full text-center">
+            <div className="float mb-2">
+              <div style={{fontSize: '6rem', lineHeight:1}}>🦉</div>
+            </div>
+            <h1 className="bangers text-6xl text-purple-700 mb-0"
+              style={{textShadow: '3px 3px 0 #fde047, 5px 5px 0 #111'}}>
+              COMICKIDS
+            </h1>
+            <p className="bangers text-2xl text-yellow-500 mb-4"
+              style={{textShadow: '1px 1px 0 #111'}}>
+              ★ STUDIO ★
+            </p>
+            <div className="bg-white rounded-3xl border-4 border-black p-5 shadow-[6px_6px_0_#111] mb-6 text-left">
+              <p className="baloo font-800 text-gray-800 text-base mb-3 text-center">🎨 Make YOUR own printable comic!</p>
+              <div className="space-y-2 text-sm text-gray-700">
+                <div className="flex items-center gap-2"><span className="text-xl">🦸</span><span className="baloo font-700">Pick your hero & sidekick</span></div>
+                <div className="flex items-center gap-2"><span className="text-xl">🤖</span><span className="baloo font-700">AI writes the story</span></div>
+                <div className="flex items-center gap-2"><span className="text-xl">🖼️</span><span className="baloo font-700">AI draws coloring panels</span></div>
+                <div className="flex items-center gap-2"><span className="text-xl">🖨️</span><span className="baloo font-700">Print &amp; color it yourself!</span></div>
+              </div>
+            </div>
+            <button onClick={onStart}
+              className="zap-btn baloo font-800 text-xl bg-yellow-400 text-black border-4 border-black rounded-2xl px-10 py-4 shadow-[5px_5px_0_#111] w-full">
+              🚀 CREATE MY COMIC!
+            </button>
+            <p className="text-xs text-gray-400 mt-3 baloo">100% Free · No sign-up needed ✨</p>
+          </div>
+        </div>
+      );
+    }
+
+    // ─── SETUP SCREEN ─────────────────────────────────────────────────────
+    function SetupScreen({ onGenerate, loading, error }) {
+      const [hero, setHero] = useState('');
+      const [sidekick, setSidekick] = useState('');
+      const [setting, setSetting] = useState(SETTINGS[0]);
+      const [adventure, setAdventure] = useState(ADVENTURES[0]);
+      const canGo = hero.trim() && sidekick.trim() && !loading;
+
+      return (
+        <div className="min-h-screen p-4 polka flex items-center justify-center">
+          <div className="max-w-md w-full">
+            <h2 className="bangers text-5xl text-center text-purple-700 mb-5"
+              style={{textShadow: '2px 2px 0 #fde047, 4px 4px 0 #111'}}>
+              BUILD YOUR STORY!
+            </h2>
+
+            <div className="bg-white rounded-3xl border-4 border-black p-6 shadow-[6px_6px_0_#111] space-y-4">
+              <div>
+                <label className="block baloo font-800 text-gray-800 mb-1">🦸 Hero's Name *</label>
+                <input value={hero} onChange={e => setHero(e.target.value)}
+                  placeholder="e.g. SuperZara, Captain Max…" maxLength={20} />
+              </div>
+              <div>
+                <label className="block baloo font-800 text-gray-800 mb-1">🐾 Sidekick's Name *</label>
+                <input value={sidekick} onChange={e => setSidekick(e.target.value)}
+                  placeholder="e.g. Bolt the dog, Luna the cat…" maxLength={20} />
+              </div>
+              <div>
+                <label className="block baloo font-800 text-gray-800 mb-1">🌍 Setting</label>
+                <select value={setting} onChange={e => setSetting(e.target.value)}>
+                  {SETTINGS.map(s => <option key={s}>{s}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block baloo font-800 text-gray-800 mb-1">⚡ Adventure Type</label>
+                <select value={adventure} onChange={e => setAdventure(e.target.value)}>
+                  {ADVENTURES.map(a => <option key={a}>{a}</option>)}
+                </select>
+              </div>
+
+              {error && (
+                <div className="bg-red-50 border-2 border-red-400 rounded-xl p-3 text-sm text-red-700 baloo font-700 text-center">
+                  ⚠️ {error}
+                </div>
+              )}
+
+              <button
+                onClick={() => canGo && onGenerate(hero.trim(), sidekick.trim(), setting, adventure)}
+                disabled={!canGo}
+                className={`zap-btn w-full baloo font-800 text-xl text-white border-4 border-black rounded-2xl py-4 shadow-[4px_4px_0_#111] transition-all ${canGo ? 'bg-purple-600 hover:bg-purple-500 cursor-pointer' : 'bg-gray-300 cursor-not-allowed shadow-none'}`}>
+                {loading ? '🎨 Generating…' : '✨ Generate My Comic!'}
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ─── LOADING SCREEN ───────────────────────────────────────────────────
+    function LoadingScreen({ step }) {
+      const steps = [
+        { icon: '📝', label: 'Writing your story…' },
+        { icon: '🎨', label: 'Drawing Panel 1…' },
+        { icon: '🖼️', label: 'Drawing Panel 2…' },
+        { icon: '✏️', label: 'Drawing Panel 3…' },
+        { icon: '⭐', label: 'Drawing Panel 4…' },
+        { icon: '🖨️', label: 'Getting ready to print…' },
+      ];
+      const current = steps[Math.min(step, steps.length - 1)];
+      const pct = Math.round((step / (steps.length - 1)) * 100);
+
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center p-6 polka">
+          <div className="text-center max-w-sm w-full">
+            <div className="float mb-4 text-7xl">{current.icon}</div>
+            <h2 className="bangers text-4xl text-purple-700 mb-2"
+              style={{textShadow: '2px 2px 0 #111'}}>
+              CREATING YOUR COMIC!
+            </h2>
+            <p className="baloo font-700 text-gray-600 mb-6">{current.label}</p>
+            <div className="w-full bg-gray-200 rounded-full h-6 border-3 border-black overflow-hidden mb-2">
+              <div className="bg-yellow-400 h-full rounded-full transition-all duration-700 border-r-2 border-black"
+                style={{ width: `${pct}%` }} />
+            </div>
+            <p className="baloo text-sm text-gray-500">{pct}% complete</p>
+            <p className="baloo text-xs text-purple-400 mt-3">🤖 AI is drawing coloring pages just for you!</p>
+          </div>
+        </div>
+      );
+    }
+
+    // ─── SINGLE PANEL ─────────────────────────────────────────────────────
+    function ComicPanel({ panel, imageUrl, num }) {
+      const [loaded, setLoaded] = useState(false);
+      const [err, setErr] = useState(false);
+      const bg = PANEL_BG[num - 1] || '#fff';
+
+      return (
+        <div className="comic-panel" style={{ background: bg }}>
+          {/* Panel badge */}
+          <div className="bangers text-xs px-2 pt-1 text-gray-400" style={{letterSpacing:1}}>
+            PANEL {num}
+          </div>
+
+          {/* Image area */}
+          <div className="flex-1 flex items-center justify-center p-2" style={{ minHeight: 170 }}>
+            {!loaded && !err && (
+              <div className="text-3xl animate-spin text-purple-400">🎨</div>
+            )}
+            {err ? (
+              <div className="text-center text-gray-400">
+                <div className="text-5xl mb-1">🖼️</div>
+                <div className="baloo text-xs">Panel {num}</div>
+              </div>
+            ) : (
+              <img
+                src={imageUrl}
+                alt={`Comic panel ${num}`}
+                className="max-w-full object-contain transition-opacity duration-500"
+                style={{ maxHeight: 200, opacity: loaded ? 1 : 0 }}
+                onLoad={() => setLoaded(true)}
+                onError={() => { setErr(true); setLoaded(true); }}
+              />
+            )}
+          </div>
+
+          {/* Speech bubble */}
+          {panel.speech && (
+            <div className="px-3 pb-2">
+              <div className="speech-bubble">💬 "{panel.speech}"</div>
+            </div>
+          )}
+
+          {/* Caption bar */}
+          <div className="px-3 py-2 bg-white border-t-3" style={{ borderTop: '3px solid #111' }}>
+            <p style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '0.72rem', lineHeight: 1.4, color: '#1f2937' }}>
+              {panel.caption}
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    // ─── COMIC VIEWER ─────────────────────────────────────────────────────
+    function ComicViewer({ story, imageUrls, hero, sidekick, onNew, onBack }) {
+      const reading = useRef(false);
+
+      const handlePrint = () => window.print();
+
+      const handleReadAloud = () => {
+        if (!window.speechSynthesis) return;
+        window.speechSynthesis.cancel();
+        const text = `${story.title}. ` + story.panels.map((p, i) => `Panel ${i+1}. ${p.caption} ${p.speech}`).join('. ') + '. The end!';
+        const utt = new SpeechSynthesisUtterance(text);
+        utt.rate = 0.9;
+        utt.pitch = 1.1;
+        window.speechSynthesis.speak(utt);
+      };
+
+      const handleStop = () => window.speechSynthesis && window.speechSynthesis.cancel();
+
+      return (
+        <div className="min-h-screen p-4 polka">
+          <div className="max-w-2xl mx-auto">
+            {/* Top bar */}
+            <div className="no-print flex flex-wrap items-center justify-between gap-2 mb-4">
+              <button onClick={onBack}
+                className="zap-btn baloo font-800 text-sm bg-gray-200 text-black border-3 border-black rounded-xl px-4 py-2 shadow-[3px_3px_0_#111]">
+                ← Back
+              </button>
+              <h2 className="bangers text-2xl text-purple-700" style={{textShadow:'1px 1px 0 #111'}}>
+                YOUR COMIC IS READY! 🎉
+              </h2>
+              <div></div>
+            </div>
+
+            {/* Action buttons */}
+            <div className="no-print flex flex-wrap gap-2 justify-center mb-4">
+              <button onClick={handlePrint}
+                className="zap-btn baloo font-800 bg-green-500 text-white border-3 border-black rounded-xl px-5 py-2 shadow-[3px_3px_0_#111] text-sm">
+                🖨️ Print &amp; Color!
+              </button>
+              <button onClick={handleReadAloud}
+                className="zap-btn baloo font-800 bg-blue-500 text-white border-3 border-black rounded-xl px-5 py-2 shadow-[3px_3px_0_#111] text-sm">
+                🔊 Read Aloud
+              </button>
+              <button onClick={handleStop}
+                className="zap-btn baloo font-800 bg-gray-400 text-white border-3 border-black rounded-xl px-5 py-2 shadow-[3px_3px_0_#111] text-sm">
+                ⏹ Stop
+              </button>
+              <button onClick={onNew}
+                className="zap-btn baloo font-800 bg-yellow-400 text-black border-3 border-black rounded-xl px-5 py-2 shadow-[3px_3px_0_#111] text-sm">
+                ✨ New Comic!
+              </button>
+            </div>
+
+            {/* THE COMIC */}
+            <div id="print-area" className="bg-white border-4 border-black rounded-2xl overflow-hidden shadow-[8px_8px_0_#111]">
+
+              {/* Comic title header */}
+              <div className="halftone border-b-4 border-black text-center px-4 py-3" style={{ background: '#fde047' }}>
+                <div className="bangers text-4xl text-black" style={{ textShadow: '2px 2px 0 #fff, 3px 3px 0 #111', letterSpacing: 3 }}>
+                  {story.title || 'MY GREAT ADVENTURE'}
+                </div>
+                <div className="baloo text-xs text-gray-700 font-600 mt-0.5">
+                  Starring <strong>{hero}</strong> &amp; <strong>{sidekick}</strong> · Created with ComicKids Studio 🦉
+                </div>
+              </div>
+
+              {/* 2 × 2 panel grid */}
+              <div className="comic-grid">
+                {story.panels.slice(0, 4).map((panel, i) => (
+                  <ComicPanel key={i} panel={panel} imageUrl={imageUrls[i]} num={i + 1} />
+                ))}
+              </div>
+
+              {/* Footer */}
+              <div className="border-t-4 border-black text-center px-4 py-2"
+                style={{ background: '#7c3aed' }}>
+                <span className="bangers text-white text-xl tracking-widest" style={{ letterSpacing: 4 }}>
+                  ★ THE END ★
+                </span>
+              </div>
+            </div>
+
+            <p className="no-print text-center text-xs text-gray-400 mt-3 baloo">
+              💡 Tip: Click "Print &amp; Color!" — grab your crayons and go wild! 🖍️
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    // ─── ROOT APP ─────────────────────────────────────────────────────────
+    function App() {
+      const [screen, setScreen] = useState('home');
+      const [loadStep, setLoadStep] = useState(0);
+      const [story, setStory] = useState(null);
+      const [imageUrls, setImageUrls] = useState([]);
+      const [inputs, setInputs] = useState({ hero: '', sidekick: '', setting: '', adventure: '' });
+      const [loading, setLoading] = useState(false);
+      const [error, setError] = useState(null);
+
+      const handleGenerate = async (hero, sidekick, setting, adventure) => {
+        setInputs({ hero, sidekick, setting, adventure });
+        setLoading(true);
+        setError(null);
+        setLoadStep(0);
+        setScreen('loading');
+
+        try {
+          // Step 0: generate story
+          setLoadStep(0);
+          const storyData = await generateStory(hero, sidekick, setting, adventure);
+          setLoadStep(1);
+
+          // Build 4 image URLs
+          const panels = storyData.panels.slice(0, 4);
+          const urls = panels.map((p, i) => makeImageUrl(p.imagePrompt || p.scene || `${hero} in panel ${i+1}`, (i + 1) * 137));
+          // Simulate loading progress
+          for (let i = 0; i < 4; i++) {
+            setLoadStep(i + 2);
+            await new Promise(r => setTimeout(r, 400));
+          }
+
+          setImageUrls(urls);
+          setStory(storyData);
+          setScreen('comic');
+        } catch (e) {
+          setError('Oops! AI had a hiccup. Please try again! 🙈');
+          setScreen('setup');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      if (screen === 'home') return <HomeScreen onStart={() => setScreen('setup')} />;
+      if (screen === 'loading') return <LoadingScreen step={loadStep} />;
+      if (screen === 'comic' && story) return (
+        <ComicViewer
+          story={story}
+          imageUrls={imageUrls}
+          hero={inputs.hero}
+          sidekick={inputs.sidekick}
+          onNew={() => { setStory(null); setImageUrls([]); setScreen('setup'); }}
+          onBack={() => setScreen('setup')}
+        />
+      );
+      return <SetupScreen onGenerate={handleGenerate} loading={loading} error={error} />;
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
