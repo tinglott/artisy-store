@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CopeSheets — AI-Generated Clinical Coping Skills Printables</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
+<style>
+:root {
+  --ink: #1a3d3a; --paper: #f0f7f6; --teal: #0d7a6e; --sea: #1f9b8e;
+  --calm: #6b9f95; --line: #c8dcd9; --card: #ffffff; --muted: #4a6b65;
+  --warm: #d4a574;
+}
+html, body { margin: 0; padding: 0; }
+#copesheets-root {
+  font-family: 'Nunito', -apple-system, sans-serif; color: var(--ink);
+  background: radial-gradient(circle at 15% 0%, #e8f4f2 0%, var(--paper) 45%);
+  min-height: 100vh; padding: 28px 18px 80px; box-sizing: border-box;
+}
+#copesheets-root * { box-sizing: border-box; }
+h1, h2, h3 { font-family: 'Fredoka', sans-serif; margin: 0; }
+.cs-header { text-align: center; margin-bottom: 26px; }
+.cs-eyebrow {
+  display: inline-block; font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--teal); font-weight: 800; background: #e8f5f2; border: 1px solid #b8e0db;
+  padding: 4px 12px; border-radius: 999px; margin-bottom: 10px;
+}
+.cs-title { font-size: 34px; font-weight: 700; line-height: 1.15; }
+.cs-title span { color: var(--teal); }
+.cs-sub { margin-top: 8px; font-size: 15px; color: var(--muted); max-width: 580px; margin-left: auto; margin-right: auto; }
+.cs-form {
+  background: var(--card); border: 1px solid var(--line); border-radius: 22px;
+  padding: 22px; max-width: 580px; margin: 0 auto 24px;
+  box-shadow: 0 12px 36px -16px rgba(13,122,110,.25);
+}
+.cs-label {
+  font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em;
+  color: var(--muted); display: block; margin: 14px 0 7px;
+}
+.cs-label:first-child { margin-top: 0; }
+#copesheets-root input[type=text], #copesheets-root select {
+  width: 100%; padding: 12px 14px; border-radius: 12px; border: 1.5px solid var(--line);
+  font-size: 15px; font-family: inherit; background: #fdfcfb; color: var(--ink);
+}
+#copesheets-root input[type=text]:focus, #copesheets-root select:focus {
+  outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(13,122,110,.15);
+}
+.cs-chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.cs-chip {
+  border: 1.5px solid var(--line); background: #fdfcfb; color: var(--ink);
+  padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: all .15s ease; font-family: inherit;
+}
+.cs-chip:hover { border-color: var(--teal); transform: translateY(-1px); }
+.cs-chip.active { background: var(--teal); border-color: var(--teal); color: #fff9ec; }
+.cs-audience-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.cs-audience-row .cs-chip { flex: 1; min-width: 100px; text-align: center; }
+.cs-row { display: flex; gap: 12px; }
+.cs-row > * { flex: 1; }
+.cs-generate {
+  width: 100%; margin-top: 20px; padding: 14px; border: none; border-radius: 14px;
+  background: linear-gradient(135deg, var(--sea), var(--teal)); color: #fff;
+  font-family: 'Fredoka', sans-serif; font-size: 17px; font-weight: 600; letter-spacing: .02em;
+  cursor: pointer; box-shadow: 0 8px 20px -8px rgba(13,122,110,.55);
+  transition: transform .12s, box-shadow .12s;
+}
+.cs-generate:hover:not(:disabled) { transform: translateY(-1px); }
+.cs-generate:disabled { opacity: .55; cursor: default; }
+.cs-error {
+  max-width: 580px; margin: 0 auto 16px; background: #f0e6e3; border: 1px solid #d4bfb8;
+  color: #5a4535; padding: 12px 16px; border-radius: 12px; font-size: 14px; text-align: center;
+}
+.cs-loading { text-align: center; padding: 48px 16px; color: #6b9f95; font-weight: 700; }
+.cs-loading .cs-spin {
+  width: 40px; height: 40px; margin: 0 auto 16px; border-radius: 50%;
+  border: 4px solid var(--line); border-top-color: var(--teal); animation: cs-spin .75s linear infinite;
+}
+@keyframes cs-spin { to { transform: rotate(360deg); } }
+.cs-loading-hint { font-size: 13px; font-weight: 600; opacity: .8; margin-top: 8px; }
+.cs-sheet {
+  max-width: 760px; margin: 0 auto; background: var(--card); border-radius: 24px;
+  border: 1px solid var(--line); box-shadow: 0 18px 48px -22px rgba(13,122,110,.38); overflow: hidden;
+}
+.cs-sheet-hero {
+  position: relative; height: 220px; overflow: hidden;
+  background: linear-gradient(120deg, var(--sea), var(--teal));
+}
+.cs-sheet-hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cs-sheet-hero::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,.45) 0%, rgba(0,0,0,.15) 50%, transparent 100%);
+}
+.cs-sheet-band {
+  position: absolute; bottom: 0; left: 0; right: 0; padding: 18px 24px 20px; color: #fff; z-index: 2;
+}
+.cs-sheet-band .cs-tag { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; opacity: .92; font-weight: 800; }
+.cs-sheet-band h2 { font-size: 26px; margin-top: 4px; text-shadow: 0 2px 8px rgba(0,0,0,.35); }
+.cs-sheet-band .cs-tagline { font-size: 14px; opacity: .95; margin-top: 5px; text-shadow: 0 1px 4px rgba(0,0,0,.3); }
+.cs-sheet-body { padding: 22px 24px 10px; }
+.cs-item {
+  display: grid; grid-template-columns: auto 1fr; gap: 12px 14px;
+  border-bottom: 1px dashed var(--line); padding: 18px 0; align-items: start;
+}
+.cs-item:last-child { border-bottom: none; }
+.cs-item-img {
+  width: 80px; height: 80px; border-radius: 12px; object-fit: cover;
+  border: 1px solid var(--line); background: #e8f5f2; flex-shrink: 0;
+}
+.cs-item-num {
+  display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px;
+  background: var(--teal); color: #fff; border-radius: 8px; font-size: 12px; font-weight: 800; margin-right: 8px;
+}
+.cs-item-title { font-weight: 800; font-size: 16px; display: inline; color: var(--ink); }
+.cs-item-body { margin-top: 6px; font-size: 14px; line-height: 1.6; color: #4a6b65; }
+.cs-item-practice { margin-top: 8px; font-size: 13px; font-weight: 600; color: var(--teal); font-style: italic; }
+.cs-checkbox {
+  display: inline-block; width: 16px; height: 16px; border: 1.5px solid var(--ink);
+  border-radius: 4px; margin-right: 8px; vertical-align: -2px;
+}
+.cs-footer-note {
+  text-align: center; font-size: 12px; color: #7a9b94; padding: 16px 20px 24px; font-style: italic;
+  border-top: 1px dashed var(--line);
+}
+.cs-footer-credit { font-size: 11px; color: #a0b8b3; }
+.cs-actions { max-width: 760px; margin: 18px auto 0; display: flex; flex-wrap: wrap; gap: 10px; }
+.cs-actions button {
+  flex: 1; min-width: 120px; padding: 12px; border-radius: 12px;
+  font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: 14px;
+  cursor: pointer; border: 1.5px solid var(--ink); background: #fff; color: var(--ink);
+}
+.cs-actions button.cs-primary { background: var(--ink); color: #fff9ec; }
+.cs-bundle-cta { max-width: 760px; margin: 20px auto; background: #e8f5f2; border: 1px solid var(--line);
+  border-radius: 16px; padding: 18px 24px; text-align: center; }
+.cs-bundle-cta p { margin: 0 0 12px; font-size: 15px; font-weight: 600; color: var(--ink); }
+.cs-bundle-cta a { display: inline-block; background: var(--teal); color: #fff; padding: 10px 20px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 14px; }
+@media print {
+  #copesheets-root { background: #fff !important; padding: 0; }
+  .cs-header, .cs-form, .cs-actions, .cs-error, .cs-loading, .cs-bundle-cta { display: none !important; }
+  .cs-sheet { box-shadow: none; border: none; max-width: 100%; border-radius: 0; }
+  .cs-sheet-hero { height: 180px; }
+  .cs-item-img { width: 64px; height: 64px; }
+}
+@media (max-width: 520px) {
+  .cs-title { font-size: 26px; }
+  .cs-audience-row { flex-wrap: wrap; }
+  .cs-item { grid-template-columns: 1fr; }
+  .cs-item-img { width: 100%; height: 140px; }
+  .cs-row { flex-direction: column; }
+  .cs-audience-row .cs-chip { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<div id="copesheets-root">
+<div class="cs-header">
+<div class="cs-eyebrow">Free Printables · Clinically Informed · By Ting Lott, RN</div>
+<div class="cs-title">Cope<span>Sheets</span></div>
+<div class="cs-sub">AI-generated coping skills & mental wellness printables. Choose a skill, audience, and style — get a beautiful, evidence-based worksheet ready to print or save. Made by a behavioral health nurse for therapy, classrooms, and personal use.</div>
+</div>
+
+<div class="cs-form" id="cs-form">
+<label class="cs-label">What coping skill do you need?</label>
+<input type="text" id="cs-skill" placeholder="e.g. anxiety relief, grounding techniques, emotional regulation, sleep preparation, grief processing, anger management" maxlength="120" />
+
+<label class="cs-label">Sheet type</label>
+<div class="cs-chip-row" id="cs-types">
+  <button class="cs-chip active" data-type="grounding card">Grounding Card</button>
+  <button class="cs-chip" data-type="emotion check-in">Emotion Check-In</button>
+  <button class="cs-chip" data-type="breathing guide">Breathing Guide</button>
+  <button class="cs-chip" data-type="coping toolbox">Coping Toolbox</button>
+  <button class="cs-chip" data-type="reframe prompts">Reframe Prompts</button>
+  <button class="cs-chip" data-type="caregiver check-in">Caregiver Check-In</button>
+</div>
+
+<label class="cs-label">Who's it for?</label>
+<div class="cs-audience-row" id="cs-audience">
+  <button class="cs-chip active" data-aud="kids">Kids</button>
+  <button class="cs-chip" data-aud="teens">Teens</button>
+  <button class="cs-chip" data-aud="adults">Adults</button>
+  <button class="cs-chip" data-aud="caregivers">Caregivers</button>
+  <button class="cs-chip" data-aud="classroom">Classroom</button>
+</div>
+
+<div class="cs-row" style="margin-top:14px;">
+  <div>
+    <label class="cs-label">Items</label>
+    <select id="cs-count">
+      <option value="5">5 techniques</option>
+      <option value="6" selected>6 techniques</option>
+      <option value="8">8 techniques</option>
+      <option value="10">10 techniques</option>
+    </select>
+  </div>
+  <div>
+    <label class="cs-label">Image style</label>
+    <select id="cs-style">
+      <option value="calming" selected>Calming scenes</option>
+      <option value="nature">Nature imagery</option>
+      <option value="wellness">Wellness illustrations</option>
+    </select>
+  </div>
+</div>
+
+<button class="cs-generate" id="cs-go">✨ Generate wellness printable</button>
+</div>
+
+<div id="cs-error-slot"></div>
+<div id="cs-result-slot"></div>
+</div>
+
+<script>
+(function () {
+  const skillInput = document.getElementById('cs-skill');
+  const typeButtons = document.querySelectorAll('#cs-types .cs-chip');
+  const audButtons = document.querySelectorAll('#cs-audience .cs-chip');
+  const goBtn = document.getElementById('cs-go');
+  const errorSlot = document.getElementById('cs-error-slot');
+  const resultSlot = document.getElementById('cs-result-slot');
+  const countSelect = document.getElementById('cs-count');
+  const styleSelect = document.getElementById('cs-style');
+
+  let selectedType = 'grounding card';
+  let selectedAud = 'kids';
+
+  typeButtons.forEach(btn => btn.addEventListener('click', () => {
+    typeButtons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedType = btn.dataset.type;
+  }));
+  audButtons.forEach(btn => btn.addEventListener('click', () => {
+    audButtons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedAud = btn.dataset.aud;
+  }));
+
+  function escapeHtml(str) {
+    return String(str ?? '').replace(/[&<>"']/g, s => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[s]));
+  }
+
+  function buildImageUrl(prompt, opts = {}) {
+    const { width = 1024, height = 576, model = 'flux', seed = Math.floor(Math.random() * 1e6) } = opts;
+    const encoded = encodeURIComponent(String(prompt).trim().slice(0, 280));
+    return `https://image.pollinations.ai/prompt/${encoded}?width=${width}&height=${height}&model=${model}&seed=${seed}&nologo=true&enhance=true`;
+  }
+
+  function cleanJson(text) {
+    let cleaned = String(text).trim();
+    cleaned = cleaned.replace(/^`json\s*/i, '').replace(/^`\s*/i, '').replace(/\s*```$/i, '');
+    const start = cleaned.indexOf('{');
+    const end = cleaned.lastIndexOf('}');
+    if (start !== -1 && end > start) cleaned = cleaned.slice(start, end + 1);
+    return cleaned;
+  }
+
+  async function callTextAI(systemPrompt, userPrompt) {
+    // Direct Pollinations (free, no key)
+    const body = {
+      model: 'openai',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      temperature: 0.80,
+      max_tokens: 1500,
+    };
+    const res = await fetch('https://text.pollinations.ai/openai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error('Text generation failed (' + res.status + ')');
+    const data = await res.json();
+    const content = data?.choices?.[0]?.message?.content;
+    if (!content) throw new Error('Empty AI response');
+    const parsed = JSON.parse(cleanJson(content));
+
+    const styleHint = styleSelect.value === 'nature' ? 'serene natural landscape'
+      : styleSelect.value === 'wellness' ? 'peaceful wellness and mindfulness illustration'
+      : 'soft calming scene, gentle lighting, soothing colors';
+
+    const headerImage = buildImageUrl(
+      `${styleHint}, therapeutic, healing energy, no text, ${skillInput.value}`,
+      { width: 1280, height: 480 }
+    );
+    const items = (parsed.items || []).map((it, i) => ({
+      title: it.title || `Technique ${i + 1}`,
+      body: it.body || '',
+      practice: it.practice || '',
+      image: it.image_prompt ? buildImageUrl(it.image_prompt + ', ' + styleHint, { width: 256, height: 256 }) : null,
+    }));
+    return {
+      title: parsed.title || skillInput.value,
+      tagline: parsed.tagline || '',
+      item_style: parsed.item_style || 'checkbox',
+      items,
+      footer: parsed.footer || 'Practice daily for best results.',
+      credit: parsed.credit || 'Clinically informed by Ting Lott, RN',
+      headerImage,
+      type: selectedType,
+      audience: selectedAud,
+    };
+  }
+
+  function renderSheet(data) {
+    const style = data.item_style || 'checkbox';
+    const itemsHtml = (data.items || []).map((it, i) => {
+      let bodyHtml = '';
+      if (style === 'checkbox') bodyHtml = `<span class="cs-checkbox"></span>${escapeHtml(it.body || '')}`;
+      else bodyHtml = escapeHtml(it.body || '');
+
+      const practiceHtml = it.practice ? `<div class="cs-item-practice">💡 ${escapeHtml(it.practice)}</div>` : '';
+      const imgHtml = it.image
+        ? `<img class="cs-item-img" src="${escapeHtml(it.image)}" alt="" loading="lazy" crossorigin="anonymous" />`
+        : '';
+
+      return `<div class="cs-item">${imgHtml}<div>
+        <span class="cs-item-num">${i + 1}</span>
+        <span class="cs-item-title">${escapeHtml(it.title || '')}</span>
+        <div class="cs-item-body">${bodyHtml}</div>
+        ${practiceHtml}
+      </div></div>`;
+    }).join('');
+
+    const heroImg = data.headerImage
+      ? `<img src="${escapeHtml(data.headerImage)}" alt="${escapeHtml(data.title)}" crossorigin="anonymous" />`
+      : '';
+
+    resultSlot.innerHTML = `
+      <div class="cs-sheet" id="cs-sheet">
+        <div class="cs-sheet-hero">${heroImg}
+          <div class="cs-sheet-band">
+            <div class="cs-tag">${escapeHtml(data.type || selectedType)}</div>
+            <h2>${escapeHtml(data.title || '')}</h2>
+            <div class="cs-tagline">${escapeHtml(data.tagline || '')}</div>
+          </div>
+        </div>
+        <div class="cs-sheet-body">${itemsHtml}</div>
+        <div class="cs-footer-note">
+          ${escapeHtml(data.footer || '')}
+          <div class="cs-footer-credit">${escapeHtml(data.credit || '')}</div>
+        </div>
+      </div>
+      <div class="cs-actions">
+        <button id="cs-print">🖨️ Print</button>
+        <button id="cs-pdf">📄 Save as PDF</button>
+        <button class="cs-primary" id="cs-again">✨ Create another</button>
+      </div>
+      <div class="cs-bundle-cta">
+        <p>🎁 Want a complete bundle? Save $$ with curated collections.</p>
+        <a href="https://tlott12.gumroad.com" target="_blank">Browse CopeSheets Bundles →</a>
+      </div>`;
+
+    document.getElementById('cs-print').onclick = () => window.print();
+    document.getElementById('cs-again').onclick = () => {
+      resultSlot.innerHTML = ''; errorSlot.innerHTML = '';
+      document.getElementById('cs-form').style.display = 'block';
+      skillInput.focus();
+    };
+    document.getElementById('cs-pdf').onclick = () => {
+      const el = document.getElementById('cs-sheet');
+      if (!el || typeof html2pdf === 'undefined') return window.print();
+      html2pdf().set({
+        margin: 0.35,
+        filename: (data.title || 'copesheet').replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '.pdf',
+        image: { type: 'jpeg', quality: 0.92 },
+        html2canvas: { scale: 2, useCORS: true, allowTaint: true },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+      }).from(el).save();
+    };
+  }
+
+  async function generate() {
+    const skill = skillInput.value.trim();
+    errorSlot.innerHTML = '';
+    if (!skill) {
+      errorSlot.innerHTML = `<div class="cs-error">Enter a coping skill first — try "anxiety relief", "grounding techniques", "emotion check-in", or "sleep preparation".</div>`;
+      return;
+    }
+
+    goBtn.disabled = true;
+    goBtn.textContent = 'Generating…';
+    resultSlot.innerHTML = `<div class="cs-loading"><div class="cs-spin"></div>
+      Creating your ${escapeHtml(selectedType)}…
+      <div class="cs-loading-hint">Generating clinically-informed techniques + calming AI imagery (Flux via Pollinations)</div></div>`;
+
+    const count = countSelect.value;
+    const style = styleSelect.value;
+    const styleHint = style === 'nature' ? 'serene natural landscape' : style === 'wellness' ? 'peaceful wellness illustration' : 'soft calming scene';
+
+    const systemPrompt = `You create evidence-based, clinically-informed coping skills worksheets. You are trained in DBT, mindfulness, trauma-informed care, and cognitive reframing. Respond with ONLY valid JSON, no markdown, no preamble.
+
+Schema:
+{
+  "title": "clear, validating worksheet title (max 6 words)",
+  "tagline": "one compassionate, welcoming sentence",
+  "item_style": "checkbox" | "plain",
+  "items": [ { "title": "technique name (3-5 words)", "body": "clear, simple, step-by-step instruction or skill description", "practice": "optional tip for daily use or practice", "image_prompt": "visual description of a calming, healing image related to this technique" } ],
+  "footer": "closing affirmation or encouragement",
+  "credit": "always: 'Clinically informed by Ting Lott, RN'"
+}
+
+Rules:
+- Exactly ${count} techniques/prompts.
+- Audience: ${selectedAud}. Adjust vocabulary, depth, and tone accordingly.
+  * Kids: concrete, simple, colorful language; use 5-senses when possible.
+  * Teens: relatable, validation-focused, avoid "just relax" clichés; peer language.
+  * Adults: evidence-based; offer neuroscience or brief "why this works"; professional but warm.
+  * Caregivers: include self-compassion; address caregiver fatigue alongside child/patient support.
+  * Classroom: inclusive, trauma-informed, no shame; works for diverse needs.
+- Techniques MUST be evidence-based: DBT skills, grounding (5-4-3-2-1, etc.), breathing, cognitive reframing, body scanning, progressive muscle relaxation, emotional regulation, distress tolerance.
+- Fully original, no copyrighted content.
+- Holistic: include mind, body, and emotion when possible.
+- Concise for one printed page.
+- item_style: "checkbox" for multi-step techniques; "plain" for affirmations/reframes.
+- image_prompts: ${styleHint}, peaceful, diverse humans/nature, no text.`;
+
+    const userPrompt = `Coping skill: "${skill}"\nSheet type: ${selectedType}\nAudience: ${selectedAud}\nTechniques: ${count}`;
+
+    try {
+      const data = await callTextAI(systemPrompt, userPrompt);
+      renderSheet(data);
+      document.getElementById('cs-form').style.display = 'none';
+    } catch (err) {
+      console.error(err);
+      resultSlot.innerHTML = '';
+      errorSlot.innerHTML = `<div class="cs-error">Generation failed: ${escapeHtml(err.message)}. Try a simpler coping skill name.</div>`;
+    } finally {
+      goBtn.disabled = false;
+      goBtn.textContent = '✨ Generate wellness printable';
+    }
+  }
+
+  goBtn.addEventListener('click', generate);
+  skillInput.addEventListener('keydown', e => { if (e.key === 'Enter') generate(); });
+})();
+</script>
+</body>
+</html>
