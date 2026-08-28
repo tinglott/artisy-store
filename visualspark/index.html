@@ -476,6 +476,13 @@ textarea::placeholder { color: var(--text-dim); }
 </head>
 <body>
 
+<div id="errorFallback" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#0f1115;color:#e07a6b;padding:40px;font-family:monospace;z-index:9999;overflow:auto;white-space:pre-wrap;word-break:break-word">
+ERROR: JavaScript failed to load. Please try:
+1. Hard refresh (Ctrl+Shift+R on desktop, or pull-to-refresh on mobile)
+2. Clear browser cache
+3. Try a different browser
+</div>
+
 <div class="shell">
   <!-- Animated rail -->
   <div class="rail">
@@ -666,13 +673,23 @@ let railIndex = 0;
 let railTimer = null;
 
 // ─── INIT ─────────────────────────────────────────────────────────────────
+window.addEventListener('error', (e) => {
+  document.getElementById('errorFallback').style.display = 'block';
+  document.getElementById('errorFallback').textContent = 'JS ERROR:\n' + e.message + '\n' + e.stack;
+});
+
 window.addEventListener('DOMContentLoaded', () => {
-  buildModelGrid();
-  buildStyleChips();
-  buildSizeGrid();
-  renderGallery();
-  updateGalleryCount();
-  startRailAnimation();
+  try {
+    buildModelGrid();
+    buildStyleChips();
+    buildSizeGrid();
+    renderGallery();
+    updateGalleryCount();
+    startRailAnimation();
+  } catch(e) {
+    document.getElementById('errorFallback').style.display = 'block';
+    document.getElementById('errorFallback').textContent = 'INIT ERROR:\n' + e.message + '\n' + e.stack;
+  }
 });
 
 function buildModelGrid() {
