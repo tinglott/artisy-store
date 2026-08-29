@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sophia — Your AI Influencer & Concierge | T. Lott Creative</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --gold: #c9a84c;
+            --ink: #0a0a0a;
+            --cream: #faf8f0;
+            --warm-gray: #2a2a2a;
+            --soft-purple: #9b7ec8;
+            --rose: #c97b84;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--ink) 0%, #1a1a2e 50%, #16213e 100%);
+            color: var(--cream);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            border-bottom: 1px solid rgba(201, 168, 76, 0.3);
+        }
+        .header h1 {
+            font-size: 2rem;
+            background: linear-gradient(135deg, var(--gold), var(--rose));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+        .header .subtitle {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.85rem;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            margin-top: 8px;
+            transition: all 0.3s;
+        }
+        .status-online { background: rgba(46, 204, 113, 0.2); color: #2ecc71; border: 1px solid rgba(46, 204, 113, 0.3); }
+        .status-thinking { background: rgba(155, 126, 200, 0.2); color: var(--soft-purple); border: 1px solid rgba(155, 126, 200, 0.3); }
+        
+        /* Main Layout */
+        .main-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: calc(100vh - 80px);
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            background: rgba(0,0,0,0.2);
+            border-right: 1px solid rgba(255,255,255,0.05);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .webcam-container {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 2px solid rgba(201, 168, 76, 0.3);
+            aspect-ratio: 4/3;
+            background: #111;
+        }
+        #webcam {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+        .webcam-overlay {
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            right: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .cam-label {
+            background: rgba(0,0,0,0.6);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.65rem;
+            color: var(--gold);
+        }
+        
+        /* Body Language Panel */
+        .body-panel {
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            padding: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .body-panel h3 {
+            font-size: 0.75rem;
+            color: var(--gold);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .engagement-bar {
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 6px 0;
+        }
+        .engagement-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s ease, background 0.5s ease;
+            width: 50%;
+            background: var(--gold);
+        }
+        .cues-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 8px;
+        }
+        .cue-tag {
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.6rem;
+            background: rgba(155, 126, 200, 0.15);
+            color: var(--soft-purple);
+            border: 1px solid rgba(155, 126, 200, 0.2);
+        }
+        .mood-indicator {
+            margin-top: 8px;
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.5);
+        }
+        
+        /* Chat Area */
+        .chat-area {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 80px);
+        }
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .message {
+            max-width: 75%;
+            padding: 14px 18px;
+            border-radius: 18px;
+            line-height: 1.6;
+            font-size: 0.9rem;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .message-sophia {
+            align-self: flex-start;
+            background: linear-gradient(135deg, rgba(155, 126, 200, 0.15), rgba(201, 168, 76, 0.1));
+            border: 1px solid rgba(155, 126, 200, 0.2);
+        }
+        .message-user {
+            align-self: flex-end;
+            background: rgba(201, 168, 76, 0.15);
+            border: 1px solid rgba(201, 168, 76, 0.2);
+        }
+        .message-name {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+            opacity: 0.5;
+        }
+        .message audio {
+            margin-top: 8px;
+            width: 100%;
+            height: 32px;
+        }
+        .typing-indicator {
+            display: none;
+            align-self: flex-start;
+            padding: 12px 18px;
+            border-radius: 18px;
+            background: rgba(155, 126, 200, 0.1);
+            border: 1px solid rgba(155, 126, 200, 0.15);
+        }
+        .typing-dots span {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--soft-purple);
+            margin: 0 2px;
+            animation: bounce 1.4s infinite ease-in-out;
+        }
+        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+        
+        /* Input Area */
+        .input-area {
+            padding: 16px 20px;
+            background: rgba(0,0,0,0.2);
+            border-top: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        #textInput {
+            flex: 1;
+            padding: 12px 18px;
+            border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05);
+            color: var(--cream);
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        #textInput:focus {
+            border-color: var(--gold);
+        }
+        #textInput::placeholder {
+            color: rgba(255,255,255,0.3);
+        }
+        
+        .btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            font-size: 1.1rem;
+        }
+        .btn-send {
+            background: linear-gradient(135deg, var(--gold), var(--rose));
+            color: var(--ink);
+        }
+        .btn-send:hover { transform: scale(1.1); }
+        .btn-mic {
+            background: rgba(155, 126, 200, 0.2);
+            color: var(--soft-purple);
+            border: 1px solid rgba(155, 126, 200, 0.3);
+        }
+        .btn-mic.recording {
+            background: rgba(231, 76, 60, 0.3);
+            color: #e74c3c;
+            border-color: rgba(231, 76, 60, 0.5);
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4); }
+            50% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
+        }
+        
+        /* Quick Actions */
+        .quick-actions {
+            padding: 8px 20px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .quick-btn {
+            padding: 6px 14px;
+            border-radius: 16px;
+            border: 1px solid rgba(201, 168, 76, 0.2);
+            background: rgba(201, 168, 76, 0.05);
+            color: var(--gold);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .quick-btn:hover {
+            background: rgba(201, 168, 76, 0.15);
+            border-color: var(--gold);
+        }
+        
+        /* Mobile */
+        @media (max-width: 768px) {
+            .main-container { grid-template-columns: 1fr; }
+            .sidebar { 
+                flex-direction: row; 
+                overflow-x: auto;
+                padding: 10px;
+            }
+            .webcam-container { width: 120px; min-width: 120px; }
+            .body-panel { min-width: 200px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>✨ Sophia</h1>
+        <div class="subtitle">AI Influencer & Concierge — by T. Lott Creative</div>
+        <div class="status-badge status-online" id="statusBadge">● Online</div>
+    </div>
+    
+    <div class="main-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="webcam-container">
+                <video id="webcam" autoplay playsinline muted></video>
+                <div class="webcam-overlay">
+                    <span class="cam-label">📹 Live</span>
+                    <span class="cam-label" id="camStatus">Ready</span>
+                </div>
+            </div>
+            
+            <div class="body-panel">
+                <h3>🧠 Body Language</h3>
+                <div class="engagement-bar">
+                    <div class="engagement-fill" id="engagementFill"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.65rem; opacity: 0.4;">
+                    <span>Disengaged</span>
+                    <span>Engaged</span>
+                </div>
+                <div class="cues-list" id="cuesList"></div>
+                <div class="mood-indicator" id="moodIndicator">Mood: Analyzing...</div>
+            </div>
+            
+            <div class="body-panel">
+                <h3>🎯 Qualification</h3>
+                <div class="mood-indicator" id="qualStage">Stage: Browsing</div>
+                <div class="mood-indicator" id="interactionCount">Interactions: 0</div>
+            </div>
+        </div>
+        
+        <!-- Chat -->
+        <div class="chat-area">
+            <div class="messages" id="messages">
+                <div class="message message-sophia">
+                    <div class="message-name">Sophia</div>
+                    Hey there! ✨ I'm Sophia, your personal guide to all things wellness, love stories, and transformation. 
+                    I was created by Ting — a nurse who turned 23 years of night shifts into a mission to help people heal. 
+                    What brings you here today?
+                </div>
+            </div>
+            
+            <div class="typing-indicator" id="typingIndicator">
+                <div class="typing-dots">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+            
+            <div class="quick-actions">
+                <button class="quick-btn" onclick="sendQuick('Tell me about Sacred Cycles')">🌿 Sacred Cycles</button>
+                <button class="quick-btn" onclick="sendQuick('I need help with burnout')">💜 Burnout Help</button>
+                <button class="quick-btn" onclick="sendQuick('Show me romance books')">📖 Romance Books</button>
+                <button class="quick-btn" onclick="sendQuick('What wall art do you have?')">🖼️ Wall Art</button>
+                <button class="quick-btn" onclick="sendQuick('I feel lost')">🤗 Need Support</button>
+            </div>
+            
+            <div class="input-area">
+                <button class="btn btn-mic" id="micBtn" onclick="toggleRecording()" title="Voice input">🎤</button>
+                <input type="text" id="textInput" placeholder="Talk to Sophia..." onkeypress="if(event.key==='Enter')sendMessage()">
+                <button class="btn btn-send" onclick="sendMessage()" title="Send">➤</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // ---- State ---- //
+        let sessionId = 'session_' + Date.now();
+        let webcamStream = null;
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let isRecording = false;
+        let interactionCount = 0;
+        
+        // ---- Webcam ---- //
+        async function startWebcam() {
+            try {
+                webcamStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: 320, height: 240, facingMode: "user" },
+                    audio: true 
+                });
+                document.getElementById('webcam').srcObject = webcamStream;
+                document.getElementById('camStatus').textContent = '● Live';
+            } catch (e) {
+                console.log('Webcam not available:', e.message);
+                document.getElementById('camStatus').textContent = '○ Off';
+            }
+        }
+        
+        // Capture a frame from webcam
+        function captureFrame() {
+            const video = document.getElementById('webcam');
+            if (!webcamStream || video.readyState < 2) return null;
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth || 320;
+            canvas.height = video.videoHeight || 240;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            
+            return new Promise(resolve => {
+                canvas.toBlob(blob => resolve(blob), 'image/jpeg', 0.7);
+            });
+        }
+        
+        // ---- Voice Recording ---- //
+        function toggleRecording() {
+            if (isRecording) {
+                stopRecording();
+            } else {
+                startRecording();
+            }
+        }
+        
+        function startRecording() {
+            if (!webcamStream) {
+                alert('Please enable your microphone first.');
+                return;
+            }
+            
+            const audioTrack = webcamStream.getAudioTracks()[0];
+            if (!audioTrack) return;
+            
+            const audioStream = new MediaStream([audioTrack]);
+            mediaRecorder = new MediaRecorder(audioStream);
+            audioChunks = [];
+            
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            mediaRecorder.onstop = () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                sendWithAudio(audioBlob);
+            };
+            
+            mediaRecorder.start();
+            isRecording = true;
+            document.getElementById('micBtn').classList.add('recording');
+            document.getElementById('micBtn').textContent = '⏹';
+        }
+        
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+            isRecording = false;
+            document.getElementById('micBtn').classList.remove('recording');
+            document.getElementById('micBtn').textContent = '🎤';
+        }
+        
+        // ---- Send Message ---- //
+        async function sendMessage() {
+            const input = document.getElementById('textInput');
+            const text = input.value.trim();
+            if (!text) return;
+            
+            input.value = '';
+            addMessage('You', text, 'user');
+            await processInput(text, null);
+        }
+        
+        function sendQuick(text) {
+            addMessage('You', text, 'user');
+            processInput(text, null);
+        }
+        
+        async function sendWithAudio(audioBlob) {
+            addMessage('You', '🎤 [Voice message]', 'user');
+            await processInput('', audioBlob);
+        }
+        
+        async function processInput(text, audioBlob) {
+            showTyping(true);
+            setStatus('thinking');
+            
+            const formData = new FormData();
+            formData.append('text', text);
+            formData.append('session_id', sessionId);
+            
+            if (audioBlob) {
+                formData.append('audio', audioBlob, 'recording.wav');
+            }
+            
+            // Capture webcam frame
+            const frameBlob = await captureFrame();
+            if (frameBlob) {
+                formData.append('image', frameBlob, 'frame.jpg');
+            }
+            
+            try {
+                const res = await fetch('/process', { method: 'POST', body: formData });
+                const data = await res.json();
+                
+                showTyping(false);
+                setStatus('online');
+                
+                // Add Sophia's response
+                addMessage('Sophia', data.response, 'sophia', data.audio_url);
+                
+                // Update body language panel
+                updateBodyPanel(data.body_analysis);
+                
+                // Update mood & qualification
+                document.getElementById('moodIndicator').textContent = `Mood: ${formatMood(data.mood)}`;
+                document.getElementById('qualStage').textContent = `Stage: ${formatStage(data.qualification_stage)}`;
+                
+                interactionCount++;
+                document.getElementById('interactionCount').textContent = `Interactions: ${interactionCount}`;
+                
+            } catch (e) {
+                showTyping(false);
+                setStatus('online');
+                addMessage('Sophia', 'I had a little hiccup there — could you try again? 💜', 'sophia');
+                console.error('Error:', e);
+            }
+        }
+        
+        // ---- UI Helpers ---- //
+        function addMessage(name, text, type, audioUrl) {
+            const messages = document.getElementById('messages');
+            const msg = document.createElement('div');
+            msg.className = `message message-${type}`;
+            
+            let html = `<div class="message-name">${name}</div>${text}`;
+            if (audioUrl) {
+                html += `<audio controls src="${audioUrl}" style="margin-top: 8px; width: 100%; height: 32px;"></audio>`;
+            }
+            msg.innerHTML = html;
+            messages.appendChild(msg);
+            messages.scrollTop = messages.scrollHeight;
+        }
+        
+        function showTyping(show) {
+            document.getElementById('typingIndicator').style.display = show ? 'block' : 'none';
+        }
+        
+        function setStatus(status) {
+            const badge = document.getElementById('statusBadge');
+            if (status === 'thinking') {
+                badge.className = 'status-badge status-thinking';
+                badge.textContent = '◉ Thinking...';
+            } else {
+                badge.className = 'status-badge status-online';
+                badge.textContent = '● Online';
+            }
+        }
+        
+        function updateBodyPanel(data) {
+            if (!data || !data.interest_score) return;
+            
+            // Engagement bar
+            const fill = document.getElementById('engagementFill');
+            fill.style.width = data.interest_score + '%';
+            
+            if (data.interest_score >= 70) {
+                fill.style.background = 'linear-gradient(90deg, #2ecc71, var(--gold))';
+            } else if (data.interest_score >= 40) {
+                fill.style.background = 'var(--gold)';
+            } else {
+                fill.style.background = 'var(--rose)';
+            }
+            
+            // Cues
+            const cuesList = document.getElementById('cuesList');
+            cuesList.innerHTML = '';
+            (data.cues || []).forEach(cue => {
+                const tag = document.createElement('span');
+                tag.className = 'cue-tag';
+                tag.textContent = cue.replace('_', ' ');
+                cuesList.appendChild(tag);
+            });
+        }
+        
+        function formatMood(mood) {
+            const map = {
+                'needs_support': '💜 Needs Support',
+                'positive': '😊 Positive',
+                'ready_to_buy': '🎯 Ready',
+                'neutral': '😐 Neutral'
+            };
+            return map[mood] || mood;
+        }
+        
+        function formatStage(stage) {
+            const map = {
+                'browsing': '👀 Just Looking',
+                'interested': '🤔 Interested',
+                'decision': '💡 Decision Mode',
+                'purchase': '🛒 Purchasing'
+            };
+            return map[stage] || stage;
+        }
+        
+        // ---- Init ---- //
+        startWebcam();
+    </script>
+</body>
+</html>
