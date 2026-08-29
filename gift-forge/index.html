@@ -1,0 +1,703 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>GiftForge AI Employee</title>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4/dist/full.min.css" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    body { background: oklch(var(--b1)); color: oklch(var(--bc)); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .idea-card { cursor: pointer; transition: all 0.2s; }
+    .idea-card:hover { transform: translateY(-2px); }
+    .pipeline-item { border-left: 3px solid; }
+    .status-idea { border-color: oklch(var(--p)); }
+    .status-creating { border-color: oklch(var(--wa)); }
+    .status-ready { border-color: oklch(var(--su)); }
+    .status-published { border-color: oklch(var(--in)); }
+  </style>
+</head>
+<body class="min-h-screen bg-base-100">
+
+<!-- TOP NAV TABS -->
+<div class="navbar bg-base-200 px-4 py-2 gap-2 flex-wrap">
+  <span class="text-lg font-bold mr-4">🎁 GiftForge</span>
+  <div class="tabs tabs-boxed bg-base-300">
+    <a class="tab tab-active" onclick="showTab('scout')">🔍 Scout</a>
+    <a class="tab" onclick="showTab('ideas')">💡 Ideas</a>
+    <a class="tab" onclick="showTab('pipeline')">📦 Pipeline</a>
+    <a class="tab" onclick="showTab('create')">🛠️ Create</a>
+  </div>
+</div>
+
+<!-- SCOUT TAB -->
+<div id="tab-scout" class="tab-content active p-4">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+    <!-- Occasion Calendar -->
+    <div class="card bg-base-200">
+      <div class="card-body">
+        <h2 class="card-title">📅 Gift Occasion Calendar</h2>
+        <p class="text-sm text-base-content/60 mb-3">Upcoming peak buying seasons</p>
+        <div class="space-y-2" id="occasion-list"></div>
+      </div>
+    </div>
+
+    <!-- Etsy Spy Links -->
+    <div class="card bg-base-200">
+      <div class="card-body">
+        <h2 class="card-title">🕵️ Etsy Spy Links</h2>
+        <p class="text-sm text-base-content/60 mb-3">Click to open bestseller searches</p>
+        <div class="space-y-2">
+          <a href="https://www.etsy.com/search?q=funny+gift+printable&order=most_relevant&ref=sr_gallery-1-1" target="_blank" class="btn btn-outline btn-sm w-full justify-start">😂 Funny Printable Gifts</a>
+          <a href="https://www.etsy.com/search?q=digital+art+gift&order=most_relevant" target="_blank" class="btn btn-outline btn-sm w-full justify-start">🎨 Digital Art Gifts</a>
+          <a href="https://www.etsy.com/search?q=birthday+gift+digital+download&order=most_relevant" target="_blank" class="btn btn-outline btn-sm w-full justify-start">🎂 Birthday Digital Downloads</a>
+          <a href="https://www.etsy.com/search?q=christmas+printable+gift&order=most_relevant" target="_blank" class="btn btn-outline btn-sm w-full justify-start">🎄 Christmas Printable Gifts</a>
+          <a href="https://www.etsy.com/search?q=get+well+soon+gift+digital&order=most_relevant" target="_blank" class="btn btn-outline btn-sm w-full justify-start">❤️ Get Well Digital Gifts</a>
+          <a href="https://www.etsy.com/search?q=graduation+gift+printable+funny&order=most_relevant" target="_blank" class="btn btn-outline btn-sm w-full justify-start">🎓 Graduation Funny Gifts</a>
+          <a href="https://www.etsy.com/search?q=mothers+day+printable+gift&order=most_relevant" target="_blank" class="btn btn-outline btn-sm w-full justify-start">🌸 Mother's Day Printables</a>
+          <a href="https://www.etsy.com/search?q=funny+coloring+pages+adult&order=most_relevant" target="_blank" class="btn btn-outline btn-sm w-full justify-start">🖍️ Funny Adult Coloring Pages</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Free Tools Toolkit -->
+    <div class="card bg-base-200 md:col-span-2">
+      <div class="card-body">
+        <h2 class="card-title">🧰 Your Free Tool Arsenal</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <a href="https://writeseed.com" target="_blank" class="btn btn-primary btn-sm">✍️ WriteSeed</a>
+          <a href="https://app.designrr.io/dashboard/" target="_blank" class="btn btn-secondary btn-sm">🖼️ Designrr</a>
+          <a href="https://labs.google/fx/tools/image-fx" target="_blank" class="btn btn-accent btn-sm">🎨 ImageFX</a>
+          <a href="https://playground.com" target="_blank" class="btn btn-info btn-sm">🏞️ Playground AI</a>
+          <a href="https://app.blasteronline.com/speechelo/" target="_blank" class="btn btn-success btn-sm">🎙️ Speechelo</a>
+          <a href="https://www.canva.com" target="_blank" class="btn btn-warning btn-sm">🖌️ Canva Free</a>
+          <a href="https://yupp.ai" target="_blank" class="btn btn-outline btn-sm">✨ Yupp AI</a>
+          <a href="https://artspace.ai" target="_blank" class="btn btn-outline btn-sm">🖼️ ArtSpace.ai</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- IDEAS TAB -->
+<div id="tab-ideas" class="tab-content p-4">
+  <div class="mb-4 flex gap-2 flex-wrap items-center">
+    <label class="text-sm font-semibold">Filter by Occasion:</label>
+    <select class="select select-bordered select-sm" onchange="filterIdeas(this.value)">
+      <option value="all">All Occasions</option>
+      <option value="christmas">🎄 Christmas</option>
+      <option value="birthday">🎂 Birthday</option>
+      <option value="valentines">💕 Valentine's Day</option>
+      <option value="mothers">🌸 Mother's Day</option>
+      <option value="fathers">👔 Father's Day</option>
+      <option value="halloween">🎃 Halloween</option>
+      <option value="getwell">❤️ Get Well</option>
+      <option value="graduation">🎓 Graduation</option>
+      <option value="anniversary">💍 Anniversary</option>
+      <option value="babyshower">👶 Baby Shower</option>
+      <option value="thanksgiving">🦃 Thanksgiving</option>
+      <option value="newyear">🎉 New Year</option>
+      <option value="easter">🐣 Easter</option>
+      <option value="hanukkah">🕎 Hanukkah</option>
+    </select>
+    <span class="badge badge-primary" id="idea-count">70 ideas</span>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3" id="ideas-grid"></div>
+</div>
+
+<!-- PIPELINE TAB -->
+<div id="tab-pipeline" class="tab-content p-4">
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-lg font-bold">📦 Product Pipeline</h2>
+    <button class="btn btn-primary btn-sm" onclick="showAddModal()">+ Add Product</button>
+  </div>
+
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+    <div class="stat bg-base-200 rounded-box p-3 text-center">
+      <div class="stat-value text-2xl text-primary" id="count-idea">0</div>
+      <div class="stat-label">💡 Ideas</div>
+    </div>
+    <div class="stat bg-base-200 rounded-box p-3 text-center">
+      <div class="stat-value text-2xl text-warning" id="count-creating">0</div>
+      <div class="stat-label">🛠️ Creating</div>
+    </div>
+    <div class="stat bg-base-200 rounded-box p-3 text-center">
+      <div class="stat-value text-2xl text-success" id="count-ready">0</div>
+      <div class="stat-label">✅ Ready</div>
+    </div>
+    <div class="stat bg-base-200 rounded-box p-3 text-center">
+      <div class="stat-value text-2xl text-info" id="count-published">0</div>
+      <div class="stat-label">🚀 Published</div>
+    </div>
+  </div>
+
+  <div id="pipeline-list" class="space-y-2">
+    <div class="text-center text-base-content/40 py-8">No products yet — click "Add Product" to start! 🎁</div>
+  </div>
+
+  <!-- Add Product Modal -->
+  <div id="add-modal" class="modal">
+    <div class="modal-box">
+      <h3 class="font-bold text-lg mb-4">Add New Product Idea</h3>
+      <div class="space-y-3">
+        <input id="new-title" type="text" placeholder="Product title (e.g. '50 Funny Birthday Jokes eBook')" class="input input-bordered w-full"/>
+        <select id="new-occasion" class="select select-bordered w-full">
+          <option value="">Select occasion...</option>
+          <option value="christmas">🎄 Christmas</option>
+          <option value="birthday">🎂 Birthday</option>
+          <option value="valentines">💕 Valentine's Day</option>
+          <option value="mothers">🌸 Mother's Day</option>
+          <option value="fathers">👔 Father's Day</option>
+          <option value="halloween">🎃 Halloween</option>
+          <option value="getwell">❤️ Get Well</option>
+          <option value="graduation">🎓 Graduation</option>
+          <option value="anniversary">💍 Anniversary</option>
+          <option value="babyshower">👶 Baby Shower</option>
+          <option value="thanksgiving">🦃 Thanksgiving</option>
+          <option value="newyear">🎉 New Year</option>
+          <option value="easter">🐣 Easter</option>
+          <option value="hanukkah">🕎 Hanukkah</option>
+        </select>
+        <select id="new-type" class="select select-bordered w-full">
+          <option value="">Select product type...</option>
+          <option value="ebook">📚 eBook / Joke Book</option>
+          <option value="art">🎨 Art Print Pack</option>
+          <option value="coloring">🖍️ Coloring Pages</option>
+          <option value="cards">🃏 Greeting Card Bundle</option>
+          <option value="stickers">✨ Sticker Pack</option>
+          <option value="planner">📅 Funny Planner/Journal</option>
+          <option value="affirmations">🌟 Affirmation Cards</option>
+          <option value="tags">🏷️ Gift Tags</option>
+        </select>
+        <input id="new-price" type="text" placeholder="Price (e.g. $4.99)" class="input input-bordered w-full"/>
+        <select id="new-platform" class="select select-bordered w-full">
+          <option value="whop">🏆 Whop (Primary)</option>
+          <option value="gumroad">💚 Gumroad (Secondary)</option>
+          <option value="payhip">📦 Payhip (Legacy)</option>
+        </select>
+      </div>
+      <div class="modal-action">
+        <button class="btn btn-ghost" onclick="hideAddModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="addProduct()">Add to Pipeline</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CREATE TAB -->
+<div id="tab-create" class="tab-content p-4">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    
+    <!-- 5-Step Creation Checklist -->
+    <div class="card bg-base-200">
+      <div class="card-body">
+        <h2 class="card-title">📋 5-Step Creation Checklist</h2>
+        <div class="space-y-3">
+          <div class="flex gap-3 items-start p-3 bg-base-300 rounded-lg">
+            <span class="badge badge-primary badge-lg">1</span>
+            <div>
+              <div class="font-semibold">✍️ Write Content</div>
+              <div class="text-sm text-base-content/60">Use WriteSeed to generate jokes, stories, art descriptions, or planner content. Copy & paste your occasion + product type as the prompt.</div>
+              <a href="https://writeseed.com" target="_blank" class="btn btn-xs btn-primary mt-2">Open WriteSeed →</a>
+            </div>
+          </div>
+          <div class="flex gap-3 items-start p-3 bg-base-300 rounded-lg">
+            <span class="badge badge-secondary badge-lg">2</span>
+            <div>
+              <div class="font-semibold">🎨 Generate Images</div>
+              <div class="text-sm text-base-content/60">Use ImageFX or ArtSpace.ai for art prints, covers, and illustrations. Use Designrr for professional ebook/PDF covers.</div>
+              <div class="flex gap-2 mt-2">
+                <a href="https://labs.google/fx/tools/image-fx" target="_blank" class="btn btn-xs btn-secondary">ImageFX →</a>
+                <a href="https://app.designrr.io/dashboard/" target="_blank" class="btn btn-xs btn-outline btn-sm">Designrr →</a>
+              </div>
+            </div>
+          </div>
+          <div class="flex gap-3 items-start p-3 bg-base-300 rounded-lg">
+            <span class="badge badge-accent badge-lg">3</span>
+            <div>
+              <div class="font-semibold">📄 Package as PDF</div>
+              <div class="text-sm text-base-content/60">Combine content + images into a PDF using Designrr or Canva. Keep under 50MB for easy delivery.</div>
+              <a href="https://www.canva.com" target="_blank" class="btn btn-xs btn-accent mt-2">Open Canva →</a>
+            </div>
+          </div>
+          <div class="flex gap-3 items-start p-3 bg-base-300 rounded-lg">
+            <span class="badge badge-success badge-lg">4</span>
+            <div>
+              <div class="font-semibold">🔊 Add Audio (Optional)</div>
+              <div class="text-sm text-base-content/60">Use Speechelo to create an MP3 narration. Adds value — charge $2 more! 20,000 char limit per session.</div>
+              <a href="https://app.blasteronline.com/speechelo/" target="_blank" class="btn btn-xs btn-success mt-2">Open Speechelo →</a>
+            </div>
+          </div>
+          <div class="flex gap-3 items-start p-3 bg-base-300 rounded-lg">
+            <span class="badge badge-info badge-lg">5</span>
+            <div>
+              <div class="font-semibold">🚀 Publish to Store</div>
+              <div class="text-sm text-base-content/60">Upload to Whop first (primary), then Gumroad. Payhip is legacy — paste manually if needed.</div>
+              <div class="flex gap-2 mt-2">
+                <a href="https://whop.com/dashboard/biz_1KWUuHVLv8X1oA/products/" target="_blank" class="btn btn-xs btn-info">Whop →</a>
+                <a href="https://tlott12.gumroad.com" target="_blank" class="btn btn-xs btn-outline btn-sm">Gumroad →</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Prompt Generator -->
+    <div class="card bg-base-200">
+      <div class="card-body">
+        <h2 class="card-title">🤖 AI Prompt Generator</h2>
+        <p class="text-sm text-base-content/60 mb-3">Generate a WriteSeed prompt for your product</p>
+        <select id="prompt-occasion" class="select select-bordered w-full mb-2" onchange="generatePrompt()">
+          <option value="">Select occasion...</option>
+          <option value="christmas">🎄 Christmas</option>
+          <option value="birthday">🎂 Birthday</option>
+          <option value="valentines">💕 Valentine's Day</option>
+          <option value="mothers">🌸 Mother's Day</option>
+          <option value="fathers">👔 Father's Day</option>
+          <option value="halloween">🎃 Halloween</option>
+          <option value="getwell">❤️ Get Well</option>
+          <option value="graduation">🎓 Graduation</option>
+          <option value="anniversary">💍 Anniversary</option>
+          <option value="babyshower">👶 Baby Shower</option>
+          <option value="thanksgiving">🦃 Thanksgiving</option>
+          <option value="newyear">🎉 New Year</option>
+          <option value="easter">🐣 Easter</option>
+          <option value="hanukkah">🕎 Hanukkah</option>
+        </select>
+        <select id="prompt-type" class="select select-bordered w-full mb-3" onchange="generatePrompt()">
+          <option value="">Select product type...</option>
+          <option value="ebook">📚 Joke/Humor eBook</option>
+          <option value="art">🎨 Art Print Pack</option>
+          <option value="coloring">🖍️ Coloring Pages</option>
+          <option value="cards">🃏 Greeting Card Bundle</option>
+          <option value="affirmations">🌟 Affirmation Cards</option>
+          <option value="planner">📅 Funny Planner</option>
+        </select>
+        <div id="prompt-output" class="bg-base-300 rounded-lg p-3 text-sm min-h-[120px] whitespace-pre-wrap text-base-content/80">
+          Select an occasion and product type to generate your WriteSeed prompt ✨
+        </div>
+        <button class="btn btn-primary btn-sm mt-2 w-full" onclick="copyPrompt()">📋 Copy Prompt</button>
+      </div>
+    </div>
+
+    <!-- Pricing Guide -->
+    <div class="card bg-base-200 md:col-span-2">
+      <div class="card-body">
+        <h2 class="card-title">💰 Pricing Guide (Art + Humor Gifts)</h2>
+        <div class="overflow-x-auto">
+          <table class="table table-zebra text-sm">
+            <thead>
+              <tr><th>Product</th><th>Solo Price</th><th>Bundle Price</th><th>+Audio Bonus</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>😂 Funny Quote eBook (50+ jokes)</td><td>$2.99</td><td>$5.99 (2 books)</td><td>+$2.00</td></tr>
+              <tr><td>🎨 Art Print Pack (10 prints)</td><td>$3.99</td><td>$7.99 (holiday set)</td><td>—</td></tr>
+              <tr><td>🖍️ Coloring Pages (20 pages)</td><td>$2.99</td><td>$4.99 (30 pages)</td><td>—</td></tr>
+              <tr><td>🃏 Greeting Card Bundle (12 cards)</td><td>$3.99</td><td>$6.99 (24 cards)</td><td>—</td></tr>
+              <tr><td>🌟 Affirmation Cards (30 cards)</td><td>$4.99</td><td>$8.99 (60 cards)</td><td>+$2.00</td></tr>
+              <tr><td>📅 Funny Planner/Journal (52 pages)</td><td>$5.99</td><td>$9.99 (planner+jokes)</td><td>—</td></tr>
+              <tr><td>🎁 Holiday Gift Bundle (3 products)</td><td>—</td><td>$12.99</td><td>+$3.00</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ======= DATA =======
+const IDEAS = [
+  // CHRISTMAS
+  { occasion:"christmas", type:"ebook", title:"50 Hilarious Christmas Dad Jokes eBook", price:"$2.99", tools:["WriteSeed","Designrr"] },
+  { occasion:"christmas", type:"art", title:"Funny Santa Art Print Pack (10 prints)", price:"$3.99", tools:["ImageFX","Canva"] },
+  { occasion:"christmas", type:"coloring", title:"Naughty vs Nice Coloring Pages (Adult)", price:"$2.99", tools:["ImageFX","Canva"] },
+  { occasion:"christmas", type:"cards", title:"Sarcastic Christmas Card Bundle (12)", price:"$3.99", tools:["Designrr","Canva"] },
+  { occasion:"christmas", type:"affirmations", title:"Holiday Affirmation Cards for Anxious Elves", price:"$4.99", tools:["WriteSeed","Canva"] },
+  // BIRTHDAY
+  { occasion:"birthday", type:"ebook", title:"Birthday Roast Joke Book — 100 Savage Jokes", price:"$2.99", tools:["WriteSeed","Designrr"] },
+  { occasion:"birthday", type:"art", title:"Funny 'Getting Old' Art Print Pack", price:"$3.99", tools:["ImageFX","Canva"] },
+  { occasion:"birthday", type:"cards", title:"Savage Birthday Card Bundle (12 designs)", price:"$3.99", tools:["Designrr","Canva"] },
+  { occasion:"birthday", type:"affirmations", title:"Birthday Affirmations — You're Still Amazing!", price:"$4.99", tools:["WriteSeed","Canva"] },
+  { occasion:"birthday", type:"planner", title:"Funny 'Another Year Older' Birthday Planner", price:"$5.99", tools:["WriteSeed","Canva"] },
+  // VALENTINE'S
+  { occasion:"valentines", type:"ebook", title:"Cheesy Valentine's Love Jokes Collection", price:"$2.99", tools:["WriteSeed","Designrr"] },
+  { occasion:"valentines", type:"art", title:"Funny Anti-Valentine Art Prints (10 designs)", price:"$3.99", tools:["ImageFX","Canva"] },
+  { occasion:"valentines", type:"coloring", title:"Love & Laughter Coloring Pages (20 pages)", price:"$2.99", tools:["ImageFX","Canva"] },
+  { occasion:"valentines", type:"cards", title:"Punny Valentine's Card Bundle (12 cards)", price:"$3.99", tools:["Designrr","Canva"] },
+  { occasion:"valentines", type:"affirmations", title:"Self-Love Valentine's Affirmation Cards", price:"$4.99", tools:["WriteSeed","Canva"] },
+  // MOTHER'S DAY
+  { occasion:"mothers", type:"ebook", title:"Mom Jokes — 75 Hilarious Mom Humor Book", price:"$2.99", tools:["WriteSeed","Designrr"] },
+  { occasion:"mothers", type:"art", title:"Funny Mom Life Art Print Pack (10 prints)", price:"$3.99", tools:["ImageFX","Canva"] },
+  { occasion:"mothers", type:"affirmations", title:"Mom Power Affirmation Cards (30 cards)", price:"$4.99", tools:["WriteSeed","Canva"] },
+  { occasion:"mothers", type:"coloring", title:"Mom Needs Wine Coloring Pages (Adult, 20pg)", price:"$2.99", tools:["ImageFX","Canva"] },
+  { occasion:"mothers", type:"cards", title:"Heartfelt + Funny Mother's Day Cards (12)", price:"$3.99", tools:["Designrr","Canva"] },
+  // FATHER'S DAY
+  { occasion:"fathers", type:"ebook", title:"Dad Jokes Deluxe — 100 Groan-Worthy Jokes", price:"$2.99", tools:["WriteSeed","Designrr"] },
+  { occasion:"fathers", type:"art", title:"Funny 'World's Okayest Dad' Art Prints (8)", price:"$3.99", tools:["ImageFX","Canva"] },
+  { occasion:"fathers", type:"coloring", title:"Dad's Garage Coloring Book (20 pages)", price:"$2.99", tools:["ImageFX","Canva"] },
+  { occasion:"fathers", type:"cards", title:"Funny Father's Day Cards — Dad Approved (12)", price:"$3.99", tools:["Designrr","Canva"] },
+  { occasion:"fathers", type:"planner", title:"Dad's BBQ & Life Planner (Funny Edition)", price:"$5.99", tools:["WriteSeed","Canva"] },
+  // HALLOWEEN
+  { occasion:"halloween", type:"ebook", title:"Spooky Jokes for Grown-Ups — 60 Dark Jokes", price:"$2.99", tools:["WriteSeed","Designrr"] },
+  { occasion:"halloween", type:"art", title:"Funny Halloween Art Prints — Sarcastic Ghosts (10)", price:"$3.99", tools:["ImageFX","Canva"] },
+  { occasion:"halloween", type:"coloring", title:"Halloween Adult Coloring Pages — Witches & Wine (20)", price:"$2.99", tools:["ImageFX","Canva"] },
+  { occasion:"halloween", type:"cards", title:"Spooky Funny Halloween Card Bundle (12)", price:"$3.99", tools:["Designrr","Canva"] },
+  { occasion:"halloween", type:"affirmations", title:"Spooky Season Affirmation Cards", price:"$4.99", tools:["WriteSeed","Canva"] },
+  // GET WELL
+  { occasion:"getwell", type:"ebook", title:"Get Well Laughs — 50 Healing Humor Jokes", price:"$2.99", tools:["WriteSeed","Designrr"] },
+  { occasion:"getwell", type:"art", title:"Feel Better Art Prints — Uplifting Funny (8)", price:"$3.99", tools:["ImageFX","Canva"] },
+  { occasion:"getwell", type:"affirmations", title:"Healing Affirmation Cards — You've Got This (30)", price:"$4.99", tools:["WriteSeed","Canva"] },
+  { occasion:"getwell", type:"coloring", title:"Relax & Color Get Well Coloring Pages (20)", price:"$2.99", tools:["ImageFX","Canva"] },
+  { occasion:"getwell", type:"cards", title:"Funny Get Well Card Bundle — Laugh Your Way Better (12)", price:"$3.99", tools:["Designrr","Canva"] },
+  // GRADUATION
+  { occasion:"graduation", type:"ebook", title:"Real World Survival Jokes — Grad Edition 50+", price:"$2.99", tools:["WriteSeed","Designrr"] },
+  { occasion:"graduation", type:"art", title:"Funny 'Now What?' Graduation Art Prints (8)", price:"$3.99", tools:["ImageFX","Canva"] },
+  { occasion:"graduation", type:"affirmations", title:"Class of 2026 Affirmation Cards (30 cards)", price:"$4.99", tools:["WriteSeed","Canva"] },
+  { occasion:"graduation", type:"planner", title:"Post-Grad Life Funny Planner & Journal", price:"$5.99", tools:["WriteSeed","Canva"] },
+  { occasion:"graduation", type:"cards", title:"Hilarious Graduation Card Bundle (12 designs)", price:"$3.99", tools:["Designrr","Canva"] },
+  // ANNIVERSARY
+  { occasion:"anniversary", type:"ebook", title:"Married Life Jokes — 75 Hilarious Husband/Wife Jokes", price:"$2.99", tools:["WriteSeed","Designrr"] },
+  { occasion:"anniversary", type:"art", title:"Funny Marriage Art Prints — Still Here (8 prints)", price:"$3.99", tools:["ImageFX","Canva"] },
+  { occasion:"anniversary", type:"affirmations", title:"Love Affirmation Cards — Couples Edition (30)", price:"$4.99", tools:["WriteSeed","Canva"] },
+  { occasion:"anniversary", type:"coloring", title:"Couples Coloring Book — Date Night Pages (20)", price:"$2.99", tools:["ImageFX","Canva"] },
+  { occasion:"anniversary", type:"cards", title:"Funny Anniversary Card Bundle (12 designs)", price:"$3.99", tools:["Designrr","Canva"] },
+  // BABY SHOWER
+  { occasion:"babyshower", type:"ebook", title:"New Parent Survival Jokes — 60 Diaper Humor Jokes", price:"$2.99", tools:["WriteSeed","Designrr"] },
+  { occasion:"babyshower", type:"art", title:"Funny Baby Shower Art Prints — Sleep Deprived (8)", price:"$3.99", tools:["ImageFX","Canva"] },
+  { occasion:"babyshower", type:"affirmations", title:"New Mom Power Affirmation Cards (30 cards)", price:"$4.99", tools:["WriteSeed","Canva"] },
+  { occasion:"babyshower", type:"coloring", title:"Baby Shower Cute Coloring Pages (20 pages)", price:"$2.99", tools:["ImageFX","Canva"] },
+  { occasion:"babyshower", type:"cards", title:"Baby Shower Card Bundle — Punny & Sweet (12)", price:"$3.99", tools:["Designrr","Canva"] },
+  // THANKSGIVING
+  { occasion:"thanksgiving", type:"ebook", title:"Turkey Day Jokes — 60 Hilarious Thanksgiving Jokes", price:"$2.99", tools:["WriteSeed","Designrr"] },
+  { occasion:"thanksgiving", type:"art", title:"Funny Thanksgiving Art Prints — Gravy Goals (8)", price:"$3.99", tools:["ImageFX","Canva"] },
+  { occasion:"thanksgiving", type:"affirmations", title:"Gratitude Affirmation Cards — Thankful Edition (30)", price:"$4.99", tools:["WriteSeed","Canva"] },
+  { occasion:"thanksgiving", type:"coloring", title:"Thanksgiving Adult Coloring Pages (20 pages)", price:"$2.99", tools:["ImageFX","Canva"] },
+  { occasion:"thanksgiving", type:"cards", title:"Funny Friendsgiving Card Bundle (12 cards)", price:"$3.99", tools:["Designrr","Canva"] },
+  // NEW YEAR
+  { occasion:"newyear", type:"ebook", title:"New Year New Me Jokes — 50 Resolution Fails Jokes", price:"$2.99", tools:["WriteSeed","Designrr"] },
+  { occasion:"newyear", type:"art", title:"Funny New Year Art Prints — Resolutions (8)", price:"$3.99", tools:["ImageFX","Canva"] },
+  { occasion:"newyear", type:"planner", title:"New Year Funny Goal Planner — Dream Big Laugh Hard", price:"$5.99", tools:["WriteSeed","Canva"] },
+  { occasion:"newyear", type:"affirmations", title:"New Year Affirmation Cards — Manifest 2027 (30)", price:"$4.99", tools:["WriteSeed","Canva"] },
+  { occasion:"newyear", type:"cards", title:"Funny New Year Card Bundle (12 designs)", price:"$3.99", tools:["Designrr","Canva"] },
+  // EASTER
+  { occasion:"easter", type:"ebook", title:"Easter Egg Jokes — 50 Egg-cellent Puns", price:"$2.99", tools:["WriteSeed","Designrr"] },
+  { occasion:"easter", type:"art", title:"Funny Easter Art Prints — Hoppy Designs (8)", price:"$3.99", tools:["ImageFX","Canva"] },
+  { occasion:"easter", type:"coloring", title:"Easter Adult Coloring Pages — Spring Blooms (20)", price:"$2.99", tools:["ImageFX","Canva"] },
+  { occasion:"easter", type:"cards", title:"Punny Easter Card Bundle (12 cards)", price:"$3.99", tools:["Designrr","Canva"] },
+  { occasion:"easter", type:"affirmations", title:"Spring Renewal Affirmation Cards (30 cards)", price:"$4.99", tools:["WriteSeed","Canva"] },
+  // HANUKKAH
+  { occasion:"hanukkah", type:"ebook", title:"Hanukkah Humor — 50 Festival of Lights Jokes", price:"$2.99", tools:["WriteSeed","Designrr"] },
+  { occasion:"hanukkah", type:"art", title:"Funny Hanukkah Art Prints — Menorah Madness (8)", price:"$3.99", tools:["ImageFX","Canva"] },
+  { occasion:"hanukkah", type:"affirmations", title:"8 Nights of Affirmation Cards — Hanukkah Edition", price:"$4.99", tools:["WriteSeed","Canva"] },
+  { occasion:"hanukkah", type:"coloring", title:"Hanukkah Coloring Pages — Festival of Lights (20)", price:"$2.99", tools:["ImageFX","Canva"] },
+  { occasion:"hanukkah", type:"cards", title:"Funny Hanukkah Card Bundle (12 designs)", price:"$3.99", tools:["Designrr","Canva"] },
+];
+
+const OCCASIONS_DATA = [
+  { id:"christmas", label:"🎄 Christmas", peak:"Nov–Dec", urgency:"high" },
+  { id:"birthday", label:"🎂 Birthday", peak:"Year-round", urgency:"medium" },
+  { id:"valentines", label:"💕 Valentine's Day", peak:"Jan–Feb", urgency:"medium" },
+  { id:"mothers", label:"🌸 Mother's Day", peak:"Apr–May", urgency:"medium" },
+  { id:"fathers", label:"👔 Father's Day", peak:"May–Jun", urgency:"low" },
+  { id:"halloween", label:"🎃 Halloween", peak:"Sep–Oct", urgency:"low" },
+  { id:"thanksgiving", label:"🦃 Thanksgiving", peak:"Oct–Nov", urgency:"low" },
+  { id:"newyear", label:"🎉 New Year", peak:"Dec–Jan", urgency:"high" },
+  { id:"graduation", label:"🎓 Graduation", peak:"Apr–Jun", urgency:"medium" },
+  { id:"anniversary", label:"💍 Anniversary", peak:"Year-round", urgency:"medium" },
+  { id:"getwell", label:"❤️ Get Well", peak:"Year-round", urgency:"high" },
+  { id:"babyshower", label:"👶 Baby Shower", peak:"Year-round", urgency:"medium" },
+  { id:"easter", label:"🐣 Easter", peak:"Mar–Apr", urgency:"medium" },
+  { id:"hanukkah", label:"🕎 Hanukkah", peak:"Nov–Dec", urgency:"high" },
+];
+
+const PROMPTS = {
+  ebook: {
+    christmas: "Write 50 hilarious Christmas-themed jokes for adults. Mix dad jokes, puns, and witty one-liners. Make them shareable, family-friendly but funny. Format as a numbered list with a fun intro and a warm closing.",
+    birthday: "Write 100 savage but loving birthday roast jokes. Mix self-deprecating humor, age jokes, and heartfelt punchlines. Perfect for milestone birthdays (30, 40, 50+). Include a funny intro and party section headers.",
+    valentines: "Write 60 cheesy Valentine's Day jokes and puns for couples. Mix sweet romantic puns with playful humor. Include food puns, love puns, and funny 'anti-Valentine' jokes too.",
+    mothers: "Write 75 hilarious Mom jokes celebrating the chaos of motherhood. Include wine jokes, coffee addiction humor, kid chaos, and mom superpowers. Format with sections by theme.",
+    fathers: "Write 100 classic Dad Jokes for Father's Day. Mix groan-worthy puns, grilling jokes, 'World's Okayest Dad' humor, and heartfelt funny moments. Number each joke.",
+    halloween: "Write 60 dark but fun Halloween jokes for adults. Include spooky puns, witch humor, ghost jokes, and sarcastic horror references. Perfect for Halloween parties.",
+    getwell: "Write 50 uplifting and funny Get Well jokes to cheer someone up. Mix gentle hospital humor, healing puns, and warm encouragement. Keep it positive and smile-inducing.",
+    graduation: "Write 60 funny real-world survival jokes for new graduates. Include adulting fails, debt humor, job search jokes, and 'now what?' comedy. Format with sections.",
+    anniversary: "Write 75 hilarious marriage and relationship jokes for anniversaries. Mix 'still married' humor, couple quirks, and sweet funny moments. Include milestone year jokes.",
+    babyshower: "Write 60 funny new parent survival jokes for baby shower gifts. Include diaper disasters, sleep deprivation humor, and first-time parent comedy. Keep it clean and fun.",
+    thanksgiving: "Write 60 hilarious Thanksgiving jokes for family gatherings. Include turkey puns, food coma humor, awkward family dinner jokes, and gratitude comedy.",
+    newyear: "Write 50 funny New Year's resolution fail jokes. Include gym humor, diet jokes, 'new year new me' satire, and resolution breaking punchlines. Perfect for January 1st laughs.",
+    easter: "Write 50 egg-cellent Easter puns and jokes for all ages. Mix bunny humor, egg jokes, spring puns, and chocolate comedy. Format as a numbered joke list.",
+    hanukkah: "Write 50 warm and funny Hanukkah jokes celebrating the Festival of Lights. Include latke humor, dreidel jokes, eight nights comedy, and Jewish family fun."
+  },
+  art: {
+    christmas: "Create detailed prompts for 10 funny Christmas art prints. Style: modern flat illustration, warm holiday colors. Themes: sarcastic Santa, 'adulting at Christmas', coffee + holiday chaos. List each prompt separately.",
+    birthday: "Create 8 funny 'Getting Older' birthday art print prompts. Style: bold, colorful pop art. Themes: wine o'clock, 'still fabulous', cake emergency, gray hair glory.",
+    valentines: "Create 10 funny anti-Valentine and punny love art print prompts. Style: retro valentine design. Themes: pizza > love, cat lover valentine, introvert romance, coffee is my valentine.",
+    mothers: "Create 8 funny Mom Life art print prompts. Style: bright, bold. Themes: wine o'clock mom, coffee addict mom, taxi mom, 'I have humans' chaos.",
+    fathers: "Create 8 'World's Okayest Dad' art print prompts. Style: vintage badge design. Themes: BBQ king, nap champion, bad pun master, garage hermit.",
+    halloween: "Create 10 sarcastic Halloween art print prompts. Style: retro horror meets modern humor. Themes: tired witch, introvert ghost, coffee vampire, 'adulting is scary'.",
+    getwell: "Create 8 uplifting and funny Get Well art print prompts. Style: warm, cheerful colors. Themes: nap champion, professional relaxer, healing superhero, 'surviving like a boss'.",
+    graduation: "Create 8 funny 'Now What?' graduation art print prompts. Style: bold modern typography. Themes: student debt humor, adulting survival, 'degree + coffee', real world chaos.",
+    anniversary: "Create 8 funny marriage art print prompts. Style: elegant with humor. Themes: 'still here', Netflix & chill forever, 'survived another year', love + coffee.",
+    babyshower: "Create 8 funny baby shower art print prompts. Style: cute but sarcastic. Themes: sleep is a myth, diaper championship, tiny human chaos, 'send coffee'.",
+    thanksgiving: "Create 8 funny Thanksgiving art print prompts. Style: rustic modern. Themes: gravy boat captain, turkey coma, food baby champion, 'thankful for elastic waistbands'.",
+    newyear: "Create 8 funny New Year art print prompts. Style: bold, glittery. Themes: resolution survivor, nap resolution, 'same me better excuses', midnight snack queen.",
+    easter: "Create 8 funny Easter art print prompts. Style: pastel but sarcastic. Themes: chocolate hoarder bunny, adult egg hunt, peeps addiction, 'hop til you drop'.",
+    hanukkah: "Create 8 funny Hanukkah art print prompts. Style: blue & gold modern design. Themes: latke champion, dreidel legend, eight nights of gifts, menorah moments."
+  },
+  coloring: {
+    christmas: "Design 20 funny adult Christmas coloring page concepts. Themes: 'Santa needs coffee', wine by the fireplace, cats attacking the tree, holiday chaos. Describe each scene with specific details.",
+    birthday: "Design 20 funny birthday adult coloring page concepts. Themes: aging gracefully fails, 'still fabulous', birthday cake emergency, party survival guide scenes.",
+    valentines: "Design 20 funny Valentine's Day adult coloring page concepts. Themes: anti-valentine flowers, pizza heart, cat love, self-love spa day, sarcastic cupid.",
+    mothers: "Design 20 funny Mom-themed adult coloring page concepts. Themes: mom wine bar, laundry mountain, minivan adventures, 'mom needs a minute'.",
+    fathers: "Design 20 funny Dad-themed adult coloring page concepts. Themes: garage kingdom, BBQ championship, recliner throne, tool belt adventures.",
+    halloween: "Design 20 sarcastic Halloween adult coloring page concepts. Themes: exhausted witch, introvert vampire, coffee zombie, anxiety ghost, procrastinating skeleton.",
+    getwell: "Design 20 funny Get Well adult coloring page concepts. Themes: nap champion bed scenes, healing superheroes, 'doctor said rest', cozy recovery moments.",
+    graduation: "Design 20 funny graduation adult coloring page concepts. Themes: student loan monster, adulting fails, 'real world' survival scenes, coffee & résumé chaos.",
+    anniversary: "Design 20 funny anniversary adult coloring page concepts. Themes: couples quirks, 'still married' scenes, Netflix marathons, grocery store debates.",
+    babyshower: "Design 20 funny baby shower adult coloring page concepts. Themes: diaper explosion, sleep-deprived parents, 'tiny human' chaos, coffee emergency.",
+    thanksgiving: "Design 20 funny Thanksgiving adult coloring page concepts. Themes: food coma scenes, family chaos, gravy disasters, 'who brought this dish'.",
+    newyear: "Design 20 funny New Year adult coloring page concepts. Themes: resolution fails, gym January chaos, midnight snack scenes, 'new year same me'.",
+    easter: "Design 20 funny Easter adult coloring page concepts. Themes: competitive egg hunters, chocolate obsession, bunny drama, spring cleaning fails.",
+    hanukkah: "Design 20 funny Hanukkah adult coloring page concepts. Themes: latke cooking chaos, dreidel championship, eight nights of gifts unwrapping, family traditions."
+  },
+  cards: {
+    christmas: "Write copy for 12 funny Christmas greeting cards. Mix sarcastic holiday humor, punny card messages, and heartfelt funny closings. Include inside text for each card.",
+    birthday: "Write copy for 12 savage birthday roast greeting cards. Mix age jokes, loving sarcasm, and funny birthday wishes. Include front text, inside text, and envelope message.",
+    valentines: "Write copy for 12 punny Valentine's Day greeting cards. Mix cheesy puns, anti-valentine humor, and sweet funny messages. Include front and inside text for each.",
+    mothers: "Write copy for 12 funny Mother's Day cards celebrating mom chaos. Include wine mom humor, superhero mom, and heartfelt funny messages. Front + inside text.",
+    fathers: "Write copy for 12 funny Father's Day cards with dad joke energy. Include grilling humor, bad pun cards, and heartfelt comedy. Front and inside text each.",
+    halloween: "Write copy for 12 sarcastic Halloween greeting cards. Include spooky puns, trick-or-treat humor, and Halloween party invites. Front + inside text.",
+    getwell: "Write copy for 12 funny Get Well greeting cards that cheer up the sick. Include hospital humor, healing puns, and uplifting funny messages. Front + inside text.",
+    graduation: "Write copy for 12 funny graduation greeting cards. Include adulting survival humor, job search jokes, and congratulations comedy. Front + inside text.",
+    anniversary: "Write copy for 12 funny anniversary greeting cards celebrating couples. Include marriage humor, 'still here' jokes, and sweet funny messages. Front + inside text.",
+    babyshower: "Write copy for 12 funny baby shower greeting cards for new parents. Include diaper humor, sleep deprivation jokes, and welcoming-the-baby comedy. Front + inside text.",
+    thanksgiving: "Write copy for 12 funny Thanksgiving greeting cards. Include turkey puns, gratitude humor, and family chaos jokes. Front + inside text for each.",
+    newyear: "Write copy for 12 funny New Year greeting cards. Include resolution humor, midnight chaos, and 'new year' comedy. Front + inside text for each card.",
+    easter: "Write copy for 12 punny Easter greeting cards. Include egg puns, bunny humor, spring jokes, and chocolate comedy. Front + inside text.",
+    hanukkah: "Write copy for 12 funny Hanukkah greeting cards. Include menorah humor, latke love, dreidel jokes, and eight nights comedy. Front + inside text."
+  },
+  affirmations: {
+    christmas: "Write 30 Christmas affirmation cards for surviving the holidays. Mix positive mantras, holiday stress relief, and seasonal joy boosters. Format: card title + affirmation text.",
+    birthday: "Write 30 birthday affirmation cards celebrating a new year of life. Mix age-positive mantras, achievement affirmations, and joy-of-living cards.",
+    valentines: "Write 30 self-love Valentine's affirmation cards. Mix romantic self-love, single power, and heart-centered mantras. Format: card title + affirmation.",
+    mothers: "Write 30 Mom Power affirmation cards. Mix daily encouragement for mothers, 'you are enough' cards, and mom superpower affirmations. Format: title + text.",
+    fathers: "Write 30 Dad Strength affirmation cards. Mix fatherhood encouragement, leadership mantras, and 'great dad' affirmations. Format: title + affirmation text.",
+    halloween: "Write 30 Spooky Season affirmation cards with Halloween vibes. Mix autumn energy affirmations, 'embrace your magic' cards, and shadow work encouragement.",
+    getwell: "Write 30 healing affirmation cards for someone recovering. Mix body healing mantras, strength affirmations, hope cards, and gentle encouragement.",
+    graduation: "Write 30 Class of 2026 affirmation cards for new graduates. Mix career launch mantras, courage affirmations, adulting encouragement, and dream-chasing cards.",
+    anniversary: "Write 30 love affirmation cards for couples celebrating anniversaries. Mix partnership mantras, love renewal affirmations, and gratitude for love cards.",
+    babyshower: "Write 30 New Mom affirmation cards. Mix parenting encouragement, 'you've got this mama', healing affirmations, and new chapter inspiration.",
+    thanksgiving: "Write 30 gratitude affirmation cards for Thanksgiving season. Mix thankfulness mantras, abundance affirmations, and joy-of-giving cards.",
+    newyear: "Write 30 New Year manifestation affirmation cards. Mix new chapter mantras, goal-setting affirmations, release-the-old cards, and fresh start inspiration.",
+    easter: "Write 30 spring renewal affirmation cards for Easter season. Mix new beginnings mantras, growth affirmations, hope cards, and resurrection-of-joy inspiration.",
+    hanukkah: "Write 30 Festival of Lights affirmation cards for Hanukkah. Mix light-in-darkness mantras, faith affirmations, gratitude cards, and miracle-believing inspiration."
+  },
+  planner: {
+    christmas: "Create a 52-page funny Christmas Planner layout. Include: holiday task tracker, gift list with funny categories, 'surviving the family' checklist, Christmas dinner chaos planner, daily countdown journal. Write all section content.",
+    birthday: "Create a funny 'Another Year Older' birthday planner layout with 52 pages. Include: goals vs reality tracker, 'adulting wins', birthday month challenge, funny bucket list, weekly reflection pages.",
+    valentines: "Create a Valentine's Self-Love Planner layout (52 pages). Include: self-care challenge, date night idea generator, love language tracker, anti-valentine party planner, monthly self-love goals.",
+    mothers: "Create a Funny Mom Life Planner (52 pages). Include: mom win tracker, sanity survival checklist, grocery chaos list, school pickup log, 'me time' scheduler, weekly mom goals.",
+    fathers: "Create a Dad's BBQ & Life Planner (52 pages). Include: grilling challenge log, man cave project tracker, dad joke rating system, family adventure planner, weekly 'dad wins'.",
+    halloween: "Create a Spooky Season Planner (52 pages). Include: costume idea tracker, haunted house rating log, candy inventory, October countdown, ghost story journal, party planning.",
+    getwell: "Create a Recovery & Healing Planner (52 pages). Include: daily symptom tracker, medication log, healing milestone celebrations, rest schedule, gratitude journal, doctor visit notes.",
+    graduation: "Create a Post-Grad Survival Planner (52 pages). Include: job application tracker, adulting skills checklist, budget survival guide, apartment hunting log, networking goals, dream job vision board.",
+    anniversary: "Create a Couples Love Planner (52 pages). Include: date night idea generator, love goal tracker, 'things I love about you' journal, anniversary milestone log, couples bucket list.",
+    babyshower: "Create a New Parent Survival Planner (52 pages). Include: diaper change log, feeding tracker, sleep schedule, baby milestone journal, 'survived today' checklist, self-care reminder.",
+    thanksgiving: "Create a Thanksgiving Gratitude Planner (52 pages). Include: thankfulness journal, holiday meal planner, family gathering schedule, recipe collection, gratitude challenge, giving season tracker.",
+    newyear: "Create a New Year Goal & Dream Planner (52 pages). Include: vision board worksheet, 12-month goal tracker, habit formation log, quarterly review pages, 'word of the year' journal, manifestation tracker.",
+    easter: "Create a Spring Fresh Start Planner (52 pages). Include: spring cleaning checklist, garden planning pages, fresh start goal tracker, Easter celebration planner, spring bucket list, renewal journal.",
+    hanukkah: "Create an 8 Nights of Intention Planner. Include: nightly candle lighting meditation, gift giving tracker, latke recipe collection, family memory journal, gratitude log, new year intention setting."
+  }
+};
+
+// ======= STATE =======
+let pipeline = JSON.parse(localStorage.getItem('giftforge_pipeline') || '[]');
+let currentFilter = 'all';
+
+// ======= INIT =======
+function init() {
+  renderOccasions();
+  renderIdeas('all');
+  renderPipeline();
+}
+
+function renderOccasions() {
+  const el = document.getElementById('occasion-list');
+  el.innerHTML = OCCASIONS_DATA.map(o => {
+    const badge = o.urgency === 'high' ? 'badge-error' : o.urgency === 'medium' ? 'badge-warning' : 'badge-success';
+    const label = o.urgency === 'high' ? '🔥 NOW' : o.urgency === 'medium' ? '📅 SOON' : '📌 PLAN';
+    return `<div class="flex justify-between items-center p-2 bg-base-300 rounded-lg">
+      <span class="text-sm">${o.label}</span>
+      <div class="flex gap-2 items-center">
+        <span class="text-xs text-base-content/60">${o.peak}</span>
+        <span class="badge ${badge} badge-sm">${label}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderIdeas(filter) {
+  const grid = document.getElementById('ideas-grid');
+  const count = document.getElementById('idea-count');
+  const filtered = filter === 'all' ? IDEAS : IDEAS.filter(i => i.occasion === filter);
+  count.textContent = filtered.length + ' ideas';
+  
+  const typeEmojis = { ebook:'📚', art:'🎨', coloring:'🖍️', cards:'🃏', affirmations:'🌟', planner:'📅' };
+  
+  grid.innerHTML = filtered.map((idea, idx) => `
+    <div class="card bg-base-200 idea-card" onclick="addIdeaToPipeline(${IDEAS.indexOf(idea)})">
+      <div class="card-body p-4">
+        <div class="flex justify-between items-start gap-2">
+          <span class="text-lg">${typeEmojis[idea.type] || '🎁'}</span>
+          <span class="badge badge-primary badge-sm">${idea.price}</span>
+        </div>
+        <h3 class="text-sm font-semibold mt-1">${idea.title}</h3>
+        <div class="flex gap-1 flex-wrap mt-2">
+          ${idea.tools.map(t => `<span class="badge badge-outline badge-xs">${t}</span>`).join('')}
+        </div>
+        <div class="text-xs text-base-content/40 mt-1">Click to add to pipeline →</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterIdeas(val) {
+  currentFilter = val;
+  renderIdeas(val);
+}
+
+function addIdeaToPipeline(idx) {
+  const idea = IDEAS[idx];
+  const item = { id: Date.now(), title: idea.title, occasion: idea.occasion, type: idea.type, price: idea.price, platform: 'whop', status: 'idea', tools: idea.tools, created: new Date().toLocaleDateString() };
+  pipeline.unshift(item);
+  savePipeline();
+  renderPipeline();
+  showTab('pipeline');
+}
+
+function renderPipeline() {
+  const el = document.getElementById('pipeline-list');
+  const counts = { idea: 0, creating: 0, ready: 0, published: 0 };
+  pipeline.forEach(p => counts[p.status]++);
+  document.getElementById('count-idea').textContent = counts.idea;
+  document.getElementById('count-creating').textContent = counts.creating;
+  document.getElementById('count-ready').textContent = counts.ready;
+  document.getElementById('count-published').textContent = counts.published;
+  
+  if (!pipeline.length) {
+    el.innerHTML = '<div class="text-center text-base-content/40 py-8">No products yet — click "Add Product" or pick an idea from the Ideas tab! 🎁</div>';
+    return;
+  }
+  
+  const statusBadge = { idea:'badge-primary', creating:'badge-warning', ready:'badge-success', published:'badge-info' };
+  const statusLabel = { idea:'💡 Idea', creating:'🛠️ Creating', ready:'✅ Ready', published:'🚀 Published' };
+  const platforms = { whop:'🏆 Whop', gumroad:'💚 Gumroad', payhip:'📦 Payhip' };
+  
+  el.innerHTML = pipeline.map(item => `
+    <div class="card bg-base-200 pipeline-item status-${item.status}">
+      <div class="card-body p-3">
+        <div class="flex justify-between items-start gap-2 flex-wrap">
+          <div class="flex-1">
+            <div class="font-semibold text-sm">${item.title}</div>
+            <div class="text-xs text-base-content/60 mt-1">${item.price} • ${platforms[item.platform] || item.platform} • ${item.created}</div>
+          </div>
+          <div class="flex gap-2 items-center">
+            <span class="badge ${statusBadge[item.status]}">${statusLabel[item.status]}</span>
+          </div>
+        </div>
+        <div class="flex gap-2 mt-2 flex-wrap">
+          ${item.status !== 'creating' ? `<button class="btn btn-xs btn-warning" onclick="updateStatus(${item.id},'creating')">🛠️ Start Creating</button>` : ''}
+          ${item.status !== 'ready' && item.status !== 'idea' ? `<button class="btn btn-xs btn-success" onclick="updateStatus(${item.id},'ready')">✅ Mark Ready</button>` : ''}
+          ${item.status === 'ready' ? `<button class="btn btn-xs btn-info" onclick="updateStatus(${item.id},'published')">🚀 Published!</button>` : ''}
+          <button class="btn btn-xs btn-error btn-outline" onclick="removeItem(${item.id})">🗑️</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateStatus(id, status) {
+  pipeline = pipeline.map(p => p.id === id ? {...p, status} : p);
+  savePipeline();
+  renderPipeline();
+}
+
+function removeItem(id) {
+  pipeline = pipeline.filter(p => p.id !== id);
+  savePipeline();
+  renderPipeline();
+}
+
+function savePipeline() {
+  localStorage.setItem('giftforge_pipeline', JSON.stringify(pipeline));
+}
+
+function showAddModal() {
+  document.getElementById('add-modal').classList.add('modal-open');
+}
+
+function hideAddModal() {
+  document.getElementById('add-modal').classList.remove('modal-open');
+}
+
+function addProduct() {
+  const title = document.getElementById('new-title').value.trim();
+  if (!title) return;
+  const item = {
+    id: Date.now(),
+    title,
+    occasion: document.getElementById('new-occasion').value || 'general',
+    type: document.getElementById('new-type').value || 'ebook',
+    price: document.getElementById('new-price').value || '$2.99',
+    platform: document.getElementById('new-platform').value,
+    status: 'idea',
+    tools: [],
+    created: new Date().toLocaleDateString()
+  };
+  pipeline.unshift(item);
+  savePipeline();
+  renderPipeline();
+  hideAddModal();
+  document.getElementById('new-title').value = '';
+}
+
+function generatePrompt() {
+  const occasion = document.getElementById('prompt-occasion').value;
+  const type = document.getElementById('prompt-type').value;
+  const output = document.getElementById('prompt-output');
+  if (!occasion || !type) {
+    output.textContent = 'Select both an occasion and product type above ✨';
+    return;
+  }
+  const prompt = PROMPTS[type] && PROMPTS[type][occasion];
+  output.textContent = prompt || 'Prompt coming soon for this combination!';
+}
+
+function copyPrompt() {
+  const text = document.getElementById('prompt-output').textContent;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = event.target;
+      btn.textContent = '✅ Copied!';
+      setTimeout(() => btn.textContent = '📋 Copy Prompt', 2000);
+    });
+  }
+}
+
+// ======= TABS =======
+function showTab(name) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('tab-active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('tab-active');
+}
+
+// ======= START =======
+init();
+</script>
+</body>
+</html>
