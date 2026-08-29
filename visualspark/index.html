@@ -1,1009 +1,249 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>VisualSpark Studio — AI Image Creator</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/prettier@3.3.3/standalone.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/prettier@3.3.3/plugins/html.js"></script>
-<style>
-:root {
-  --ink: #0f1115;
-  --surface: #171a21;
-  --surface-raised: #1e222b;
-  --surface-high: #252a35;
-  --border: #2a2f3a;
-  --text: #ece8df;
-  --text-dim: #8b8e9a;
-  --brass: #c9a15a;
-  --brass-bright: #e8c077;
-  --error: #e07a6b;
-  --ok: #6bc4a0;
-  --purple: #a78bfa;
-  --blue: #60a5fa;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  background: var(--ink);
-  color: var(--text);
-  font-family: 'Inter', system-ui, sans-serif;
-  min-height: 100vh;
-  line-height: 1.5;
-}
-.shell {
-  display: grid;
-  grid-template-columns: 56px 1fr;
-  min-height: 100vh;
-}
-@media (max-width: 640px) {
-  .shell { grid-template-columns: 1fr; }
-  .rail { display: none; }
-  main { padding: 24px 16px 80px !important; }
-}
-.rail {
-  background: var(--surface);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 28px 0;
-  gap: 14px;
-  position: sticky;
-  top: 0;
-  height: 100vh;
-}
-.rail-dot {
-  width: 7px; height: 7px; border-radius: 50%;
-  background: var(--border);
-  transition: background 0.35s ease, box-shadow 0.35s ease;
-}
-.rail-dot.active {
-  background: var(--brass-bright);
-  box-shadow: 0 0 12px 2px rgba(232,192,119,0.5);
-}
-main { padding: 40px 48px 72px; max-width: 960px; }
-header { margin-bottom: 36px; }
-header .eyebrow {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--brass);
-  margin-bottom: 8px;
-}
-header h1 {
-  font-family: 'Fraunces', serif;
-  font-weight: 600;
-  font-size: clamp(26px, 5vw, 38px);
-  letter-spacing: -0.02em;
-  margin-bottom: 8px;
-}
-header .sub { color: var(--text-dim); font-size: 14px; }
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(107,196,160,0.12);
-  border: 1px solid rgba(107,196,160,0.3);
-  color: var(--ok);
-  font-size: 11px;
-  font-family: 'JetBrains Mono', monospace;
-  padding: 3px 10px;
-  border-radius: 20px;
-  margin-top: 10px;
-}
-.badge::before { content: '●'; font-size: 8px; }
-
-/* Tabs */
-.tabs { display: flex; gap: 4px; margin-bottom: 24px; }
-.tab {
-  padding: 8px 20px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: none;
-  color: var(--text-dim);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-family: 'Inter', sans-serif;
-}
-.tab:hover { border-color: var(--brass); color: var(--text); }
-.tab.active {
-  background: var(--brass);
-  border-color: var(--brass);
-  color: #0f1115;
-  font-weight: 600;
-}
-
-/* Card */
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 24px;
-  margin-bottom: 20px;
-}
-.card-title {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--brass);
-  margin-bottom: 14px;
-}
-
-/* Model select */
-.model-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 10px;
-  margin-bottom: 20px;
-}
-.model-btn {
-  background: var(--surface-raised);
-  border: 1.5px solid var(--border);
-  border-radius: 10px;
-  padding: 12px 14px;
-  cursor: pointer;
-  text-align: left;
-  transition: all 0.2s;
-  color: var(--text);
-}
-.model-btn:hover { border-color: var(--brass); }
-.model-btn.selected { border-color: var(--brass-bright); background: rgba(201,161,90,0.1); }
-.model-btn .m-name { font-weight: 600; font-size: 13px; margin-bottom: 3px; }
-.model-btn .m-tag {
-  font-size: 10px;
-  font-family: 'JetBrains Mono', monospace;
-  color: var(--text-dim);
-}
-.model-btn .m-speed {
-  display: inline-block;
-  margin-top: 6px;
-  font-size: 10px;
-  padding: 2px 8px;
-  border-radius: 10px;
-  background: rgba(107,196,160,0.15);
-  color: var(--ok);
-}
-
-/* Prompt area */
-.prompt-wrap { position: relative; }
-textarea {
-  width: 100%;
-  background: var(--surface-raised);
-  border: 1.5px solid var(--border);
-  border-radius: 10px;
-  color: var(--text);
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  padding: 14px 16px;
-  resize: vertical;
-  min-height: 110px;
-  line-height: 1.6;
-  transition: border-color 0.2s;
-}
-textarea:focus { outline: none; border-color: var(--brass); }
-textarea::placeholder { color: var(--text-dim); }
-.prompt-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
-  flex-wrap: wrap;
-}
-
-/* Style chips */
-.chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
-.chip {
-  padding: 5px 14px;
-  border-radius: 20px;
-  border: 1px solid var(--border);
-  background: var(--surface-raised);
-  color: var(--text-dim);
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-family: 'Inter', sans-serif;
-}
-.chip:hover { border-color: var(--brass); color: var(--text); }
-.chip.active { background: rgba(201,161,90,0.15); border-color: var(--brass); color: var(--brass-bright); }
-
-/* Advanced */
-.advanced-toggle {
-  background: none;
-  border: none;
-  color: var(--text-dim);
-  font-size: 12px;
-  cursor: pointer;
-  font-family: 'JetBrains Mono', monospace;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0;
-  margin-bottom: 12px;
-  transition: color 0.2s;
-}
-.advanced-toggle:hover { color: var(--brass); }
-.advanced-panel { display: none; }
-.advanced-panel.open { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-.field label {
-  display: block;
-  font-size: 11px;
-  font-family: 'JetBrains Mono', monospace;
-  color: var(--text-dim);
-  margin-bottom: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-.field input {
-  width: 100%;
-  background: var(--surface-raised);
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
-  color: var(--text);
-  font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  padding: 9px 12px;
-  transition: border-color 0.2s;
-}
-.field input:focus { outline: none; border-color: var(--brass); }
-.field.full { grid-column: 1/-1; }
-
-/* Size buttons */
-.size-grid { display: flex; gap: 8px; flex-wrap: wrap; }
-.size-btn {
-  padding: 7px 16px;
-  border-radius: 8px;
-  border: 1.5px solid var(--border);
-  background: var(--surface-raised);
-  color: var(--text-dim);
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-family: 'JetBrains Mono', monospace;
-}
-.size-btn.active { border-color: var(--brass); color: var(--brass-bright); background: rgba(201,161,90,0.1); }
-
-/* Buttons */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 11px 22px;
-  border-radius: 10px;
-  border: none;
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.btn-primary {
-  background: var(--brass);
-  color: #0f1115;
-}
-.btn-primary:hover { background: var(--brass-bright); transform: translateY(-1px); }
-.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-.btn-secondary {
-  background: var(--surface-raised);
-  color: var(--text);
-  border: 1px solid var(--border);
-}
-.btn-secondary:hover { border-color: var(--brass); color: var(--brass); }
-.btn-ghost {
-  background: none;
-  color: var(--text-dim);
-  border: 1px solid transparent;
-  font-size: 12px;
-  padding: 7px 14px;
-}
-.btn-ghost:hover { color: var(--text); border-color: var(--border); }
-
-/* Output */
-.output-area { min-height: 340px; display: flex; align-items: center; justify-content: center; }
-.output-placeholder {
-  text-align: center;
-  color: var(--text-dim);
-  font-size: 14px;
-}
-.output-placeholder .icon { font-size: 48px; margin-bottom: 12px; }
-.output-placeholder p { font-size: 13px; max-width: 280px; }
-.output-img-wrap { position: relative; width: 100%; }
-.output-img-wrap img {
-  width: 100%;
-  border-radius: 10px;
-  display: block;
-}
-.img-overlay {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  background: linear-gradient(transparent, rgba(0,0,0,0.75));
-  border-radius: 0 0 10px 10px;
-  padding: 16px;
-  display: flex;
-  gap: 8px;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-.output-img-wrap:hover .img-overlay { opacity: 1; }
-
-/* Progress */
-.progress-wrap { width: 100%; text-align: center; }
-.progress-bar {
-  width: 100%;
-  height: 4px;
-  background: var(--border);
-  border-radius: 2px;
-  overflow: hidden;
-  margin: 16px 0;
-}
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--brass), var(--brass-bright));
-  border-radius: 2px;
-  animation: progressAnim 2.5s ease infinite;
-}
-@keyframes progressAnim {
-  0% { width: 0%; margin-left: 0; }
-  50% { width: 70%; margin-left: 0; }
-  100% { width: 10%; margin-left: 100%; }
-}
-.progress-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  color: var(--brass);
-  margin-top: 8px;
-}
-
-/* Gallery */
-.gallery-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 12px;
-}
-.gallery-item {
-  position: relative;
-  border-radius: 10px;
-  overflow: hidden;
-  aspect-ratio: 1;
-  cursor: pointer;
-  background: var(--surface-raised);
-}
-.gallery-item img {
-  width: 100%; height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform 0.3s;
-}
-.gallery-item:hover img { transform: scale(1.04); }
-.gallery-item-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-.gallery-item:hover .gallery-item-overlay { opacity: 1; }
-.gallery-prompt {
-  font-size: 10px;
-  color: var(--text-dim);
-  font-family: 'JetBrains Mono', monospace;
-  padding: 0 8px 8px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.empty-gallery {
-  text-align: center;
-  color: var(--text-dim);
-  padding: 40px;
-  font-size: 13px;
-}
-
-/* Toast */
-.toast {
-  position: fixed;
-  bottom: 24px; right: 24px;
-  background: var(--surface-raised);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px 18px;
-  font-size: 13px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  z-index: 999;
-  transform: translateY(80px);
-  opacity: 0;
-  transition: all 0.3s ease;
-  max-width: 320px;
-}
-.toast.show { transform: translateY(0); opacity: 1; }
-.toast.ok { border-color: var(--ok); color: var(--ok); }
-.toast.err { border-color: var(--error); color: var(--error); }
-
-/* Enhance spinner */
-.enhance-spinner {
-  width: 14px; height: 14px;
-  border: 2px solid rgba(201,161,90,0.3);
-  border-top-color: var(--brass);
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-  display: none;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* View tabs */
-.view-tabs { display: flex; gap: 4px; margin-bottom: 20px; }
-.view-tab {
-  padding: 6px 18px;
-  border-radius: 20px;
-  border: none;
-  background: none;
-  color: var(--text-dim);
-  font-size: 13px;
-  cursor: pointer;
-  font-family: 'Inter', sans-serif;
-  transition: all 0.2s;
-}
-.view-tab.active { background: var(--surface-raised); color: var(--text); }
-
-/* Divider */
-.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
-
-/* Status bar */
-.status-bar {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 10px 0;
-  font-size: 11px;
-  font-family: 'JetBrains Mono', monospace;
-  color: var(--text-dim);
-  border-top: 1px solid var(--border);
-  margin-top: 16px;
-}
-.status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VisualSpark — AI Image Creator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:wght@600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #fff;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container { max-width: 900px; margin: 0 auto; }
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding-top: 20px;
+    }
+    header h1 {
+      font-family: 'Fraunces', serif;
+      font-size: 2.5em;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #f97316 0%, #fbbf24 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    header p { color: #aaa; font-size: 0.95em; }
+    
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 20px;
+      backdrop-filter: blur(10px);
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #fbbf24;
+      font-size: 0.9em;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    textarea, input, select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      font-family: inherit;
+      font-size: 0.95em;
+    }
+    textarea:focus, input:focus, select:focus {
+      outline: none;
+      border-color: #f97316;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    textarea { resize: vertical; min-height: 100px; }
+    
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 640px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+    
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.95em;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #f97316 0%, #fbbf24 100%);
+      color: #1a1a2e;
+      width: 100%;
+      padding: 14px;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(249, 115, 22, 0.4); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    
+    .output {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+    }
+    .output img {
+      max-width: 100%;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    .status {
+      color: #fbbf24;
+      font-size: 0.9em;
+      margin: 20px 0;
+      min-height: 24px;
+    }
+    .error { color: #ef4444; }
+    .success { color: #10b981; }
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top: 3px solid #fbbf24;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 10px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
 </head>
 <body>
-
-<div id="errorFallback" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#0f1115;color:#e07a6b;padding:40px;font-family:monospace;z-index:9999;overflow:auto;white-space:pre-wrap;word-break:break-word">
-ERROR: JavaScript failed to load. Please try:
-1. Hard refresh (Ctrl+Shift+R on desktop, or pull-to-refresh on mobile)
-2. Clear browser cache
-3. Try a different browser
-</div>
-
-<div class="shell">
-  <!-- Animated rail -->
-  <div class="rail">
-    <div class="rail-dot active" id="rd1"></div>
-    <div class="rail-dot" id="rd2"></div>
-    <div class="rail-dot" id="rd3"></div>
-    <div class="rail-dot" id="rd4"></div>
-    <div class="rail-dot" id="rd5"></div>
-    <div class="rail-dot" id="rd6"></div>
-    <div class="rail-dot" id="rd7"></div>
-    <div class="rail-dot" id="rd8"></div>
-  </div>
-
-  <main>
+  <div class="container">
     <header>
-      <div class="eyebrow">✦ T. Lott Creative</div>
-      <h1>VisualSpark Studio</h1>
-      <p class="sub">AI image generation — free, instant, no account needed</p>
-      <div class="badge">Powered by Pollinations AI · 100% Free</div>
+      <h1>✨ VisualSpark</h1>
+      <p>Create AI images with Pollinations (100% Free)</p>
     </header>
 
-    <!-- View tabs -->
-    <div class="view-tabs">
-      <button class="view-tab active" onclick="switchView('create')">✦ Create</button>
-      <button class="view-tab" onclick="switchView('gallery')">🖼 Gallery (<span id="galleryCount">0</span>)</button>
+    <div class="card">
+      <form id="form" onsubmit="handleSubmit(event)">
+        <div class="form-group">
+          <label for="prompt">Image Prompt</label>
+          <textarea id="prompt" placeholder="A serene lakeside at golden hour, misty mountains, oil painting style..." required></textarea>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label for="model">AI Model</label>
+            <select id="model">
+              <option value="flux-pro">FLUX Pro (Best Quality)</option>
+              <option value="flux">FLUX Standard</option>
+              <option value="flux-realism">FLUX Realism</option>
+              <option value="black-forest-labs/flux-1.1-pro">FLUX 1.1 Pro</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="size">Image Size</label>
+            <select id="size">
+              <option value="768x512">768×512 (Landscape)</option>
+              <option value="512x768">512×768 (Portrait)</option>
+              <option value="512x512">512×512 (Square)</option>
+              <option value="1024x768">1024×768 (Wide)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="negative">Negative Prompt (Optional)</label>
+          <input type="text" id="negative" placeholder="blurry, low quality, watermark, text, ugly...">
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="submitBtn">
+          Generate Image
+        </button>
+      </form>
     </div>
 
-    <!-- CREATE VIEW -->
-    <div id="createView">
-
-      <!-- Model selection -->
-      <div class="card">
-        <div class="card-title">01 — Choose Model</div>
-        <div class="model-grid" id="modelGrid"></div>
-      </div>
-
-      <!-- Style chips -->
-      <div class="card">
-        <div class="card-title">02 — Style Preset</div>
-        <div class="chips" id="styleChips"></div>
-      </div>
-
-      <!-- Prompt -->
-      <div class="card">
-        <div class="card-title">03 — Describe Your Image</div>
-        <div class="prompt-wrap">
-          <textarea id="promptInput" placeholder="A serene lakeside at golden hour, misty mountains in the background, oil painting style..." rows="4"></textarea>
-        </div>
-        <div class="prompt-actions">
-          <button class="btn btn-secondary" onclick="enhancePrompt()" id="enhanceBtn">
-            <span id="enhanceSpinner" class="enhance-spinner"></span>
-            ✦ Enhance with AI
-          </button>
-          <button class="btn btn-ghost" onclick="randomPrompt()">🎲 Surprise me</button>
-          <button class="btn btn-ghost" onclick="clearPrompt()">✕ Clear</button>
-        </div>
-
-        <!-- Negative prompt toggle -->
-        <hr class="divider">
-        <button class="advanced-toggle" onclick="toggleAdvanced()">
-          <span id="advIcon">▸</span> Advanced Options
-        </button>
-        <div class="advanced-panel" id="advancedPanel">
-          <div class="field full">
-            <label>Negative Prompt</label>
-            <input type="text" id="negPrompt" placeholder="blurry, low quality, watermark, text, ugly...">
-          </div>
-          <div class="field">
-            <label>Steps (1–50)</label>
-            <input type="number" id="stepsInput" value="4" min="1" max="50">
-          </div>
-          <div class="field">
-            <label>Guidance Scale</label>
-            <input type="number" id="guidanceInput" value="3.5" min="1" max="20" step="0.5">
-          </div>
-          <div class="field">
-            <label>Seed (blank = random)</label>
-            <input type="number" id="seedInput" placeholder="e.g. 42">
-          </div>
-          <div class="field">
-            <label>Count (1–4)</label>
-            <input type="number" id="countInput" value="1" min="1" max="4">
-          </div>
-        </div>
-
-        <!-- Size -->
-        <div style="margin-bottom:16px">
-          <div class="card-title" style="margin-bottom:10px">Image Size</div>
-          <div class="size-grid" id="sizeGrid"></div>
-        </div>
-
-        <!-- Generate -->
-        <button class="btn btn-primary" onclick="generate()" id="generateBtn" style="width:100%;justify-content:center;padding:14px;">
-          ⚡ Generate Image
-        </button>
-      </div>
-
-      <!-- Output -->
-      <div class="card">
-        <div class="card-title">Output</div>
-        <div class="output-area" id="outputArea">
-          <div class="output-placeholder">
-            <div class="icon">🎨</div>
-            <p>Your generated image appears here</p>
-          </div>
-        </div>
-        <div class="status-bar">
-          <div class="status-dot"></div>
-          <span id="statusText">Ready · Pollinations AI · Free · No limits</span>
-        </div>
-      </div>
-
-    </div><!-- end createView -->
-
-    <!-- GALLERY VIEW -->
-    <div id="galleryView" style="display:none">
-      <div class="card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-          <div class="card-title" style="margin:0">Saved Creations</div>
-          <button class="btn btn-ghost" onclick="clearGallery()" style="color:var(--error);font-size:12px">🗑 Clear All</button>
-        </div>
-        <div class="gallery-grid" id="galleryGrid"></div>
-      </div>
+    <div class="card output" id="output" style="display:none;">
+      <div class="status" id="status"></div>
+      <img id="resultImage" alt="Generated image">
+      <div style="margin-top: 15px; font-size: 0.85em; color: #888;" id="metadata"></div>
     </div>
+  </div>
 
-  </main>
-</div>
+  <script>
+    async function handleSubmit(event) {
+      event.preventDefault();
+      
+      const btn = document.getElementById('submitBtn');
+      const output = document.getElementById('output');
+      const status = document.getElementById('status');
+      const img = document.getElementById('resultImage');
+      
+      const prompt = document.getElementById('prompt').value.trim();
+      const model = document.getElementById('model').value;
+      const size = document.getElementById('size').value;
+      const negative = document.getElementById('negative').value.trim();
 
-<!-- Toast -->
-<div class="toast" id="toast"></div>
+      if (!prompt) {
+        status.textContent = '❌ Please enter a prompt!';
+        status.className = 'status error';
+        return;
+      }
 
-<script>
-// ─── CONFIG ─────────────────────────────────────────────────────────────────
+      btn.disabled = true;
+      status.textContent = '⚡ Generating...';
+      status.innerHTML = '<span class="spinner"></span>Creating your image...';
+      status.className = 'status';
+      output.style.display = 'block';
 
-const MODELS = [
-  { id: 'flux',        name: 'FLUX.1 Schnell', tag: 'flux · fastest', speed: '⚡ Instant', steps: 4  },
-  { id: 'turbo',       name: 'FLUX Turbo',     tag: 'flux · balanced', speed: '🚀 Fast',    steps: 8  },
-  { id: 'flux-pro',    name: 'FLUX.1 Pro',     tag: 'flux · quality', speed: '✦ Best',     steps: 20 },
-  { id: 'dreamshaper', name: 'DreamShaper',    tag: 'sd · artistic',  speed: '🎨 Creative', steps: 20 },
-  { id: 'stable-diffusion-3.5-large', name: 'SD 3.5 Large', tag: 'sd · detailed', speed: '🔬 Precise', steps: 30 },
-  { id: 'gptimage1',   name: 'GPT Image 1',    tag: 'openai · vivid', speed: '🌟 Vivid',   steps: 0  },
-];
+      try {
+        const [w, h] = size.split('x').map(Number);
+        const fullPrompt = negative ? `${prompt}, NOT ${negative}` : prompt;
+        
+        const params = new URLSearchParams({
+          width: w,
+          height: h,
+          model: model,
+          nologo: 'true',
+        });
 
-const STYLES = [
-  { label: '✏️ Line Art',         append: 'clean line art, coloring page style, black outlines, white background, printable' },
-  { label: '🎨 Oil Painting',     append: 'oil painting, thick brushstrokes, impressionist, museum quality' },
-  { label: '🖼 Watercolor',       append: 'soft watercolor, delicate washes, artistic, painterly' },
-  { label: '📸 Photorealistic',   append: 'photorealistic, 8K, DSLR, sharp focus, professional photography' },
-  { label: '✨ Fantasy Art',       append: 'epic fantasy illustration, detailed, cinematic lighting, concept art' },
-  { label: '🌆 Cinematic',        append: 'cinematic, dramatic lighting, movie still, anamorphic lens, film grain' },
-  { label: '🖌 Anime',            append: 'anime style, detailed illustration, vibrant colors, Studio Ghibli inspired' },
-  { label: '📐 Minimalist',       append: 'minimalist, clean, flat design, simple shapes, pastel palette' },
-  { label: '🎃 Dark Gothic',      append: 'dark gothic, dramatic shadows, mysterious atmosphere, baroque' },
-  { label: '🌿 Nature',           append: 'lush nature, botanical, vivid greens, golden hour, serene' },
-  { label: '💜 Spiritual',        append: 'spiritual, divine light, sacred geometry, ethereal glow, healing energy' },
-  { label: '🦸 Comic Book',       append: 'comic book style, bold ink lines, vibrant colors, action pose, Marvel style' },
-];
+        const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?${params}`;
+        
+        img.src = url;
+        img.onload = () => {
+          status.textContent = `✅ Image created! Model: ${model} | Size: ${w}×${h}`;
+          status.className = 'status success';
+        };
+        img.onerror = () => {
+          status.textContent = '❌ Failed to load image. Try again.';
+          status.className = 'status error';
+        };
 
-const SIZES = [
-  { label: 'Square 1:1',   w: 1024, h: 1024 },
-  { label: 'Portrait 2:3', w: 832,  h: 1248 },
-  { label: 'Landscape 3:2',w: 1248, h: 832  },
-  { label: 'Wide 16:9',    w: 1280, h: 720  },
-  { label: 'Story 9:16',   w: 720,  h: 1280 },
-];
-
-const RANDOM_PROMPTS = [
-  "A majestic lion with a golden crown, surrounded by geometric sacred patterns, spiritual art",
-  "A Black woman in a flowing white dress standing in a field of lavender at golden hour",
-  "An ancient library with glowing books floating in the air, magical atmosphere",
-  "A serene waterfall hidden in a mystical forest, bioluminescent flowers, night scene",
-  "A cozy bookshop cat sitting by a rainy window with cups of tea and old books",
-  "An astronaut floating above a colorful nebula, holding a single flower",
-  "A mother and child silhouetted against a breathtaking sunset over the ocean",
-  "A powerful warrior woman with natural hair, armor made of flowers, fantasy art",
-  "An enchanted garden with giant mushrooms, fairies, and glowing lanterns at dusk",
-  "A beautiful Black child reading a glowing book under a tree, magical realism",
-  "Hands holding a glowing heart, warm golden light rays, spiritual healing art",
-  "A serene temple in cherry blossom forest, soft mist, spiritual meditation",
-];
-
-// ─── STATE ───────────────────────────────────────────────────────────────────
-let selectedModel = 'flux';
-let selectedStyle = null;
-let selectedSize = SIZES[0];
-let gallery = JSON.parse(localStorage.getItem('vs_gallery') || '[]');
-let railIndex = 0;
-let railTimer = null;
-
-// ─── INIT ─────────────────────────────────────────────────────────────────
-window.addEventListener('error', (e) => {
-  document.getElementById('errorFallback').style.display = 'block';
-  document.getElementById('errorFallback').textContent = 'JS ERROR:\n' + e.message + '\n' + e.stack;
-});
-
-window.addEventListener('DOMContentLoaded', () => {
-  try {
-    buildModelGrid();
-    buildStyleChips();
-    buildSizeGrid();
-    renderGallery();
-    updateGalleryCount();
-    startRailAnimation();
-  } catch(e) {
-    document.getElementById('errorFallback').style.display = 'block';
-    document.getElementById('errorFallback').textContent = 'INIT ERROR:\n' + e.message + '\n' + e.stack;
-  }
-});
-
-function buildModelGrid() {
-  const g = document.getElementById('modelGrid');
-  g.innerHTML = MODELS.map(m => `
-    <button class="model-btn${m.id === selectedModel ? ' selected' : ''}"
-            onclick="selectModel('${m.id}', ${m.steps})">
-      <div class="m-name">${m.name}</div>
-      <div class="m-tag">${m.tag}</div>
-      <div class="m-speed">${m.speed}</div>
-    </button>
-  `).join('');
-}
-
-function buildStyleChips() {
-  const c = document.getElementById('styleChips');
-  c.innerHTML = STYLES.map((s, i) => `
-    <button class="chip" onclick="selectStyle(${i})" id="chip_${i}">${s.label}</button>
-  `).join('');
-}
-
-function buildSizeGrid() {
-  const g = document.getElementById('sizeGrid');
-  g.innerHTML = SIZES.map((s, i) => `
-    <button class="size-btn${i === 0 ? ' active' : ''}" onclick="selectSize(${i})">${s.label}<br>
-      <span style="font-size:9px;opacity:0.6">${s.w}×${s.h}</span>
-    </button>
-  `).join('');
-}
-
-function selectModel(id, steps) {
-  selectedModel = id;
-  if (steps > 0) document.getElementById('stepsInput').value = steps;
-  buildModelGrid();
-}
-
-function selectStyle(i) {
-  if (selectedStyle === i) {
-    selectedStyle = null;
-    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-  } else {
-    selectedStyle = i;
-    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-    document.getElementById(`chip_${i}`).classList.add('active');
-  }
-}
-
-function selectSize(i) {
-  selectedSize = SIZES[i];
-  document.querySelectorAll('.size-btn').forEach((b, j) =>
-    b.classList.toggle('active', j === i));
-}
-
-function toggleAdvanced() {
-  const p = document.getElementById('advancedPanel');
-  const icon = document.getElementById('advIcon');
-  p.classList.toggle('open');
-  icon.textContent = p.classList.contains('open') ? '▾' : '▸';
-}
-
-function randomPrompt() {
-  const p = RANDOM_PROMPTS[Math.floor(Math.random() * RANDOM_PROMPTS.length)];
-  document.getElementById('promptInput').value = p;
-}
-
-function clearPrompt() {
-  document.getElementById('promptInput').value = '';
-}
-
-// ─── ENHANCE PROMPT ──────────────────────────────────────────────────────────
-async function enhancePrompt() {
-  const btn = document.getElementById('enhanceBtn');
-  const spinner = document.getElementById('enhanceSpinner');
-  const input = document.getElementById('promptInput');
-  const raw = input.value.trim();
-
-  if (!raw) { toast('Type a prompt first!', 'err'); return; }
-
-  btn.disabled = true;
-  spinner.style.display = 'block';
-  setStatus('✦ AI is enhancing your prompt...');
-
-  try {
-    const systemMsg = `You are an expert AI image prompt engineer. 
-Take the user's basic idea and enhance it into a vivid, detailed image generation prompt (max 120 words). 
-Add specific artistic details: lighting, colors, mood, style, composition, texture. 
-Make it rich and evocative. Return ONLY the enhanced prompt, no explanation.`;
-
-    const encoded = encodeURIComponent(`${systemMsg}\n\nUser prompt: "${raw}"\n\nEnhanced prompt:`);
-    const url = `https://text.pollinations.ai/${encoded}`;
-
-    const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
-    if (!res.ok) throw new Error('Network error');
-
-    let enhanced = await res.text();
-    enhanced = enhanced.trim().replace(/^"|"$/g, '').trim();
-
-    if (enhanced && enhanced.length > 20) {
-      input.value = enhanced;
-      toast('✦ Prompt enhanced!', 'ok');
-      setStatus('Prompt enhanced by AI');
-    } else {
-      throw new Error('Invalid response');
-    }
-  } catch (e) {
-    toast('Enhancement failed — try again', 'err');
-    setStatus('Enhancement failed');
-  } finally {
-    btn.disabled = false;
-    spinner.style.display = 'none';
-  }
-}
-
-// ─── GENERATE ────────────────────────────────────────────────────────────────
-async function generate() {
-  const btn = document.getElementById('generateBtn');
-  const promptRaw = document.getElementById('promptInput').value.trim();
-  if (!promptRaw) { toast('Please enter a prompt!', 'err'); return; }
-
-  const style = selectedStyle !== null ? STYLES[selectedStyle].append : '';
-  const fullPrompt = style ? `${promptRaw}, ${style}` : promptRaw;
-  const negPrompt  = document.getElementById('negPrompt').value.trim();
-  const seed       = document.getElementById('seedInput').value || Math.floor(Math.random() * 999999);
-  const count      = parseInt(document.getElementById('countInput').value) || 1;
-
-  btn.disabled = true;
-  setStatus('⚡ Generating...');
-  showProgress(`Generating ${count > 1 ? count + ' images' : 'image'} with ${MODELS.find(m=>m.id===selectedModel)?.name}…`);
-
-  const results = [];
-  try {
-    for (let i = 0; i < count; i++) {
-      const imgSeed = parseInt(seed) + i;
-      const params = new URLSearchParams({
-        width: selectedSize.w,
-        height: selectedSize.h,
-        model: selectedModel,
-        seed: imgSeed,
-        nologo: 'true',
-        enhance: 'false',
-      });
-      if (negPrompt) params.append('negative_prompt', negPrompt);
-
-      const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?${params}`;
-      results.push({ url, prompt: fullPrompt, seed: imgSeed, model: selectedModel });
+      } catch (err) {
+        status.textContent = '❌ ' + err.message;
+        status.className = 'status error';
+      } finally {
+        btn.disabled = false;
+      }
     }
 
-    showOutput(results, fullPrompt);
-    saveToGallery(results);
-    setStatus(`✦ Generated ${count} image${count > 1 ? 's' : ''} · Model: ${selectedModel} · Seed: ${seed}`);
-    toast(`✨ Image${count > 1 ? 's' : ''} generated!`, 'ok');
-  } catch (e) {
-    setStatus('Generation failed');
-    toast('Generation failed — try again', 'err');
-    resetOutput();
-  } finally {
-    btn.disabled = false;
-  }
-}
-
-function showProgress(label) {
-  document.getElementById('outputArea').innerHTML = `
-    <div class="progress-wrap">
-      <div class="progress-bar"><div class="progress-fill"></div></div>
-      <div class="progress-label">${label}</div>
-    </div>
-  `;
-}
-
-function showOutput(results, prompt) {
-  if (results.length === 1) {
-    document.getElementById('outputArea').innerHTML = `
-      <div class="output-img-wrap">
-        <img src="${results[0].url}" alt="Generated image" 
-             onerror="this.parentElement.innerHTML='<p style=color:var(--error);padding:20px>Generation failed — try a different prompt or model</p>'"
-             onload="this.style.opacity=1" style="opacity:0;transition:opacity 0.5s">
-        <div class="img-overlay">
-          <button class="btn btn-secondary" onclick="downloadImg('${results[0].url}', 'visualspark')">⬇ Download</button>
-          <button class="btn btn-ghost" onclick="generate()">🔄 Regenerate</button>
-        </div>
-      </div>
-    `;
-  } else {
-    const grid = results.map(r => `
-      <div style="position:relative;border-radius:8px;overflow:hidden;">
-        <img src="${r.url}" style="width:100%;display:block;border-radius:8px" 
-             onerror="this.style.display='none'"
-             onload="this.style.opacity=1" style="opacity:0;transition:opacity 0.5s">
-        <div class="img-overlay">
-          <button class="btn btn-secondary" style="padding:6px 12px;font-size:12px" onclick="downloadImg('${r.url}','visualspark_${r.seed}')">⬇</button>
-        </div>
-      </div>
-    `).join('');
-    document.getElementById('outputArea').innerHTML = `
-      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;width:100%">${grid}</div>
-    `;
-  }
-}
-
-function resetOutput() {
-  document.getElementById('outputArea').innerHTML = `
-    <div class="output-placeholder">
-      <div class="icon">⚠️</div>
-      <p>Generation failed. Please try again with a different prompt.</p>
-    </div>
-  `;
-}
-
-// ─── GALLERY ─────────────────────────────────────────────────────────────────
-function saveToGallery(results) {
-  for (const r of results) {
-    gallery.unshift({ url: r.url, prompt: r.prompt, model: r.model, seed: r.seed, ts: Date.now() });
-  }
-  if (gallery.length > 100) gallery = gallery.slice(0, 100);
-  localStorage.setItem('vs_gallery', JSON.stringify(gallery));
-  updateGalleryCount();
-}
-
-function renderGallery() {
-  const g = document.getElementById('galleryGrid');
-  if (gallery.length === 0) {
-    g.innerHTML = '<div class="empty-gallery">🎨 No images yet — create your first!</div>';
-    return;
-  }
-  g.innerHTML = gallery.map((item, i) => `
-    <div class="gallery-item">
-      <img src="${item.url}" alt="Gallery image" loading="lazy">
-      <div class="gallery-item-overlay">
-        <button class="btn btn-secondary" style="font-size:11px;padding:5px 12px" onclick="downloadImg('${item.url}','vs_${item.seed}')">⬇ Save</button>
-        <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;color:var(--error)" onclick="removeFromGallery(${i})">✕ Remove</button>
-      </div>
-      <div class="gallery-prompt" title="${item.prompt}">${item.prompt.substring(0, 60)}${item.prompt.length > 60 ? '…' : ''}</div>
-    </div>
-  `).join('');
-}
-
-function removeFromGallery(i) {
-  gallery.splice(i, 1);
-  localStorage.setItem('vs_gallery', JSON.stringify(gallery));
-  renderGallery();
-  updateGalleryCount();
-}
-
-function clearGallery() {
-  if (!confirm('Clear all saved images?')) return;
-  gallery = [];
-  localStorage.setItem('vs_gallery', JSON.stringify(gallery));
-  renderGallery();
-  updateGalleryCount();
-}
-
-function updateGalleryCount() {
-  document.getElementById('galleryCount').textContent = gallery.length;
-}
-
-// ─── DOWNLOAD ────────────────────────────────────────────────────────────────
-async function downloadImg(url, name) {
-  try {
-    const res = await fetch(url);
-    const blob = await res.blob();
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `${name}_${Date.now()}.jpg`;
-    a.click();
-    toast('Image downloaded!', 'ok');
-  } catch {
-    window.open(url, '_blank');
-  }
-}
-
-// ─── VIEWS ───────────────────────────────────────────────────────────────────
-function switchView(v) {
-  document.getElementById('createView').style.display = v === 'create' ? 'block' : 'none';
-  document.getElementById('galleryView').style.display = v === 'gallery' ? 'block' : 'none';
-  document.querySelectorAll('.view-tab').forEach((t, i) =>
-    t.classList.toggle('active', (i === 0 && v === 'create') || (i === 1 && v === 'gallery')));
-  if (v === 'gallery') renderGallery();
-}
-
-// ─── HELPERS ─────────────────────────────────────────────────────────────────
-function setStatus(msg) {
-  document.getElementById('statusText').textContent = msg;
-}
-
-function toast(msg, type = 'ok') {
-  const t = document.getElementById('toast');
-  t.textContent = (type === 'ok' ? '✓ ' : '✗ ') + msg;
-  t.className = `toast ${type} show`;
-  clearTimeout(t._timer);
-  t._timer = setTimeout(() => t.classList.remove('show'), 3500);
-}
-
-function startRailAnimation() {
-  const dots = document.querySelectorAll('.rail-dot');
-  railTimer = setInterval(() => {
-    dots.forEach(d => d.classList.remove('active'));
-    railIndex = (railIndex + 1) % dots.length;
-    dots[railIndex].classList.add('active');
-  }, 600);
-}
-
-// Prettier.js — format output metadata
-async function formatMeta(obj) {
-  try {
-    const raw = JSON.stringify(obj, null, 2);
-    const formatted = await prettier.format(raw, {
-      parser: 'json',
-      plugins: prettierPlugins,
+    // Load gallery from localStorage
+    window.addEventListener('load', () => {
+      document.getElementById('form').addEventListener('submit', handleSubmit);
     });
-    return formatted;
-  } catch {
-    return JSON.stringify(obj, null, 2);
-  }
-}
-</script>
+  </script>
 </body>
 </html>
