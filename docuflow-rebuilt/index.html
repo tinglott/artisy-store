@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocuFlow - Interactive PDF Flipbook</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .upload-zone {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .upload-zone.drag-active {
+            border: 3px dashed #667eea;
+            background: #f0f4ff;
+        }
+
+        .upload-zone input {
+            display: none;
+        }
+
+        .upload-label {
+            display: inline-block;
+            padding: 15px 40px;
+            background: #667eea;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .upload-label:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .upload-text {
+            margin-top: 20px;
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .viewer-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .viewer-container.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .viewer-toolbar {
+            background: #f5f5f5;
+            border-bottom: 1px solid #eee;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .viewer-toolbar button {
+            padding: 8px 16px;
+            border: none;
+            background: #667eea;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .viewer-toolbar button:hover {
+            background: #764ba2;
+            transform: translateY(-1px);
+        }
+
+        .viewer-toolbar button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .toolbar-info {
+            margin-left: auto;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .canvas-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #1a1a1a;
+            min-height: 600px;
+            overflow: auto;
+            position: relative;
+        }
+
+        .canvas-wrapper canvas {
+            max-width: 100%;
+            height: auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading::after {
+            content: '';
+            display: block;
+            width: 40px;
+            height: 40px;
+            margin: 20px auto;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #c33;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .upload-zone {
+                padding: 20px;
+            }
+
+            .viewer-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .toolbar-info {
+                margin-left: 0;
+                text-align: center;
+            }
+
+            .canvas-wrapper {
+                min-height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📖 DocuFlow</h1>
+            <p>Interactive PDF Flipbook Reader</p>
+        </div>
+
+        <div class="upload-zone" id="uploadZone">
+            <label class="upload-label">
+                📁 Upload PDF
+                <input type="file" id="pdfInput" accept=".pdf" />
+            </label>
+            <div class="upload-text">
+                Drag & drop a PDF here or click to browse
+            </div>
+        </div>
+
+        <div class="viewer-container" id="viewerContainer">
+            <div class="viewer-toolbar">
+                <button id="prevBtn">← Previous</button>
+                <button id="nextBtn">Next →</button>
+                <input type="number" id="pageInput" min="1" max="1" value="1" style="width: 60px; padding: 8px;">
+                <button id="zoomInBtn">🔍+</button>
+                <button id="zoomOutBtn">🔍-</button>
+                <button id="fullscreenBtn">⛶ Fullscreen</button>
+                <button id="resetBtn">↻ Reset</button>
+                <div class="toolbar-info">
+                    <span id="pageInfo">Page 1 of 1</span>
+                </div>
+            </div>
+            <div class="canvas-wrapper" id="canvasWrapper">
+                <div class="loading">Loading PDF...</div>
+            </div>
+        </div>
+
+        <div id="errorContainer"></div>
+    </div>
+
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        let pdfDoc = null;
+        let currentPage = 1;
+        let zoomLevel = 1;
+        let isFullscreen = false;
+
+        const uploadZone = document.getElementById('uploadZone');
+        const pdfInput = document.getElementById('pdfInput');
+        const viewerContainer = document.getElementById('viewerContainer');
+        const canvasWrapper = document.getElementById('canvasWrapper');
+        const pageInput = document.getElementById('pageInput');
+        const pageInfo = document.getElementById('pageInfo');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const zoomInBtn = document.getElementById('zoomInBtn');
+        const zoomOutBtn = document.getElementById('zoomOutBtn');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const errorContainer = document.getElementById('errorContainer');
+
+        // Drag & drop
+        uploadZone.addEventListener('dragover', e => {
+            e.preventDefault();
+            uploadZone.classList.add('drag-active');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('drag-active');
+        });
+
+        uploadZone.addEventListener('drop', e => {
+            e.preventDefault();
+            uploadZone.classList.remove('drag-active');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                pdfInput.files = files;
+                handlePdfUpload();
+            }
+        });
+
+        pdfInput.addEventListener('change', handlePdfUpload);
+
+        async function handlePdfUpload() {
+            const file = pdfInput.files[0];
+            if (!file) return;
+
+            try {
+                errorContainer.innerHTML = '';
+                canvasWrapper.innerHTML = '<div class="loading">Loading PDF...</div>';
+
+                const arrayBuffer = await file.arrayBuffer();
+                pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+                pageInput.max = pdfDoc.numPages;
+                currentPage = 1;
+                zoomLevel = 1;
+
+                uploadZone.style.display = 'none';
+                viewerContainer.classList.add('active');
+
+                await renderPage(currentPage);
+                updateButtons();
+            } catch (error) {
+                showError('Error loading PDF: ' + error.message);
+            }
+        }
+
+        async function renderPage(pageNum) {
+            if (!pdfDoc) return;
+
+            try {
+                const page = await pdfDoc.getPage(pageNum);
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+
+                const scale = 1.5 * zoomLevel;
+                const viewport = page.getViewport({ scale });
+
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+
+                const renderContext = {
+                    canvasContext: context,
+                    viewport: viewport
+                };
+
+                await page.render(renderContext).promise;
+
+                canvasWrapper.innerHTML = '';
+                canvasWrapper.appendChild(canvas);
+
+                pageInfo.textContent = `Page ${pageNum} of ${pdfDoc.numPages}`;
+                pageInput.value = pageNum;
+
+                currentPage = pageNum;
+                updateButtons();
+            } catch (error) {
+                showError('Error rendering page: ' + error.message);
+            }
+        }
+
+        function updateButtons() {
+            prevBtn.disabled = currentPage <= 1;
+            nextBtn.disabled = currentPage >= pdfDoc.numPages;
+        }
+
+        prevBtn.addEventListener('click', () => {
+            if (currentPage > 1) {
+                renderPage(currentPage - 1);
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentPage < pdfDoc.numPages) {
+                renderPage(currentPage + 1);
+            }
+        });
+
+        pageInput.addEventListener('change', () => {
+            let page = parseInt(pageInput.value);
+            if (page < 1) page = 1;
+            if (page > pdfDoc.numPages) page = pdfDoc.numPages;
+            renderPage(page);
+        });
+
+        zoomInBtn.addEventListener('click', () => {
+            zoomLevel = Math.min(zoomLevel + 0.2, 3);
+            renderPage(currentPage);
+        });
+
+        zoomOutBtn.addEventListener('click', () => {
+            zoomLevel = Math.max(zoomLevel - 0.2, 0.5);
+            renderPage(currentPage);
+        });
+
+        resetBtn.addEventListener('click', () => {
+            zoomLevel = 1;
+            renderPage(currentPage);
+        });
+
+        fullscreenBtn.addEventListener('click', () => {
+            if (!isFullscreen) {
+                canvasWrapper.requestFullscreen().catch(err => {
+                    showError('Could not enter fullscreen: ' + err.message);
+                });
+                isFullscreen = true;
+            } else {
+                document.exitFullscreen();
+                isFullscreen = false;
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', e => {
+            if (!pdfDoc) return;
+
+            if (e.key === 'ArrowRight') renderPage(Math.min(currentPage + 1, pdfDoc.numPages));
+            if (e.key === 'ArrowLeft') renderPage(Math.max(currentPage - 1, 1));
+            if (e.key === '+') {
+                zoomLevel = Math.min(zoomLevel + 0.2, 3);
+                renderPage(currentPage);
+            }
+            if (e.key === '-') {
+                zoomLevel = Math.max(zoomLevel - 0.2, 0.5);
+                renderPage(currentPage);
+            }
+        });
+
+        function showError(message) {
+            errorContainer.innerHTML = `<div class="error">${message}</div>`;
+        }
+    </script>
+</body>
+</html>
