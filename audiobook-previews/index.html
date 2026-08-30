@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audiobook Downloads - Ting Lott Digital Store</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        .playfair { font-family: 'Playfair Display', serif; }
+        .gold { color: #d4af37; }
+        .gold-border { border-color: #d4af37; }
+        .gold-bg { background-color: #d4af37; }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(212, 175, 55, 0.3); }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
+    <!-- Navigation -->
+    <nav class="bg-black/40 backdrop-blur border-b border-gold/20 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+            <a href="https://shop.artistrystore.com/" class="playfair text-2xl gold hover:opacity-80">ARTISY</a>
+            <a href="https://shop.artistrystore.com/" class="text-sm hover:gold transition">← Back to Store</a>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div class="text-center mb-12">
+            <h1 class="playfair text-5xl md:text-6xl mb-4 gold">Audiobook Library</h1>
+            <p class="text-xl text-slate-300">Professional narration. Downloadable ZIP files. Complete audiobook collections.</p>
+            <p class="text-lg gold mt-4">Just <span class="font-bold">$0.99</span> each</p>
+        </div>
+    </div>
+
+    <!-- Audiobooks Grid -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="audiobooks-grid">
+            <!-- Audiobooks will be inserted here -->
+        </div>
+    </div>
+
+    <!-- Success Message Modal (from Stripe redirect) -->
+    <div id="success-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur flex items-center justify-center z-50">
+        <div class="bg-gradient-to-br from-slate-800 to-slate-900 border-2 gold-border rounded-lg p-8 max-w-md text-center">
+            <div class="text-5xl gold mb-4">✅</div>
+            <h2 class="playfair text-3xl mb-4">Thank You!</h2>
+            <p class="text-slate-300 mb-6">Your audiobook download link has been sent to your email. Check your inbox for the ZIP file with your complete audiobook collection.</p>
+            <p class="text-sm text-slate-400 mb-6">If you don't see it within a few minutes, check your spam folder.</p>
+            <button onclick="document.getElementById('success-modal').classList.add('hidden')" class="gold-bg text-black px-8 py-3 rounded font-bold hover:opacity-90 transition">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // Audiobook data with Stripe payment links
+        const audiobooks = [
+            {
+                title: "365 Days Peace Happiness",
+                size: "168.9 MB",
+                description: "A year of daily peace and happiness practices with complete narration.",
+                link: "https://buy.stripe.com/fZucN53Zr0gJc8O9g5cQX3G"
+            },
+            {
+                title: "90 Days to Calm",
+                size: "42.4 MB",
+                description: "Three months of guided calm and meditation practices.",
+                link: "https://buy.stripe.com/4gMcN51RjbZr3CifEtcQX3H"
+            },
+            {
+                title: "AI Consulting Mastery",
+                size: "68.3 MB",
+                description: "Master the art of AI consulting with expert strategies and insights.",
+                link: "https://buy.stripe.com/00w5kD0Nfd3v2ye9g5cQX3I"
+            },
+            {
+                title: "AI Powered Business",
+                size: "186.3 MB",
+                description: "Complete guide to leveraging AI in modern business operations.",
+                link: "https://buy.stripe.com/aFafZh1RjfbDb4KeApcQX3J"
+            },
+            {
+                title: "A New Shore - Zoe's Journal",
+                size: "6.4 MB",
+                description: "An intimate personal journal story of new beginnings.",
+                link: "https://buy.stripe.com/00w14n7bD5B36OufEtcQX3K"
+            },
+            {
+                title: "An American Quilt",
+                size: "83.2 MB",
+                description: "Woven tales of American life and heritage.",
+                link: "https://buy.stripe.com/eVq5kDgMde7z0q63VLcQX3L"
+            },
+            {
+                title: "Ancient Wisdom",
+                size: "56 MB",
+                description: "Timeless wisdom teachings from across cultures and traditions.",
+                link: "https://buy.stripe.com/14AeVd0NfaVn0q6dwlcQX3M"
+            },
+            {
+                title: "Badtime Adventures",
+                size: "23.1 MB",
+                description: "Whimsical bedtime stories and calming narratives.",
+                link: "https://buy.stripe.com/eVqfZh3Zrd3v7Sy77XcQX3N"
+            },
+            {
+                title: "Become the Bank",
+                size: "4.6 MB",
+                description: "Financial independence strategies and wealth-building principles.",
+                link: "https://buy.stripe.com/cNibJ1eE55B35KqfEtcQX3O"
+            },
+            {
+                title: "Beyond Productivity",
+                size: "69.3 MB",
+                description: "Go beyond productivity to find true purpose and fulfillment.",
+                link: "https://buy.stripe.com/4gMcN57bDgfHgp44ZPcQX3P"
+            }
+        ];
+
+        // Render audiobooks
+        const grid = document.getElementById('audiobooks-grid');
+        audiobooks.forEach(book => {
+            const card = document.createElement('div');
+            card.className = 'bg-gradient-to-br from-slate-800 to-slate-900 border border-gold/30 rounded-lg p-6 card-hover';
+            card.innerHTML = `
+                <div class="mb-4">
+                    <div class="w-full h-40 bg-gradient-to-br from-gold/20 to-slate-700 rounded-lg flex items-center justify-center border border-gold/30 mb-4">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">🎧</div>
+                            <div class="text-sm text-slate-300">${book.size}</div>
+                        </div>
+                    </div>
+                </div>
+                <h3 class="playfair text-xl mb-2 gold">${book.title}</h3>
+                <p class="text-slate-400 text-sm mb-6">${book.description}</p>
+                <a href="${book.link}" class="block w-full bg-gold/90 hover:gold-bg text-black font-bold py-3 rounded text-center transition">
+                    Download for $0.99
+                </a>
+            `;
+            grid.appendChild(card);
+        });
+
+        // Show success message if redirected from Stripe
+        if (new URLSearchParams(window.location.search).get('success') === 'true') {
+            document.getElementById('success-modal').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
