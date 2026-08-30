@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DocuFlow — Interactive PDF Flipbooks</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.6.82/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/page-flip.min.js"></script>
+  <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+  <style>
+    #flipbook-container {
+      display: flex;
+      gap: 20px;
+      perspective: 1000px;
+    }
+    .flip-book {
+      width: 100%;
+      max-width: 900px;
+      height: 600px;
+      box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .page {
+      width: 100%;
+      height: 100%;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #999;
+      font-size: 14px;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      justify-content: center;
+    }
+    button {
+      padding: 10px 20px;
+      background: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    button:hover {
+      background: #4338ca;
+    }
+    .upload-area {
+      border: 3px dashed #ccc;
+      border-radius: 8px;
+      padding: 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .upload-area:hover {
+      border-color: #4f46e5;
+      background: #f5f5ff;
+    }
+    .upload-area.dragover {
+      border-color: #4f46e5;
+      background: #ede9fe;
+    }
+  </style>
+</head>
+<body class="bg-gray-900 text-white">
+  <div class="min-h-screen p-6">
+    <div class="max-w-6xl mx-auto">
+      <!-- Header -->
+      <div class="text-center mb-12">
+        <h1 class="text-5xl font-bold mb-2">DocuFlow</h1>
+        <p class="text-xl text-gray-400">Interactive PDF Flipbooks — Upload a PDF, Create a Flipbook</p>
+      </div>
+
+      <!-- Upload Section -->
+      <div id="upload-section" class="mb-12">
+        <div class="upload-area" id="dropzone">
+          <svg class="mx-auto mb-4 w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          <h2 class="text-2xl font-bold mb-2">Upload Your PDF</h2>
+          <p class="text-gray-400 mb-4">Drag and drop your PDF here, or click to select</p>
+          <input type="file" id="pdf-input" accept=".pdf" style="display: none;">
+          <button onclick="document.getElementById('pdf-input').click()">Choose PDF</button>
+        </div>
+      </div>
+
+      <!-- Flipbook Section -->
+      <div id="flipbook-section" style="display: none;">
+        <div class="flip-book" id="flipbook"></div>
+        <div class="controls">
+          <button onclick="flipPrev()">← Previous</button>
+          <span id="page-info" class="text-center">Page <span id="current-page">1</span> / <span id="total-pages">0</span></span>
+          <button onclick="flipNext()">Next →</button>
+          <button onclick="toggleFullscreen()">⛶ Fullscreen</button>
+          <button onclick="resetFlipbook()">✕ Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.6.82/pdf.worker.min.js';
+
+    let pdfDoc = null;
+    let pageFlip = null;
+
+    const dropzone = document.getElementById('dropzone');
+    const pdfInput = document.getElementById('pdf-input');
+    const uploadSection = document.getElementById('upload-section');
+    const flipbookSection = document.getElementById('flipbook-section');
+
+    // Drag and drop
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    });
+    dropzone.addEventListener('dragleave', () => {
+      dropzone.classList.remove('dragover');
+    });
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      handlePdfUpload(e.dataTransfer.files[0]);
+    });
+
+    pdfInput.addEventListener('change', (e) => {
+      if (e.target.files[0]) {
+        handlePdfUpload(e.target.files[0]);
+      }
+    });
+
+    async function handlePdfUpload(file) {
+      if (file.type !== 'application/pdf') {
+        alert('Please upload a PDF file');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          pdfDoc = await pdfjsLib.getDocument(e.target.result).promise;
+          
+          // Reset flipbook
+          if (pageFlip) {
+            pageFlip.destroy();
+          }
+
+          // Generate pages
+          const pages = [];
+          for (let i = 1; i <= Math.min(pdfDoc.numPages, 200); i++) {
+            const page = await pdfDoc.getPage(i);
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const viewport = page.getViewport({ scale: 1.5 });
+            
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            
+            await page.render({ canvasContext: ctx, viewport }).promise;
+            
+            const pageDiv = document.createElement('div');
+            pageDiv.className = 'page';
+            pageDiv.style.backgroundImage = `url(${canvas.toDataURL()})`;
+            pageDiv.style.backgroundSize = 'cover';
+            pageDiv.style.backgroundPosition = 'center';
+            pages.push(pageDiv);
+          }
+
+          // Initialize PageFlip
+          const flipbook = document.getElementById('flipbook');
+          flipbook.innerHTML = '';
+          pages.forEach(p => flipbook.appendChild(p));
+
+          pageFlip = new PageFlip(flipbook, {
+            width: 450,
+            height: 600,
+            size: 'fixed',
+            minWidth: 300,
+            maxWidth: 900,
+            minHeight: 400,
+            maxHeight: 1200,
+            maxShadowOpacity: 0.5,
+            showCover: true,
+            mobileScrollSupport: true,
+          });
+
+          await pageFlip.loadFromHTML(document.querySelectorAll('.flip-book .page'));
+
+          // Update UI
+          document.getElementById('total-pages').textContent = pdfDoc.numPages;
+          document.getElementById('current-page').textContent = 1;
+          uploadSection.style.display = 'none';
+          flipbookSection.style.display = 'block';
+
+          pageFlip.on('flip', (object) => {
+            document.getElementById('current-page').textContent = object.data + 1;
+          });
+
+        } catch (err) {
+          alert('Error loading PDF: ' + err.message);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function flipPrev() {
+      if (pageFlip) pageFlip.turnToPrevPage();
+    }
+
+    function flipNext() {
+      if (pageFlip) pageFlip.turnToNextPage();
+    }
+
+    function toggleFullscreen() {
+      const flipbook = document.getElementById('flipbook');
+      if (flipbook.requestFullscreen) {
+        flipbook.requestFullscreen();
+      }
+    }
+
+    function resetFlipbook() {
+      uploadSection.style.display = 'block';
+      flipbookSection.style.display = 'none';
+      pdfInput.value = '';
+      if (pageFlip) {
+        pageFlip.destroy();
+        pageFlip = null;
+      }
+      pdfDoc = null;
+    }
+  </script>
+</body>
+</html>
