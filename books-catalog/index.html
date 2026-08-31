@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📚 Complete Books Collection — Ting Lott</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        .book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem; }
+        .book-card { background: #f8f9fa; border-radius: 12px; padding: 1rem; border: 1px solid #e0e0e0; transition: all 0.3s; }
+        .book-card:hover { transform: translateY(-4px); box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
+        .badge { display: inline-block; background: #dcfce7; color: #166534; padding: 0.25rem 0.75rem; border-radius: 99px; font-size: 0.75rem; font-weight: 600; }
+        .price { font-size: 1.5rem; font-weight: 700; color: #000; }
+        .btn-primary { background: #000; color: white; padding: 0.75rem 1.5rem; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+        .btn-primary:hover { background: #333; }
+        @media (max-width: 640px) { .book-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); } }
+    </style>
+</head>
+<body class="bg-white">
+    <div class="w-full bg-gradient-to-r from-black to-gray-900 text-white py-12">
+        <div class="max-w-6xl mx-auto px-4">
+            <h1 class="text-4xl font-bold mb-2">📚 Complete Books Collection</h1>
+            <p class="text-lg text-gray-300">All 216+ audiobooks & eBooks by Ting Lott</p>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-4 py-12">
+        <!-- Filters -->
+        <div class="mb-8 flex flex-wrap gap-3">
+            <input type="text" id="searchInput" placeholder="Search by title or category..." class="px-4 py-2 border border-gray-300 rounded-lg w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-black">
+            <select id="categoryFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black">
+                <option value="">All Categories</option>
+                <option value="Self-Help">Self-Help</option>
+                <option value="Fiction">Fiction</option>
+                <option value="Wellness">Wellness</option>
+                <option value="Business">Business</option>
+                <option value="Romance">Romance</option>
+                <option value="Children">Children</option>
+                <option value="Christian">Christian</option>
+            </select>
+        </div>
+
+        <!-- Book Grid -->
+        <div id="bookGrid" class="book-grid">
+            <div class="text-center py-12 col-span-full">
+                <p class="text-gray-500">Loading catalog...</p>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="mt-12 flex justify-center gap-4">
+            <button id="prevBtn" class="btn-primary">← Previous</button>
+            <span id="pageInfo" class="py-2">Page 1</span>
+            <button id="nextBtn" class="btn-primary">Next →</button>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div id="checkoutModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold" id="modalTitle">Complete Purchase</h2>
+                <button onclick="closeModal()" class="text-gray-500 text-2xl">×</button>
+            </div>
+            
+            <div id="paymentElement"></div>
+            <button id="submitBtn" class="w-full btn-primary mt-6">Pay Now</button>
+            <p class="text-sm text-gray-500 text-center mt-4">Secure payment via Stripe</p>
+        </div>
+    </div>
+
+    <script>
+        const stripe = Stripe('pk_live_51O7IeCH6tpcwnhF7qvOKCRs5ZM3xFnANqUKrUxLU4K01O8M1R7SV3Rr3T9xRq0ZNHh9lUy5mQxRVHxB7K2R0cLT000XaVfSDez');
+        
+        // Sample catalog (loaded from MASTER_BOOK_CATALOG)
+        let allBooks = [];
+        let filteredBooks = [];
+        let currentPage = 0;
+        const booksPerPage = 20;
+
+        // Load catalog
+        async function loadCatalog() {
+            try {
+                const response = await fetch('data:application/json;base64,W3sidGl0bGUiOiAiMjcgbW9kZXJuIGh5bW5zIGNsYXNzaWMgc3R5bGUiLCAiY2F0ZWdvcnkiOiAiQ2hyaXN0aWFuL0Rldk90aW9uYWwiLCAicHJpY2UiOiA5Ljk5fSx7InRpdGxlIjogIjM2NSBEYXlzIG9mIFBlYWNlIGFuZCBIYXBwaW5lc3MiLCAiY2F0ZWdvcnkiOiAiU2VsZi1IZWxwL1BlcnNvbmFsIEdyb3d0aCIsICJwcmljZSI6IDE0Ljk5fSx7InRpdGxlIjogIjkwIERheXMgdG8gQ2FsbSIsICJjYXRlZ29yeSI6ICJXZWxsbmVzcyIsICJwcmljZSI6IDE2Ljk5fSx7InRpdGxlIjogIkZpbmRpbmcgQ2FsbTogU3RvcmllcyAmIFNvbHV0aW9ucyIsICJjYXRlZ29yeSI6ICJXZWxsbmVzcyIsICJwcmljZSI6IDE2Ljk5fSx7InRpdGxlIjogIkJleW9uZCBQcm9kdWN0aXZpdHkiLCAiY2F0ZWdvcnkiOiAiQnVzaW5lc3MiLCAicHJpY2UiOiAyNC45OX0seyJ0aXRsZSI6ICJTYWN0aWQgQ3ljbGVzIiwgImNhdGVnb3J5IjogIldlbGxuZXNzIiwgInByaWNlIjogMzcuOTl9LHsidGl0bGUiOiAiU3RyZXNzIExlc3MiLCAiY2F0ZWdvcnkiOiAiV2VsbG5lc3MiLCAicHJpY2UiOiAxNy45OX0seyJ0aXRsZSI6ICJJBG5lciBLaW5nZG9tIiwgImNhdGVnb3J5IjogIlNwaXJpdHVhbCIsICJwcmljZSI6IDYuOTl9LHsidGl0bGUiOiAiMzAtRGF5IFNvY2lhbCBNZWRpYSBDaGFsbGVuZ2UiLCAiY2F0ZWdvcnkiOiAiQnVzaW5lc3MiLCAicHJpY2UiOiAxNC45OX0seyJ0aXRsZSI6ICJDT1BFU0hFRVRTIiwgImNhdGVnb3J5IjogIldlbGxuZXNzIiwgInByaWNlIjogMS45OX1d');
+                allBooks = await response.json();
+                
+                // Add more books for demo (in production, load all 216)
+                for (let i = 0; i < 20; i++) {
+                    allBooks.push({
+                        title: `Book Title ${i + 11}`,
+                        category: ['Self-Help', 'Fiction', 'Wellness', 'Business'][Math.floor(Math.random() * 4)],
+                        price: (9.99 + Math.random() * 30).toFixed(2)
+                    });
+                }
+                
+                filteredBooks = [...allBooks];
+                renderBooks();
+            } catch (e) {
+                console.error('Failed to load catalog:', e);
+                document.getElementById('bookGrid').innerHTML = '<p class="text-red-500">Error loading catalog</p>';
+            }
+        }
+
+        function renderBooks() {
+            const start = currentPage * booksPerPage;
+            const end = start + booksPerPage;
+            const pagBooks = filteredBooks.slice(start, end);
+
+            const html = pagBooks.map((book, idx) => `
+                <div class="book-card">
+                    <div class="bg-gray-200 h-40 rounded-lg mb-3 flex items-center justify-center">
+                        <span class="text-gray-400 text-sm">📖 Cover</span>
+                    </div>
+                    <h3 class="font-bold text-sm mb-2 line-clamp-2">${book.title}</h3>
+                    <p class="text-xs text-gray-600 mb-3">${book.category}</p>
+                    <div class="flex justify-between items-center">
+                        <span class="price">$${book.price}</span>
+                        <button onclick="checkout('${book.title}', ${book.price})" class="text-sm bg-black text-white px-3 py-2 rounded-lg hover:bg-gray-800">Buy</button>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('bookGrid').innerHTML = html || '<p class="text-gray-500 text-center py-12">No books found</p>';
+            document.getElementById('pageInfo').textContent = `Page ${currentPage + 1} of ${Math.ceil(filteredBooks.length / booksPerPage)}`;
+            
+            document.getElementById('prevBtn').disabled = currentPage === 0;
+            document.getElementById('nextBtn').disabled = end >= filteredBooks.length;
+        }
+
+        // Search & Filter
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            filteredBooks = allBooks.filter(b => b.title.toLowerCase().includes(term) || b.category.toLowerCase().includes(term));
+            currentPage = 0;
+            renderBooks();
+        });
+
+        document.getElementById('categoryFilter').addEventListener('change', (e) => {
+            if (e.target.value) {
+                filteredBooks = allBooks.filter(b => b.category.includes(e.target.value));
+            } else {
+                filteredBooks = [...allBooks];
+            }
+            currentPage = 0;
+            renderBooks();
+        });
+
+        // Pagination
+        document.getElementById('prevBtn').addEventListener('click', () => { if (currentPage > 0) currentPage--; renderBooks(); });
+        document.getElementById('nextBtn').addEventListener('click', () => { if ((currentPage + 1) * booksPerPage < filteredBooks.length) currentPage++; renderBooks(); });
+
+        // Checkout
+        async function checkout(title, price) {
+            document.getElementById('modalTitle').textContent = `Buy: ${title}`;
+            document.getElementById('checkoutModal').classList.remove('hidden');
+            
+            // In production, create a Stripe Checkout Session on your backend
+            console.log(`Checkout: ${title} for $${price}`);
+        }
+
+        function closeModal() {
+            document.getElementById('checkoutModal').classList.add('hidden');
+        }
+
+        // Load on start
+        loadCatalog();
+    </script>
+</body>
+</html>
