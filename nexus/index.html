@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS — ISC Caseload Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1B2A2E;
+    --ink-soft: #3C4C4F;
+    --paper: #EDE8DC;
+    --paper-raised: #F6F3EA;
+    --line: #C9C0AC;
+    --teal: #3F6B66;
+    --teal-deep: #274543;
+    --sage: #7C9A7E;
+    --sage-bg: #E4EBE1;
+    --amber: #B98A2E;
+    --amber-bg: #F2E6C8;
+    --danger: #A13D3D;
+    --danger-bg: #F5E0E0;
+    --radius: 10px;
+    --shadow: 0 2px 12px rgba(27,42,46,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+  h1,h2,h3,h4 { font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; }
+  .app { max-width: 1280px; margin: 0 auto; padding: 1rem; }
+  header {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+    gap: 1rem; padding: 1rem 0 1.5rem; border-bottom: 1px solid var(--line); margin-bottom: 1.5rem;
+  }
+  .logo { font-size: 1.55rem; color: var(--teal-deep); letter-spacing: -0.02em; }
+  .logo span { color: var(--teal); font-weight: 400; }
+  nav { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .nav-btn {
+    background: var(--paper-raised); border: 1px solid var(--line); color: var(--ink-soft);
+    padding: 0.45rem 0.9rem; border-radius: 999px; font-size: 0.875rem; font-weight: 500;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .nav-btn:hover, .nav-btn.active { background: var(--teal); color: white; border-color: var(--teal); }
+  .card {
+    background: var(--paper-raised); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 1.15rem; box-shadow: var(--shadow); margin-bottom: 1rem;
+  }
+  .grid { display: grid; gap: 1rem; }
+  .grid-4 { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+  .stat { text-align: center; }
+  .stat .num { font-size: 1.85rem; font-weight: 700; color: var(--teal-deep); }
+  .stat .label { font-size: 0.8rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.04em; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 0.35rem; background: var(--teal); color: white;
+    border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 500; font-size: 0.875rem;
+    cursor: pointer; transition: background 0.15s;
+  }
+  .btn:hover { background: var(--teal-deep); }
+  .btn.secondary { background: var(--paper-raised); color: var(--ink); border: 1px solid var(--line); }
+  .btn.secondary:hover { background: var(--sage-bg); }
+  .btn.danger { background: var(--danger); }
+  .btn.sm { padding: 0.3rem 0.65rem; font-size: 0.8rem; }
+  input, select, textarea {
+    width: 100%; padding: 0.5rem 0.7rem; border: 1px solid var(--line); border-radius: 8px;
+    background: white; font: inherit; color: var(--ink);
+  }
+  textarea { min-height: 90px; resize: vertical; }
+  label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--ink-soft); margin-bottom: 0.25rem; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem; }
+  @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  th, td { text-align: left; padding: 0.55rem 0.6rem; border-bottom: 1px solid var(--line); }
+  th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--ink-soft); }
+  tr:hover td { background: rgba(63,107,102,0.04); }
+  .badge {
+    display: inline-block; padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600;
+  }
+  .badge.active { background: var(--sage-bg); color: var(--teal-deep); }
+  .badge.high { background: var(--danger-bg); color: var(--danger); }
+  .badge.medium { background: var(--amber-bg); color: var(--amber); }
+  .badge.low { background: #E8F0E9; color: var(--sage); }
+  .badge.closed { background: #E5E5E5; color: #666; }
+  .hidden { display: none !important; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .case-card {
+    display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; justify-content: space-between;
+    padding: 0.85rem 1rem; border: 1px solid var(--line); border-radius: var(--radius);
+    background: white; margin-bottom: 0.6rem; cursor: pointer; transition: border-color 0.15s;
+  }
+  .case-card:hover { border-color: var(--teal); }
+  .search-bar { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+  .search-bar input, .search-bar select { max-width: 220px; }
+  .note-item, .doc-item, .fin-item, .task-item {
+    padding: 0.7rem; border: 1px solid var(--line); border-radius: 8px; margin-bottom: 0.5rem; background: white;
+  }
+  .meta { font-size: 0.75rem; color: var(--ink-soft); }
+  .actions { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
+  .toast {
+    position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--teal-deep); color: white;
+    padding: 0.75rem 1.2rem; border-radius: 8px; box-shadow: var(--shadow); z-index: 100; display: none;
+  }
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(27,42,46,0.45); display: none; align-items: center;
+    justify-content: center; z-index: 50; padding: 1rem;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--paper-raised); border-radius: 12px; max-width: 560px; width: 100%;
+    max-height: 90vh; overflow-y: auto; padding: 1.5rem; box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  }
+  .modal h3 { margin-bottom: 1rem; }
+  .ai-box {
+    background: var(--sage-bg); border: 1px dashed var(--sage); border-radius: 8px; padding: 0.9rem; margin-top: 0.75rem;
+  }
+  footer { text-align: center; padding: 2rem 0 1rem; font-size: 0.8rem; color: var(--ink-soft); }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">NEXUS <span>— ISC Caseload Ledger</span></div>
+    <nav>
+      <button class="nav-btn active" data-panel="dashboard">Dashboard</button>
+      <button class="nav-btn" data-panel="caseload">Caseload</button>
+      <button class="nav-btn" data-panel="tasks">Tasks &amp; Reminders</button>
+      <button class="nav-btn" data-panel="reports">Reports / Export</button>
+      <button class="nav-btn" data-panel="settings">Settings</button>
+    </nav>
+  </header>
+
+  <!-- DASHBOARD -->
+  <section id="dashboard" class="panel active">
+    <div class="grid grid-4" style="margin-bottom:1.25rem;">
+      <div class="card stat"><div class="num" id="stat-active">0</div><div class="label">Active Cases</div></div>
+      <div class="card stat"><div class="num" id="stat-high">0</div><div class="label">High Risk</div></div>
+      <div class="card stat"><div class="num" id="stat-due">0</div><div class="label">Due ≤ 7 days</div></div>
+      <div class="card stat"><div class="num" id="stat-tasks">0</div><div class="label">Open Tasks</div></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:0.75rem;">Upcoming Visits &amp; Deadlines</h3>
+      <div id="upcoming-list"></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:0.75rem;">Quick Actions</h3>
+      <div class="actions">
+        <button class="btn" onclick="openNewCaseModal()">+ New Case</button>
+        <button class="btn secondary" onclick="document.querySelector('[data-panel=caseload]').click()">View Full Caseload</button>
+        <button class="btn secondary" onclick="requestNotifPermission()">Enable Browser Notifications</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- CASELOAD -->
+  <section id="caseload" class="panel">
+    <div class="search-bar">
+      <input type="search" id="search-input" placeholder="Search name, ID, diagnosis…">
+      <select id="filter-status">
+        <option value="">All statuses</option>
+        <option value="Active">Active</option>
+        <option value="Pending">Pending</option>
+        <option value="Closed">Closed</option>
+      </select>
+      <select id="filter-risk">
+        <option value="">All risk levels</option>
+        <option value="High">High</option>
+        <option value="Medium">Medium</option>
+        <option value="Low">Low</option>
+      </select>
+      <button class="btn" onclick="openNewCaseModal()">+ New Case</button>
+    </div>
+    <div id="case-list"></div>
+  </section>
+
+  <!-- CASE DETAIL (dynamic) -->
+  <section id="case-detail" class="panel">
+    <div class="actions" style="margin-bottom:1rem;">
+      <button class="btn secondary" onclick="showPanel('caseload')">← Back to Caseload</button>
+      <button class="btn" onclick="editCurrentCase()">Edit Case</button>
+      <button class="btn secondary" onclick="exportOneCase()">Export This Case</button>
+    </div>
+    <div id="case-detail-content"></div>
+  </section>
+
+  <!-- TASKS -->
+  <section id="tasks" class="panel">
+    <div class="card">
+      <h3 style="margin-bottom:0.75rem;">Tasks &amp; Reminders</h3>
+      <div class="form-row">
+        <div><label>Task</label><input id="task-text" placeholder="e.g. Monthly visit – Jordan"></div>
+        <div><label>Due date</label><input type="date" id="task-due"></div>
+      </div>
+      <div class="form-row">
+        <div><label>Linked case (optional)</label><select id="task-case"></select></div>
+        <div style="display:flex;align-items:flex-end;"><button class="btn" onclick="addTask()">Add Task</button></div>
+      </div>
+      <div id="task-list" style="margin-top:1rem;"></div>
+    </div>
+  </section>
+
+  <!-- REPORTS -->
+  <section id="reports" class="panel">
+    <div class="card">
+      <h3>Export &amp; Reports</h3>
+      <p class="meta" style="margin:0.5rem 0 1rem;">All data lives in this browser (localStorage). Export regularly.</p>
+      <div class="actions">
+        <button class="btn" onclick="exportAllJSON()">Download Full JSON</button>
+        <button class="btn secondary" onclick="exportAllCSV()">Download Cases CSV</button>
+        <button class="btn secondary" onclick="clearAllData()">Clear All Data (irreversible)</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="settings" class="panel">
+    <div class="card">
+      <h3>Settings &amp; Notes</h3>
+      <p style="margin:0.75rem 0;">This is a single-file, offline-capable ISC caseload tool. Data never leaves your device unless you export it.</p>
+      <ul style="margin:0.75rem 0 0 1.2rem; font-size:0.9rem; color:var(--ink-soft);">
+        <li>Browser notifications work when the page is open and permission is granted.</li>
+        <li>For real SMS / phone alerts, connect a service such as Twilio or a no-code tool (Make.com / Zapier) that watches an exported webhook or email.</li>
+        <li>AI helpers (summarize, draft updates) run entirely in the browser. For stronger LLM assistance, you can later add an API key to a secure backend.</li>
+        <li>Large file attachments are stored as base64 — keep them modest or clear periodically.</li>
+      </ul>
+      <div class="actions" style="margin-top:1rem;">
+        <button class="btn secondary" onclick="requestNotifPermission()">Request Notification Permission</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- NEW / EDIT CASE MODAL -->
+<div class="modal-overlay" id="case-modal">
+  <div class="modal">
+    <h3 id="modal-title">New Case</h3>
+    <input type="hidden" id="edit-id">
+    <div class="form-row">
+      <div><label>Full name *</label><input id="c-name" required></div>
+      <div><label>Case / Medicaid ID</label><input id="c-id"></div>
+    </div>
+    <div class="form-row">
+      <div><label>Status</label>
+        <select id="c-status"><option>Active</option><option>Pending</option><option>Closed</option></select>
+      </div>
+      <div><label>Risk level</label>
+        <select id="c-risk"><option>Low</option><option>Medium</option><option>High</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div><label>DOB</label><input type="date" id="c-dob"></div>
+      <div><label>Next visit / review</label><input type="date" id="c-next"></div>
+    </div>
+    <div><label>Primary diagnosis / notes</label><textarea id="c-dx"></textarea></div>
+    <div style="margin-top:0.75rem;"><label>Guardian / key contact</label><input id="c-contact"></div>
+    <div class="actions" style="margin-top:1.25rem;">
+      <button class="btn" onclick="saveCase()">Save Case</button>
+      <button class="btn secondary" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ========== DATA LAYER (localStorage) ========== */
+const STORAGE_KEY = 'nexus_isc_v1';
+let state = { cases: [], tasks: [] };
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) state = JSON.parse(raw);
+  } catch (e) { console.warn(e); }
+  if (!state.cases) state.cases = [];
+  if (!state.tasks) state.tasks = [];
+}
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  renderAll();
+}
+function uid() { return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+/* ========== NAV ========== */
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    showPanel(btn.dataset.panel);
+  });
+});
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+  if (id === 'caseload') renderCaseList();
+  if (id === 'tasks') renderTasks();
+  if (id === 'dashboard') renderDashboard();
+}
+
+/* ========== DASHBOARD ========== */
+function renderDashboard() {
+  const active = state.cases.filter(c => c.status === 'Active').length;
+  const high = state.cases.filter(c => c.risk === 'High' && c.status === 'Active').length;
+  const now = new Date();
+  const week = new Date(now.getTime() + 7*86400000);
+  const due = state.cases.filter(c => c.nextVisit && new Date(c.nextVisit) <= week && c.status === 'Active').length;
+  const openTasks = state.tasks.filter(t => !t.done).length;
+  document.getElementById('stat-active').textContent = active;
+  document.getElementById('stat-high').textContent = high;
+  document.getElementById('stat-due').textContent = due;
+  document.getElementById('stat-tasks').textContent = openTasks;
+
+  const upcoming = [...state.cases]
+    .filter(c => c.nextVisit && c.status === 'Active')
+    .sort((a,b) => new Date(a.nextVisit) - new Date(b.nextVisit))
+    .slice(0, 8);
+  const list = document.getElementById('upcoming-list');
+  if (!upcoming.length) {
+    list.innerHTML = '<p class="meta">No upcoming visits scheduled.</p>';
+    return;
+  }
+  list.innerHTML = upcoming.map(c => `
+    <div class="case-card" onclick="openCase('${c.id}')">
+      <div>
+        <strong>${esc(c.name)}</strong>
+        <div class="meta">${c.nextVisit} · ${c.risk} risk</div>
+      </div>
+      <span class="badge ${c.risk.toLowerCase()}"> ${c.risk}</span>
+    </div>`).join('');
+}
+
+/* ========== CASE LIST ========== */
+function renderCaseList() {
+  const q = (document.getElementById('search-input').value || '').toLowerCase();
+  const st = document.getElementById('filter-status').value;
+  const rk = document.getElementById('filter-risk').value;
+  let list = state.cases.slice();
+  if (q) list = list.filter(c =>
+    (c.name||'').toLowerCase().includes(q) ||
+    (c.caseId||'').toLowerCase().includes(q) ||
+    (c.dx||'').toLowerCase().includes(q));
+  if (st) list = list.filter(c => c.status === st);
+  if (rk) list = list.filter(c => c.risk === rk);
+  list.sort((a,b) => (a.name||'').localeCompare(b.name||''));
+
+  const el = document.getElementById('case-list');
+  if (!list.length) {
+    el.innerHTML = '<p class="meta">No cases match. Create one with “+ New Case”.</p>';
+    return;
+  }
+  el.innerHTML = list.map(c => `
+    <div class="case-card" onclick="openCase('${c.id}')">
+      <div>
+        <strong>${esc(c.name)}</strong>
+        <div class="meta">${c.caseId || '—'} · Next: ${c.nextVisit || '—'}</div>
+      </div>
+      <div style="display:flex;gap:0.4rem;align-items:center;">
+        <span class="badge ${c.status.toLowerCase()}"> ${c.status}</span>
+        <span class="badge ${c.risk.toLowerCase()}"> ${c.risk}</span>
+      </div>
+    </div>`).join('');
+}
+document.getElementById('search-input').addEventListener('input', renderCaseList);
+document.getElementById('filter-status').addEventListener('change', renderCaseList);
+document.getElementById('filter-risk').addEventListener('change', renderCaseList);
+
+/* ========== CASE DETAIL ========== */
+let currentCaseId = null;
+function openCase(id) {
+  currentCaseId = id;
+  const c = state.cases.find(x => x.id === id);
+  if (!c) return;
+  showPanel('case-detail');
+  const notes = (c.notes || []).slice().reverse();
+  const docs = c.docs || [];
+  const fins = c.finance || [];
+  const goals = c.goals || [];
+  const bal = fins.reduce((s,f) => s + (parseFloat(f.amount)||0), 0);
+
+  document.getElementById('case-detail-content').innerHTML = `
+    <div class="card">
+      <h2>${esc(c.name)}</h2>
+      <div class="meta" style="margin:0.3rem 0 0.8rem;">${c.caseId || 'No ID'} · ${c.status} · ${c.risk} risk · DOB ${c.dob || '—'}</div>
+      <p><strong>Next visit / review:</strong> ${c.nextVisit || 'Not set'}</p>
+      <p><strong>Contact:</strong> ${esc(c.contact || '—')}</p>
+      <p style="margin-top:0.5rem;"><strong>Diagnosis / notes:</strong><br>${esc(c.dx || '—')}</p>
+    </div>
+
+    <div class="card">
+      <h3>Personal Plan Goals</h3>
+      <div id="goals-list">${goals.length ? goals.map((g,i) => `
+        <div class="note-item">
+          <strong>${esc(g.title)}</strong>
+          <div class="meta">${g.status || 'In progress'} · ${g.updated || ''}</div>
+          <p>${esc(g.detail || '')}</p>
+          <button class="btn sm secondary" onclick="removeGoal('${c.id}', ${i})">Remove</button>
+        </div>`).join('') : '<p class="meta">No goals yet.</p>'}
+      </div>
+      <div class="form-row" style="margin-top:0.75rem;">
+        <div><label>Goal title</label><input id="goal-title"></div>
+        <div><label>Status</label><select id="goal-status"><option>In progress</option><option>Met</option><option>On hold</option></select></div>
+      </div>
+      <div><label>Detail</label><textarea id="goal-detail"></textarea></div>
+      <button class="btn sm" style="margin-top:0.5rem;" onclick="addGoal('${c.id}')">Add Goal</button>
+    </div>
+
+    <div class="card">
+      <h3>Case Notes &amp; AI Helpers</h3>
+      <textarea id="new-note" placeholder="Write or paste a note, contact summary, or update…"></textarea>
+      <div class="actions" style="margin-top:0.5rem;">
+        <button class="btn" onclick="addNote('${c.id}')">Save Note</button>
+        <button class="btn secondary" onclick="aiSummarize()">Summarize text above</button>
+        <button class="btn secondary" onclick="aiDraftUpdate()">Draft status update</button>
+      </div>
+      <div class="ai-box hidden" id="ai-output"></div>
+      <div style="margin-top:1rem;" id="notes-list">
+        ${notes.map((n,i) => `
+          <div class="note-item">
+            <div class="meta">${n.ts}</div>
+            <p style="white-space:pre-wrap;">${esc(n.text)}</p>
+            <button class="btn sm secondary" onclick="removeNote('${c.id}', ${notes.length-1-i})">Delete</button>
+          </div>`).join('') || '<p class="meta">No notes yet.</p>'}
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Documents (upload or paste)</h3>
+      <input type="file" id="file-input" multiple accept="image/*,.pdf,.txt,.doc,.docx">
+      <button class="btn sm" style="margin-top:0.5rem;" onclick="handleFiles('${c.id}')">Attach selected files</button>
+      <p class="meta" style="margin:0.5rem 0;">Or paste text below and save as a text document:</p>
+      <textarea id="paste-doc" placeholder="Paste content here…"></textarea>
+      <button class="btn sm" style="margin-top:0.4rem;" onclick="savePastedDoc('${c.id}')">Save pasted text</button>
+      <div style="margin-top:1rem;" id="docs-list">
+        ${docs.map((d,i) => `
+          <div class="doc-item">
+            <strong>${esc(d.name)}</strong> <span class="meta"> ${d.ts} · ${d.size || ''}</span>
+            ${d.type && d.type.startsWith('image/') ? `<br><img src=" ${d.data}" style="max-width:180px;margin-top:0.4rem;border-radius:6px;">` : ''}
+            ${d.type === 'text/plain' ? `<pre style="font-size:0.8rem;max-height:80px;overflow:auto;margin-top:0.3rem;"> ${esc(d.data.slice(0,400))}</pre>` : ''}
+            <div class="actions">
+              <button class="btn sm secondary" onclick="downloadDoc('${c.id}', ${i})">Download</button>
+              <button class="btn sm secondary" onclick="removeDoc('${c.id}', ${i})">Remove</button>
+            </div>
+          </div>`).join('') || '<p class="meta">No documents attached.</p>'}
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Finance Tracker <span class="meta">(running balance: ${bal.toFixed(2)})</span></h3>
+      <div class="form-row">
+        <div><label>Description</label><input id="fin-desc"></div>
+        <div><label>Amount (+ income / − expense)</label><input type="number" step="0.01" id="fin-amt"></div>
+      </div>
+      <button class="btn sm" onclick="addFinance('${c.id}')">Add Entry</button>
+      <div style="margin-top:1rem;" id="fin-list">
+        ${fins.map((f,i) => `
+          <div class="fin-item">
+            <strong>${esc(f.desc)}</strong> · ${parseFloat(f.amount).toFixed(2)}
+            <div class="meta">${f.ts}</div>
+            <button class="btn sm secondary" onclick="removeFinance('${c.id}', ${i})">Remove</button>
+          </div>`).join('') || '<p class="meta">No finance entries.</p>'}
+      </div>
+    </div>
+  `;
+}
+
+/* ========== CRUD HELPERS ========== */
+function openNewCaseModal() {
+  document.getElementById('modal-title').textContent = 'New Case';
+  document.getElementById('edit-id').value = '';
+  ['c-name','c-id','c-dob','c-next','c-dx','c-contact'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('c-status').value = 'Active';
+  document.getElementById('c-risk').value = 'Low';
+  document.getElementById('case-modal').classList.add('open');
+}
+function editCurrentCase() {
+  const c = state.cases.find(x => x.id === currentCaseId);
+  if (!c) return;
+  document.getElementById('modal-title').textContent = 'Edit Case';
+  document.getElementById('edit-id').value = c.id;
+  document.getElementById('c-name').value = c.name || '';
+  document.getElementById('c-id').value = c.caseId || '';
+  document.getElementById('c-status').value = c.status || 'Active';
+  document.getElementById('c-risk').value = c.risk || 'Low';
+  document.getElementById('c-dob').value = c.dob || '';
+  document.getElementById('c-next').value = c.nextVisit || '';
+  document.getElementById('c-dx').value = c.dx || '';
+  document.getElementById('c-contact').value = c.contact || '';
+  document.getElementById('case-modal').classList.add('open');
+}
+function closeModal() { document.getElementById('case-modal').classList.remove('open'); }
+function saveCase() {
+  const name = document.getElementById('c-name').value.trim();
+  if (!name) { toast('Name is required'); return; }
+  const id = document.getElementById('edit-id').value;
+  const payload = {
+    name,
+    caseId: document.getElementById('c-id').value.trim(),
+    status: document.getElementById('c-status').value,
+    risk: document.getElementById('c-risk').value,
+    dob: document.getElementById('c-dob').value,
+    nextVisit: document.getElementById('c-next').value,
+    dx: document.getElementById('c-dx').value.trim(),
+    contact: document.getElementById('c-contact').value.trim(),
+  };
+  if (id) {
+    const idx = state.cases.findIndex(x => x.id === id);
+    if (idx >= 0) state.cases[idx] = { ...state.cases[idx], ...payload };
+  } else {
+    state.cases.push({
+      id: uid(),
+      ...payload,
+      notes: [],
+      docs: [],
+      finance: [],
+      goals: [],
+      created: new Date().toISOString().slice(0,10)
+    });
+  }
+  save();
+  closeModal();
+  toast('Case saved');
+  if (id) openCase(id); else showPanel('caseload');
+}
+
+function addNote(cid) {
+  const text = document.getElementById('new-note').value.trim();
+  if (!text) return;
+  const c = state.cases.find(x => x.id === cid);
+  if (!c.notes) c.notes = [];
+  c.notes.push({ text, ts: new Date().toLocaleString() });
+  document.getElementById('new-note').value = '';
+  save();
+  openCase(cid);
+  toast('Note saved');
+}
+function removeNote(cid, i) {
+  const c = state.cases.find(x => x.id === cid);
+  c.notes.splice(i, 1);
+  save(); openCase(cid);
+}
+
+function addGoal(cid) {
+  const title = document.getElementById('goal-title').value.trim();
+  if (!title) return;
+  const c = state.cases.find(x => x.id === cid);
+  if (!c.goals) c.goals = [];
+  c.goals.push({
+    title,
+    status: document.getElementById('goal-status').value,
+    detail: document.getElementById('goal-detail').value.trim(),
+    updated: new Date().toLocaleDateString()
+  });
+  save(); openCase(cid);
+}
+function removeGoal(cid, i) {
+  state.cases.find(x => x.id === cid).goals.splice(i, 1);
+  save(); openCase(cid);
+}
+
+function addFinance(cid) {
+  const desc = document.getElementById('fin-desc').value.trim();
+  const amount = document.getElementById('fin-amt').value;
+  if (!desc || amount === '') return;
+  const c = state.cases.find(x => x.id === cid);
+  if (!c.finance) c.finance = [];
+  c.finance.push({ desc, amount, ts: new Date().toLocaleString() });
+  save(); openCase(cid);
+}
+function removeFinance(cid, i) {
+  state.cases.find(x => x.id === cid).finance.splice(i, 1);
+  save(); openCase(cid);
+}
+
+/* Documents */
+function handleFiles(cid) {
+  const input = document.getElementById('file-input');
+  const files = Array.from(input.files || []);
+  if (!files.length) return;
+  const c = state.cases.find(x => x.id === cid);
+  if (!c.docs) c.docs = [];
+  let pending = files.length;
+  files.forEach(f => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      c.docs.push({
+        name: f.name,
+        type: f.type,
+        size: (f.size/1024).toFixed(1) + ' KB',
+        data: e.target.result,
+        ts: new Date().toLocaleString()
+      });
+      pending--;
+      if (pending === 0) { save(); openCase(cid); toast('Files attached'); }
+    };
+    if (f.type.startsWith('image/') || f.type === 'application/pdf' || f.type.startsWith('text/')) {
+      reader.readAsDataURL(f);
+    } else {
+      reader.readAsDataURL(f); // still store
+    }
+  });
+  input.value = '';
+}
+function savePastedDoc(cid) {
+  const text = document.getElementById('paste-doc').value.trim();
+  if (!text) return;
+  const c = state.cases.find(x => x.id === cid);
+  if (!c.docs) c.docs = [];
+  c.docs.push({
+    name: 'Pasted note ' + new Date().toLocaleDateString(),
+    type: 'text/plain',
+    size: text.length + ' chars',
+    data: text,
+    ts: new Date().toLocaleString()
+  });
+  document.getElementById('paste-doc').value = '';
+  save(); openCase(cid); toast('Text document saved');
+}
+function removeDoc(cid, i) {
+  state.cases.find(x => x.id === cid).docs.splice(i, 1);
+  save(); openCase(cid);
+}
+function downloadDoc(cid, i) {
+  const d = state.cases.find(x => x.id === cid).docs[i];
+  const a = document.createElement('a');
+  if (d.type === 'text/plain' && !d.data.startsWith('data:')) {
+    a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(d.data);
+  } else {
+    a.href = d.data;
+  }
+  a.download = d.name;
+  a.click();
+}
+
+/* ========== AI-STYLE HELPERS (client-side) ========== */
+function aiSummarize() {
+  const text = document.getElementById('new-note').value.trim();
+  if (!text) { toast('Paste or type text first'); return; }
+  const sentences = text.split(/[.!?]+/).map(s => s.trim()).filter(Boolean);
+  const summary = sentences.slice(0, 3).join('. ') + (sentences.length > 3 ? '…' : '.');
+  const actions = [];
+  if (/visit|appointment|see/i.test(text)) actions.push('Schedule / confirm visit');
+  if (/medic|rx|prescription/i.test(text)) actions.push('Follow up on medication / medical');
+  if (/provider|agency|service/i.test(text)) actions.push('Contact provider / service issue');
+  if (/safety|risk|crisis|hospital/i.test(text)) actions.push('Safety / risk review');
+  const out = document.getElementById('ai-output');
+  out.classList.remove('hidden');
+  out.innerHTML = `<strong>Quick summary</strong><p>${esc(summary)}</p>
+    ${actions.length ? `<strong>Possible action items</strong><ul> ${actions.map(a=>'<li>'+a+'</li>').join('')}</ul>` : ''}
+    <button class="btn sm" onclick="navigator.clipboard.writeText(document.getElementById('ai-output').innerText)">Copy</button>`;
+}
+function aiDraftUpdate() {
+  const text = document.getElementById('new-note').value.trim() || 'Recent contact completed.';
+  const c = state.cases.find(x => x.id === currentCaseId);
+  lastDraft = `Status update – ${c ? c.name : 'Client'} ( ${new Date().toLocaleDateString()})\n\n` +
+    `Contact type: [phone / face-to-face / collateral]\n` +
+    `Summary: ${text.slice(0, 280)} ${text.length>280?'…':''}\n` +
+    `Progress toward Personal Plan goals: [note]\n` +
+    `Health & safety observations: [note]\n` +
+    `Next steps / follow-up date: [date]\n` +
+    `ISC signature / credentials: `;
+  window.lastDraft = lastDraft;
+  const out = document.getElementById('ai-output');
+  out.classList.remove('hidden');
+  out.innerHTML = `<strong>Draft status update (edit as needed)</strong>
+    <pre style="white-space:pre-wrap;font-size:0.85rem;margin:0.5rem 0;">${esc(lastDraft)}</pre>
+    <button class="btn sm" onclick="copyDraft()">Copy draft</button>`;
+}
+
+let lastDraft = '';
+function copyDraft() {
+  if (!lastDraft) return;
+  navigator.clipboard.writeText(lastDraft).then(() => toast('Draft copied')).catch(() => toast('Copy failed'));
+}
+
+/* ========== TASKS ========== */
+function renderTasks() {
+  const sel = document.getElementById('task-case');
+  sel.innerHTML = '<option value="">— none —</option>' +
+    state.cases.map(c => `<option value="${c.id}"> ${esc(c.name)}</option>`).join('');
+  const list = document.getElementById('task-list');
+  const open = state.tasks.filter(t => !t.done);
+  const done = state.tasks.filter(t => t.done);
+  list.innerHTML = `
+    <h4 style="margin:0.5rem 0;">Open (${open.length})</h4>
+    ${open.map((t,i) => taskHtml(t, state.tasks.indexOf(t))).join('') || '<p class="meta">No open tasks.</p>'}
+    <h4 style="margin:1rem 0 0.5rem;">Completed</h4>
+    ${done.map((t,i) => taskHtml(t, state.tasks.indexOf(t))).join('') || '<p class="meta">None yet.</p>'}
+  `;
+}
+function taskHtml(t, idx) {
+  const caseName = t.caseId ? (state.cases.find(c => c.id === t.caseId)||{}).name : '';
+  return `<div class="task-item">
+    <strong style="${t.done?'text-decoration:line-through;opacity:0.6':''}"> ${esc(t.text)}</strong>
+    <div class="meta">Due ${t.due || '—'} ${caseName ? '· ' + esc(caseName) : ''}</div>
+    <div class="actions">
+      ${!t.done ? `<button class="btn sm" onclick="toggleTask( ${idx})">Done</button>` : `<button class="btn sm secondary" onclick="toggleTask(${idx})">Reopen</button>`}
+      <button class="btn sm secondary" onclick="deleteTask(${idx})">Delete</button>
+    </div>
+  </div>`;
+}
+function addTask() {
+  const text = document.getElementById('task-text').value.trim();
+  if (!text) return;
+  state.tasks.push({
+    text,
+    due: document.getElementById('task-due').value,
+    caseId: document.getElementById('task-case').value,
+    done: false,
+    created: new Date().toISOString()
+  });
+  document.getElementById('task-text').value = '';
+  save(); renderTasks(); toast('Task added');
+  maybeNotify(text);
+}
+function toggleTask(i) { state.tasks[i].done = !state.tasks[i].done; save(); renderTasks(); }
+function deleteTask(i) { state.tasks.splice(i,1); save(); renderTasks(); }
+
+/* ========== NOTIFICATIONS ========== */
+function requestNotifPermission() {
+  if (!('Notification' in window)) { toast('Notifications not supported'); return; }
+  Notification.requestPermission().then(p => toast(p === 'granted' ? 'Notifications enabled' : 'Permission ' + p));
+}
+function maybeNotify(title) {
+  if (Notification.permission === 'granted') {
+    new Notification('NEXUS ISC', { body: title, icon: undefined });
+  }
+}
+
+/* ========== EXPORT ========== */
+function exportAllJSON() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'nexus-isc-export-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+}
+function exportAllCSV() {
+  const rows = [['Name','CaseID','Status','Risk','DOB','NextVisit','Contact','Diagnosis']];
+  state.cases.forEach(c => rows.push([c.name,c.caseId,c.status,c.risk,c.dob,c.nextVisit,c.contact,c.dx].map(x => `"${(x||'').replace(/"/g,'""')}"`)));
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'nexus-cases.csv';
+  a.click();
+}
+function exportOneCase() {
+  const c = state.cases.find(x => x.id === currentCaseId);
+  if (!c) return;
+  const blob = new Blob([JSON.stringify(c, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (c.name || 'case').replace(/\s+/g,'_') + '.json';
+  a.click();
+}
+function clearAllData() {
+  if (confirm('Delete ALL cases and tasks permanently?')) {
+    state = { cases: [], tasks: [] };
+    save();
+    showPanel('dashboard');
+    toast('All data cleared');
+  }
+}
+
+/* ========== UTILS ========== */
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 2600);
+}
+function renderAll() {
+  renderDashboard();
+  renderCaseList();
+  renderTasks();
+}
+
+/* INIT */
+load();
+renderAll();
+</script>
+</body>
+</html>
