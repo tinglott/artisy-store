@@ -1,0 +1,924 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brick Code Lab — Build it, Code it, Play it</title>
+<style>
+  :root{
+    --bgA:#bfe9ff; --bgB:#eaf7ff;
+    --panel:#ffffff; --edge:#d7e9f5;
+    --ink:#12263f; --soft:#4c6482;
+    --coral:#ff6a3d; --teal:#2ec4b6; --sun:#ffcc33;
+    --plate:#cfe3ee; --grid:#b8d4e4;
+    --code:#16283c;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bgA:#0d1b2a; --bgB:#132a3d;
+      --panel:#16283c; --edge:#24405a;
+      --ink:#eaf4ff; --soft:#9db8d0;
+    }
+  }
+  :root[data-theme="light"]{
+    --bgA:#bfe9ff; --bgB:#eaf7ff; --panel:#fff; --edge:#d7e9f5;
+    --ink:#12263f; --soft:#4c6482; --plate:#cfe3ee; --grid:#b8d4e4;
+  }
+  :root[data-theme="dark"]{
+    --bgA:#0d1b2a; --bgB:#132a3d; --panel:#16283c; --edge:#24405a;
+    --ink:#eaf4ff; --soft:#9db8d0; --plate:#1d3a52; --grid:#2b5375;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{
+    margin:0;padding:14px;min-height:100%;
+    font-family:"Nunito",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    color:var(--ink);background:linear-gradient(180deg,var(--bgA),var(--bgB));
+  }
+  .shell{max-width:1240px;margin:0 auto}
+  header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+  .brand{display:flex;align-items:center;gap:11px}
+  .brand .mark{position:relative;width:38px;height:34px;flex:0 0 auto}
+  .brand .mark i{position:absolute;left:3px;width:32px;height:13px;border-radius:5px;box-shadow:inset 0 2px 0 rgba(255,255,255,.5)}
+  .brand .mark i:nth-child(1){top:0;background:var(--coral)}
+  .brand .mark i:nth-child(2){top:9px;background:var(--sun)}
+  .brand .mark i:nth-child(3){top:18px;background:var(--teal)}
+  .brand h1{margin:0;font:800 1.32rem/1 "Baloo 2",sans-serif;letter-spacing:-.01em}
+  .brand p{margin:3px 0 0;font-size:.72rem;font-weight:700;color:var(--soft);letter-spacing:.06em;text-transform:uppercase}
+  .tally{margin-left:auto;display:flex;gap:9px;flex-wrap:wrap}
+  .tally span{
+    background:var(--panel);border:2px solid var(--edge);border-radius:14px;padding:5px 12px;
+    font-size:.74rem;font-weight:800;color:var(--soft);letter-spacing:.03em
+  }
+  .tally b{color:var(--ink);font-size:.95rem;margin-right:3px}
+  .cols{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
+  .left{flex:1 1 260px;min-width:250px;display:flex;flex-direction:column;gap:12px}
+  .right{flex:1 1 500px;min-width:320px;display:flex;flex-direction:column;gap:12px}
+  .card{
+    background:var(--panel);border:2px solid var(--edge);border-radius:20px;padding:13px;
+    box-shadow:0 8px 22px rgba(23,63,98,.09)
+  }
+  .card h2{
+    margin:0 0 9px;font:800 .68rem/1 "Nunito",sans-serif;letter-spacing:.13em;
+    text-transform:uppercase;color:var(--soft);display:flex;align-items:center;gap:7px
+  }
+  .card h2 em{
+    font-style:normal;background:var(--coral);color:#fff;width:19px;height:19px;border-radius:50%;
+    display:grid;place-items:center;font-size:.68rem;flex:0 0 auto
+  }
+  .bricks{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .brick{
+    display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 4px;cursor:pointer;
+    background:transparent;border:2px solid transparent;border-radius:14px;color:var(--ink);
+    font:800 .68rem/1.15 "Nunito",sans-serif
+  }
+  .brick:hover{background:rgba(255,106,61,.08)}
+  .brick[aria-pressed="true"]{border-color:var(--coral);background:rgba(255,106,61,.12)}
+  .studs{display:grid;gap:3px}
+  .studs u{
+    display:block;width:11px;height:11px;border-radius:50%;background:var(--sun);
+    box-shadow:inset 0 -2px 0 rgba(0,0,0,.16),0 1px 0 rgba(0,0,0,.1)
+  }
+  .swatches{display:flex;flex-wrap:wrap;gap:7px}
+  .sw{
+    width:34px;height:34px;border-radius:11px;cursor:pointer;border:3px solid rgba(0,0,0,.12);
+    box-shadow:inset 0 3px 0 rgba(255,255,255,.42)
+  }
+  .sw[aria-pressed="true"]{border-color:var(--ink);transform:scale(1.06)}
+  .tools{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .btn{
+    padding:10px 8px;font:800 .84rem/1 "Nunito",sans-serif;cursor:pointer;color:var(--ink);
+    background:transparent;border:2px solid var(--edge);border-radius:14px
+  }
+  .btn:hover{background:rgba(0,0,0,.04)}
+  .btn[aria-pressed="true"]{border-color:var(--coral);background:rgba(255,106,61,.14)}
+  .btn.go{grid-column:1/-1;background:var(--coral);border-color:var(--coral);color:#fff;font-size:.95rem;padding:13px}
+  .btn.go:hover{filter:brightness(1.05)}
+  .btn.wide{grid-column:1/-1}
+  .stage{
+    background:var(--panel);border:2px solid var(--edge);border-radius:20px;padding:9px;
+    box-shadow:0 8px 22px rgba(23,63,98,.09);position:relative
+  }
+  #view{display:block;width:100%;border-radius:14px;touch-action:none;cursor:crosshair}
+  .toast{
+    position:absolute;left:50%;bottom:16px;transform:translate(-50%,10px);opacity:0;transition:.22s;
+    background:var(--ink);color:var(--panel);padding:8px 15px;border-radius:999px;
+    font:800 .8rem/1 "Nunito",sans-serif;pointer-events:none;white-space:nowrap
+  }
+  .toast.on{opacity:1;transform:translate(-50%,0)}
+  .tips{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+  .tips span{
+    font-size:.7rem;font-weight:700;color:var(--soft);background:rgba(0,0,0,.045);
+    border-radius:999px;padding:4px 10px
+  }
+  /* ---- code panel ---- */
+  .codehead{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+  .codehead h2{margin:0}
+  .palette{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .pblk{
+    border:none;border-radius:12px;padding:8px 12px;cursor:pointer;color:#fff;
+    font:800 .78rem/1 "Nunito",sans-serif;box-shadow:0 3px 0 rgba(0,0,0,.22)
+  }
+  .pblk:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.22)}
+  .mv{background:#2f80ed}.tr{background:#9b51e0}.rp{background:#f2994a}.wt{background:#27ae60}.em{background:#eb5757}
+  .program{
+    background:var(--code);border-radius:16px;padding:11px;min-height:78px;
+    display:flex;flex-direction:column;gap:7px
+  }
+  .program .empty{color:#7d97b0;font-weight:700;font-size:.8rem;text-align:center;padding:14px 0;margin:0}
+  .sblk{
+    background:#233d57;border-radius:11px;padding:8px 9px;color:#eaf4ff;
+    font:800 .78rem/1 "Nunito",sans-serif;display:flex;align-items:center;gap:8px;flex-wrap:wrap
+  }
+  .sblk .tag{background:rgba(255,255,255,.14);border-radius:8px;padding:3px 8px;font-size:.7rem}
+  .sblk select,.sblk input{
+    font:800 .76rem/1 "Nunito",sans-serif;padding:4px 6px;border-radius:8px;border:1px solid #3d6689;
+    background:#16283c;color:#eaf4ff
+  }
+  .sblk input{width:52px;text-align:center}
+  .sblk .rm{margin-left:auto;background:#eb5757;border:none;color:#fff;border-radius:8px;
+    width:23px;height:23px;cursor:pointer;font:800 .82rem/1 "Nunito",sans-serif}
+  .runrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+  .runrow .btn.play{background:var(--teal);border-color:var(--teal);color:#fff}
+  .status{margin:9px 0 0;font-size:.79rem;font-weight:800;color:var(--soft);min-height:1.1em}
+  .status b{color:var(--coral)}
+  .quest{margin:0;font-size:.83rem;font-weight:700;color:var(--soft);line-height:1.55}
+  .quest b{color:var(--ink)}
+  .quest .tick{color:var(--teal)}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header>
+    <div class="brand">
+      <span class="mark"><i></i><i></i><i></i></span>
+      <div>
+        <h1>Brick Code Lab</h1>
+        <p>Build it · Code it · Play it</p>
+      </div>
+    </div>
+    <div class="tally">
+      <span><b id="tBricks">0</b>bricks</span>
+      <span><b id="tLayers">0</b>layers</span>
+      <span><b id="tSteps">0</b>code steps</span>
+      <span><b id="tFps">60</b>fps</span>
+    </div>
+  </header>
+
+  <div class="cols">
+    <div class="left">
+
+      <div class="card">
+        <h2><em>1</em>Choose a brick</h2>
+        <div class="bricks" id="brickList"></div>
+      </div>
+
+      <div class="card">
+        <h2><em>2</em>Choose a colour</h2>
+        <div class="swatches" id="swatches"></div>
+      </div>
+
+      <div class="card">
+        <h2><em>3</em>Tap the baseplate</h2>
+        <div class="tools">
+          <button class="btn" id="bBuild" aria-pressed="true">🔨 Build</button>
+          <button class="btn" id="bErase" aria-pressed="false">🧽 Erase</button>
+          <button class="btn" id="bUndo">↩ Undo</button>
+          <button class="btn" id="bClear">🗑 Clear</button>
+        </div>
+        <p class="quest" style="margin-top:11px" id="quest"></p>
+      </div>
+
+    </div>
+
+    <div class="right">
+
+      <div class="stage">
+        <canvas id="view"></canvas>
+        <div class="toast" id="toast"></div>
+        <div class="tips">
+          <span>☝️ Tap a brick face to stack</span>
+          <span>✌️ Drag to slide a brick</span>
+          <span>🔄 One finger on the sky rotates</span>
+          <span>🤏 Pinch to zoom</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="codehead">
+          <h2><em>4</em>Teach the robot</h2>
+        </div>
+        <div class="palette">
+          <button class="pblk mv" data-k="move">➡️ Drive forward</button>
+          <button class="pblk tr" data-k="turn">↩️ Turn right</button>
+          <button class="pblk rp" data-k="repeat">🔁 Repeat</button>
+          <button class="pblk wt" data-k="wait">⏳ Wait</button>
+          <button class="pblk em" data-k="beep">🔊 Beep</button>
+        </div>
+        <div class="program" id="program"></div>
+        <div class="runrow">
+          <button class="btn play" id="bPlay">▶ Hit play</button>
+          <button class="btn" id="bWipe">🧹 New program</button>
+        </div>
+        <p class="status" id="status">Add a block, then press <b>Hit play</b>.</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.156.1/build/three.min.js"></script>
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   Brick Code Lab — brick grid + robot you program with blocks
+   ============================================================ */
+
+var PITCH = 10, BASEH = 4, SUB = 6, SIZE = 12, LAYERS = 16;
+var W = SIZE * SUB, D = SIZE * SUB;
+var S_STUD = PITCH / SUB;
+
+var SHAPES = [
+  {id:'1x1', w:1, d:1, label:'1×1'},
+  {id:'1x2', w:2, d:1, label:'1×2'},
+  {id:'1x3', w:3, d:1, label:'1×3'},
+  {id:'1x4', w:4, d:1, label:'1×4'},
+  {id:'2x2', w:2, d:2, label:'2×2'},
+  {id:'2x4', w:4, d:2, label:'2×4'},
+  {id:'2x8', w:8, d:2, label:'2×8'},
+  {id:'4x4', w:4, d:4, label:'4×4'}
+];
+var COLORS = [
+  '#e5342b','#f2b705','#2f80ed','#2fa84f',
+  '#ff6a3d','#9b51e0','#eb5757','#1d2a35',
+  '#f5f2ea','#7ed3e8','#8a5a2b','#b9c6d1'
+];
+
+var vox = new Uint8Array(W * D * LAYERS);
+var parts = SHAPES.map(function(s){ return {w:s.w, d:s.d, color:COLORS[0]}; });
+var hist = [];
+var shapeI = 0, colorI = 0, erasing = false;
+var sel = {x:3*SUB, y:0, z:3*SUB};
+
+function idx(x,y,z){ return (y*D + z)*W + x; }
+function inb(x,y,z){ return x>=0 && z>=0 && y>=0 && x<W && z<D && y<LAYERS; }
+function boxAt(x,y,z){ return inb(x,y,z) ? vox[idx(x,y,z)] : 0; }
+function snapStud(v){ return Math.max(0, Math.min(W-1, Math.round(v/SUB)*SUB)); }
+function levelHas(y){
+  for(var z=0; z<D; z++) for(var x=0; x<W; x++) if(vox[idx(x,y,z)]) return true;
+  return false;
+}
+
+/* ---------- placement ---------- */
+function fits(x,y,z,p){
+  x -= (p.w-1)*SUB/2; z -= (p.d-1)*SUB/2;
+  if(x % SUB || z % SUB) return false;                 // brick centre must sit on a stud
+  if(x<0 || z<0 || x+(p.w-1)*SUB >= W || z+(p.d-1)*SUB >= D) return false;
+  for(var i=0; i<p.w*SUB; i+=SUB)
+    for(var j=0; j<p.d*SUB; j+=SUB)
+      if(boxAt(x+i, y, z+j)) return false;
+  return true;                                          // baseplate always supports layer 0
+}
+function place(x,y,z,pi){
+  var p = parts[pi];
+  if(!fits(x,y,z,p)) return false;
+  x -= (p.w-1)*SUB/2; z -= (p.d-1)*SUB/2;
+  for(var i=0; i<p.w*SUB; i+=SUB)
+    for(var j=0; j<p.d*SUB; j+=SUB) vox[idx(x+i,y,z+j)] = pi+1;
+  hist.push({x:x,y:y,z:z,pi:pi});
+  return true;
+}
+function removeAt(x,y,z){
+  var v = boxAt(x,y,z); if(!v) return false;
+  var pi = v-1, p = parts[pi], ox = x, oz = z;
+  while(ox-SUB >= 0 && boxAt(ox-SUB,y,z) === v) ox -= SUB;
+  while(oz-SUB >= 0 && boxAt(x,y,oz-SUB) === v) oz -= SUB;
+  for(var i=0; i<p.w*SUB; i+=SUB)
+    for(var j=0; j<p.d*SUB; j+=SUB)
+      if(boxAt(ox+i,y,oz+j) === v) vox[idx(ox+i,y,oz+j)] = 0;
+  hist.push({x:ox,y:y,z:oz,pi:pi});
+  return true;
+}
+function undo(){
+  var r = hist.pop(); if(!r) return flash('Nothing to undo');
+  var p = parts[r.pi];
+  for(var i=0; i<p.w*SUB; i+=SUB)
+    for(var j=0; j<p.d*SUB; j+=SUB) vox[idx(r.x+i,r.y,r.z+j)] = 0;
+  rebuild(); flash('Undo');
+}
+
+/* ---------- scene ---------- */
+var canvas = document.getElementById('view');
+var renderer = new THREE.WebGLRenderer({canvas:canvas, antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+var scene = new THREE.Scene();
+var camera = new THREE.PerspectiveCamera(42, 1, 1, 4000);
+var orbit = {theta:-0.72, phi:0.98, dist:330, tx:0, ty:8, tz:0};
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0x9fb4c6, 1.15));
+var key = new THREE.DirectionalLight(0xffffff, 0.72); key.position.set(-150,250,160); scene.add(key);
+var fill = new THREE.DirectionalLight(0xffffff, 0.3); fill.position.set(180,130,-150); scene.add(fill);
+
+if(typeof THREE === 'undefined'){
+  document.body.innerHTML = '<p style="font:16px system-ui;padding:24px">The 3D engine could not load — reconnect and reopen.</p>';
+  return;
+}
+
+/* baseplate */
+var plateTop = 0;
+(function(){
+  var plate = new THREE.Mesh(
+    new THREE.BoxGeometry(SIZE*PITCH, BASEH, SIZE*PITCH),
+    new THREE.MeshLambertMaterial({color:0xcfe3ee})
+  );
+  plate.position.y = -BASEH/2;
+  scene.add(plate);
+
+  var studs = new THREE.InstancedMesh(
+    new THREE.CylinderGeometry(2.5,2.5,2.6,9),
+    new THREE.MeshLambertMaterial({color:0xbdd9ea}),
+    SIZE*SIZE
+  );
+  var m = new THREE.Matrix4(), k = 0;
+  for(var i=0;i<SIZE;i++) for(var j=0;j<SIZE;j++){
+    m.makeTranslation((i-(SIZE-1)/2)*PITCH, 1.2, (j-(SIZE-1)/2)*PITCH);
+    studs.setMatrixAt(k++, m);
+  }
+  studs.instanceMatrix.needsUpdate = true;
+  scene.add(studs);
+})();
+
+/* brick geometry: moulded body via merged slabs + stud */
+// Standard Three.js geometry keeps the activity compatible with GitHub Pages.
+// Raised studs are rendered separately below for the brick-building effect.
+var brickGeo = new THREE.BoxGeometry(PITCH, BASEH, PITCH);
+
+var MAXB = 600, MAXS = 3000;
+var brickMesh = new THREE.InstancedMesh(brickGeo, new THREE.MeshLambertMaterial({}), MAXB);
+var studMesh  = new THREE.InstancedMesh(new THREE.CylinderGeometry(2.5,2.5,4,12),
+                 new THREE.MeshLambertMaterial({}), MAXS);
+scene.add(brickMesh); scene.add(studMesh);
+
+var ghost = new THREE.Mesh(brickGeo, new THREE.MeshLambertMaterial({transparent:true, opacity:.45}));
+ghost.visible = false; scene.add(ghost);
+
+/* ---------- rebuild instanced scene from grid ---------- */
+var tmp = new THREE.Object3D(), col = new THREE.Color();
+function rebuild(){
+  var bi = 0, si = 0, layers = 0, origins = 0, seen = {};
+  for(var y=0; y<LAYERS; y++){
+    var any = false;
+    for(var z=0; z<D; z++) for(var x=0; x<W; x++){
+      var v = vox[idx(x,y,z)]; if(!v) continue;
+      any = true;
+      var p = parts[v-1];
+      var ox = x, oz = z;
+      while(ox-SUB >= 0 && boxAt(ox-SUB,y,z) === v) ox -= SUB;
+      while(oz-SUB >= 0 && boxAt(x,y,oz-SUB) === v) oz -= SUB;
+      var key = (y*D+oz)*W + ox;
+      if(seen[key]) continue;
+      seen[key] = 1; origins++;
+
+      tmp.position.set((ox + (p.w-1)*SUB/2 - (W-1)/2) * S_STUD,
+                       y*(PITCH+BASEH) + BASEH/2,
+                       (oz + (p.d-1)*SUB/2 - (D-1)/2) * S_STUD);
+      tmp.rotation.set(0,0,0);
+      tmp.scale.set(p.w, 1, p.d);
+      tmp.updateMatrix();
+      if(bi < MAXB){ brickMesh.setMatrixAt(bi, tmp.matrix); col.set(p.color); brickMesh.setColorAt(bi,col); bi++; }
+
+      for(var i=0;i<p.w;i++) for(var j=0;j<p.d;j++){
+        tmp.position.set((ox + i*SUB - (W-1)/2) * S_STUD,
+                         y*(PITCH+BASEH) + BASEH + 1.4,
+                         (oz + j*SUB - (D-1)/2) * S_STUD);
+        tmp.scale.set(1,1,1); tmp.updateMatrix();
+        if(si < MAXS){ studMesh.setMatrixAt(si, tmp.matrix); studMesh.setColorAt(si,col); si++; }
+      }
+    }
+    if(any) layers = y+1;
+  }
+  brickMesh.count = bi; studMesh.count = si;
+  brickMesh.instanceMatrix.needsUpdate = true; studMesh.instanceMatrix.needsUpdate = true;
+  if(brickMesh.instanceColor) brickMesh.instanceColor.needsUpdate = true;
+  if(studMesh.instanceColor) studMesh.instanceColor.needsUpdate = true;
+
+  document.getElementById('tBricks').textContent = origins;
+  document.getElementById('tLayers').textContent = layers;
+  builtLayers = layers; builtOrigins = origins;
+}
+var builtLayers = 0, builtOrigins = 0;
+
+/* ---------- picking: DDA against the voxel grid ---------- */
+var ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+function pick(cx, cy){
+  if(typeof THREE === 'undefined') return null;
+  var r = canvas.getBoundingClientRect();
+  ndc.x = ((cx - r.left)/r.width) * 2 - 1;
+  ndc.y = -((cy - r.top)/r.height) * 2 + 1;
+  ray.setFromCamera(ndc, camera);
+  var o = ray.ray.origin, d = ray.ray.direction.clone().normalize();
+  var sy = PITCH + BASEH;
+  var ox = o.x/S_STUD + (W-1)/2, oy = (o.y - BASEH/2)/sy, oz = o.z/S_STUD + (D-1)/2;
+  var dx = d.x/S_STUD, dy = d.y/sy, dz = d.z/S_STUD;
+  var sx = dx<0?-1:1, sY = dy<0?-1:1, sz = dz<0?-1:1;
+  var tdx = Math.abs(1/(dx||1e-9)), tdy = Math.abs(1/(dy||1e-9)), tdz = Math.abs(1/(dz||1e-9));
+  var vx = Math.floor(ox), vy = Math.floor(oy), vz = Math.floor(oz);
+  var tx = (dx>0 ? vx+1-ox : ox-vx) * tdx;
+  var ty = (dy>0 ? vy+1-oy : oy-vy) * tdy;
+  var tz = (dz>0 ? vz+1-oz : oz-vz) * tdz;
+  var nx=0, ny=0, nz=0, guard=0;
+  while(guard++ < 1500){
+    if(vy < 0 && dy <= 0) break;
+    if(vy >= 0 && vy < LAYERS && vox[idx(vx,vy,vz)]){
+      // ignore hits outside the plate footprint
+      if(vx>=0 && vz>=0 && vx<W && vz<D)
+        return {hit:1, x:vx, y:vy, z:vz, nx:nx, ny:ny, nz:nz};
+      break;
+    }
+    if(tx < ty && tx < tz){ tx += tdx; vx += sx; nx = -sx; ny = 0; nz = 0; }
+    else if(ty < tz){ ty += tdy; vy += sY; nx = 0; ny = -sY; nz = 0; }
+    else { tz += tdz; vz += sz; nx = 0; ny = 0; nz = -sz; }
+  }
+  // baseplate fallback
+  if(dy < 0){
+    var t = (-(BASEH/2) - oy) / dy;
+    if(t > 0){
+      var hx = Math.floor(ox + dx*t), hz = Math.floor(oz + dz*t);
+      if(hx>=0 && hz>=0 && hx<W && hz<D)
+        return {hit:0, x:hx, y:0, z:hz, nx:0, ny:1, nz:0};
+    }
+  }
+  return null;
+}
+
+/* ---------- ghost preview ---------- */
+function targetFrom(pk){
+  var p = parts[shapeI];
+  if(!pk) return null;
+  if(erasing) return boxAt(pk.x,pk.y,pk.z) ? {x:pk.x, y:pk.y, z:pk.z, pi:boxAt(pk.x,pk.y,pk.z)-1, ok:false} : null;
+  var rx = pk.x + (pk.hit ? pk.nx*SUB : 0);
+  var ry = pk.y + (pk.hit ? pk.ny : 0);
+  var rz = pk.z + (pk.hit ? pk.nz*SUB : 0);
+  var cx = snapStud(rx - (p.w-1)*SUB/2);
+  var cz = snapStud(rz - (p.d-1)*SUB/2);
+  var cy = Math.max(0, Math.min(LAYERS-1, ry));
+  return {x:cx, y:cy, z:cz, pi:shapeI, ok:fits(cx,cy,cz,p)};
+}
+function showGhost(t){
+  var grid = t || targetFrom(lastPick);
+  if(!grid){ ghost.visible = false; return; }
+  var p = parts[grid.pi];
+  ghost.visible = true;
+  ghost.material.color.set(erasing ? '#eb5757' : p.color);
+  ghost.material.opacity = erasing ? .35 : (grid.ok ? .45 : .22);
+  ghost.position.set((grid.x + (p.w-1)*SUB/2 - (W-1)/2) * S_STUD,
+                     grid.y*(PITCH+BASEH) + BASEH/2,
+                     (grid.z + (p.d-1)*SUB/2 - (D-1)/2) * S_STUD);
+  ghost.scale.set(p.w, 1, p.d);
+}
+
+/* ---------- pointer input ---------- */
+var pts = {}, nPts = 0, mode = null, dragStart = null, travel = 0, pinch0 = 0, lastPick = null;
+
+canvas.addEventListener('pointerdown', function(e){
+  canvas.setPointerCapture(e.pointerId);
+  pts[e.pointerId] = {x:e.clientX, y:e.clientY};
+  nPts++;
+  travel = 0;
+  dragStart = {x:e.clientX, y:e.clientY, y2:sel.y};
+  if(nPts === 2){
+    var ids = Object.keys(pts), a = pts[ids[0]], b = pts[ids[1]];
+    pinch0 = Math.hypot(a.x-b.x, a.y-b.y); mode = 'pinch';
+  } else {
+    var pk = pick(e.clientX, e.clientY);
+    lastPick = pk;
+    mode = pk ? 'paint' : 'orbit';
+    if(pk) showGhost(targetFrom(pk));
+  }
+});
+
+canvas.addEventListener('pointermove', function(e){
+  var prev = pts[e.pointerId];
+  if(!prev){ lastPick = pick(e.clientX,e.clientY); showGhost(); return; }
+  travel += Math.hypot(e.clientX-prev.x, e.clientY-prev.y);
+  pts[e.pointerId] = {x:e.clientX, y:e.clientY};
+
+  if(mode === 'pinch' && nPts >= 2){
+    var ids = Object.keys(pts), a = pts[ids[0]], b = pts[ids[1]];
+    var dd = Math.hypot(a.x-b.x, a.y-b.y);
+    orbit.dist *= pinch0/(dd||1); pinch0 = dd;
+  } else if(mode === 'orbit'){
+    orbit.theta -= (e.clientX-prev.x)*0.008;
+    orbit.phi = Math.max(0.14, Math.min(1.44, orbit.phi - (e.clientY-prev.y)*0.006));
+  } else if(mode === 'paint'){
+    var pk = pick(e.clientX, e.clientY);
+    lastPick = pk;
+    if(pk && !erasing && travel > 12){
+      // slide on the layer you started on
+      var p = parts[shapeI];
+      lastPick = {hit:1, y:dragStart.y2,
+        x:snapStud(pk.x + (p.w-1)*SUB/2),
+        z:snapStud(pk.z + (p.d-1)*SUB/2),
+        nx:0, ny:0, nz:0};
+    }
+    showGhost();
+  }
+  orbit.dist = Math.max(130, Math.min(900, orbit.dist));
+});
+
+function lift(e){
+  if(!pts[e.pointerId]) return;
+  delete pts[e.pointerId]; nPts--;
+  if(mode === 'paint' && travel < 16) commit();
+  if(nPts === 0) mode = null;
+}
+canvas.addEventListener('pointerup', lift);
+canvas.addEventListener('pointercancel', lift);
+canvas.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+canvas.addEventListener('wheel', function(e){
+  e.preventDefault();
+  orbit.dist = Math.max(130, Math.min(900, orbit.dist * (1 + Math.sign(e.deltaY)*0.08)));
+}, {passive:false});
+
+function commit(){
+  var t = targetFrom(lastPick);
+  if(!t) return;
+  if(erasing){
+    if(removeAt(t.x,t.y,t.z)){ rebuild(); flash('Brick erased'); }
+    return;
+  }
+  if(place(t.x,t.y,t.z,t.pi)){
+    rebuild();
+    flash(parts[t.pi].w + '×' + parts[t.pi].d + ' brick added');
+    sel.y = t.y;
+  } else flash('No room — try another stud');
+}
+
+/* ---------- left-hand UI ---------- */
+var brickList = document.getElementById('brickList');
+SHAPES.forEach(function(s, i){
+  var b = document.createElement('button');
+  b.className = 'brick';
+  b.setAttribute('aria-pressed', i === 0 ? 'true' : 'false');
+  var cells = '';
+  for(var r=0; r<s.d; r++){
+    cells += '<span style="display:grid;grid-template-columns:repeat(' + s.w + ',11px);gap:3px">';
+    for(var c=0; c<s.w; c++) cells += '<u></u>';
+    cells += '</span>';
+  }
+  b.innerHTML = '<span class="studs" style="grid-template-columns:repeat(' + s.d + ',11px)">' + cells + '</span><span>' + s.label + '</span>';
+  b.onclick = function(){
+    shapeI = i;
+    Array.prototype.forEach.call(brickList.children, function(x){ x.setAttribute('aria-pressed','false'); });
+    b.setAttribute('aria-pressed','true');
+    showGhost();
+  };
+  brickList.appendChild(b);
+});
+
+var swBox = document.getElementById('swatches');
+COLORS.forEach(function(c, i){
+  var b = document.createElement('button');
+  b.className = 'sw';
+  b.style.background = c;
+  b.setAttribute('aria-pressed', i === 0 ? 'true' : 'false');
+  b.onclick = function(){
+    colorI = i;
+    Array.prototype.forEach.call(swBox.children, function(x){ x.setAttribute('aria-pressed','false'); });
+    b.setAttribute('aria-pressed','true');
+    parts.forEach(function(p){ p.color = c; });
+    rebuild(); showGhost();
+  };
+  swBox.appendChild(b);
+});
+
+var bBuild = document.getElementById('bBuild'), bErase = document.getElementById('bErase');
+bBuild.onclick = function(){
+  erasing = false;
+  bBuild.setAttribute('aria-pressed','true'); bErase.setAttribute('aria-pressed','false');
+  showGhost();
+};
+bErase.onclick = function(){
+  erasing = true;
+  bErase.setAttribute('aria-pressed','true'); bBuild.setAttribute('aria-pressed','false');
+  showGhost();
+};
+document.getElementById('bUndo').onclick = undo;
+document.getElementById('bClear').onclick = function(){
+  vox = new Uint8Array(W*D*LAYERS); hist = []; rebuild(); flash('Cleared — build something new!');
+};
+
+/* ============================================================
+   CODE PANEL — block program that drives the robot
+   ============================================================ */
+var PAL = {
+  move:  {label:'Drive forward', color:'#2f80ed'},
+  turn:  {label:'Turn right',    color:'#9b51e0'},
+  repeat:{label:'Repeat',        color:'#f2994a'},
+  wait:  {label:'Wait',          color:'#27ae60'},
+  beep:  {label:'Beep',          color:'#eb5757'}
+};
+var program = [];   // {kind, arg}
+var progBox = document.getElementById('program');
+var statusEl = document.getElementById('status');
+
+document.querySelectorAll('.pblk').forEach(function(btn){
+  btn.onclick = function(){
+    var kind = btn.dataset.k;
+    program.push({kind:kind, arg: kind==='move'?2 : kind==='turn'?1 : kind==='repeat'?3 : kind==='wait'?1 : 0});
+    drawProgram();
+  };
+});
+
+function drawProgram(){
+  if(!program.length){
+    progBox.innerHTML = '<p class="empty">Your program is empty — tap a block above 👆</p>';
+  } else {
+    progBox.innerHTML = '';
+    program.forEach(function(step, i){
+      var d = document.createElement('div');
+      d.className = 'sblk';
+      var ctl = '';
+      if(step.kind === 'move')
+        ctl = '<select><option value="forward">forward</option><option value="backward">backward</option></select>' +
+              '<input type="number" min="1" max="9" value="' + step.arg + '"><span>studs</span>';
+      if(step.kind === 'turn')
+        ctl = '<select><option value="right">right</option><option value="left">left</option></select>' +
+              '<input type="number" min="1" max="4" value="' + step.arg + '"><span>× 90°</span>';
+      if(step.kind === 'repeat')
+        ctl = '<input type="number" min="1" max="9" value="' + step.arg + '"><span>times → repeats the blocks below</span>';
+      if(step.kind === 'wait')
+        ctl = '<input type="number" min="1" max="9" value="' + step.arg + '"><span>seconds</span>';
+      if(step.kind === 'beep')
+        ctl = '<span>🤖 beep boop!</span>';
+
+      d.innerHTML = '<span class="tag" style="background:' + PAL[step.kind].color + '">' +
+                    PAL[step.kind].label + '</span>' + ctl +
+                    '<button class="rm" title="remove">✕</button>';
+
+      var sel = d.querySelector('select');
+      var num = d.querySelector('input');
+      if(sel){
+        sel.value = step.dir || sel.options[0].value;
+        sel.onchange = (function(st){ return function(){ st.dir = this.value; }; })(step);
+      }
+      if(num){
+        var max = (step.kind === 'turn') ? 4 : 9;
+        num.onchange = (function(st, m){
+          return function(){ st.arg = Math.max(1, Math.min(m, Number(this.value) || 1)); this.value = st.arg; };
+        })(step, max);
+      }
+      d.querySelector('.rm').onclick = (function(pos){
+        return function(){ program.splice(pos, 1); drawProgram(); };
+      })(i);
+      progBox.appendChild(d);
+    });
+  }
+  document.getElementById('tSteps').textContent = program.length;
+  if(program.length){
+    var moves = program.filter(function(s){ return s.kind === 'move'; }).length;
+    var turns = program.filter(function(s){ return s.kind === 'turn'; }).length;
+    var reps  = program.filter(function(s){ return s.kind === 'repeat'; }).length;
+    statusEl.innerHTML = program.length + ' block' + (program.length > 1 ? 's' : '') +
+      ' ready — robot will ' + moves + '× drive, ' + turns + '× turn and loop ' + reps + '×. Press <b>Hit play</b>.';
+  }
+}
+
+/* ---------- the robot ---------- */
+var robot = new THREE.Group();
+var wheels = [];
+(function(){
+  var yellow = new THREE.MeshLambertMaterial({color:0xf2b705});
+  var dark   = new THREE.MeshLambertMaterial({color:0x1d2a35});
+  var white  = new THREE.MeshLambertMaterial({color:0xf5f2ea});
+  var coral  = new THREE.MeshLambertMaterial({color:0xff6a3d});
+
+  var body = new THREE.Mesh(new THREE.BoxGeometry(17,14,13), yellow); body.position.y = 14; robot.add(body);
+  var head = new THREE.Mesh(new THREE.BoxGeometry(11,9,9), white); head.position.y = 25.5; robot.add(head);
+  [-2.8,2.8].forEach(function(x){
+    var e = new THREE.Mesh(new THREE.SphereGeometry(1.7,10,8), new THREE.MeshBasicMaterial({color:0x2f80ed}));
+    e.position.set(x,27,4.7); robot.add(e);
+  });
+  var ant = new THREE.Mesh(new THREE.CylinderGeometry(.8,.8,7,8), coral); ant.position.y = 33; robot.add(ant);
+  var tip = new THREE.Mesh(new THREE.SphereGeometry(2.2,12,10), coral); tip.position.y = 37; robot.add(tip);
+
+  [-1,1].forEach(function(s, k){
+    var arm = new THREE.Mesh(new THREE.BoxGeometry(4,11,4), dark); arm.position.set(s*10.5, 15, 0); robot.add(arm);
+    var w = new THREE.Mesh(new THREE.CylinderGeometry(5.5,5.5,3.6,14), dark);
+    w.rotation.z = Math.PI/2; w.position.set(s*10.5, 5.5, 0);
+    robot.add(w); wheels.push(w);
+  });
+  robot.position.set(0,0,0);
+  robot.visible = false;
+  scene.add(robot);
+})();
+
+/* ---------- run the program ---------- */
+var running = false, queue = [], qT = 0, qStep = null, beepT = 0;
+var pose = {x:0, z:0, ang:Math.PI/2};
+
+document.getElementById('bPlay').onclick = function(){
+  if(running){ stopRun(); return; }
+  if(!program.length){ flash('Add a block first!'); return; }
+  expand();
+  if(!queue.length){ flash('Nothing to run'); return; }
+  running = true;
+  this.textContent = '⏹ Stop';
+  robot.visible = true;
+  var spawn = spawnSpot();
+  robot.position.set(spawn.x, 0, spawn.z);
+  pose.x = spawn.x; pose.z = spawn.z; pose.ang = Math.PI/2;
+  statusEl.innerHTML = '🤖 Robot is running your program…';
+  nextStep();
+};
+
+function spawnSpot(){
+  // start next to the build, on the plate, facing the middle
+  var cx = 0, cz = 0, n = 0;
+  for(var y=0; y<LAYERS; y++) for(var z=0; z<D; z++) for(var x=0; x<W; x++)
+    if(vox[idx(x,y,z)]){ cx += x; cz += z; n++; }
+  if(!n) return {x:0, z:0};
+  var mx = (cx/n - (W-1)/2) * S_STUD, mz = (cz/n - (D-1)/2) * S_STUD;
+  var len = Math.hypot(mx,mz) || 1;
+  var R = Math.max(60, Math.min(SIZE*PITCH*0.45, len + 42));
+  return {x: mx/len*R, z: mz/len*R};
+}
+
+/* Flatten the block program into a run queue.
+   A Repeat block repeats every block that comes AFTER it, N times. */
+function expand(){
+  queue = [];
+  var loopAt = -1;
+  for(var i=0; i<program.length; i++) if(program[i].kind === 'repeat'){ loopAt = i; break; }
+  if(loopAt < 0){
+    program.forEach(function(s){ queue.push(s); });
+  } else {
+    var head = program.slice(0, loopAt);
+    var body = program.slice(loopAt + 1);
+    head.forEach(function(s){ queue.push(s); });
+    var times = program[loopAt].arg || 2;
+    for(var r=0; r<times; r++){
+      if(!body.length){ queue.push({kind:'beep'}); continue; }
+      body.forEach(function(s){ queue.push(s); });
+    }
+  }
+  if(queue.length > 80) queue = queue.slice(0, 80);
+}
+function nextStep(){
+  if(!queue.length){ finishRun(); return; }
+  qStep = queue.shift();
+  qT = 0;
+  if(qStep.kind === 'beep'){ beep(); }
+  if(qStep.kind === 'move'){
+    var dir = (qStep.dir === 'backward' ? -1 : 1);
+    var dist = qStep.arg * PITCH * dir;
+    qTarget = {x: pose.x + Math.cos(pose.ang)*dist, z: pose.z + Math.sin(pose.ang)*dist};
+    qDur = Math.min(1.5, 0.16 * qStep.arg + 0.25);
+  } else if(qStep.kind === 'turn'){
+    var sign = (qStep.dir === 'left' ? -1 : 1);
+    qTarget = {ang: pose.ang + sign * qStep.arg * Math.PI/2};
+    qDur = Math.min(1.3, 0.22 * qStep.arg + 0.2);
+  } else if(qStep.kind === 'wait'){
+    qTarget = null; qDur = Math.min(3, 0.4 * qStep.arg);
+  } else {
+    qTarget = null; qDur = 0.5;
+  }
+  qFrom = {x:pose.x, z:pose.z, ang:pose.ang};
+}
+var qFrom = {x:0,z:0,ang:0}, qTarget = null, qDur = 1;
+
+function finishRun(){
+  running = false; qStep = null;
+  var b = document.getElementById('bPlay'); b.textContent = '▶ Hit play';
+  statusEl.innerHTML = '✅ Program finished! Great job — try adding a <b>Repeat</b> block.';
+  flash('Robot finished the program 🎉');
+  checkQuest();
+}
+
+function stopRun(){
+  running = false; queue = []; qStep = null;
+  document.getElementById('bPlay').textContent = '▶ Hit play';
+  statusEl.innerHTML = '⏹ Stopped. Press <b>Hit play</b> to run it again.';
+}
+
+function beep(){
+  try{
+    var C = window.AudioContext || window.webkitAudioContext; if(!C) return;
+    var ctx = beep.ctx || (beep.ctx = new C());
+    var o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = 'square'; o.frequency.value = 880;
+    g.gain.value = .05;
+    o.connect(g); g.connect(ctx.destination);
+    o.start(); o.stop(ctx.currentTime + .12);
+  }catch(e){}
+}
+
+/* ---------- quests ---------- */
+var quests = [
+  {t:'Build a tower at least <b>3 layers</b> tall.', ok:function(){ return builtLayers >= 3; }},
+  {t:'Use <b>4 different colours</b> in your build.', ok:function(){ return colourCount() >= 4; }},
+  {t:'Write a program with a <b>Repeat</b> block.', ok:function(){ return program.some(function(s){ return s.kind==='repeat'; }); }},
+  {t:'Make the robot drive <b>forward 3+ times</b>.', ok:function(){ return program.filter(function(s){ return s.kind==='move'; }).length >= 3; }}
+];
+function colourCount(){
+  var set = {};
+  for(var i=0; i<vox.length; i++) if(vox[i]) set[parts[vox[i]-1].color] = 1;
+  return Object.keys(set).length;
+}
+function checkQuest(){
+  var el = document.getElementById('quest');
+  el.innerHTML = quests.map(function(q){
+    return '<span class="' + (q.ok() ? 'tick' : '') + '">' + (q.ok() ? '✅ ' : '⬜ ') + '</span>' + q.t;
+  }).join('<br>');
+}
+setInterval(checkQuest, 1200);
+
+/* ---------- toast ---------- */
+var toastT;
+function flash(msg){
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(toastT); toastT = setTimeout(function(){ t.classList.remove('on'); }, 1600);
+}
+
+/* ---------- resize + loop ---------- */
+function resize(){
+  var w = canvas.parentElement.clientWidth - 18;
+  var h = Math.max(360, Math.min(540, w*0.76));
+  renderer.setSize(w, h, false);
+  canvas.style.height = h + 'px';
+  camera.aspect = w/h; camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', resize);
+
+var last = performance.now(), fpsAcc = 0, fpsN = 0, tSim = 0;
+function frame(now){
+  var dt = Math.min(0.05, (now-last)/1000); last = now;
+  tSim += dt;
+
+  if(running && qStep){
+    qT += dt;
+    var k = Math.min(1, qT/qDur);
+    if(qStep.kind === 'move'){
+      pose.x = qFrom.x + (qTarget.x - qFrom.x)*k;
+      pose.z = qFrom.z + (qTarget.z - qFrom.z)*k;
+      wheels.forEach(function(w){ w.rotation.x += dt*10; });
+    } else if(qStep.kind === 'turn'){
+      var da = qTarget.ang - qFrom.ang;
+      pose.ang = qFrom.ang + da*k;
+      wheels.forEach(function(w,i){ w.rotation.x += dt*6*(i?1:-1); });
+    }
+    robot.position.x = pose.x;
+    robot.position.z = pose.z;
+    robot.rotation.y = -pose.ang + Math.PI/2;
+    if(k >= 1) nextStep();
+  } else if(robot.visible && !running){
+    robot.position.y = Math.sin(tSim*2)*0.6;
+  }
+
+  camera.position.set(orbit.tx + orbit.dist*Math.sin(orbit.phi)*Math.sin(orbit.theta),
+                      orbit.ty + orbit.dist*Math.cos(orbit.phi),
+                      orbit.tz + orbit.dist*Math.sin(orbit.phi)*Math.cos(orbit.theta));
+  camera.lookAt(orbit.tx, orbit.ty, orbit.tz);
+
+  renderer.render(scene, camera);
+
+  fpsAcc += dt; fpsN++;
+  if(fpsAcc > 0.5){
+    document.getElementById('tFps').textContent = Math.round(fpsN/fpsAcc);
+    fpsAcc = 0; fpsN = 0;
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ---------- starter build ---------- */
+(function seed(){
+  var seq = [
+    ['2x4', '#2f80ed', 4, 0, 5],
+    ['2x4', '#e5342b', 8, 0, 5],
+    ['2x2', '#f2b705', 6, 1, 6],
+    ['2x2', '#2fa84f', 8, 1, 6],
+    ['1x2', '#9b51e0', 6, 2, 6]
+  ];
+  seq.forEach(function(s){
+    var si = SHAPES.map(function(x){ return x.id; }).indexOf(s[0]);
+    var ci = COLORS.indexOf(s[1]); if(ci < 0) ci = 0;
+    parts[si].color = COLORS[ci];
+    place(s[2]*SUB, s[3], s[4]*SUB, si);
+  });
+  parts.forEach(function(p){ p.color = COLORS[colorI]; });
+})();
+
+rebuild();
+resize();
+showGhost();
+drawProgram();
+checkQuest();
+requestAnimationFrame(frame);
+
+})();
+</script>
+</body>
+</html>
