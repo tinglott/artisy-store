@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Habit Ledger — Free Habit Planner | ARTISY</title>
+<meta name="description" content="A free private habit planner from ARTISY. Track small wins, shape your environment, and reflect on routines — saved only in your browser.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F7F5EF; --paper-2:#EFEBE0; --ink:#1C2B24; --ink-soft:#4B5A52;
+    --line:#D9D2BE; --bronze:#8A6D3A; --sage:#4C6B58; --sage-soft:#DCE3D8;
+    --miss:#B5654F; --font-display:'Fraunces',serif; --font-body:'Inter',sans-serif;
+  }
+  :root:not([data-theme="light"]) { }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#171C19; --paper-2:#1F2620; --ink:#EDE9DD; --ink-soft:#A9B3AA;
+      --line:#33392F; --bronze:#C79A55; --sage:#8FAE97; --sage-soft:#26332A; --miss:#D98269;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#171C19; --paper-2:#1F2620; --ink:#EDE9DD; --ink-soft:#A9B3AA;
+    --line:#33392F; --bronze:#C79A55; --sage:#8FAE97; --sage-soft:#26332A; --miss:#D98269;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-padding-top:env(safe-area-inset-top,0px);}
+  body{
+    margin:0; background:var(--paper); color:var(--ink); font-family:var(--font-body);
+    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+    line-height:1.5;
+  }
+  .wrap{max-width:780px; margin:0 auto; padding:48px 24px 80px;}
+  header.hero{margin-bottom:44px;}
+  .eyebrow{font-size:13px; color:var(--bronze); margin:0 0 6px;}
+  h1{font-family:var(--font-display); font-weight:500; font-size:clamp(32px,5vw,44px); margin:0 0 10px; letter-spacing:-0.01em;}
+  .tagline{color:var(--ink-soft); font-size:16px; max-width:52ch; margin:0;}
+  .keystone-row{margin-top:26px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+  .keystone-row input[type=text]{flex:1; min-width:220px;}
+  input[type=text], textarea{
+    font-family:var(--font-body); font-size:15px; color:var(--ink); background:var(--paper-2);
+    border:1px solid var(--line); border-radius:3px; padding:9px 11px;
+  }
+  textarea{width:100%; resize:vertical; min-height:64px;}
+  .btn{
+    font-family:var(--font-body); font-size:14px; font-weight:600; color:var(--paper);
+    background:var(--sage); border:none; border-radius:3px; padding:9px 16px; cursor:pointer;
+  }
+  .btn:hover{opacity:.9;}
+  .btn.ghost{background:transparent; color:var(--ink-soft); border:1px solid var(--line); font-weight:500;}
+  section{margin-bottom:46px; padding-top:30px; border-top:1px solid var(--line);}
+  .sec-head{display:flex; justify-content:space-between; align-items:baseline; gap:16px; margin-bottom:6px; flex-wrap:wrap;}
+  h2{font-family:var(--font-display); font-weight:500; font-size:22px; margin:0;}
+  .sec-note{color:var(--ink-soft); font-size:14px; margin:0 0 18px; max-width:56ch;}
+  /* ledger grid */
+  .ledger-table{border-collapse:collapse; width:100%;}
+  .ledger-table th{text-align:left; font-weight:500; font-size:13px; color:var(--ink-soft); padding:6px 6px 10px;}
+  .ledger-table td{padding:5px 4px;}
+  .ledger-table td.name-cell{width:34%; font-size:15px;}
+  .ledger-table td.name-cell input{width:100%; border:none; background:transparent; padding:6px 4px; font-size:15px; color:var(--ink);}
+  .day-cell{width:44px; height:44px; border:1px solid var(--line); border-radius:3px; background:var(--paper-2); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:15px; user-select:none;}
+  .day-cell[data-state="done"]{background:var(--sage-soft); border-color:var(--sage); color:var(--sage);}
+  .day-cell[data-state="small"]{background:var(--paper-2); border-color:var(--bronze); color:var(--bronze);}
+  .day-cell[data-state="skip"]{background:var(--paper-2); border-color:var(--miss); color:var(--miss);}
+  .legend{display:flex; gap:18px; flex-wrap:wrap; font-size:13px; color:var(--ink-soft); margin-top:14px;}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .swatch{width:12px; height:12px; border-radius:2px; display:inline-block;}
+  .votes-line{margin-top:16px; font-size:14px; color:var(--ink-soft);}
+  .votes-line b{color:var(--ink); font-family:var(--font-display); font-size:17px;}
+  /* two column checklist */
+  .two-col{display:grid; grid-template-columns:1fr 1fr; gap:28px;}
+  @media(max-width:560px){.two-col{grid-template-columns:1fr;}}
+  .col-label{font-size:13px; font-weight:600; color:var(--bronze); margin-bottom:10px;}
+  .check-list{list-style:none; margin:0; padding:0;}
+  .check-list li{display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--line);}
+  .check-list input[type=checkbox]{accent-color:var(--sage); width:16px; height:16px;}
+  .check-list input[type=text]{flex:1; border:none; background:transparent; padding:2px; font-size:14px;}
+  .row-x{background:none; border:none; color:var(--ink-soft); cursor:pointer; font-size:15px; padding:2px 4px;}
+  /* need/replacement */
+  .need-row{display:grid; grid-template-columns:1fr 1fr 1fr auto; gap:8px; margin-bottom:8px;}
+  @media(max-width:640px){.need-row{grid-template-columns:1fr;}}
+  .need-row input{width:100%;}
+  .need-row span.lbl{display:none;}
+  @media(max-width:640px){.need-row span.lbl{display:block; font-size:12px; color:var(--ink-soft); margin-bottom:2px;}}
+  /* review */
+  .review-q{margin-bottom:16px;}
+  .review-q p{font-size:14px; color:var(--ink-soft); margin:0 0 6px;}
+  /* rules ref */
+  .rules{padding-left:20px; margin:0; font-size:14px; color:var(--ink-soft);}
+  .rules li{margin-bottom:8px;}
+  .rules li::marker{color:var(--bronze);}
+  .add-row-btn{margin-top:4px;}
+  footer{color:var(--ink-soft); font-size:12px; margin-top:60px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <p class="eyebrow">A habit-change template built on identity, environment, and small honest votes</p>
+    <h1>The Habit Ledger</h1>
+    <p class="tagline">Not a streak counter. A record of the next choice — the one you're making today.</p>
+    <div class="keystone-row">
+      <input type="text" id="keystoneInput" placeholder="Your keystone habit for this season (e.g. lights out by 10:30)">
+      <button class="btn" id="saveKeystone">Save</button>
+    </div>
+  </header>
+
+  <section>
+    <div class="sec-head"><h2>This week's ledger</h2></div>
+    <p class="sec-note">Tap a day to cycle it: a full vote, a small win, or a skip. A skip is data, not a verdict — it just tells you where the environment or the need still needs work.</p>
+    <table class="ledger-table" id="ledgerTable">
+      <thead><tr><th>Habit</th><th>M</th><th>T</th><th>W</th><th>T</th><th>F</th><th>S</th><th>S</th></tr></thead>
+      <tbody id="ledgerBody"></tbody>
+    </table>
+    <button class="btn ghost add-row-btn" id="addHabitRow">+ Add a habit</button>
+    <div class="legend">
+      <span><span class="swatch" style="background:var(--sage-soft); border:1px solid var(--sage);"></span> Full vote</span>
+      <span><span class="swatch" style="background:var(--paper-2); border:1px solid var(--bronze);"></span> Small win</span>
+      <span><span class="swatch" style="background:var(--paper-2); border:1px solid var(--miss);"></span> Skipped</span>
+    </div>
+    <div class="votes-line">Votes cast this week for the person you're becoming: <b id="voteCount">0</b></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Design the environment</h2></div>
+    <p class="sec-note">Willpower runs out. Friction doesn't. List what makes the good choice easier to reach, and what makes the unwanted one slower to start.</p>
+    <div class="two-col">
+      <div>
+        <div class="col-label">Make it easy</div>
+        <ul class="check-list" id="easyList"></ul>
+        <button class="btn ghost add-row-btn" id="addEasy">+ Add item</button>
+      </div>
+      <div>
+        <div class="col-label">Make it inconvenient</div>
+        <ul class="check-list" id="hardList"></ul>
+        <button class="btn ghost add-row-btn" id="addHard">+ Add item</button>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Diagnose the need</h2></div>
+    <p class="sec-note">Every habit meets a real need. Name the habit you want to change, what it's actually giving you, and a replacement that meets the same need.</p>
+    <div id="needRows"></div>
+    <button class="btn ghost add-row-btn" id="addNeed">+ Add row</button>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>For the difficult days</h2></div>
+    <p class="sec-note">On the days you're depleted, the goal isn't the full habit — it's a version so small it's nearly impossible to skip.</p>
+    <ul class="check-list" id="minList"></ul>
+    <button class="btn ghost add-row-btn" id="addMin">+ Add a minimal version</button>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Monthly review</h2></div>
+    <p class="sec-note">Once a month, look at the system itself — not just whether you kept it.</p>
+    <div class="review-q"><p>Where did the environment work against you this month?</p><textarea data-review="env"></textarea></div>
+    <div class="review-q"><p>Which lapses were about the habit, and which were about the need behind it?</p><textarea data-review="lapse"></textarea></div>
+    <div class="review-q"><p>What's the smallest next version of this habit worth trying?</p><textarea data-review="next"></textarea></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Long-term success rules</h2></div>
+    <ol class="rules">
+      <li>Make the desired behavior easy.</li>
+      <li>Make the unwanted behavior inconvenient.</li>
+      <li>Focus on the next choice, not a perfect streak.</li>
+      <li>Address the underlying need, not just the visible habit.</li>
+      <li>Use small actions on difficult days.</li>
+      <li>Expect lapses and prepare for them.</li>
+      <li>Review your system every month.</li>
+    </ol>
+    <p class="sec-note" style="margin-top:6px;">The goal isn't to stop a bad habit — it's to build an environment, routine, and self-image that make the healthier choice increasingly natural.</p>
+  </section>
+
+  <footer>Saved automatically in this browser. Nothing here is sent anywhere.</footer>
+</div>
+
+<script>
+(function(){
+  const KEY = 'habitLedgerData_v1';
+  let data;
+  try{
+    data = JSON.parse(localStorage.getItem(KEY)) || {};
+  }catch(e){ data = {}; }
+  data.keystone = data.keystone || '';
+  data.habits = data.habits || [{name:'', days:['','','','','','','']}];
+  data.easy = data.easy || [{text:'',done:false}];
+  data.hard = data.hard || [{text:'',done:false}];
+  data.needs = data.needs || [{habit:'',need:'',replacement:''}];
+  data.min = data.min || [{text:'',done:false}];
+  data.review = data.review || {env:'',lapse:'',next:''};
+
+  function save(){
+    try{ localStorage.setItem(KEY, JSON.stringify(data)); }catch(e){}
+  }
+
+  // keystone
+  const keystoneInput = document.getElementById('keystoneInput');
+  keystoneInput.value = data.keystone;
+  document.getElementById('saveKeystone').onclick = ()=>{ data.keystone = keystoneInput.value; save(); };
+
+  // ledger
+  const ledgerBody = document.getElementById('ledgerBody');
+  const voteCountEl = document.getElementById('voteCount');
+  function renderLedger(){
+    ledgerBody.innerHTML = '';
+    let votes = 0;
+    data.habits.forEach((h, hi)=>{
+      const tr = document.createElement('tr');
+      const nameTd = document.createElement('td');
+      nameTd.className = 'name-cell';
+      const nameInput = document.createElement('input');
+      nameInput.type='text'; nameInput.placeholder='Habit name'; nameInput.value = h.name;
+      nameInput.oninput = ()=>{ h.name = nameInput.value; save(); };
+      nameTd.appendChild(nameInput);
+      tr.appendChild(nameTd);
+      h.days.forEach((state, di)=>{
+        const td = document.createElement('td');
+        const cell = document.createElement('div');
+        cell.className = 'day-cell';
+        cell.dataset.state = state;
+        cell.textContent = state === 'done' ? '✓' : state === 'small' ? '·' : state === 'skip' ? '—' : '';
+        if(state==='done') votes++;
+        cell.onclick = ()=>{
+          const order = ['', 'done', 'small', 'skip'];
+          const next = order[(order.indexOf(h.days[di]) + 1) % order.length];
+          h.days[di] = next; save(); renderLedger();
+        };
+        td.appendChild(cell);
+        tr.appendChild(td);
+      });
+      ledgerBody.appendChild(tr);
+    });
+    voteCountEl.textContent = votes;
+  }
+  document.getElementById('addHabitRow').onclick = ()=>{
+    data.habits.push({name:'', days:['','','','','','','']}); save(); renderLedger();
+  };
+  renderLedger();
+
+  // generic check-list renderer
+  function renderCheckList(container, arr, placeholder){
+    container.innerHTML = '';
+    arr.forEach((item, i)=>{
+      const li = document.createElement('li');
+      const cb = document.createElement('input'); cb.type='checkbox'; cb.checked = item.done;
+      cb.onchange = ()=>{ item.done = cb.checked; save(); };
+      const txt = document.createElement('input'); txt.type='text'; txt.placeholder=placeholder; txt.value = item.text;
+      txt.oninput = ()=>{ item.text = txt.value; save(); };
+      const del = document.createElement('button'); del.className='row-x'; del.textContent='✕';
+      del.onclick = ()=>{ arr.splice(i,1); save(); renderCheckList(container, arr, placeholder); };
+      li.appendChild(cb); li.appendChild(txt); li.appendChild(del);
+      container.appendChild(li);
+    });
+  }
+  const easyList = document.getElementById('easyList');
+  const hardList = document.getElementById('hardList');
+  const minList = document.getElementById('minList');
+  renderCheckList(easyList, data.easy, 'e.g. water bottle on the desk');
+  renderCheckList(hardList, data.hard, 'e.g. app deleted from phone');
+  renderCheckList(minList, data.min, 'e.g. one page, one rep, one breath');
+  document.getElementById('addEasy').onclick = ()=>{ data.easy.push({text:'',done:false}); save(); renderCheckList(easyList, data.easy, 'e.g. water bottle on the desk'); };
+  document.getElementById('addHard').onclick = ()=>{ data.hard.push({text:'',done:false}); save(); renderCheckList(hardList, data.hard, 'e.g. app deleted from phone'); };
+  document.getElementById('addMin').onclick = ()=>{ data.min.push({text:'',done:false}); save(); renderCheckList(minList, data.min, 'e.g. one page, one rep, one breath'); };
+
+  // needs table
+  const needRows = document.getElementById('needRows');
+  function renderNeeds(){
+    needRows.innerHTML = '';
+    data.needs.forEach((row, i)=>{
+      const div = document.createElement('div');
+      div.className = 'need-row';
+      div.innerHTML = `
+        <div><span class="lbl">Habit</span><input type="text" placeholder="Habit to change" value="${row.habit.replace(/"/g,'&quot;')}" data-f="habit"></div>
+        <div><span class="lbl">Underlying need</span><input type="text" placeholder="Underlying need" value="${row.need.replace(/"/g,'&quot;')}" data-f="need"></div>
+        <div><span class="lbl">Replacement</span><input type="text" placeholder="Replacement action" value="${row.replacement.replace(/"/g,'&quot;')}" data-f="replacement"></div>
+      `;
+      const del = document.createElement('button'); del.className='row-x'; del.textContent='✕';
+      del.onclick = ()=>{ data.needs.splice(i,1); save(); renderNeeds(); };
+      div.appendChild(del);
+      div.querySelectorAll('input').forEach(inp=>{
+        inp.oninput = ()=>{ row[inp.dataset.f] = inp.value; save(); };
+      });
+      needRows.appendChild(div);
+    });
+  }
+  renderNeeds();
+  document.getElementById('addNeed').onclick = ()=>{ data.needs.push({habit:'',need:'',replacement:''}); save(); renderNeeds(); };
+
+  // review
+  document.querySelectorAll('textarea[data-review]').forEach(ta=>{
+    const key = ta.dataset.review;
+    ta.value = data.review[key] || '';
+    ta.oninput = ()=>{ data.review[key] = ta.value; save(); };
+  });
+})();
+</script>
+</body>
+</html>
