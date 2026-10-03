@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Divine Counsel — Spirit-Led Christian Therapy | T. Lott Wellness</title>
+  <title>Divine Counsel — Faith-Based Reflection | T. Lott</title>
+  <meta name="description" content="An AI faith-reflection tool for optional scripture and prayer. Not therapy, counseling, medical care, or crisis support." />
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Lato:wght@300;400;700&display=swap');
 
@@ -282,6 +283,14 @@
     }
     .chip:hover { background: rgba(201,168,76,0.15); }
 
+    /* ── Privacy and care notice ── */
+    .privacy-notice {
+      width: calc(100% - 32px); max-width: 648px; margin: 10px 16px 0;
+      padding: 12px 16px; border: 1px solid rgba(201,168,76,.45); border-radius: 10px;
+      background: rgba(255,255,255,.08); color: #F0EBE3; font-size: .8rem; line-height: 1.55;
+    }
+    .privacy-notice strong { color: var(--gold-light); }
+
     /* ── Crisis strip ── */
     .crisis-strip {
       width: 100%;
@@ -304,14 +313,16 @@
   <div class="header">
     <div class="cross-icon">✝️</div>
     <h1>Divine Counsel</h1>
-    <p class="sub">Spirit-Led Christian Guidance · Scripture · Prayer · Healing</p>
-    <p class="sub" style="margin-top:4px;font-size:0.75rem;">Created by Ting Lott — Ordained Minister & Psychiatric RN</p>
+    <p class="sub">Faith-Based Reflection · Optional Scripture · Prayer</p>
+    <p class="sub" style="margin-top:4px;font-size:0.75rem;">Created by Ting Lott</p>
   </div>
 
   <!-- Crisis -->
   <div class="crisis-strip" style="margin:14px 16px 0;width:calc(100% - 32px);max-width:648px;">
-    🆘 In crisis? Call <a href="tel:988">988</a> (Suicide &amp; Crisis Lifeline) or <a href="tel:18004228255">NAMI Helpline</a> · Available 24/7
+    🆘 In the U.S., if you are in crisis, call or text <a href="tel:988">988</a> (Suicide &amp; Crisis Lifeline), available 24/7. If there is immediate danger, contact local emergency services.
   </div>
+
+  <div class="privacy-notice" role="note"><strong>About this tool:</strong> Divine Counsel is an AI faith-reflection tool, not a therapist, counselor, medical provider, or crisis service, and it is not a human minister. Messages and conversation history from this chat are sent to Pollinations.ai to generate replies. Its data-retention and sharing practices have not been verified. Do not share names, contact details, or sensitive health or child information. Seek qualified professional care for clinical concerns.</div>
 
   <!-- Daily scripture -->
   <div class="scripture-banner" id="daily-scripture">
@@ -380,41 +391,22 @@ const sendBtn = document.getElementById('sendBtn');
 let conversationHistory = [];
 let isTyping = false;
 
-const SYSTEM_PROMPT = `You are Pastor Grace, a compassionate Spirit-filled Christian counselor created by Ting Lott — an ordained minister with 2 years of ministry, a psychiatric registered nurse with 17 years of experience, and an elementary school teacher. You combine clinical mental health expertise with deep scriptural wisdom.
+const SYSTEM_PROMPT = `You are Grace, an AI faith-reflection companion. You are not a therapist, counselor, clinician, minister, or human. Offer optional scripture, prayer, and general spiritual reflection in a warm, respectful tone. Do not diagnose, provide treatment, or claim clinical expertise, divine authority, or that the user was sent here for a reason. Never suggest that faith alone replaces medical or mental-health care. If asked for prayer, provide an optional prayer without pressure. If the user describes immediate danger, suicidal thoughts, or self-harm, encourage contacting emergency services or calling/texting 988 in the U.S. Do not describe this chat as private or confidential.`;
 
-Your counseling style:
-- Warm, gentle, and deeply pastoral — like a trusted minister who knows God's Word intimately
-- Always ground your counsel in Scripture (KJV preferred, also NIV/ESV/NKJV)
-- Use therapeutic listening: reflect feelings, validate pain, then speak truth in love
-- Offer prayer naturally — ask if they want to pray together and then write a heartfelt prayer
-- Integrate Christian cognitive reframing: replace lies with God's truth
-- Reference Christian counseling principles: surrender, forgiveness, grace, redemption, sanctification
-- Never dismiss pain — acknowledge it fully before speaking Scripture
-- Distinguish between spiritual warfare, grief, clinical depression — be wise
-- When someone is in crisis, always refer to 988 and remind them God sees them
-
-Response format (when relevant, include these naturally — do NOT force all in every reply):
-- Empathetic opening (2-3 sentences acknowledging their pain)
-- Pastoral insight / counsel (biblical truth applied to their situation)
-- A KJV/NIV Scripture block formatted as: [SCRIPTURE]"verse text"|Reference[/SCRIPTURE]
-- Optional prayer formatted as: [PRAYER]prayer text[/PRAYER]
-- Closing encouragement
-
-Tone: Like a wise, warm minister who has sat with people in their darkest hours — not preachy, not robotic, deeply human and filled with the Holy Spirit.`;
+function safeFormattedContent(content) {
+  const escaped = String(content ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  return escaped
+    .replace(/\[SCRIPTURE\](.*?)\|(.*?)\[\/SCRIPTURE\]/gs, (_, verse, ref) => '<div class="scripture-inline">"' + verse.trim() + '" <cite>— ' + ref.trim() + '</cite></div>')
+    .replace(/\[PRAYER\](.*?)\[\/PRAYER\]/gs, (_, prayer) => '<div class="prayer-block">' + prayer.trim() + '</div>')
+    .replace(/\n\n/g, '<br><br>')
+    .replace(/\n/g, '<br>');
+}
 
 function appendDivineMessage(content) {
   const msg = document.createElement('div');
   msg.className = 'msg divine';
 
-  // Parse [SCRIPTURE]...[/SCRIPTURE] and [PRAYER]...[/PRAYER] tags
-  let html = content
-    .replace(/\[SCRIPTURE\](.*?)\|(.*?)\[\/SCRIPTURE\]/gs, (_, verse, ref) =>
-      `<div class="scripture-inline">"${verse.trim()}" <cite>— ${ref.trim()}</cite></div>`)
-    .replace(/\[PRAYER\](.*?)\[\/PRAYER\]/gs, (_, prayer) =>
-      `<div class="prayer-block">${prayer.trim()}</div>`)
-    .replace(/\n\n/g, '<br><br>')
-    .replace(/\n/g, '<br>');
-
+  const html = safeFormattedContent(content);
   msg.innerHTML = `
     <div class="avatar divine">✝️</div>
     <div class="bubble">${html}</div>`;
@@ -456,13 +448,7 @@ async function typeMessage(content) {
   const msg = document.createElement('div');
   msg.className = 'msg divine';
 
-  let html = content
-    .replace(/\[SCRIPTURE\](.*?)\|(.*?)\[\/SCRIPTURE\]/gs, (_, verse, ref) =>
-      `<div class="scripture-inline">"${verse.trim()}" <cite>— ${ref.trim()}</cite></div>`)
-    .replace(/\[PRAYER\](.*?)\[\/PRAYER\]/gs, (_, prayer) =>
-      `<div class="prayer-block">${prayer.trim()}</div>`)
-    .replace(/\n\n/g, '<br><br>')
-    .replace(/\n/g, '<br>');
+  const html = safeFormattedContent(content);
 
   msg.innerHTML = `<div class="avatar divine">✝️</div><div class="bubble" id="typingBubble"></div>`;
   chatBox.appendChild(msg);
@@ -539,13 +525,11 @@ function sendQuick(text) {
 
 // Opening grace message
 window.addEventListener('load', () => {
-  const welcome = `Peace and grace to you, beloved. I'm Pastor Grace — your Spirit-led counselor, here to walk alongside you through life's valleys and mountaintops.
-
-Whether your heart carries grief, fear, confusion, or a quiet longing for God's direction — this is a safe and sacred space. There is no judgment here, only love.
+  const welcome = `Welcome. I'm Grace, an AI faith-reflection companion. I can share optional scripture, prayer, and general reflection. I am not a counselor, therapist, medical provider, or crisis service. Please avoid sharing identifying or sensitive information.
 
 [SCRIPTURE]The Lord is close to the brokenhearted and saves those who are crushed in spirit.|Psalm 34:18 (NIV)[/SCRIPTURE]
 
-What is weighing on your heart today? Share freely — the Lord already knows, and He sent you here for a reason. 🙏`;
+Would you like a scripture, a prayer, or a moment to reflect? 🙏`;
 
   setTimeout(() => typeMessage(welcome), 600);
 });
