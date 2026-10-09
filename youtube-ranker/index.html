@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VisualSpark — AI Image Creator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:wght@600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #fff;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container { max-width: 900px; margin: 0 auto; }
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding-top: 20px;
+    }
+    header h1 {
+      font-family: 'Fraunces', serif;
+      font-size: 2.5em;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #f97316 0%, #fbbf24 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    header p { color: #aaa; font-size: 0.95em; }
+    
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 20px;
+      backdrop-filter: blur(10px);
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #fbbf24;
+      font-size: 0.9em;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    textarea, input, select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      font-family: inherit;
+      font-size: 0.95em;
+    }
+    textarea:focus, input:focus, select:focus {
+      outline: none;
+      border-color: #f97316;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    textarea { resize: vertical; min-height: 100px; }
+    
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 640px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+    
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.95em;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #f97316 0%, #fbbf24 100%);
+      color: #1a1a2e;
+      width: 100%;
+      padding: 14px;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(249, 115, 22, 0.4); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    
+    .output {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+    }
+    .output img {
+      max-width: 100%;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    .status {
+      color: #fbbf24;
+      font-size: 0.9em;
+      margin: 20px 0;
+      min-height: 24px;
+    }
+    .error { color: #ef4444; }
+    .success { color: #10b981; }
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top: 3px solid #fbbf24;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 10px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>✨ VisualSpark</h1>
+      <p>Create AI images with Pollinations (100% Free)</p>
+    </header>
+
+    <div class="card">
+      <form id="form" onsubmit="handleSubmit(event)">
+        <div class="form-group">
+          <label for="prompt">Image Prompt</label>
+          <textarea id="prompt" placeholder="A serene lakeside at golden hour, misty mountains, oil painting style..." required></textarea>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label for="model">AI Model</label>
+            <select id="model">
+              <option value="flux-pro">FLUX Pro (Best Quality)</option>
+              <option value="flux">FLUX Standard</option>
+              <option value="flux-realism">FLUX Realism</option>
+              <option value="black-forest-labs/flux-1.1-pro">FLUX 1.1 Pro</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="size">Image Size</label>
+            <select id="size">
+              <option value="768x512">768×512 (Landscape)</option>
+              <option value="512x768">512×768 (Portrait)</option>
+              <option value="512x512">512×512 (Square)</option>
+              <option value="1024x768">1024×768 (Wide)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="negative">Negative Prompt (Optional)</label>
+          <input type="text" id="negative" placeholder="blurry, low quality, watermark, text, ugly...">
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="submitBtn">
+          Generate Image
+        </button>
+      </form>
+    </div>
+
+    <div class="card output" id="output" style="display:none;">
+      <div class="status" id="status"></div>
+      <img id="resultImage" alt="Generated image">
+      <div style="margin-top: 15px; font-size: 0.85em; color: #888;" id="metadata"></div>
+    </div>
+  </div>
+
+  <script>
+    async function handleSubmit(event) {
+      event.preventDefault();
+      
+      const btn = document.getElementById('submitBtn');
+      const output = document.getElementById('output');
+      const status = document.getElementById('status');
+      const img = document.getElementById('resultImage');
+      
+      const prompt = document.getElementById('prompt').value.trim();
+      const model = document.getElementById('model').value;
+      const size = document.getElementById('size').value;
+      const negative = document.getElementById('negative').value.trim();
+
+      if (!prompt) {
+        status.textContent = '❌ Please enter a prompt!';
+        status.className = 'status error';
+        return;
+      }
+
+      btn.disabled = true;
+      status.textContent = '⚡ Generating...';
+      status.innerHTML = '<span class="spinner"></span>Creating your image...';
+      status.className = 'status';
+      output.style.display = 'block';
+
+      try {
+        const [w, h] = size.split('x').map(Number);
+        const fullPrompt = negative ? `${prompt}, NOT ${negative}` : prompt;
+        
+        const params = new URLSearchParams({
+          width: w,
+          height: h,
+          model: model,
+          nologo: 'true',
+        });
+
+        const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?${params}`;
+        
+        img.src = url;
+        img.onload = () => {
+          status.textContent = `✅ Image created! Model: ${model} | Size: ${w}×${h}`;
+          status.className = 'status success';
+        };
+        img.onerror = () => {
+          status.textContent = '❌ Failed to load image. Try again.';
+          status.className = 'status error';
+        };
+
+      } catch (err) {
+        status.textContent = '❌ ' + err.message;
+        status.className = 'status error';
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // Load gallery from localStorage
+    window.addEventListener('load', () => {
+      document.getElementById('form').addEventListener('submit', handleSubmit);
+    });
+  </script>
+</body>
+</html>
