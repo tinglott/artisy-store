@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adventure Quest — World Explorer</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+  * { font-family: 'Nunito', sans-serif; box-sizing: border-box; }
+  body { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); min-height: 100vh; margin: 0; }
+
+  /* Confetti */
+  .confetti-piece { position: fixed; width: 10px; height: 10px; top: -10px; animation: confetti-fall linear forwards; z-index: 9999; border-radius: 2px; }
+  @keyframes confetti-fall { to { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
+
+  /* Cards */
+  .glass { background: rgba(255,255,255,0.07); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.15); }
+  .country-card { cursor: pointer; transition: all 0.3s ease; border-radius: 1rem; padding: 1rem; }
+  .country-card:hover { transform: translateY(-4px) scale(1.03); }
+  .country-card.locked { opacity: 0.45; cursor: not-allowed; }
+  .country-card.completed { border: 2px solid #22c55e !important; }
+
+  /* Progress bar */
+  .progress-bar { height: 12px; border-radius: 6px; background: rgba(255,255,255,0.1); overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 6px; background: linear-gradient(90deg, #f59e0b, #ef4444); transition: width 0.5s ease; }
+
+  /* Timer ring */
+  .timer-ring { animation: pulse-ring 1s ease-in-out infinite; }
+  .timer-urgent { animation: pulse-ring 0.4s ease-in-out infinite; }
+  @keyframes pulse-ring { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+
+  /* Buttons */
+  .btn-primary { background: linear-gradient(135deg, #f59e0b, #ef4444); color: white; border: none; border-radius: 0.75rem; padding: 0.75rem 2rem; font-weight: 800; font-size: 1rem; cursor: pointer; transition: all 0.2s; }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(245,158,11,0.4); }
+  .btn-secondary { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 0.75rem; padding: 0.75rem 1.5rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+  .btn-secondary:hover { background: rgba(255,255,255,0.2); transform: translateY(-1px); }
+
+  /* Shake animation */
+  @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-8px)} 40%,80%{transform:translateX(8px)} }
+  .shake { animation: shake 0.4s ease; }
+
+  /* Bounce animation */
+  @keyframes bounce-in { 0%{transform:scale(0.5);opacity:0} 70%{transform:scale(1.1)} 100%{transform:scale(1);opacity:1} }
+  .bounce-in { animation: bounce-in 0.4s ease forwards; }
+
+  /* Star rating */
+  .star { display: inline-block; transition: transform 0.2s; }
+  .star.earned { color: #f59e0b; animation: star-pop 0.3s ease; }
+  @keyframes star-pop { 0%{transform:scale(0)} 60%{transform:scale(1.4)} 100%{transform:scale(1)} }
+
+  /* Achievement toast */
+  .achievement-toast { position: fixed; top: 1rem; right: 1rem; z-index: 1000; animation: slide-in 0.4s ease; }
+  @keyframes slide-in { from{transform:translateX(120%)} to{transform:translateX(0)} }
+
+  /* Map pin */
+  .map-pin { animation: float 2s ease-in-out infinite; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+
+  /* Input */
+  .answer-input { background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2); border-radius: 0.75rem; padding: 0.875rem 1.25rem; color: white; font-size: 1.1rem; font-weight: 700; width: 100%; outline: none; transition: border-color 0.2s; }
+  .answer-input:focus { border-color: #f59e0b; }
+  .answer-input::placeholder { color: rgba(255,255,255,0.4); }
+
+  /* Leaderboard */
+  .lb-row:nth-child(1) .lb-rank { color: #ffd700; }
+  .lb-row:nth-child(2) .lb-rank { color: #c0c0c0; }
+  .lb-row:nth-child(3) .lb-rank { color: #cd7f32; }
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.2) transparent;
+</style>
+</head>
+<body class="text-white">
+
+<div id="app"></div>
+
+<script>
+// ====================== DATA ======================
+const COUNTRIES = {
+  Egypt: {
+    emoji: "🇪🇬",
+    color: "#f59e0b",
+    bg: "from-yellow-900/40 to-orange-900/40",
+    border: "border-yellow-500/40",
+    description: "Land of Pharaohs",
+    unlockScore: 0,
+    challenges: [
+      { q: "A pyramid has 5 layers with 25, 16, 9, 4, and 1 blocks. How many blocks total?", a: "55", hint: "Add them: 25+16+9+4+1", type: "Math", edu: "Addition" },
+      { q: "Which ancient Egyptian structure was built as a tomb for pharaohs?", a: "pyramid", hint: "Starts with P, triangle shape", type: "History", edu: "Ancient Egypt" },
+      { q: "I speak without a mouth and hear without ears. What am I?", a: "echo", hint: "You hear this in canyons", type: "Logic", edu: "Riddles" },
+      { q: "What is the longest river in the world that flows through Egypt?", a: "nile", hint: "It flows north", type: "Geography", edu: "Rivers" },
+      { q: "Ancient Egyptians invented a paper-like material from plants. What is it called?", a: "papyrus", hint: "Sounds like paper", type: "History", edu: "Inventions" },
+      { q: "What sacred animal in ancient Egypt was mummified and worshipped?", a: "cat", hint: "Meow!", type: "Culture", edu: "Animals" }
+    ]
+  },
+  Japan: {
+    emoji: "🇯🇵",
+    color: "#ec4899",
+    bg: "from-pink-900/40 to-red-900/40",
+    border: "border-pink-500/40",
+    description: "Land of the Rising Sun",
+    unlockScore: 200,
+    challenges: [
+      { q: "What is the process plants use to turn sunlight into food?", a: "photosynthesis", hint: "Starts with 'photo'", type: "Science", edu: "Plants" },
+      { q: "What is the capital city of Japan?", a: "tokyo", hint: "Cherry blossoms & trains", type: "Geography", edu: "Capitals" },
+      { q: "A bullet train travels 320 km in 2 hours. Speed in km/h?", a: "160", hint: "Divide 320 by 2", type: "Math", edu: "Division" },
+      { q: "What beautiful pink flowers bloom in Japan every spring?", a: "cherry blossoms", hint: "Also called sakura", type: "Nature", edu: "Seasons" },
+      { q: "What is the traditional Japanese art of paper folding called?", a: "origami", hint: "Cranes and animals", type: "Culture", edu: "Arts" },
+      { q: "Mount Fuji is the tallest mountain in which country?", a: "japan", hint: "It's a volcano", type: "Geography", edu: "Mountains" }
+    ]
+  },
+  Brazil: {
+    emoji: "🇧🇷",
+    color: "#22c55e",
+    bg: "from-green-900/40 to-emerald-900/40",
+    border: "border-green-500/40",
+    description: "Heart of the Amazon",
+    unlockScore: 450,
+    challenges: [
+      { q: "What is the largest rainforest in the world?", a: "amazon", hint: "Named after a river", type: "Nature", edu: "Rainforests" },
+      { q: "8 rows of 12 dancers — how many total?", a: "96", hint: "8 × 12", type: "Math", edu: "Multiplication" },
+      { q: "In Portuguese, 'obrigado' means?", a: "thank you", hint: "Polite after a gift", type: "Language", edu: "Words" },
+      { q: "What is the largest city in Brazil and South America?", a: "sao paulo", hint: "Very big and busy", type: "Geography", edu: "Cities" },
+      { q: "Brazil is famous for its colorful dance festival called what?", a: "carnival", hint: "Big party with samba", type: "Culture", edu: "Festivals" },
+      { q: "What is the national sport of Brazil?", a: "football", hint: "Or soccer", type: "Sports", edu: "Games" }
+    ]
+  },
+  Australia: {
+    emoji: "🇦🇺",
+    color: "#3b82f6",
+    bg: "from-blue-900/40 to-cyan-900/40",
+    border: "border-blue-500/40",
+    description: "Land Down Under",
+    unlockScore: 750,
+    challenges: [
+      { q: "Largest living structure off Australia's coast?", a: "great barrier reef", hint: "Made of coral", type: "Biology", edu: "Oceans" },
+      { q: "Kangaroo hops 3m every 2 seconds. Distance in 10 seconds?", a: "15", hint: "5 groups of 2s × 3", type: "Math", edu: "Rates" },
+      { q: "Lost outdoors? Best first move: RUN, HIDE, or STAY?", a: "stay", hint: "Helps rescuers find you", type: "Safety", edu: "Survival" },
+      { q: "What unique animal carries its babies in a pouch?", a: "kangaroo", hint: "Jumps really far", type: "Nature", edu: "Animals" },
+      { q: "What is the nickname for Australia (starts with 'Down')?", a: "down under", hint: "It's in the Southern Hemisphere", type: "Geography", edu: "Locations" },
+      { q: "The Sydney Opera House is shaped like what?", a: "sails", hint: "On boats", type: "Culture", edu: "Buildings" }
+    ]
+  },
+  Iceland: {
+    emoji: "🇮🇸",
+    color: "#8b5cf6",
+    bg: "from-purple-900/40 to-indigo-900/40",
+    border: "border-purple-500/40",
+    description: "Land of Fire & Ice",
+    unlockScore: 1100,
+    challenges: [
+      { q: "Hot-spring that shoots water into the air in Iceland?", a: "geyser", hint: "Erupts like a fountain", type: "Geology", edu: "Earth" },
+      { q: "Colorful light show in Iceland's sky?", a: "aurora", hint: "Northern Lights", type: "Science", edu: "Sky" },
+      { q: "Water freezes at 0°C. What in Fahrenheit?", a: "32", hint: "Freezing point in °F", type: "Math", edu: "Units" },
+      { q: "Iceland has many volcanoes and hot springs. What is its nickname?", a: "land of fire and ice", hint: "Hot and cold", type: "Geography", edu: "Nature" },
+      { q: "What is the capital city of Iceland?", a: "reykjavik", hint: "Sounds like 'ray-kya-vik'", type: "Geography", edu: "Capitals" },
+      { q: "Iceland is known for its clean energy from what natural source?", a: "geothermal", hint: "Heat from the Earth", type: "Science", edu: "Energy" }
+    ]
+  }
+};
+
+const TEAMS = [
+  { name: "Phoenix Squad", emoji: "🔥", color: "#ef4444", perk: "+10 bonus per correct", perkValue: 10 },
+  { name: "Ocean Crew",   emoji: "🌊", color: "#3b82f6", perk: "+15s extra time",     perkValue: 15, timePerk: true },
+  { name: "Star Rangers", emoji: "⭐", color: "#f59e0b", perk: "Double first answer",  perkValue: 2,  doublePerk: true },
+  { name: "Leaf Force",   emoji: "🌿", color: "#22c55e", perk: "Free hint each round", perkValue: 0,  hintPerk: true }
+];
+
+const ACHIEVEMENTS = [
+  { id: "first_answer",  emoji: "🌟", name: "First Steps",      desc: "Answer your first question",    check: s => s.totalAnswered >= 1 },
+  { id: "perfect_round", emoji: "💎", name: "Flawless!",        desc: "Complete a country perfectly",  check: s => s.perfectRounds >= 1 },
+  { id: "speed_demon",   emoji: "⚡", name: "Speed Demon",      desc: "Answer in under 5 seconds",     check: s => s.fastAnswers >= 1 },
+  { id: "half_world",    emoji: "🌍", name: "Half Explorer",    desc: "Complete 3 countries",          check: s => s.countriesCompleted >= 3 },
+  { id: "world_champ",   emoji: "🏆", name: "World Champion",   desc: "Complete all 5 countries",      check: s => s.countriesCompleted >= 5 },
+  { id: "hint_free",     emoji: "🧠", name: "No Hints Needed",  desc: "Complete without any hints",    check: s => s.countriesCompleted >= 1 && s.hintsUsed === 0 },
+  { id: "high_scorer",   emoji: "💰", name: "Big Earner",       desc: "Reach 1000 points",             check: s => s.score >= 1000 }
+];
+
+// ====================== STATE ======================
+let state = {
+  screen: "setup",        // setup | map | playing | result | winner | gameover
+  teamName: "",
+  teamEmoji: "",
+  teamColor: "#f59e0b",
+  teamPerk: null,
+  playerName: "",
+  score: 0,
+  lives: 3,
+  currentCountry: null,
+  currentChallengeIdx: 0,
+  countryProgress: {},    // { Egypt: { done: true, stars: 3 } }
+  answer: "",
+  showHint: false,
+  hintUsedThisQ: false,
+  timeLeft: 30,
+  timerInterval: null,
+  feedback: null,         // { correct: bool, msg: string }
+  achievements: [],
+  stats: { totalAnswered: 0, fastAnswers: 0, perfectRounds: 0, countriesCompleted: 0, hintsUsed: 0 },
+  toasts: [],
+  challengeStartTime: null,
+  wrongAttempts: 0
+};
+
+// ====================== AUDIO ======================
+function playBeep(freq = 440, dur = 0.1, type = "sine", vol = 0.3) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = freq;
+    osc.type = type;
+    gain.gain.setValueAtTime(vol, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    osc.start(); osc.stop(ctx.currentTime + dur);
+  } catch(e) {}
+}
+const SFX = {
+  correct: () => { playBeep(523,0.1); setTimeout(()=>playBeep(659,0.1),100); setTimeout(()=>playBeep(784,0.2),200); },
+  wrong:   () => { playBeep(200,0.3,"sawtooth"); },
+  tick:    () => { playBeep(880,0.05,"square",0.1); },
+  unlock:  () => { [523,587,659,698,784].forEach((f,i)=>setTimeout(()=>playBeep(f,0.15),i*80)); },
+  win:     () => { [523,659,784,1047].forEach((f,i)=>setTimeout(()=>playBeep(f,0.3),i*120)); }
+};
+
+// ====================== CONFETTI ======================
+function launchConfetti(count = 60) {
+  const colors = ["#f59e0b","#ef4444","#22c55e","#3b82f6","#8b5cf6","#ec4899","#fff"];
+  for (let i = 0; i < count; i++) {
+    setTimeout(() => {
+      const el = document.createElement("div");
+      el.className = "confetti-piece";
+      el.style.left = Math.random() * 100 + "vw";
+      el.style.background = colors[Math.floor(Math.random() * colors.length)];
+      el.style.width = (8 + Math.random() * 8) + "px";
+      el.style.height = (8 + Math.random() * 8) + "px";
+      el.style.animationDuration = (1.5 + Math.random() * 2) + "s";
+      el.style.animationDelay = (Math.random() * 0.5) + "s";
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 4000);
+    }, i * 30);
+  }
+}
+
+// ====================== TIMER ======================
+function startTimer() {
+  clearInterval(state.timerInterval);
+  let base = 30;
+  if (state.teamPerk && state.teamPerk.timePerk) base += state.teamPerk.perkValue;
+  state.timeLeft = base;
+  state.challengeStartTime = Date.now();
+  state.timerInterval = setInterval(() => {
+    state.timeLeft--;
+    if (state.timeLeft <= 5) SFX.tick();
+    if (state.timeLeft <= 0) {
+      clearInterval(state.timerInterval);
+      handleTimeout();
+    }
+    render();
+  }, 1000);
+}
+
+function handleTimeout() {
+  state.lives--;
+  state.wrongAttempts++;
+  if (state.lives <= 0) {
+    state.screen = "gameover";
+    saveScore();
+  } else {
+    advanceChallenge(false);
+  }
+  render();
+}
+
+// ====================== LEADERBOARD ======================
+function saveScore() {
+  const lb = JSON.parse(localStorage.getItem("aq_leaderboard") || "[]");
+  lb.push({
+    name: state.playerName || "Explorer",
+    team: state.teamEmoji + " " + state.teamName,
+    score: state.score,
+    countries: state.stats.countriesCompleted,
+    date: new Date().toLocaleDateString()
+  });
+  lb.sort((a,b) => b.score - a.score);
+  localStorage.setItem("aq_leaderboard", JSON.stringify(lb.slice(0, 10)));
+}
+function getLeaderboard() {
+  return JSON.parse(localStorage.getItem("aq_leaderboard") || "[]");
+}
+
+// ====================== ACHIEVEMENTS ======================
+function checkAchievements() {
+  ACHIEVEMENTS.forEach(ach => {
+    if (!state.achievements.includes(ach.id) && ach.check(state.stats)) {
+      state.achievements.push(ach.id);
+      showToast(ach.emoji + " Achievement: " + ach.name, "#f59e0b");
+    }
+  });
+}
+function showToast(msg, color = "#22c55e") {
+  const id = Date.now();
+  state.toasts.push({ id, msg, color });
+  render();
+  setTimeout(() => {
+    state.toasts = state.toasts.filter(t => t.id !== id);
+    render();
+  }, 3500);
+}
+
+// ====================== GAME LOGIC ======================
+function startGame(teamIdx, name) {
+  state.teamName = TEAMS[teamIdx].name;
+  state.teamEmoji = TEAMS[teamIdx].emoji;
+  state.teamColor = TEAMS[teamIdx].color;
+  state.teamPerk = TEAMS[teamIdx];
+  state.playerName = name || "Explorer";
+  state.screen = "map";
+  render();
+}
+
+function selectCountry(country) {
+  const info = COUNTRIES[country];
+  if (state.score < info.unlockScore && info.unlockScore > 0) return;
+  if (state.countryProgress[country]?.done) return;
+  state.currentCountry = country;
+  state.currentChallengeIdx = 0;
+  state.wrongAttempts = 0;
+  state.screen = "playing";
+  state.answer = "";
+  state.showHint = false;
+  state.hintUsedThisQ = false;
+  state.feedback = null;
+  startTimer();
+  render();
+}
+
+function submitAnswer() {
+  clearInterval(state.timerInterval);
+  const challenge = COUNTRIES[state.currentCountry].challenges[state.currentChallengeIdx];
+  const raw = state.answer.trim().toLowerCase();
+  const correct = challenge.a.toLowerCase();
+  const isCorrect = raw === correct || raw.replace(/\s+/g,"") === correct.replace(/\s+/g,"");
+
+  if (isCorrect) {
+    SFX.correct();
+    let pts = 100;
+    if (state.hintUsedThisQ) pts = 50;
+    if (state.teamPerk && !state.teamPerk.timePerk && !state.teamPerk.doublePerk && !state.teamPerk.hintPerk) pts += state.teamPerk.perkValue;
+    if (state.teamPerk?.doublePerk && state.currentChallengeIdx === 0) pts *= 2;
+    // Speed bonus
+    const elapsed = (Date.now() - state.challengeStartTime) / 1000;
+    if (elapsed < 5) { pts += 25; state.stats.fastAnswers++; showToast("⚡ Speed Bonus! +25pts", "#f59e0b"); }
+    state.score += pts;
+    state.stats.totalAnswered++;
+    state.feedback = { correct: true, msg: `+${pts} pts! Great job! 🎉`, edu: challenge.edu };
+    render();
+    checkAchievements();
+    setTimeout(() => advanceChallenge(true), 1800);
+  } else {
+    SFX.wrong();
+    state.wrongAttempts++;
+    state.lives--;
+    state.feedback = { correct: false, msg: `Not quite! The answer was: "${challenge.a}"` };
+    state.stats.totalAnswered++;
+    // shake input
+    document.querySelector(".answer-input")?.classList.add("shake");
+    setTimeout(() => document.querySelector(".answer-input")?.classList.remove("shake"), 500);
+    render();
+    if (state.lives <= 0) {
+      setTimeout(() => { state.screen = "gameover"; saveScore(); render(); }, 1800);
+    } else {
+      setTimeout(() => advanceChallenge(false), 1800);
+    }
+  }
+}
+
+function advanceChallenge(wasCorrect) {
+  const challenges = COUNTRIES[state.currentCountry].challenges;
+  state.currentChallengeIdx++;
+  if (state.currentChallengeIdx >= challenges.length) {
+    // Country complete
+    const stars = state.wrongAttempts === 0 ? 3 : state.wrongAttempts <= 2 ? 2 : 1;
+    state.countryProgress[state.currentCountry] = { done: true, stars };
+    state.stats.countriesCompleted++;
+    if (state.wrongAttempts === 0) state.stats.perfectRounds++;
+    checkAchievements();
+    SFX.unlock();
+    launchConfetti(state.wrongAttempts === 0 ? 80 : 40);
+    if (state.stats.countriesCompleted >= 5) {
+      state.screen = "winner";
+      saveScore();
+    } else {
+      state.screen = "result";
+    }
+    clearInterval(state.timerInterval);
+  } else {
+    state.answer = "";
+    state.showHint = false;
+    state.hintUsedThisQ = false;
+    state.feedback = null;
+    startTimer();
+  }
+  render();
+}
+
+function useHint() {
+  if (!state.hintUsedThisQ) {
+    state.hintUsedThisQ = true;
+    if (!(state.teamPerk?.hintPerk)) state.stats.hintsUsed++;
+    state.showHint = true;
+    render();
+  }
+}
+
+function resetGame() {
+  clearInterval(state.timerInterval);
+  state = {
+    screen: "setup", teamName: "", teamEmoji: "", teamColor: "#f59e0b",
+    teamPerk: null, playerName: "", score: 0, lives: 3,
+    currentCountry: null, currentChallengeIdx: 0, countryProgress: {},
+    answer: "", showHint: false, hintUsedThisQ: false, timeLeft: 30,
+    timerInterval: null, feedback: null, achievements: [],
+    stats: { totalAnswered: 0, fastAnswers: 0, perfectRounds: 0, countriesCompleted: 0, hintsUsed: 0 },
+    toasts: [], challengeStartTime: null, wrongAttempts: 0
+  };
+  render();
+}
+
+// ====================== SCREENS ======================
+function renderSetup() {
+  const lb = getLeaderboard();
+  return `
+  <div class="min-h-screen flex flex-col items-center justify-center p-4">
+    <div class="w-full max-w-2xl">
+      <!-- Hero -->
+      <div class="text-center mb-8">
+        <div class="text-7xl mb-3 map-pin inline-block">🌍</div>
+        <h1 class="text-5xl font-black bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 bg-clip-text text-transparent">
+          Adventure Quest
+        </h1>
+        <p class="text-white/60 text-lg mt-2">World Explorer Edition</p>
+        <div class="flex justify-center gap-6 mt-4 text-sm text-white/50">
+          <span>🗺️ 5 Countries</span>
+          <span>❓ 30 Challenges</span>
+          <span>🏆 7 Achievements</span>
+        </div>
+      </div>
+
+      <!-- Setup form -->
+      <div class="glass rounded-2xl p-6 mb-6">
+        <h2 class="text-xl font-bold mb-4 text-yellow-400">👤 Your Name</h2>
+        <input type="text" id="player-name" placeholder="Enter your explorer name…"
+          class="answer-input mb-6" maxlength="20" oninput="render()">
+
+        <h2 class="text-xl font-bold mb-4 text-yellow-400">🛡️ Choose Your Team</h2>
+        <div class="grid grid-cols-2 gap-3" id="team-grid">
+          ${TEAMS.map((t,i) => `
+            <div class="country-card glass border ${i===0?'border-red-500/60':'border-white/20'}"
+              id="team-${i}" onclick="selectTeamUI(${i})"
+              style="${i===0?'border-color:'+t.color+'99':''}"
+            >
+              <div class="text-3xl mb-1">${t.emoji}</div>
+              <div class="font-bold text-sm" style="color:${t.color}">${t.name}</div>
+              <div class="text-white/50 text-xs mt-1">${t.perk}</div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+
+      <button class="btn-primary w-full text-lg py-4" onclick="startFromSetup()">
+        🚀 Begin the Quest!
+      </button>
+
+      ${lb.length > 0 ? `
+      <div class="glass rounded-2xl p-5 mt-6">
+        <h3 class="font-bold text-yellow-400 mb-3">🏆 Leaderboard</h3>
+        ${lb.slice(0,5).map((e,i) => `
+          <div class="lb-row flex items-center gap-3 py-2 border-b border-white/10">
+            <span class="lb-rank font-black text-lg w-6">${i===0?"🥇":i===1?"🥈":i===2?"🥉":(i+1)+"."}</span>
+            <span class="font-bold flex-1">${e.name}</span>
+            <span class="text-white/50 text-sm">${e.team}</span>
+            <span class="text-yellow-400 font-black">${e.score.toLocaleString()}</span>
+          </div>
+        `).join("")}
+      </div>
+      ` : ""}
+    </div>
+  </div>`;
+}
+
+let _selectedTeam = 0;
+function selectTeamUI(idx) {
+  _selectedTeam = idx;
+  document.querySelectorAll("[id^='team-']").forEach((el,i) => {
+    el.style.borderColor = i===idx ? TEAMS[idx].color+"99" : "rgba(255,255,255,0.2)";
+  });
+}
+function startFromSetup() {
+  const name = document.getElementById("player-name")?.value || "Explorer";
+  startGame(_selectedTeam, name);
+}
+
+function renderMap() {
+  const countryNames = Object.keys(COUNTRIES);
+  return `
+  <div class="min-h-screen p-4">
+    <div class="max-w-2xl mx-auto">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <div class="text-sm text-white/50">Explorer</div>
+          <div class="font-black text-xl">${state.teamEmoji} ${state.playerName}</div>
+        </div>
+        <div class="text-center">
+          <div class="text-3xl font-black text-yellow-400">${state.score.toLocaleString()}</div>
+          <div class="text-xs text-white/50">points</div>
+        </div>
+        <div class="flex gap-1 text-2xl">
+          ${"❤️".repeat(state.lives)}${"🖤".repeat(3-state.lives)}
+        </div>
+      </div>
+
+      <!-- Progress -->
+      <div class="glass rounded-xl p-4 mb-6">
+        <div class="flex justify-between text-sm text-white/60 mb-2">
+          <span>World Progress</span>
+          <span>${state.stats.countriesCompleted}/5 countries</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width:${(state.stats.countriesCompleted/5)*100}%"></div>
+        </div>
+      </div>
+
+      <!-- Title -->
+      <h2 class="text-2xl font-black text-center mb-2">🗺️ Choose Your Destination</h2>
+      <p class="text-white/50 text-center text-sm mb-6">Complete countries in order to unlock new ones</p>
+
+      <!-- Country grid -->
+      <div class="grid grid-cols-1 gap-4">
+        ${countryNames.map(name => {
+          const c = COUNTRIES[name];
+          const done = state.countryProgress[name]?.done;
+          const stars = state.countryProgress[name]?.stars || 0;
+          const locked = state.score < c.unlockScore;
+          return `
+          <div class="country-card glass border ${c.border} ${done?"completed":""} ${locked?"locked":""}"
+            onclick="${!locked && !done ? `selectCountry('${name}')` : ''}"
+            style="background:linear-gradient(135deg,${done?'rgba(34,197,94,0.1)':locked?'rgba(0,0,0,0.2)':'rgba(255,255,255,0.05)'},transparent)"
+          >
+            <div class="flex items-center gap-4">
+              <div class="text-5xl">${c.emoji}</div>
+              <div class="flex-1">
+                <div class="flex items-center gap-2">
+                  <span class="font-black text-lg">${name}</span>
+                  ${done ? `<span class="text-green-400 text-sm font-bold">✓ Complete</span>` : ""}
+                  ${locked ? `<span class="text-white/40 text-sm">🔒 ${c.unlockScore.toLocaleString()} pts needed</span>` : ""}
+                </div>
+                <div class="text-white/50 text-sm">${c.description}</div>
+                ${done ? `<div class="flex gap-1 mt-1">${[1,2,3].map(s=>`<span class="star ${s<=stars?"earned":"text-white/20"} text-xl">★</span>`).join("")}</div>` : ""}
+                ${!done && !locked ? `<div class="text-xs text-white/40 mt-1">6 challenges await</div>` : ""}
+              </div>
+              ${!done && !locked ? `<div class="text-white/30 text-2xl">→</div>` : ""}
+            </div>
+          </div>`;
+        }).join("")}
+      </div>
+
+      <!-- Achievements -->
+      ${state.achievements.length > 0 ? `
+      <div class="glass rounded-xl p-4 mt-6">
+        <h3 class="font-bold text-yellow-400 mb-3">🏅 Achievements (${state.achievements.length}/${ACHIEVEMENTS.length})</h3>
+        <div class="flex flex-wrap gap-2">
+          ${ACHIEVEMENTS.filter(a=>state.achievements.includes(a.id)).map(a=>`
+            <div class="bounce-in bg-yellow-500/20 border border-yellow-500/40 rounded-lg px-3 py-2 text-center">
+              <div class="text-2xl">${a.emoji}</div>
+              <div class="text-xs font-bold">${a.name}</div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+      ` : ""}
+
+      <button class="btn-secondary w-full mt-4" onclick="resetGame()">↩ Start Over</button>
+    </div>
+  </div>`;
+}
+
+function renderPlaying() {
+  const c = COUNTRIES[state.currentCountry];
+  const ch = c.challenges[state.currentChallengeIdx];
+  const total = c.challenges.length;
+  const pct = (state.currentChallengeIdx / total) * 100;
+  const urgent = state.timeLeft <= 10;
+
+  const badgeColors = { Math:"#3b82f6", History:"#f59e0b", Science:"#22c55e", Geography:"#8b5cf6", Logic:"#ec4899", Nature:"#10b981", Culture:"#f97316", Language:"#06b6d4", Safety:"#ef4444", Biology:"#84cc16", Geology:"#a78bfa", Sports:"#fb923c" };
+  const badgeColor = badgeColors[ch.type] || "#6b7280";
+
+  return `
+  <div class="min-h-screen p-4">
+    <div class="max-w-xl mx-auto">
+      <!-- Header bar -->
+      <div class="flex items-center justify-between mb-4">
+        <button class="btn-secondary py-2 px-3 text-sm" onclick="state.screen='map';clearInterval(state.timerInterval);render()">← Map</button>
+        <div class="font-black text-xl">${c.emoji} ${state.currentCountry}</div>
+        <div class="flex gap-1">${"❤️".repeat(state.lives)}${"🖤".repeat(3-state.lives)}</div>
+      </div>
+
+      <!-- Progress -->
+      <div class="mb-4">
+        <div class="flex justify-between text-xs text-white/50 mb-1">
+          <span>Challenge ${state.currentChallengeIdx+1} of ${total}</span>
+          <span class="font-bold text-yellow-400">${state.score.toLocaleString()} pts</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width:${pct}%;background:${c.color}"></div>
+        </div>
+      </div>
+
+      <!-- Timer -->
+      <div class="glass rounded-2xl p-5 mb-4 text-center ${urgent ? 'border-red-500/50' : ''}">
+        <div class="text-6xl font-black ${urgent ? 'text-red-400 timer-urgent' : 'text-white'} ${state.timerInterval ? '' : ''}">
+          ${state.timeLeft}
+        </div>
+        <div class="text-white/40 text-xs">seconds remaining</div>
+      </div>
+
+      <!-- Challenge card -->
+      <div class="glass rounded-2xl p-6 mb-4">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="px-2 py-1 rounded-full text-xs font-bold" style="background:${badgeColor}33;color:${badgeColor};border:1px solid ${badgeColor}55">${ch.type}</span>
+          <span class="text-white/40 text-xs">Learning: ${ch.edu}</span>
+        </div>
+        <p class="text-xl font-bold leading-relaxed mb-4">${ch.q}</p>
+
+        ${state.showHint ? `
+          <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-3 mb-4 text-yellow-300 text-sm">
+            💡 Hint: ${ch.hint}
+            ${state.teamPerk?.hintPerk ? '<span class="text-green-400 ml-2">(Free — Team Perk!)</span>' : '<span class="text-white/40 ml-2">(−50% points)</span>'}
+          </div>
+        ` : `
+          <button class="text-white/40 text-sm hover:text-white/70 transition mb-4 flex items-center gap-1" onclick="useHint()">
+            💡 Get hint ${state.teamPerk?.hintPerk ? '(Free!)' : '(costs 50% pts)'}
+          </button>
+        `}
+
+        ${state.feedback ? `
+          <div class="rounded-xl p-4 mb-4 font-bold text-center bounce-in ${state.feedback.correct ? 'bg-green-500/20 border border-green-500/40 text-green-300' : 'bg-red-500/20 border border-red-500/40 text-red-300'}">
+            ${state.feedback.msg}
+          </div>
+        ` : `
+          <div class="flex gap-2">
+            <input type="text" class="answer-input flex-1" placeholder="Your answer…"
+              value="${state.answer}"
+              oninput="state.answer=this.value"
+              onkeydown="if(event.key==='Enter')submitAnswer()"
+            >
+            <button class="btn-primary px-5" onclick="submitAnswer()">→</button>
+          </div>
+        `}
+      </div>
+
+      <!-- Team perk reminder -->
+      <div class="text-center text-xs text-white/30">
+        ${state.teamEmoji} ${state.teamName} — ${state.teamPerk.perk}
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderResult() {
+  const c = COUNTRIES[state.currentCountry];
+  const prog = state.countryProgress[state.currentCountry];
+  const stars = prog?.stars || 0;
+  const next = Object.keys(COUNTRIES).find(n => !state.countryProgress[n]?.done);
+  return `
+  <div class="min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-md w-full text-center">
+      <div class="text-7xl mb-4 bounce-in">${c.emoji}</div>
+      <h2 class="text-3xl font-black mb-2">${state.currentCountry} Complete!</h2>
+      <div class="flex justify-center gap-2 text-5xl mb-4">
+        ${[1,2,3].map(s=>`<span class="star ${s<=stars?"earned":"text-white/20"}"  style="animation-delay:${(s-1)*0.2}s">★</span>`).join("")}
+      </div>
+      <div class="glass rounded-2xl p-6 mb-6">
+        <div class="grid grid-cols-3 gap-4 text-center">
+          <div><div class="text-2xl font-black text-yellow-400">${state.score.toLocaleString()}</div><div class="text-xs text-white/50">Score</div></div>
+          <div><div class="text-2xl font-black text-green-400">${3-state.lives}</div><div class="text-xs text-white/50">Mistakes</div></div>
+          <div><div class="text-2xl font-black text-blue-400">${state.stats.countriesCompleted}/5</div><div class="text-xs text-white/50">Countries</div></div>
+        </div>
+      </div>
+      ${stars===3?`<div class="text-green-400 font-bold mb-4">🌟 Perfect round! No mistakes!</div>`:""}
+      <button class="btn-primary w-full text-lg py-4 mb-3" onclick="state.screen='map';render()">
+        🗺️ Back to World Map
+      </button>
+      ${next ? `<p class="text-white/50 text-sm">Next up: ${COUNTRIES[next].emoji} ${next}</p>` : ""}
+    </div>
+  </div>`;
+}
+
+function renderWinner() {
+  return `
+  <div class="min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-md w-full text-center">
+      <div class="text-8xl mb-4">🏆</div>
+      <h1 class="text-4xl font-black mb-2 bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
+        World Champion!
+      </h1>
+      <p class="text-white/60 mb-6">${state.playerName} conquered all 5 countries!</p>
+      <div class="glass rounded-2xl p-6 mb-6">
+        <div class="grid grid-cols-2 gap-4 text-center mb-4">
+          <div><div class="text-3xl font-black text-yellow-400">${state.score.toLocaleString()}</div><div class="text-xs text-white/50">Final Score</div></div>
+          <div><div class="text-3xl font-black text-purple-400">${state.achievements.length}</div><div class="text-xs text-white/50">Achievements</div></div>
+        </div>
+        <div class="flex justify-center gap-2 text-3xl mb-2">
+          ${Object.values(state.countryProgress).map(p=>[1,2,3].map(s=>`<span class="star ${s<=p.stars?"earned":"text-white/20"}">★</span>`).join("")).join(" ")}
+        </div>
+        <div class="text-white/50 text-sm">Countries: ${Object.keys(COUNTRIES).join(" → ")}</div>
+      </div>
+      ${state.achievements.length > 0 ? `
+      <div class="glass rounded-xl p-4 mb-6">
+        <div class="flex flex-wrap justify-center gap-3">
+          ${state.achievements.map(id => { const a = ACHIEVEMENTS.find(x=>x.id===id); return a ? `<span class="text-3xl" title="${a.name}">${a.emoji}</span>` : ""; }).join("")}
+        </div>
+      </div>
+      ` : ""}
+      <button class="btn-primary w-full text-lg py-4" onclick="resetGame()">🔄 Play Again</button>
+      <p class="text-white/40 text-xs mt-4">Shop Artistry Store — <a href="https://shop.artistrystore.com/store.html" class="text-yellow-400 hover:underline">shop.artistrystore.com</a></p>
+    </div>
+  </div>`;
+}
+
+function renderGameOver() {
+  return `
+  <div class="min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-md w-full text-center">
+      <div class="text-8xl mb-4">💔</div>
+      <h2 class="text-3xl font-black mb-2 text-red-400">Out of Lives!</h2>
+      <p class="text-white/60 mb-6">You made it to ${state.stats.countriesCompleted} countries!</p>
+      <div class="glass rounded-2xl p-6 mb-6">
+        <div class="grid grid-cols-2 gap-4 text-center">
+          <div><div class="text-3xl font-black text-yellow-400">${state.score.toLocaleString()}</div><div class="text-xs text-white/50">Final Score</div></div>
+          <div><div class="text-3xl font-black text-blue-400">${state.stats.countriesCompleted}/5</div><div class="text-xs text-white/50">Countries</div></div>
+        </div>
+      </div>
+      <button class="btn-primary w-full text-lg py-4 mb-3" onclick="resetGame()">🔄 Try Again</button>
+      <p class="text-white/40 text-xs">Score saved to leaderboard!</p>
+    </div>
+  </div>`;
+}
+
+// ====================== RENDER ======================
+function render() {
+  const app = document.getElementById("app");
+  let html = "";
+  if (state.screen === "setup")    html = renderSetup();
+  else if (state.screen === "map") html = renderMap();
+  else if (state.screen === "playing") html = renderPlaying();
+  else if (state.screen === "result")  html = renderResult();
+  else if (state.screen === "winner")  html = renderWinner();
+  else if (state.screen === "gameover") html = renderGameOver();
+  app.innerHTML = html + renderToasts();
+}
+
+function renderToasts() {
+  if (!state.toasts.length) return "";
+  return `<div class="fixed top-4 right-4 z-50 flex flex-col gap-2">
+    ${state.toasts.map(t => `
+      <div class="achievement-toast glass rounded-xl px-4 py-3 font-bold text-sm" style="border-color:${t.color}44;color:${t.color}">
+        ${t.msg}
+      </div>`).join("")}
+  </div>`;
+}
+
+// ====================== INIT ======================
+render();
+// Auto-fire confetti on winner
+setInterval(() => {
+  if (state.screen === "winner" && Math.random() < 0.15) launchConfetti(20);
+}, 2000);
+</script>
+</body>
+</html>
