@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wacky Kitchen — Interactive Cooking Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #FF6B6B;
+            --secondary: #4ECDC4;
+            --accent: #FFE66D;
+            --dark: #2C3E50;
+            --light: #F7F9FC;
+            --success: #95E1D3;
+            --warning: #FFA07A;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Trebuchet MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .app-container {
+            background: var(--light);
+            border-radius: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            max-height: 90vh;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FFE66D 100%);
+            padding: 1.5rem;
+            text-align: center;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header-stats {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 0.5rem 1rem;
+            border-radius: 1rem;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .streak {
+            color: #FFA07A;
+        }
+
+        .badges {
+            color: #FFD700;
+        }
+
+        /* Main Content */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+            scroll-behavior: smooth;
+        }
+
+        /* Views */
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        /* Recipe Selection */
+        .recipe-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .recipe-card {
+            background: white;
+            border: 3px solid var(--primary);
+            border-radius: 1.5rem;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .recipe-card:hover {
+            transform: scale(1.1) rotate(2deg);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .recipe-card:focus-visible {
+            outline: 3px solid var(--secondary);
+            outline-offset: 2px;
+        }
+
+        .recipe-emoji {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .recipe-name {
+            font-weight: bold;
+            color: var(--dark);
+            font-size: 1rem;
+        }
+
+        /* Cooking Steps */
+        .cooking-screen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            color: white;
+            margin-bottom: 2rem;
+        }
+
+        .recipe-title {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .step-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .step-number {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-instruction {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .step-animation {
+            font-size: 2.5rem;
+            text-align: center;
+            margin: 1rem 0;
+            animation: bounce 0.8s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .step-video {
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        .step-video a {
+            display: inline-block;
+            background: var(--accent);
+            color: var(--dark);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 0.5rem;
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 1rem;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        button:focus-visible {
+            outline: 3px solid var(--dark);
+            outline-offset: 2px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: var(--dark);
+        }
+
+        .btn-success:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(149, 225, 211, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(78, 205, 196, 0.4);
+        }
+
+        /* Badges Display */
+        .badges-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .badge {
+            background: white;
+            border: 2px solid var(--accent);
+            border-radius: 1rem;
+            padding: 1rem;
+            text-align: center;
+            font-size: 2rem;
+        }
+
+        .badge.locked {
+            opacity: 0.4;
+        }
+
+        .badge-name {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: var(--dark);
+            margin-top: 0.5rem;
+        }
+
+        /* Settings */
+        .settings-panel {
+            background: white;
+            border: 3px solid var(--primary);
+            border-radius: 1.5rem;
+            padding: 2rem;
+        }
+
+        .settings-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .settings-label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        .pin-input {
+            width: 100%;
+            max-width: 200px;
+            padding: 0.75rem;
+            border: 2px solid var(--primary);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            letter-spacing: 0.2em;
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1000;
+        }
+
+        .toast {
+            background: var(--success);
+            color: var(--dark);
+            padding: 1rem 1.5rem;
+            border-radius: 1rem;
+            margin-bottom: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: slideIn 0.3s ease;
+            font-weight: bold;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Footer */
+        footer {
+            background: var(--dark);
+            padding: 1.5rem;
+            text-align: center;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: var(--secondary);
+            text-decoration: none;
+        }
+
+        /* Accessibility */
+        .skip-nav {
+            position: fixed;
+            top: -100px;
+            left: 1rem;
+            z-index: 9999;
+            background: var(--primary);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .skip-nav:focus {
+            top: 1rem;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            header h1 {
+                font-size: 1.5rem;
+            }
+
+            .recipe-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .content {
+                padding: 1.5rem;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-nav">Skip to main content</a>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header role="banner">
+            <h1>🍳 Wacky Kitchen</h1>
+            <div class="header-stats">
+                <div class="stat streak">
+                    🔥 Streak: <span id="streakCount">0</span>
+                </div>
+                <div class="stat badges">
+                    ⭐ Badges: <span id="badgeCount">0</span>/6
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main id="main-content" class="content">
+            <!-- Recipe Selection View -->
+            <div id="menuView" class="view active">
+                <h2 style="color: var(--dark); margin-bottom: 1.5rem; text-align: center;">Choose a Recipe! 👨‍🍳</h2>
+                <div class="recipe-grid" role="listbox">
+                    <button class="recipe-card" role="option" data-recipe="pizza" aria-label="Make Pizza">
+                        <div class="recipe-emoji">🍕</div>
+                        <div class="recipe-name">Pizza</div>
+                    </button>
+                    <button class="recipe-card" role="option" data-recipe="pancakes" aria-label="Make Pancakes">
+                        <div class="recipe-emoji">🥞</div>
+                        <div class="recipe-name">Pancakes</div>
+                    </button>
+                    <button class="recipe-card" role="option" data-recipe="smoothie" aria-label="Make Smoothie">
+                        <div class="recipe-emoji">🧃</div>
+                        <div class="recipe-name">Smoothie</div>
+                    </button>
+                    <button class="recipe-card" role="option" data-recipe="cookies" aria-label="Make Cookies">
+                        <div class="recipe-emoji">🍪</div>
+                        <div class="recipe-name">Cookies</div>
+                    </button>
+                    <button class="recipe-card" role="option" data-recipe="tacos" aria-label="Make Tacos">
+                        <div class="recipe-emoji">🌮</div>
+                        <div class="recipe-name">Tacos</div>
+                    </button>
+                    <button class="recipe-card" role="option" data-recipe="sandwich" aria-label="Make Sandwich">
+                        <div class="recipe-emoji">🥪</div>
+                        <div class="recipe-name">Sandwich</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cooking View -->
+            <div id="cookingView" class="view">
+                <div class="cooking-screen">
+                    <div class="recipe-title" id="recipeTitle">🍕 Making Pizza!</div>
+                    <div id="stepContainer"></div>
+                    <div class="button-group">
+                        <button class="btn-success" id="nextBtn" aria-label="Next step">Next Step ➡️</button>
+                        <button class="btn-secondary" id="backBtn" aria-label="Back to menu">Back 🏠</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Completion View -->
+            <div id="completionView" class="view">
+                <div style="text-align: center; margin: 2rem 0;">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;" role="status" aria-live="polite">🎉</div>
+                    <h2 id="completionTitle" style="color: var(--dark); font-size: 1.8rem; margin-bottom: 1rem;">You Did It!</h2>
+                    <p style="color: var(--dark); font-size: 1.1rem; margin-bottom: 2rem;">Amazing job, Chef! 👨‍🍳</p>
+                    <button class="btn-primary" id="celebrateBtn" aria-label="Celebrate achievement">Celebrate! 🎊</button>
+                </div>
+            </div>
+
+            <!-- Badges View -->
+            <div id="badgesView" class="view">
+                <h2 style="color: var(--dark); margin-bottom: 1.5rem; text-align: center;">Your Badges 🏆</h2>
+                <div class="badges-display" role="region" aria-label="Earned badges">
+                    <div class="badge" id="badge-chef" aria-label="Master Chef badge - locked">
+                        <div>👨‍🍳</div>
+                        <div class="badge-name">Master Chef</div>
+                    </div>
+                    <div class="badge" id="badge-speedy" aria-label="Speedy Cook badge - locked">
+                        <div>⚡</div>
+                        <div class="badge-name">Speedy Cook</div>
+                    </div>
+                    <div class="badge" id="badge-explorer" aria-label="Explorer badge - locked">
+                        <div>🗺️</div>
+                        <div class="badge-name">Explorer</div>
+                    </div>
+                    <div class="badge" id="badge-teamwork" aria-label="Teamwork badge - locked">
+                        <div>👥</div>
+                        <div class="badge-name">Teamwork</div>
+                    </div>
+                    <div class="badge" id="badge-consistency" aria-label="Consistency badge - locked">
+                        <div>🔥</div>
+                        <div class="badge-name">Consistency</div>
+                    </div>
+                    <div class="badge" id="badge-master" aria-label="Ultimate Master badge - locked">
+                        <div>👑</div>
+                        <div class="badge-name">Ultimate</div>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="btn-primary" id="backFromBadgesBtn" aria-label="Back to menu">Back to Menu 🏠</button>
+                </div>
+            </div>
+
+            <!-- Settings View -->
+            <div id="settingsView" class="view">
+                <div class="settings-panel">
+                    <h2 style="color: var(--dark); margin-bottom: 1.5rem;">Settings ⚙️</h2>
+                    
+                    <div class="settings-group">
+                        <label class="settings-label">
+                            <input type="checkbox" id="soundToggle" checked>
+                            Sound Effects 🔊
+                        </label>
+                    </div>
+
+                    <div class="settings-group">
+                        <label class="settings-label">
+                            <input type="checkbox" id="voiceToggle" checked>
+                            Voice Guidance 🎤
+                        </label>
+                    </div>
+
+                    <div class="settings-group">
+                        <label class="settings-label">Brightness 🌞</label>
+                        <input type="range" id="brightnessSlider" min="70" max="130" value="100" style="width: 100%; max-width: 200px;">
+                    </div>
+
+                    <div class="settings-group">
+                        <label class="settings-label">
+                            <input type="checkbox" id="reducedMotionToggle">
+                            Reduce Motion 🎬
+                        </label>
+                    </div>
+
+                    <div class="button-group" style="margin-top: 2rem;">
+                        <button class="btn-primary" id="resetBtn" aria-label="Reset progress">Reset Progress 🔄</button>
+                        <button class="btn-secondary" id="backFromSettingsBtn" aria-label="Back to menu">Back 🏠</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Navigation Footer -->
+        <footer role="contentinfo">
+            <div style="display: flex; justify-content: center; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                <button class="btn-primary" style="padding: 0.5rem 1rem;" id="menuBtn" aria-label="Home menu">🏠 Home</button>
+                <button class="btn-secondary" style="padding: 0.5rem 1rem;" id="badgesBtn" aria-label="View badges">🏆 Badges</button>
+                <button class="btn-secondary" style="padding: 0.5rem 1rem;" id="settingsBtn" aria-label="Settings">⚙️ Settings</button>
+                <button class="btn-secondary" style="padding: 0.5rem 1rem;" id="helpBtn" aria-label="Keyboard shortcuts">❓ Help</button>
+            </div>
+            <p>Made with ❤️ at <a href="https://shop.artistrystore.com">Artistry Store</a></p>
+        </footer>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" role="region" aria-live="polite" aria-label="Notifications"></div>
+
+    <script>
+        // ==================== RECIPES ====================
+        const recipes = {
+            pizza: {
+                emoji: '🍕',
+                name: 'Pizza',
+                steps: [
+                    { instruction: 'Mix flour and water to make dough! 🥄', animation: '🥄', tip: null },
+                    { instruction: 'Stretch the dough into a circle! 🔄', animation: '⭕', tip: null },
+                    { instruction: 'Spread tomato sauce! 🍅', animation: '🍅', tip: null },
+                    { instruction: 'Add cheese! 🧀', animation: '🧀', tip: null },
+                    { instruction: 'Add toppings you love! 🌶️', animation: '🌶️', tip: null },
+                    { instruction: 'Bake in the oven! 🔥', animation: '🔥', tip: null }
+                ]
+            },
+            pancakes: {
+                emoji: '🥞',
+                name: 'Pancakes',
+                steps: [
+                    { instruction: 'Mix flour, eggs, and milk! 🥄', animation: '🥄', tip: null },
+                    { instruction: 'Heat the griddle! 🔥', animation: '🔥', tip: null },
+                    { instruction: 'Pour batter in a circle! 🌀', animation: '🌀', tip: null },
+                    { instruction: 'Flip the pancake! 🤸', animation: '🤸', tip: null },
+                    { instruction: 'Cook until golden! ✨', animation: '✨', tip: null },
+                    { instruction: 'Add syrup and butter! 🥣', animation: '🥣', tip: null }
+                ]
+            },
+            smoothie: {
+                emoji: '🧃',
+                name: 'Smoothie',
+                steps: [
+                    { instruction: 'Gather fruits! 🍓🍌', animation: '🍓', tip: null },
+                    { instruction: 'Pour yogurt in the blender! 🥛', animation: '🥛', tip: null },
+                    { instruction: 'Add fruits! 🍌', animation: '🍌', tip: null },
+                    { instruction: 'Add ice cubes! 🧊', animation: '🧊', tip: null },
+                    { instruction: 'Blend it up! 🌀', animation: '🌀', tip: null },
+                    { instruction: 'Drink your smoothie! 😋', animation: '😋', tip: null }
+                ]
+            },
+            cookies: {
+                emoji: '🍪',
+                name: 'Cookies',
+                steps: [
+                    { instruction: 'Mix butter and sugar! 🧈', animation: '🧈', tip: null },
+                    { instruction: 'Add eggs and vanilla! 🥚', animation: '🥚', tip: null },
+                    { instruction: 'Mix in flour! 🥄', animation: '🥄', tip: null },
+                    { instruction: 'Add chocolate chips! 🍫', animation: '🍫', tip: null },
+                    { instruction: 'Scoop onto baking sheet! ⚪', animation: '⚪', tip: null },
+                    { instruction: 'Bake until golden! 🔥', animation: '🔥', tip: null }
+                ]
+            },
+            tacos: {
+                emoji: '🌮',
+                name: 'Tacos',
+                steps: [
+                    { instruction: 'Brown the meat! 🍖', animation: '🍖', tip: null },
+                    { instruction: 'Warm the tortillas! 🔥', animation: '🔥', tip: null },
+                    { instruction: 'Add meat to tortilla! 🌮', animation: '🌮', tip: null },
+                    { instruction: 'Add lettuce! 🥬', animation: '🥬', tip: null },
+                    { instruction: 'Add cheese! 🧀', animation: '🧀', tip: null },
+                    { instruction: 'Add salsa and enjoy! 🌶️', animation: '🌶️', tip: null }
+                ]
+            },
+            sandwich: {
+                emoji: '🥪',
+                name: 'Sandwich',
+                steps: [
+                    { instruction: 'Get two slices of bread! 🍞', animation: '🍞', tip: null },
+                    { instruction: 'Spread mayo or butter! 🧈', animation: '🧈', tip: null },
+                    { instruction: 'Add meat! 🍖', animation: '🍖', tip: null },
+                    { instruction: 'Add cheese! 🧀', animation: '🧀', tip: null },
+                    { instruction: 'Add veggies! 🥬', animation: '🥬', tip: null },
+                    { instruction: 'Press together and cut! ✂️', animation: '✂️', tip: null }
+                ]
+            }
+        };
+
+        // ==================== STATE ====================
+        let state = {
+            currentView: 'menu',
+            currentRecipe: null,
+            currentStep: 0,
+            recipesCompleted: 0,
+            streakDays: 0,
+            badges: {
+                chef: false,
+                speedy: false,
+                explorer: false,
+                teamwork: false,
+                consistency: false,
+                master: false
+            },
+            soundEnabled: true,
+            voiceEnabled: true,
+            reducedMotion: false,
+            brightness: 100
+        };
+
+        // ==================== STORAGE ====================
+        function loadState() {
+            const saved = localStorage.getItem('wackyKitchenState');
+            if (saved) {
+                state = { ...state, ...JSON.parse(saved) };
+            }
+            applySettings();
+        }
+
+        function saveState() {
+            localStorage.setItem('wackyKitchenState', JSON.stringify(state));
+        }
+
+        // ==================== VOICE & SOUND ====================
+        function speak(text) {
+            if (!state.voiceEnabled) return;
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.95;
+            utterance.pitch = 1.1;
+            speechSynthesis.speak(utterance);
+        }
+
+        function playSound() {
+            if (!state.soundEnabled) return;
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            
+            osc.frequency.value = 800;
+            osc.type = 'sine';
+            
+            gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+            
+            osc.start(audioContext.currentTime);
+            osc.stop(audioContext.currentTime + 0.1);
+        }
+
+        // ==================== VIEWS ====================
+        function showView(viewName) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(viewName + 'View').classList.add('active');
+            state.currentView = viewName;
+            window.scrollTo(0, 0);
+        }
+
+        function renderCookingView() {
+            const recipe = recipes[state.currentRecipe];
+            const step = recipe.steps[state.currentStep];
+
+            document.getElementById('recipeTitle').textContent = `${recipe.emoji} Making ${recipe.name}!`;
+            
+            const stepHtml = `
+                <div class="step-container">
+                    <div class="step-number">Step ${state.currentStep + 1} of ${recipe.steps.length}</div>
+                    <div class="step-instruction">${step.instruction}</div>
+                    <div class="step-animation">${step.animation}</div>
+                    ${step.tip ? `<div style="font-size: 0.9rem; opacity: 0.9;">💡 Tip: ${step.tip}</div>` : ''}
+                </div>
+            `;
+
+            document.getElementById('stepContainer').innerHTML = stepHtml;
+
+            const isLastStep = state.currentStep === recipe.steps.length - 1;
+            document.getElementById('nextBtn').textContent = isLastStep ? 'Finish! ✅' : 'Next Step ➡️';
+
+            speak(`Step ${state.currentStep + 1}: ${step.instruction}`);
+        }
+
+        // ==================== RECIPE COMPLETION ====================
+        function completeRecipe() {
+            state.recipesCompleted++;
+            state.streakDays++;
+            
+            // Award badges
+            if (state.recipesCompleted >= 1) state.badges.chef = true;
+            if (state.recipesCompleted >= 3) state.badges.explorer = true;
+            if (state.recipesCompleted >= 6) state.badges.speedy = true;
+            if (state.recipesCompleted >= 10) state.badges.teamwork = true;
+            if (state.streakDays >= 7) state.badges.consistency = true;
+            if (state.recipesCompleted >= 20 && state.streakDays >= 14) state.badges.master = true;
+
+            updateHeader();
+            saveState();
+
+            document.getElementById('completionTitle').textContent = `You made ${recipes[state.currentRecipe].name}! 🎉`;
+            showView('completion');
+            speak(`Congratulations! You completed ${recipes[state.currentRecipe].name}!`);
+            playSound();
+        }
+
+        // ==================== HEADER ====================
+        function updateHeader() {
+            document.getElementById('streakCount').textContent = state.streakDays;
+            const badgeCount = Object.values(state.badges).filter(b => b).length;
+            document.getElementById('badgeCount').textContent = badgeCount;
+        }
+
+        function renderBadges() {
+            Object.entries(state.badges).forEach(([key, earned]) => {
+                const badge = document.getElementById(`badge-${key}`);
+                if (earned) {
+                    badge.classList.remove('locked');
+                }
+            });
+        }
+
+        // ==================== SETTINGS ====================
+        function applySettings() {
+            if (state.reducedMotion) {
+                document.body.style.setProperty('--animate-duration', '0.01ms');
+            }
+            document.body.style.filter = `brightness(${state.brightness}%)`;
+        }
+
+        // ==================== TOAST ====================
+        function showToast(message) {
+            const container = document.querySelector('.toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            toast.setAttribute('role', 'status');
+            container.appendChild(toast);
+
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // ==================== EVENT LISTENERS ====================
+        
+        // Recipe Selection
+        document.querySelectorAll('.recipe-card').forEach(btn => {
+            btn.addEventListener('click', function() {
+                state.currentRecipe = this.dataset.recipe;
+                state.currentStep = 0;
+                showView('cooking');
+                renderCookingView();
+                playSound();
+            });
+        });
+
+        // Cooking Navigation
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            const recipe = recipes[state.currentRecipe];
+            if (state.currentStep < recipe.steps.length - 1) {
+                state.currentStep++;
+                renderCookingView();
+                playSound();
+            } else {
+                completeRecipe();
+            }
+        });
+
+        document.getElementById('backBtn').addEventListener('click', () => {
+            showView('menu');
+        });
+
+        // Completion
+        document.getElementById('celebrateBtn').addEventListener('click', () => {
+            playSound();
+            playSound();
+            playSound();
+            showToast('🎉 Amazing Job! 🎉');
+            showView('menu');
+        });
+
+        // Navigation
+        document.getElementById('menuBtn').addEventListener('click', () => showView('menu'));
+        document.getElementById('badgesBtn').addEventListener('click', () => {
+            renderBadges();
+            showView('badges');
+        });
+        document.getElementById('settingsBtn').addEventListener('click', () => showView('settings'));
+
+        document.getElementById('backFromBadgesBtn').addEventListener('click', () => showView('menu'));
+        document.getElementById('backFromSettingsBtn').addEventListener('click', () => showView('menu'));
+
+        // Settings
+        document.getElementById('soundToggle').addEventListener('change', (e) => {
+            state.soundEnabled = e.target.checked;
+            saveState();
+            showToast(state.soundEnabled ? '🔊 Sound ON' : '🔕 Sound OFF');
+        });
+
+        document.getElementById('voiceToggle').addEventListener('change', (e) => {
+            state.voiceEnabled = e.target.checked;
+            saveState();
+            showToast(state.voiceEnabled ? '🎤 Voice ON' : '🤐 Voice OFF');
+        });
+
+        document.getElementById('brightnessSlider').addEventListener('change', (e) => {
+            state.brightness = parseInt(e.target.value);
+            applySettings();
+            saveState();
+        });
+
+        document.getElementById('reducedMotionToggle').addEventListener('change', (e) => {
+            state.reducedMotion = e.target.checked;
+            applySettings();
+            saveState();
+            showToast(state.reducedMotion ? 'Motion reduced ✨' : 'Animations enabled ✨');
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            if (confirm('Are you sure? This will reset all progress!')) {
+                state = {
+                    currentView: 'menu',
+                    currentRecipe: null,
+                    currentStep: 0,
+                    recipesCompleted: 0,
+                    streakDays: 0,
+                    badges: {
+                        chef: false,
+                        speedy: false,
+                        explorer: false,
+                        teamwork: false,
+                        consistency: false,
+                        master: false
+                    },
+                    soundEnabled: true,
+                    voiceEnabled: true,
+                    reducedMotion: false,
+                    brightness: 100
+                };
+                localStorage.removeItem('wackyKitchenState');
+                applySettings();
+                updateHeader();
+                showToast('🔄 Progress reset!');
+                showView('menu');
+            }
+        });
+
+        document.getElementById('helpBtn').addEventListener('click', () => {
+            showToast('📱 Use arrow keys • Tab to navigate • Enter to select • ? for help');
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (state.currentView !== 'menu') {
+                    showView('menu');
+                }
+            }
+            if (e.key === '?') {
+                document.getElementById('helpBtn').click();
+            }
+            if (e.key === 'ArrowRight' && state.currentView === 'cooking') {
+                document.getElementById('nextBtn').click();
+            }
+            if (e.key === 'ArrowLeft' && state.currentView === 'cooking') {
+                document.getElementById('backBtn').click();
+            }
+        });
+
+        // Settings Sync
+        document.getElementById('soundToggle').checked = state.soundEnabled;
+        document.getElementById('voiceToggle').checked = state.voiceEnabled;
+        document.getElementById('brightnessSlider').value = state.brightness;
+        document.getElementById('reducedMotionToggle').checked = state.reducedMotion;
+
+        // ==================== INIT ====================
+        loadState();
+        updateHeader();
+        renderBadges();
+
+        // Accessibility
+        document.addEventListener('DOMContentLoaded', () => {
+            // Trap focus in modals when needed
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Tab' && state.currentView === 'settings') {
+                    const focusableElements = document.querySelectorAll('button, input, [tabindex]');
+                    const firstElement = focusableElements[0];
+                    const lastElement = focusableElements[focusableElements.length - 1];
+                    
+                    if (e.shiftKey && document.activeElement === firstElement) {
+                        lastElement.focus();
+                        e.preventDefault();
+                    } else if (!e.shiftKey && document.activeElement === lastElement) {
+                        firstElement.focus();
+                        e.preventDefault();
+                    }
+                }
+            });
+        });
+
+        speak('Welcome to Wacky Kitchen! Choose a recipe to get started!');
+    </script>
+</body>
+</html>
