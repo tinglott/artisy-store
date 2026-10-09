@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PuzzleForge — Word Search, Coloring & Trivia Games</title>
+<style>
+  :root {
+    --gold:#c9a84c; --gold-l:#f0d080;
+    --dark:#0f0a1e; --card:#1a1030;
+    --text:#f5f0ff; --muted:#a89cc8;
+    --green:#16a34a; --teal:#0d9488;
+    --purple:#7c3aed; --rose:#be185d;
+    --orange:#ea580c;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',sans-serif;background:var(--dark);color:var(--text);min-height:100vh}
+
+  /* HEADER */
+  .header{background:linear-gradient(135deg,#0f0a1e,#1e0a3c);padding:2rem 1.5rem 1.5rem;text-align:center;border-bottom:1px solid rgba(201,168,76,0.3)}
+  .header h1{font-size:clamp(1.8rem,5vw,3rem);background:linear-gradient(135deg,var(--gold-l),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:0.5rem}
+  .header p{color:var(--muted);font-size:0.95rem}
+
+  /* TABS */
+  .tabs{display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;padding:1.5rem 1rem 0;background:#0f0a1e}
+  .tab{padding:0.7rem 1.4rem;border-radius:999px;border:1px solid rgba(201,168,76,0.3);background:var(--card);color:var(--muted);cursor:pointer;font-size:0.9rem;transition:all 0.2s;font-weight:600}
+  .tab.active{background:var(--gold);color:#000;border-color:var(--gold)}
+  .tab:hover:not(.active){border-color:var(--gold);color:var(--gold)}
+
+  /* PANELS */
+  .panel{display:none;max-width:900px;margin:0 auto;padding:2rem 1.5rem}
+  .panel.active{display:block}
+
+  /* CONTROLS */
+  .control-row{display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-end;margin-bottom:1.5rem}
+  .control-group{display:flex;flex-direction:column;gap:0.35rem;flex:1;min-width:160px}
+  label{font-size:0.8rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.05em}
+  input,select,textarea{background:#1e1535;border:1px solid rgba(201,168,76,0.25);border-radius:10px;color:var(--text);padding:0.65rem 0.9rem;font-size:0.9rem;width:100%;outline:none;transition:border 0.2s}
+  input:focus,select:focus,textarea:focus{border-color:var(--gold)}
+  textarea{min-height:90px;resize:vertical;font-family:monospace}
+  .btn{padding:0.7rem 1.6rem;border-radius:999px;border:none;cursor:pointer;font-weight:700;font-size:0.9rem;transition:all 0.2s}
+  .btn-gold{background:var(--gold);color:#000}
+  .btn-gold:hover{background:var(--gold-l);transform:translateY(-1px)}
+  .btn-outline{background:transparent;border:1px solid var(--gold);color:var(--gold)}
+  .btn-outline:hover{background:rgba(201,168,76,0.1)}
+  .btn-green{background:#16a34a;color:#fff}
+  .btn-green:hover{background:#15803d}
+
+  /* WORD SEARCH GRID */
+  .ws-container{overflow-x:auto;margin-bottom:1.5rem}
+  .ws-grid{display:inline-grid;gap:2px;border:2px solid rgba(201,168,76,0.3);border-radius:12px;padding:12px;background:var(--card)}
+  .ws-cell{
+    width:32px;height:32px;display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:0.85rem;border-radius:6px;cursor:pointer;
+    background:#1e1535;color:var(--text);transition:all 0.15s;user-select:none;
+    border:1px solid transparent;
+  }
+  .ws-cell:hover{background:rgba(201,168,76,0.15);border-color:var(--gold)}
+  .ws-cell.found{background:linear-gradient(135deg,#065f46,#0d9488);color:#fff;border-color:#6ee7b7}
+  .ws-cell.selected{background:rgba(201,168,76,0.3);border-color:var(--gold)}
+
+  /* WORD LIST */
+  .word-list{display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1.5rem}
+  .word-chip{padding:0.3rem 0.9rem;border-radius:999px;font-size:0.8rem;font-weight:700;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.3);color:var(--gold)}
+  .word-chip.found{background:rgba(22,163,74,0.2);border-color:#6ee7b7;color:#6ee7b7;text-decoration:line-through}
+
+  /* COLORING CANVAS */
+  #coloring-canvas{border:2px solid rgba(201,168,76,0.3);border-radius:16px;background:#fff;cursor:crosshair;max-width:100%;touch-action:none}
+  .color-palette{display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1rem}
+  .color-swatch{width:36px;height:36px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all 0.2s}
+  .color-swatch.active{border-color:var(--gold);transform:scale(1.2)}
+  .brush-row{display:flex;gap:0.5rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap}
+  .brush-btn{padding:0.4rem 1rem;border-radius:999px;border:1px solid rgba(201,168,76,0.3);background:var(--card);color:var(--muted);cursor:pointer;font-size:0.8rem;font-weight:600}
+  .brush-btn.active{background:var(--gold);color:#000;border-color:var(--gold)}
+
+  /* COLORING SCENES */
+  .scene-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:0.75rem;margin-bottom:1.5rem}
+  .scene-btn{padding:0.75rem 0.5rem;border-radius:12px;border:1px solid rgba(201,168,76,0.2);background:var(--card);cursor:pointer;text-align:center;font-size:0.8rem;color:var(--muted);transition:all 0.2s}
+  .scene-btn:hover,.scene-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,0.08)}
+  .scene-icon{font-size:1.8rem;display:block;margin-bottom:0.3rem}
+
+  /* TRIVIA */
+  .trivia-question{background:var(--card);border:1px solid rgba(201,168,76,0.2);border-radius:16px;padding:1.5rem;margin-bottom:1rem}
+  .trivia-q-text{font-size:1.1rem;margin-bottom:1rem;line-height:1.5;color:#fff}
+  .trivia-options{display:grid;grid-template-columns:1fr 1fr;gap:0.5rem}
+  @media(max-width:500px){.trivia-options{grid-template-columns:1fr}}
+  .trivia-opt{padding:0.75rem 1rem;border-radius:10px;border:1px solid rgba(201,168,76,0.2);background:#1e1535;color:var(--text);cursor:pointer;text-align:left;font-size:0.9rem;transition:all 0.2s}
+  .trivia-opt:hover:not(:disabled){border-color:var(--gold);background:rgba(201,168,76,0.1)}
+  .trivia-opt.correct{background:rgba(22,163,74,0.3);border-color:#6ee7b7;color:#6ee7b7}
+  .trivia-opt.wrong{background:rgba(190,24,93,0.2);border-color:#f9a8d4;color:#f9a8d4}
+  .score-bar{background:var(--card);border:1px solid rgba(201,168,76,0.2);border-radius:12px;padding:1rem 1.5rem;display:flex;gap:2rem;flex-wrap:wrap;margin-bottom:1.5rem;align-items:center}
+  .score-item{text-align:center}
+  .score-num{font-size:1.8rem;font-weight:700;color:var(--gold)}
+  .score-lbl{font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em}
+  .result-msg{padding:1rem;border-radius:12px;text-align:center;font-weight:700;font-size:1rem;margin-top:0.5rem}
+  .result-correct{background:rgba(22,163,74,0.2);color:#6ee7b7;border:1px solid rgba(22,163,74,0.4)}
+  .result-wrong{background:rgba(190,24,93,0.15);color:#f9a8d4;border:1px solid rgba(190,24,93,0.3)}
+
+  /* CROSSWORD */
+  .cw-grid{display:inline-grid;gap:2px;border:2px solid rgba(201,168,76,0.3);border-radius:12px;padding:10px;background:var(--card);overflow-x:auto}
+  .cw-cell{width:34px;height:34px;background:#1e1535;border:1px solid rgba(201,168,76,0.2);border-radius:4px;position:relative;font-size:1rem;font-weight:700;text-align:center;color:#fff;cursor:pointer;outline:none;text-transform:uppercase}
+  .cw-cell.black{background:#000;border-color:#000;cursor:default}
+  .cw-cell.active{background:rgba(201,168,76,0.25);border-color:var(--gold)}
+  .cw-cell.correct{background:rgba(22,163,74,0.3);border-color:#6ee7b7}
+  .cw-num{position:absolute;top:1px;left:2px;font-size:0.55rem;color:var(--gold);font-weight:700;line-height:1}
+  .cw-clues{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:1.5rem}
+  @media(max-width:600px){.cw-clues{grid-template-columns:1fr}}
+  .cw-clue-section h3{font-size:1rem;color:var(--gold);margin-bottom:0.75rem;text-transform:uppercase;letter-spacing:0.05em}
+  .cw-clue-item{font-size:0.85rem;color:var(--muted);margin-bottom:0.4rem;line-height:1.4;cursor:pointer;padding:0.25rem 0.4rem;border-radius:6px}
+  .cw-clue-item:hover{color:var(--text);background:rgba(201,168,76,0.08)}
+  .cw-clue-item span{color:var(--gold);font-weight:700;margin-right:0.3rem}
+
+  /* INFO BOX */
+  .info-box{background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:12px;padding:1rem 1.25rem;font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.6}
+  .info-box strong{color:var(--gold)}
+
+  /* SECTION TITLE */
+  .section-title{font-size:1.1rem;font-weight:700;color:var(--gold);margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:1px solid rgba(201,168,76,0.15)}
+
+  /* CELEBRATION */
+  .celebration{text-align:center;padding:2rem;background:rgba(22,163,74,0.1);border:1px solid rgba(22,163,74,0.3);border-radius:16px;margin-top:1rem}
+  .celebration h2{font-size:1.8rem;color:#6ee7b7;margin-bottom:0.5rem}
+  .celebration p{color:var(--muted)}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:0.5rem">🧩 ARTISY STORE — FREE GAMES</div>
+  <h1>PuzzleForge</h1>
+  <p>Word Searches · Coloring Pages · Trivia · Crosswords — all free to play!</p>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('wordsearch')">🔍 Word Search</button>
+  <button class="tab" onclick="showTab('coloring')">🎨 Coloring Page</button>
+  <button class="tab" onclick="showTab('trivia')">❓ Trivia</button>
+  <button class="tab" onclick="showTab('crossword')">✏️ Crossword</button>
+</div>
+
+<!-- ═══════════════ WORD SEARCH ═══════════════ -->
+<div class="panel active" id="panel-wordsearch">
+  <div class="info-box">
+    <strong>How to play:</strong> Click the first letter of a word, then click the last letter. Words can go left→right, top→bottom, or diagonal. Find all the words to win! 🎉
+  </div>
+
+  <div class="section-title">Choose a Theme or Enter Your Own Words</div>
+  <div class="control-row">
+    <div class="control-group">
+      <label>Theme</label>
+      <select id="ws-theme" onchange="loadTheme()">
+        <option value="">— Custom words —</option>
+        <option value="animals">🐾 African Safari Animals</option>
+        <option value="wellness">💜 Wellness & Healing</option>
+        <option value="nature">🌿 Nature & Botany</option>
+        <option value="faith">✝️ Faith & Scripture</option>
+        <option value="emotions">💭 Emotions & Feelings</option>
+        <option value="food">🍎 Healthy Foods</option>
+        <option value="bible">📖 Books of the Bible</option>
+        <option value="flowers">🌸 Beautiful Flowers</option>
+      </select>
+    </div>
+    <div class="control-group">
+      <label>Grid Size</label>
+      <select id="ws-size">
+        <option value="12">Small (12×12)</option>
+        <option value="15" selected>Medium (15×15)</option>
+        <option value="18">Large (18×18)</option>
+      </select>
+    </div>
+  </div>
+  <div class="control-group" style="margin-bottom:1rem">
+    <label>Custom Words (one per line, up to 15)</label>
+    <textarea id="ws-words" placeholder="LION&#10;GIRAFFE&#10;ELEPHANT&#10;ZEBRA&#10;CHEETAH"></textarea>
+  </div>
+  <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1.5rem">
+    <button class="btn btn-gold" onclick="generateWordSearch()">🔍 Generate Word Search</button>
+    <button class="btn btn-outline" onclick="printPuzzle('ws')">🖨️ Print</button>
+    <button class="btn btn-outline" onclick="solveWordSearch()">💡 Show Solution</button>
+  </div>
+
+  <div id="ws-wordlist" class="word-list"></div>
+  <div class="ws-container" id="ws-container"></div>
+  <div id="ws-celebration"></div>
+</div>
+
+<!-- ═══════════════ COLORING PAGE ═══════════════ -->
+<div class="panel" id="panel-coloring">
+  <div class="info-box">
+    <strong>How to use:</strong> Pick a scene below, choose your colors, then click to flood-fill areas OR draw freehand with the brush. Print when done! 🖨️
+  </div>
+
+  <div class="section-title">Pick a Scene</div>
+  <div class="scene-grid">
+    <button class="scene-btn active" onclick="selectScene('garden')" id="scene-garden">
+      <span class="scene-icon">🌸</span>Garden & Flowers
+    </button>
+    <button class="scene-btn" onclick="selectScene('ocean')" id="scene-ocean">
+      <span class="scene-icon">🌊</span>Ocean Waves
+    </button>
+    <button class="scene-btn" onclick="selectScene('forest')" id="scene-forest">
+      <span class="scene-icon">🌲</span>Peaceful Forest
+    </button>
+    <button class="scene-btn" onclick="selectScene('mandala')" id="scene-mandala">
+      <span class="scene-icon">⭕</span>Mandala
+    </button>
+    <button class="scene-btn" onclick="selectScene('butterfly')" id="scene-butterfly">
+      <span class="scene-icon">🦋</span>Butterflies
+    </button>
+    <button class="scene-btn" onclick="selectScene('heart')" id="scene-heart">
+      <span class="scene-icon">💖</span>Love & Hearts
+    </button>
+    <button class="scene-btn" onclick="selectScene('safari')" id="scene-safari">
+      <span class="scene-icon">🦁</span>Safari Animals
+    </button>
+    <button class="scene-btn" onclick="selectScene('stars')" id="scene-stars">
+      <span class="scene-icon">⭐</span>Stars & Moon
+    </button>
+  </div>
+
+  <div class="section-title">Colors</div>
+  <div class="color-palette" id="color-palette"></div>
+  <div class="brush-row">
+    <label style="margin:0">Brush:</label>
+    <button class="brush-btn active" onclick="setBrush(4,this)">Small</button>
+    <button class="brush-btn" onclick="setBrush(10,this)">Medium</button>
+    <button class="brush-btn" onclick="setBrush(20,this)">Large</button>
+    <button class="brush-btn" onclick="setBrush(40,this)">Fill</button>
+    <label style="margin:0 0 0 0.5rem">Mode:</label>
+    <button class="brush-btn active" onclick="setMode('draw',this)">✏️ Draw</button>
+    <button class="brush-btn" onclick="setMode('erase',this)">🧹 Erase</button>
+  </div>
+  <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1rem">
+    <button class="btn btn-outline" onclick="clearCanvas()">🗑️ Clear</button>
+    <button class="btn btn-outline" onclick="undoCanvas()">↩️ Undo</button>
+    <button class="btn btn-gold" onclick="printPuzzle('coloring')">🖨️ Print & Color</button>
+  </div>
+
+  <canvas id="coloring-canvas" width="700" height="700"></canvas>
+</div>
+
+<!-- ═══════════════ TRIVIA ═══════════════ -->
+<div class="panel" id="panel-trivia">
+  <div class="score-bar">
+    <div class="score-item"><div class="score-num" id="t-score">0</div><div class="score-lbl">Score</div></div>
+    <div class="score-item"><div class="score-num" id="t-num">1</div><div class="score-lbl">Question</div></div>
+    <div class="score-item"><div class="score-num" id="t-total">10</div><div class="score-lbl">Total</div></div>
+    <div class="score-item"><div class="score-num" id="t-streak">0</div><div class="score-lbl">🔥 Streak</div></div>
+    <div style="margin-left:auto;display:flex;gap:0.5rem;flex-wrap:wrap">
+      <select id="t-category" style="min-width:140px" onchange="startTrivia()">
+        <option value="all">All Topics</option>
+        <option value="health">🏥 Health & Nursing</option>
+        <option value="nature">🌿 Nature & Animals</option>
+        <option value="faith">✝️ Faith & Bible</option>
+        <option value="wellness">💜 Wellness & Self-Care</option>
+        <option value="fun">😄 Fun & Pop Culture</option>
+        <option value="history">📚 History & Geography</option>
+      </select>
+      <button class="btn btn-gold" onclick="startTrivia()">New Game</button>
+    </div>
+  </div>
+  <div id="trivia-area"></div>
+</div>
+
+<!-- ═══════════════ CROSSWORD ═══════════════ -->
+<div class="panel" id="panel-crossword">
+  <div class="info-box">
+    <strong>How to play:</strong> Click a highlighted cell and type your answer. Use arrow keys to move between cells. Click a clue to jump to it. Check your answers anytime! 😊
+  </div>
+
+  <div class="control-row" style="margin-bottom:1rem">
+    <div class="control-group">
+      <label>Theme</label>
+      <select id="cw-theme" onchange="generateCrossword()">
+        <option value="wellness">💜 Wellness & Healing</option>
+        <option value="nature">🌿 Nature & Animals</option>
+        <option value="faith">✝️ Faith & Inspiration</option>
+        <option value="health">🏥 Health & Body</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:0.5rem;align-items:flex-end;flex-wrap:wrap">
+      <button class="btn btn-gold" onclick="generateCrossword()">🔄 New Puzzle</button>
+      <button class="btn btn-outline" onclick="checkCrossword()">✅ Check Answers</button>
+      <button class="btn btn-outline" onclick="revealCrossword()">💡 Reveal All</button>
+      <button class="btn btn-outline" onclick="printPuzzle('cw')">🖨️ Print</button>
+    </div>
+  </div>
+
+  <div style="overflow-x:auto;margin-bottom:1rem">
+    <div id="cw-grid-container"></div>
+  </div>
+  <div class="cw-clues" id="cw-clues"></div>
+</div>
+
+<div style="text-align:center;padding:1.5rem;border-top:1px solid rgba(201,168,76,0.15);margin-top:2rem">
+  <p style="color:var(--muted);font-size:0.85rem">
+    🌿 More healing resources at <a href="https://shop.artistrystore.com" style="color:var(--gold)">shop.artistrystore.com</a>
+    &nbsp;·&nbsp; Get our <a href="https://tlott12.gumroad.com" style="color:var(--gold)">digital wellness products</a>
+  </p>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// TAB MANAGEMENT
+// ═══════════════════════════════════════════
+function showTab(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  event.target.classList.add('active');
+  if (id === 'trivia' && !triviaQuestions.length) startTrivia();
+  if (id === 'crossword') generateCrossword();
+  if (id === 'coloring') drawScene();
+}
+
+// ═══════════════════════════════════════════
+// WORD SEARCH
+// ═══════════════════════════════════════════
+const THEMES = {
+  animals: ['LION','GIRAFFE','ELEPHANT','ZEBRA','CHEETAH','HIPPO','RHINO','GORILLA','MEERKAT','IMPALA','WARTHOG','OSTRICH'],
+  wellness: ['HEALING','CALM','PEACE','BREATHE','MINDFUL','RESTORE','BALANCE','NURTURE','SOOTHE','GENTLE','RENEWAL','GRACE'],
+  nature: ['BLOSSOM','MEADOW','FOREST','SUNRISE','RIVER','PETAL','WILLOW','SPROUT','CANOPY','BREEZE','GARDEN','VALLEY'],
+  faith: ['PRAYER','GRACE','BLESSING','WORSHIP','FAITH','SPIRIT','HEAVEN','GLORY','MERCY','DIVINE','SACRED','AMEN'],
+  emotions: ['JOYFUL','GRATEFUL','HOPEFUL','LOVING','BRAVE','RADIANT','SERENE','CONTENT','TENDER','VIBRANT','BLESSED','WORTHY'],
+  food: ['AVOCADO','SPINACH','BLUEBERRY','QUINOA','KALE','TURMERIC','GINGER','LEMON','MANGO','WALNUT','SALMON','CHIA'],
+  bible: ['GENESIS','EXODUS','PSALMS','PROVERBS','ISAIAH','MATTHEW','JOHN','ROMANS','CORINTHIANS','JAMES','PETER','REVELATION'],
+  flowers: ['ROSE','DAHLIA','LAVENDER','JASMINE','ORCHID','PEONY','LILAC','TULIP','MAGNOLIA','LOTUS','HIBISCUS','VIOLET'],
+};
+
+let wsGrid = [], wsWords = [], wsSize = 15;
+let wsSelection = [], wsFound = new Set();
+let wsSelecting = false;
+
+function loadTheme() {
+  const theme = document.getElementById('ws-theme').value;
+  if (theme && THEMES[theme]) {
+    document.getElementById('ws-words').value = THEMES[theme].join('\n');
+  }
+}
+
+function generateWordSearch() {
+  wsFound = new Set();
+  wsSelection = [];
+  wsSize = parseInt(document.getElementById('ws-size').value);
+  const raw = document.getElementById('ws-words').value.trim().toUpperCase();
+  wsWords = raw.split('\n').map(w => w.trim().replace(/[^A-Z]/g,'')).filter(w => w.length >= 3).slice(0,15);
+  if (!wsWords.length) { wsWords = THEMES.animals; document.getElementById('ws-words').value = wsWords.join('\n'); }
+
+  wsGrid = Array.from({length:wsSize},()=>Array(wsSize).fill(''));
+  const dirs = [[0,1],[1,0],[1,1],[1,-1],[0,-1],[-1,0],[-1,-1],[-1,1]];
+  const placed = [];
+
+  for (const word of wsWords) {
+    let ok = false;
+    for (let a=0; a<200 && !ok; a++) {
+      const d = dirs[Math.floor(Math.random()*dirs.length)];
+      const maxR = wsSize - (d[0]>=0 ? word.length*d[0] : 0) - (d[0]<0 ? word.length*Math.abs(d[0]) : 0);
+      const maxC = wsSize - (d[1]>=0 ? word.length*d[1] : 0) - (d[1]<0 ? word.length*Math.abs(d[1]) : 0);
+      if (maxR<=0||maxC<=0) continue;
+      const r = (d[0]<0?word.length*Math.abs(d[0]):0)+Math.floor(Math.random()*maxR);
+      const c = (d[1]<0?word.length*Math.abs(d[1]):0)+Math.floor(Math.random()*maxC);
+      let canPlace = true;
+      for (let i=0;i<word.length;i++) {
+        const nr=r+i*d[0], nc=c+i*d[1];
+        if (nr<0||nr>=wsSize||nc<0||nc>=wsSize) {canPlace=false;break;}
+        if (wsGrid[nr][nc]&&wsGrid[nr][nc]!==word[i]) {canPlace=false;break;}
+      }
+      if (canPlace) {
+        for (let i=0;i<word.length;i++) wsGrid[r+i*d[0]][c+i*d[1]]=word[i];
+        placed.push({word,r,c,d});
+        ok=true;
+      }
+    }
+  }
+  const alpha='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  for(let r=0;r<wsSize;r++) for(let c=0;c<wsSize;c++) if(!wsGrid[r][c]) wsGrid[r][c]=alpha[Math.floor(Math.random()*26)];
+
+  // Store placed info for solution
+  window._wsPlaced = placed;
+  renderWordSearch();
+  renderWordList();
+}
+
+function renderWordSearch() {
+  const container = document.getElementById('ws-container');
+  const grid = document.createElement('div');
+  grid.className = 'ws-grid';
+  grid.style.gridTemplateColumns = `repeat(${wsSize},32px)`;
+  grid.id = 'ws-grid';
+  for (let r=0;r<wsSize;r++) {
+    for (let c=0;c<wsSize;c++) {
+      const cell = document.createElement('div');
+      cell.className='ws-cell';
+      cell.textContent=wsGrid[r][c];
+      cell.dataset.r=r; cell.dataset.c=c;
+      cell.addEventListener('mousedown',startSelect);
+      cell.addEventListener('mouseover',moveSelect);
+      cell.addEventListener('mouseup',endSelect);
+      cell.addEventListener('touchstart',e=>{e.preventDefault();startSelect({target:cell})},{passive:false});
+      cell.addEventListener('touchmove',e=>{
+        e.preventDefault();
+        const t=e.touches[0];
+        const el=document.elementFromPoint(t.clientX,t.clientY);
+        if(el&&el.classList.contains('ws-cell')) moveSelect({target:el});
+      },{passive:false});
+      cell.addEventListener('touchend',e=>{e.preventDefault();endSelect()},{passive:false});
+      if (wsFound.has(`${r},${c}`)) cell.classList.add('found');
+      grid.appendChild(cell);
+    }
+  }
+  container.innerHTML='';
+  container.appendChild(grid);
+}
+
+function startSelect(e) {
+  wsSelecting=true;
+  wsSelection=[{r:+e.target.dataset.r,c:+e.target.dataset.c}];
+  highlightSelection();
+}
+function moveSelect(e) {
+  if(!wsSelecting) return;
+  const r=+e.target.dataset.r, c=+e.target.dataset.c;
+  const first=wsSelection[0];
+  const dr=Math.sign(r-first.r), dc=Math.sign(c-first.c);
+  wsSelection=[first];
+  let cr=first.r,cc=first.c;
+  while(cr!==r||cc!==c) {
+    cr+=dr; cc+=dc;
+    if(cr<0||cr>=wsSize||cc<0||cc>=wsSize) break;
+    wsSelection.push({r:cr,c:cc});
+  }
+  highlightSelection();
+}
+function highlightSelection() {
+  document.querySelectorAll('.ws-cell').forEach(c=>{
+    if(!wsFound.has(`${c.dataset.r},${c.dataset.c}`)) c.classList.remove('selected','found');
+    else c.classList.add('found');
+  });
+  wsSelection.forEach(({r,c})=>{
+    const el=document.querySelector(`.ws-cell[data-r="${r}"][data-c="${c}"]`);
+    if(el&&!wsFound.has(`${r},${c}`)) el.classList.add('selected');
+  });
+}
+function endSelect() {
+  wsSelecting=false;
+  const letters=wsSelection.map(({r,c})=>wsGrid[r][c]).join('');
+  const rev=[...letters].reverse().join('');
+  const match=wsWords.find(w=>w===letters||w===rev);
+  if(match) {
+    wsSelection.forEach(({r,c})=>wsFound.add(`${r},${c}`));
+    document.querySelectorAll('.ws-cell').forEach(el=>{
+      if(wsFound.has(`${el.dataset.r},${el.dataset.c}`)) el.classList.add('found');
+    });
+    document.querySelectorAll(`.word-chip`).forEach(ch=>{
+      if(ch.dataset.word===match) ch.classList.add('found');
+    });
+    if(wsFound.size>0 && document.querySelectorAll('.word-chip.found').length===wsWords.length) {
+      document.getElementById('ws-celebration').innerHTML=`<div class="celebration"><h2>🎉 You found all the words!</h2><p>Amazing job! Print this puzzle or play again with a new theme.</p><br><button class="btn btn-gold" onclick="generateWordSearch()">Play Again</button></div>`;
+    }
+  }
+  wsSelection=[];
+  highlightSelection();
+}
+function renderWordList() {
+  const wl=document.getElementById('ws-wordlist');
+  wl.innerHTML=wsWords.map(w=>`<div class="word-chip ${wsFound.has(w)?'found':''}" data-word="${w}">${w}</div>`).join('');
+}
+function solveWordSearch() {
+  if(!window._wsPlaced) return;
+  window._wsPlaced.forEach(({word,r,c,d})=>{
+    for(let i=0;i<word.length;i++) wsFound.add(`${r+i*d[0]},${c+i*d[1]}`);
+  });
+  wsWords.forEach(w=>wsFound.add(w));
+  renderWordSearch();
+  renderWordList();
+}
+function printPuzzle(type) { window.print(); }
+
+// ═══════════════════════════════════════════
+// COLORING PAGE
+// ═══════════════════════════════════════════
+const COLORS=['#FF6B6B','#FF9F43','#F7DC6F','#6BCB77','#4ECDC4','#45B7D1','#96CEB4','#DDA0DD','#FFB6C1','#C8A97E','#8B4513','#2F4F4F','#800080','#FF1493','#1E90FF','#32CD32','#FF8C00','#DC143C','#00CED1','#DAA520','#000000','#FFFFFF'];
+let currentColor='#4ECDC4', brushSize=8, drawMode='draw';
+let isDrawing=false, lastX=0, lastY=0;
+let undoStack=[];
+let canvas, ctx;
+
+function initCanvas() {
+  canvas=document.getElementById('coloring-canvas');
+  ctx=canvas.getContext('2d');
+  canvas.addEventListener('mousedown',startDraw);
+  canvas.addEventListener('mousemove',draw);
+  canvas.addEventListener('mouseup',stopDraw);
+  canvas.addEventListener('mouseleave',stopDraw);
+  canvas.addEventListener('touchstart',e=>{e.preventDefault();const t=e.touches[0];const r=canvas.getBoundingClientRect();startDraw({offsetX:t.clientX-r.left,offsetY:t.clientY-r.top})},{passive:false});
+  canvas.addEventListener('touchmove',e=>{e.preventDefault();const t=e.touches[0];const r=canvas.getBoundingClientRect();draw({offsetX:t.clientX-r.left,offsetY:t.clientY-r.top})},{passive:false});
+  canvas.addEventListener('touchend',e=>{e.preventDefault();stopDraw()},{passive:false});
+
+  const palette=document.getElementById('color-palette');
+  palette.innerHTML=COLORS.map(c=>`<div class="color-swatch${c===currentColor?' active':''}" style="background:${c}" onclick="setColor('${c}',this)"></div>`).join('');
+}
+function setColor(c,el) {
+  currentColor=c;
+  document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+}
+function setBrush(size,el) {
+  brushSize=size;
+  document.querySelectorAll('.brush-btn').forEach(b=>{ if(['Small','Medium','Large','Fill'].includes(b.textContent)) b.classList.remove('active'); });
+  el.classList.add('active');
+}
+function setMode(mode,el) {
+  drawMode=mode;
+  document.querySelectorAll('.brush-btn').forEach(b=>{ if(b.textContent.includes('Draw')||b.textContent.includes('Erase')) b.classList.remove('active'); });
+  el.classList.add('active');
+}
+function saveUndo() {
+  undoStack.push(ctx.getImageData(0,0,canvas.width,canvas.height));
+  if(undoStack.length>20) undoStack.shift();
+}
+function undoCanvas() {
+  if(undoStack.length) ctx.putImageData(undoStack.pop(),0,0);
+}
+function clearCanvas() {
+  saveUndo();
+  ctx.fillStyle='#fff';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  drawScene();
+}
+function startDraw(e) {
+  isDrawing=true;
+  saveUndo();
+  lastX=e.offsetX; lastY=e.offsetY;
+  ctx.beginPath();
+  ctx.arc(lastX,lastY,brushSize/2,0,Math.PI*2);
+  ctx.fillStyle=drawMode==='erase'?'#fff':currentColor;
+  ctx.fill();
+}
+function draw(e) {
+  if(!isDrawing) return;
+  ctx.beginPath();
+  ctx.moveTo(lastX,lastY);
+  ctx.lineTo(e.offsetX,e.offsetY);
+  ctx.strokeStyle=drawMode==='erase'?'#fff':currentColor;
+  ctx.lineWidth=brushSize;
+  ctx.lineCap='round';
+  ctx.stroke();
+  lastX=e.offsetX; lastY=e.offsetY;
+}
+function stopDraw() { isDrawing=false; }
+
+let currentScene='garden';
+function selectScene(scene) {
+  currentScene=scene;
+  document.querySelectorAll('.scene-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('scene-'+scene).classList.add('active');
+  if(!canvas) initCanvas();
+  saveUndo();
+  drawScene();
+}
+function drawScene() {
+  if(!canvas) { initCanvas(); }
+  ctx.fillStyle='#fff';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.strokeStyle='#333';
+  ctx.lineWidth=2;
+  const scenes = {
+    garden: drawGarden,
+    ocean: drawOcean,
+    forest: drawForest,
+    mandala: drawMandala,
+    butterfly: drawButterfly,
+    heart: drawHearts,
+    safari: drawSafari,
+    stars: drawStars,
+  };
+  (scenes[currentScene]||drawGarden)();
+}
+
+function drawGarden() {
+  // Ground
+  ctx.strokeStyle='#333'; ctx.lineWidth=2;
+  // Sun
+  ctx.beginPath(); ctx.arc(100,80,45,0,Math.PI*2); ctx.stroke();
+  for(let a=0;a<12;a++){
+    const ang=a*(Math.PI/6), x1=100+55*Math.cos(ang), y1=80+55*Math.sin(ang), x2=100+70*Math.cos(ang), y2=80+70*Math.sin(ang);
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  }
+  // Flowers
+  const flowers=[[200,480],[350,460],[500,480],[280,440],[430,450],[150,500],[550,490]];
+  flowers.forEach(([fx,fy])=>{
+    ctx.beginPath(); ctx.moveTo(fx,fy); ctx.lineTo(fx,fy-120); ctx.stroke(); // stem
+    // leaves
+    ctx.beginPath(); ctx.ellipse(fx-25,fy-60,20,10,-0.5,0,Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(fx+25,fy-80,20,10,0.5,0,Math.PI*2); ctx.stroke();
+    // petals
+    for(let p=0;p<8;p++){
+      const ang=p*(Math.PI/4), px=fx+28*Math.cos(ang), py=(fy-120)+28*Math.sin(ang);
+      ctx.beginPath(); ctx.ellipse(px,py,12,7,ang,0,Math.PI*2); ctx.stroke();
+    }
+    ctx.beginPath(); ctx.arc(fx,fy-120,12,0,Math.PI*2); ctx.stroke(); // center
+  });
+  // Ground line
+  ctx.beginPath(); ctx.moveTo(0,520); ctx.lineTo(700,520); ctx.stroke();
+  // Grass tufts
+  for(let g=0;g<30;g++){
+    const gx=g*24+10, gy=520;
+    ctx.beginPath(); ctx.moveTo(gx,gy); ctx.quadraticCurveTo(gx-5,gy-15,gx-8,gy-25); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(gx,gy); ctx.quadraticCurveTo(gx+5,gy-15,gx+8,gy-25); ctx.stroke();
+  }
+  // Butterfly
+  drawButterflyAt(580,150);
+  // Title
+  ctx.font='bold 22px Georgia'; ctx.fillStyle='#333'; ctx.textAlign='center';
+  ctx.fillText('Garden of Healing', 350, 660);
+}
+
+function drawButterflyAt(x,y,size=1) {
+  const s=size;
+  ctx.strokeStyle='#333'; ctx.lineWidth=1.5;
+  // wings
+  ctx.beginPath(); ctx.ellipse(x-25*s,y,30*s,20*s,-0.5,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(x+25*s,y,30*s,20*s,0.5,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(x-18*s,y+22*s,20*s,12*s,-0.3,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(x+18*s,y+22*s,20*s,12*s,0.3,0,Math.PI*2); ctx.stroke();
+  // body
+  ctx.beginPath(); ctx.ellipse(x,y+5*s,5*s,20*s,0,0,Math.PI*2); ctx.stroke();
+  // antennae
+  ctx.beginPath(); ctx.moveTo(x-3,y-15*s); ctx.quadraticCurveTo(x-20,y-35*s,x-15,y-45*s); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x+3,y-15*s); ctx.quadraticCurveTo(x+20,y-35*s,x+15,y-45*s); ctx.stroke();
+  ctx.beginPath(); ctx.arc(x-15,y-45*s,4,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(x+15,y-45*s,4,0,Math.PI*2); ctx.stroke();
+}
+
+function drawOcean() {
+  ctx.strokeStyle='#333'; ctx.lineWidth=2;
+  // Sun/moon
+  ctx.beginPath(); ctx.arc(600,80,50,0,Math.PI*2); ctx.stroke();
+  // Waves
+  for(let w=0;w<8;w++){
+    const y=200+w*50;
+    ctx.beginPath(); ctx.moveTo(0,y);
+    for(let x=0;x<700;x+=60){
+      ctx.quadraticCurveTo(x+15,y-20,x+30,y);
+      ctx.quadraticCurveTo(x+45,y+20,x+60,y);
+    }
+    ctx.stroke();
+  }
+  // Seashells
+  [[100,580],[250,600],[400,580],[550,600],[650,590]].forEach(([sx,sy])=>{
+    ctx.beginPath(); ctx.arc(sx,sy,20,Math.PI,0); ctx.stroke();
+    for(let i=0;i<5;i++){
+      ctx.beginPath(); ctx.moveTo(sx,sy);
+      ctx.lineTo(sx+(20-i*4)*Math.cos((i/4)*Math.PI),sy-(20-i*4)*Math.sin((i/4)*Math.PI));
+      ctx.stroke();
+    }
+  });
+  // Fish
+  [[200,300],[450,350],[320,250]].forEach(([fx,fy])=>{
+    ctx.beginPath(); ctx.ellipse(fx,fy,30,15,0,0,Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(fx+30,fy); ctx.lineTo(fx+50,fy-15); ctx.lineTo(fx+50,fy+15); ctx.closePath(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(fx-10,fy-3,4,0,Math.PI*2); ctx.stroke();
+  });
+  ctx.font='bold 22px Georgia'; ctx.fillStyle='#333'; ctx.textAlign='center';
+  ctx.fillText('Peaceful Ocean', 350, 680);
+}
+
+function drawForest() {
+  ctx.strokeStyle='#333'; ctx.lineWidth=2;
+  // Trees
+  [[100,600],[180,580],[280,620],[400,580],[520,610],[630,590]].forEach(([tx,ty],i)=>{
+    const h=80+i%3*30;
+    ctx.beginPath(); ctx.moveTo(tx,ty); ctx.lineTo(tx,ty-h); ctx.stroke(); // trunk
+    // Triangle tree top
+    ctx.beginPath(); ctx.moveTo(tx-40,ty-h); ctx.lineTo(tx,ty-h-80); ctx.lineTo(tx+40,ty-h); ctx.closePath(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(tx-35,ty-h-30); ctx.lineTo(tx,ty-h-100); ctx.lineTo(tx+35,ty-h-30); ctx.closePath(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(tx-28,ty-h-60); ctx.lineTo(tx,ty-h-120); ctx.lineTo(tx+28,ty-h-60); ctx.closePath(); ctx.stroke();
+  });
+  // Moon
+  ctx.beginPath(); ctx.arc(350,80,45,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(380,70,38,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill(); ctx.strokeStyle='#333'; ctx.stroke(); ctx.fillStyle='#fff';
+  // Stars
+  for(let s=0;s<12;s++){
+    const sx=30+s*55, sy=30+Math.sin(s)*30;
+    drawStar(ctx,sx,sy,6,3);
+  }
+  // Path
+  ctx.beginPath(); ctx.moveTo(280,700); ctx.quadraticCurveTo(350,600,350,500); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(420,700); ctx.quadraticCurveTo(350,600,350,500); ctx.stroke();
+  ctx.font='bold 22px Georgia'; ctx.fillStyle='#333'; ctx.textAlign='center';
+  ctx.fillText('Peaceful Forest', 350, 680);
+}
+
+function drawStar(ctx,x,y,r1,r2,points=5) {
+  ctx.beginPath();
+  for(let i=0;i<points*2;i++){
+    const r=i%2===0?r1:r2, ang=i*(Math.PI/points)-Math.PI/2;
+    i===0 ? ctx.moveTo(x+r*Math.cos(ang),y+r*Math.sin(ang)) : ctx.lineTo(x+r*Math.cos(ang),y+r*Math.sin(ang));
+  }
+  ctx.closePath(); ctx.stroke();
+}
+
+function drawMandala() {
+  ctx.strokeStyle='#333'; ctx.lineWidth=1.5;
+  const cx=350,cy=360;
+  // Rings
+  [30,65,100,135,170,210,250,290].forEach(r=>{ ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.stroke(); });
+  // Petals on each ring
+  [65,100,135,170,210].forEach((r,ri)=>{
+    const num=8+ri*4;
+    for(let i=0;i<num;i++){
+      const ang=i*(Math.PI*2/num);
+      const px=cx+r*Math.cos(ang), py=cy+r*Math.sin(ang);
+      ctx.beginPath(); ctx.ellipse(px,py,8,4,ang,0,Math.PI*2); ctx.stroke();
+    }
+  });
+  // Spoke lines
+  for(let i=0;i<16;i++){
+    const ang=i*(Math.PI/8);
+    ctx.beginPath(); ctx.moveTo(cx+30*Math.cos(ang),cy+30*Math.sin(ang));
+    ctx.lineTo(cx+290*Math.cos(ang),cy+290*Math.sin(ang)); ctx.stroke();
+  }
+  // Inner flower
+  for(let p=0;p<8;p++){
+    const ang=p*(Math.PI/4), px=cx+18*Math.cos(ang), py=cy+18*Math.sin(ang);
+    ctx.beginPath(); ctx.ellipse(px,py,10,6,ang,0,Math.PI*2); ctx.stroke();
+  }
+  ctx.beginPath(); ctx.arc(cx,cy,8,0,Math.PI*2); ctx.stroke();
+  ctx.font='bold 20px Georgia'; ctx.fillStyle='#333'; ctx.textAlign='center';
+  ctx.fillText('Sacred Mandala', 350, 680);
+}
+
+function drawButterfly() {
+  ctx.strokeStyle='#333'; ctx.lineWidth=2;
+  // Large central butterfly
+  drawButterflyAt(350,300,2.5);
+  // Smaller butterflies around
+  [[120,150],[550,180],[100,500],[600,460],[200,580],[500,560]].forEach(([x,y])=>drawButterflyAt(x,y,0.9));
+  // Flowers scattered
+  [[150,400],[560,350],[300,620],[430,600]].forEach(([fx,fy])=>{
+    for(let p=0;p<6;p++){
+      const ang=p*(Math.PI/3), px=fx+15*Math.cos(ang), py=fy+15*Math.sin(ang);
+      ctx.beginPath(); ctx.ellipse(px,py,9,6,ang,0,Math.PI*2); ctx.stroke();
+    }
+    ctx.beginPath(); ctx.arc(fx,fy,7,0,Math.PI*2); ctx.stroke();
+  });
+  ctx.font='bold 22px Georgia'; ctx.fillStyle='#333'; ctx.textAlign='center';
+  ctx.fillText('Garden of Butterflies', 350, 680);
+}
+
+function drawHearts() {
+  ctx.strokeStyle='#333'; ctx.lineWidth=2;
+  function heart(x,y,size) {
+    ctx.beginPath();
+    ctx.moveTo(x,y+size*0.3);
+    ctx.bezierCurveTo(x,y-size*0.3, x-size,y-size*0.3, x-size,y+size*0.2);
+    ctx.bezierCurveTo(x-size,y+size*0.7, x,y+size*1.1, x,y+size*1.3);
+    ctx.bezierCurveTo(x,y+size*1.1, x+size,y+size*0.7, x+size,y+size*0.2);
+    ctx.bezierCurveTo(x+size,y-size*0.3, x,y-size*0.3, x,y+size*0.3);
+    ctx.stroke();
+  }
+  heart(350,200,120); // Big center
+  [[120,150,50],[580,180,45],[100,450,40],[600,430,42],[200,580,35],[490,560,38],[350,540,30]].forEach(([x,y,s])=>heart(x,y,s));
+  // Decorative dots and swirls
+  for(let i=0;i<20;i++){
+    const x=50+Math.random()*600, y=50+Math.random()*600;
+    ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.stroke();
+  }
+  ctx.font='bold 22px Georgia'; ctx.fillStyle='#333'; ctx.textAlign='center';
+  ctx.fillText('Love & Healing Hearts', 350, 680);
+}
+
+function drawSafari() {
+  ctx.strokeStyle='#333'; ctx.lineWidth=2;
+  // Sun
+  ctx.beginPath(); ctx.arc(600,80,40,0,Math.PI*2); ctx.stroke();
+  for(let a=0;a<12;a++){
+    const ang=a*(Math.PI/6);
+    ctx.beginPath(); ctx.moveTo(600+50*Math.cos(ang),80+50*Math.sin(ang));
+    ctx.lineTo(600+65*Math.cos(ang),80+65*Math.sin(ang)); ctx.stroke();
+  }
+  // Giraffe
+  ctx.beginPath(); ctx.moveTo(150,620); ctx.lineTo(150,400); ctx.lineTo(190,200); ctx.stroke(); // body+neck
+  ctx.beginPath(); ctx.ellipse(200,170,30,20,0.3,0,Math.PI*2); ctx.stroke(); // head
+  ctx.beginPath(); ctx.moveTo(130,620); ctx.lineTo(130,500); ctx.stroke(); // leg
+  ctx.beginPath(); ctx.moveTo(170,620); ctx.lineTo(170,500); ctx.stroke(); // leg
+  // Spots
+  [[155,350],[145,300],[165,250]].forEach(([x,y])=>{ ctx.beginPath(); ctx.ellipse(x,y,12,8,0,0,Math.PI*2); ctx.stroke(); });
+  // Elephant
+  ctx.beginPath(); ctx.ellipse(400,500,90,70,0,0,Math.PI*2); ctx.stroke(); // body
+  ctx.beginPath(); ctx.ellipse(470,440,45,40,0.3,0,Math.PI*2); ctx.stroke(); // head
+  ctx.beginPath(); ctx.moveTo(480,465); ctx.quadraticCurveTo(520,500,510,540); ctx.stroke(); // trunk
+  // Legs
+  [[340,570],[370,570],[420,570],[450,570]].forEach(([x,y])=>{
+    ctx.beginPath(); ctx.moveTo(x,y-50); ctx.lineTo(x,y); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(x,y,12,6,0,0,Math.PI*2); ctx.stroke();
+  });
+  // Lion
+  ctx.beginPath(); ctx.arc(580,480,45,0,Math.PI*2); ctx.stroke(); // mane
+  ctx.beginPath(); ctx.arc(580,480,30,0,Math.PI*2); ctx.stroke(); // face
+  ctx.beginPath(); ctx.ellipse(580,555,35,25,0,0,Math.PI*2); ctx.stroke(); // body
+  // Acacia tree
+  ctx.beginPath(); ctx.moveTo(300,620); ctx.lineTo(300,400); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(300,370,70,30,0,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(270,340,50,20,-0.3,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(330,340,50,20,0.3,0,Math.PI*2); ctx.stroke();
+  // Ground
+  ctx.beginPath(); ctx.moveTo(0,620); ctx.lineTo(700,620); ctx.stroke();
+  ctx.font='bold 22px Georgia'; ctx.fillStyle='#333'; ctx.textAlign='center';
+  ctx.fillText('African Safari', 350, 680);
+}
+
+function drawStars() {
+  ctx.strokeStyle='#333'; ctx.lineWidth=2;
+  // Moon
+  ctx.beginPath(); ctx.arc(150,120,60,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(185,105,52,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill(); ctx.strokeStyle='#333'; ctx.stroke(); ctx.fillStyle='#fff';
+  // Stars of varying sizes
+  [[300,80,20],[450,60,15],[550,100,18],[180,200,12],[600,200,16],[80,300,14],[680,280,20],[350,180,25],[500,300,12],[200,400,18],[600,380,22],[100,500,16],[400,450,14],[650,500,20],[300,560,12]].forEach(([x,y,r])=>drawStar(ctx,x,y,r,r*0.4));
+  // Shooting stars
+  ctx.lineWidth=2;
+  [[400,150],[250,250]].forEach(([x,y])=>{
+    ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+80,y-30); ctx.stroke();
+    drawStar(ctx,x,y,8,4);
+  });
+  // Moon face
+  ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.arc(135,115,6,0,Math.PI*2); ctx.stroke(); // eye
+  ctx.beginPath(); ctx.arc(155,130,5,0,Math.PI); ctx.stroke(); // smile
+  // Clouds outlined
+  [[400,300],[200,450]].forEach(([cx,cy])=>{
+    ctx.beginPath(); ctx.arc(cx,cy,30,0,Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx+30,cy+10,25,0,Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx-30,cy+10,22,0,Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx+55,cy+15,20,0,Math.PI*2); ctx.stroke();
+  });
+  ctx.font='bold 22px Georgia'; ctx.fillStyle='#333'; ctx.textAlign='center';
+  ctx.fillText('Stars & Moonlight', 350, 680);
+}
+
+// ═══════════════════════════════════════════
+// TRIVIA
+// ═══════════════════════════════════════════
+const ALL_QUESTIONS = {
+  health: [
+    {q:"How many chambers does the human heart have?",a:1,o:["Two","Four","Three","Six"]},
+    {q:"What is the normal resting heart rate for adults?",a:0,o:["60–100 bpm","40–60 bpm","100–120 bpm","20–40 bpm"]},
+    {q:"Which vitamin is produced by the skin in sunlight?",a:2,o:["Vitamin A","Vitamin B12","Vitamin D","Vitamin K"]},
+    {q:"What does RN stand for in nursing?",a:0,o:["Registered Nurse","Regional Nutritionist","Routine Nursing","Regulated Nurse"]},
+    {q:"How many bones are in the adult human body?",a:1,o:["150","206","300","99"]},
+    {q:"What organ filters blood and produces urine?",a:2,o:["Liver","Lungs","Kidneys","Pancreas"]},
+    {q:"Normal human body temperature is approximately?",a:0,o:["98.6°F (37°C)","100°F (37.8°C)","95°F (35°C)","102°F (38.9°C)"]},
+    {q:"Which blood type is the universal donor?",a:3,o:["Type A","Type B","Type AB","Type O negative"]},
+    {q:"The largest organ of the human body is?",a:1,o:["Brain","Skin","Liver","Heart"]},
+    {q:"How many hours of sleep do adults generally need?",a:2,o:["4–5 hours","5–6 hours","7–9 hours","10–12 hours"]},
+  ],
+  nature: [
+    {q:"What is the tallest animal on Earth?",a:0,o:["Giraffe","Elephant","Polar bear","Ostrich"]},
+    {q:"How many legs does a spider have?",a:2,o:["Six","Four","Eight","Ten"]},
+    {q:"What gas do plants absorb from the air?",a:1,o:["Oxygen","Carbon dioxide","Nitrogen","Hydrogen"]},
+    {q:"Which ocean is the largest?",a:0,o:["Pacific","Atlantic","Indian","Arctic"]},
+    {q:"What is a group of lions called?",a:2,o:["Pack","Herd","Pride","Flock"]},
+    {q:"The butterfly starts life as a?",a:1,o:["Nymph","Caterpillar","Larva fish","Pupa shell"]},
+    {q:"How many petals does a typical rose have?",a:3,o:["3","6","25","5 or multiples of 5"]},
+    {q:"What is the fastest land animal?",a:0,o:["Cheetah","Lion","Greyhound","Ostrich"]},
+    {q:"Trees absorb water mainly through their?",a:1,o:["Leaves","Roots","Bark","Flowers"]},
+    {q:"What is the largest land animal?",a:2,o:["Hippopotamus","Giraffe","African Elephant","Rhinoceros"]},
+  ],
+  faith: [
+    {q:"How many books are in the Bible?",a:0,o:["66","72","39","80"]},
+    {q:"Who wrote most of the Psalms?",a:1,o:["Solomon","David","Moses","Paul"]},
+    {q:"What is the first book of the Bible?",a:0,o:["Genesis","Exodus","Matthew","Romans"]},
+    {q:"Jesus had how many disciples?",a:2,o:["7","10","12","15"]},
+    {q:"The Lord's Prayer begins with?",a:1,o:["Blessed are the poor","Our Father who art in heaven","In the beginning","Love the Lord your God"]},
+    {q:"Where was Jesus born?",a:0,o:["Bethlehem","Jerusalem","Nazareth","Galilee"]},
+    {q:"Who was swallowed by a big fish?",a:2,o:["Moses","Elijah","Jonah","Noah"]},
+    {q:"The fruit of the Spirit does NOT include?",a:3,o:["Love","Joy","Peace","Anger"]},
+    {q:"How many days did creation take according to Genesis?",a:1,o:["5","6","7","10"]},
+    {q:"'Be still and know that I am God' is from which book?",a:0,o:["Psalms","Proverbs","Isaiah","Romans"]},
+  ],
+  wellness: [
+    {q:"Deep breathing activates the _____ nervous system?",a:1,o:["Sympathetic","Parasympathetic","Central","Peripheral"]},
+    {q:"Which hormone is called the 'stress hormone'?",a:0,o:["Cortisol","Serotonin","Dopamine","Melatonin"]},
+    {q:"Mindfulness meditation helps reduce?",a:2,o:["Muscle mass","Blood pressure only","Stress and anxiety","None of these"]},
+    {q:"Which neurotransmitter is associated with happiness?",a:1,o:["Cortisol","Serotonin","Adrenaline","Melatonin"]},
+    {q:"Journaling is beneficial for mental health because it?",a:0,o:["Processes emotions and reduces stress","Makes you sleepy","Increases cortisol","Replaces therapy always"]},
+    {q:"The '5-4-3-2-1' technique is used for?",a:2,o:["Sleep","Counting calories","Grounding during anxiety","Exercise timing"]},
+    {q:"Adequate sleep improves?",a:3,o:["Memory only","Mood only","Immune system only","All of the above"]},
+    {q:"Regular exercise releases?",a:1,o:["Cortisol primarily","Endorphins","Melatonin","Insulin only"]},
+    {q:"Social connection is linked to?",a:0,o:["Longer, healthier life","Higher anxiety","More cortisol","Less sleep"]},
+    {q:"Gratitude practices have been shown to?",a:2,o:["Increase stress","Lower energy","Improve mental wellbeing","Have no effect"]},
+  ],
+  fun: [
+    {q:"How many colors are in a rainbow?",a:2,o:["5","6","7","8"]},
+    {q:"What is the longest river in the world?",a:0,o:["Nile","Amazon","Mississippi","Congo"]},
+    {q:"How many continents are on Earth?",a:1,o:["5","7","6","8"]},
+    {q:"The Great Wall of China was built to protect against?",a:2,o:["Floods","Sandstorms","Nomadic invasions","Earthquakes"]},
+    {q:"What is the most spoken language in the world?",a:1,o:["English","Mandarin Chinese","Spanish","Hindi"]},
+    {q:"How many sides does a hexagon have?",a:2,o:["5","4","6","7"]},
+    {q:"What instrument has 88 keys?",a:0,o:["Piano","Organ","Accordion","Harp"]},
+    {q:"Which planet is closest to the Sun?",a:1,o:["Venus","Mercury","Earth","Mars"]},
+    {q:"What is the chemical symbol for gold?",a:0,o:["Au","Go","Gd","Ag"]},
+    {q:"A baby kangaroo is called a?",a:2,o:["Cub","Kitten","Joey","Pup"]},
+  ],
+  history: [
+    {q:"In what year did World War II end?",a:1,o:["1943","1945","1944","1946"]},
+    {q:"Who was the first President of the United States?",a:0,o:["George Washington","John Adams","Thomas Jefferson","Abraham Lincoln"]},
+    {q:"The Eiffel Tower is located in?",a:2,o:["Rome","London","Paris","Berlin"]},
+    {q:"What year did man first land on the Moon?",a:1,o:["1967","1969","1971","1965"]},
+    {q:"Martin Luther King Jr. delivered his 'I Have a Dream' speech in?",a:0,o:["1963","1965","1968","1960"]},
+    {q:"The Amazon rainforest is primarily in which country?",a:1,o:["Colombia","Brazil","Peru","Venezuela"]},
+    {q:"What is the capital of Australia?",a:2,o:["Sydney","Melbourne","Canberra","Brisbane"]},
+    {q:"Rosa Parks refused to give up her seat in?",a:1,o:["1950","1955","1960","1948"]},
+    {q:"The Pyramids of Giza are in?",a:0,o:["Egypt","Morocco","Sudan","Libya"]},
+    {q:"Who painted the Mona Lisa?",a:1,o:["Michelangelo","Leonardo da Vinci","Raphael","Picasso"]},
+  ],
+};
+
+let triviaQuestions=[], triviaIndex=0, triviaScore=0, triviaStreak=0, triviaAnswered=false;
+
+function startTrivia() {
+  const cat=document.getElementById('t-category').value;
+  let pool=[];
+  if(cat==='all') Object.values(ALL_QUESTIONS).forEach(arr=>pool.push(...arr));
+  else pool=ALL_QUESTIONS[cat]||[];
+  pool=[...pool].sort(()=>Math.random()-0.5);
+  triviaQuestions=pool.slice(0,10);
+  triviaIndex=0; triviaScore=0; triviaStreak=0;
+  updateScoreBar();
+  renderTrivia();
+}
+function updateScoreBar() {
+  document.getElementById('t-score').textContent=triviaScore;
+  document.getElementById('t-num').textContent=triviaIndex+1;
+  document.getElementById('t-total').textContent=triviaQuestions.length;
+  document.getElementById('t-streak').textContent=triviaStreak;
+}
+function renderTrivia() {
+  if(!triviaQuestions.length){startTrivia();return;}
+  if(triviaIndex>=triviaQuestions.length){
+    const pct=Math.round(triviaScore/triviaQuestions.length*100);
+    const msg=pct>=80?'🌟 Amazing!':pct>=60?'👏 Well done!':'💪 Keep practicing!';
+    document.getElementById('trivia-area').innerHTML=`
+      <div class="celebration">
+        <h2>${msg}</h2>
+        <p>You scored <strong style="color:var(--gold)">${triviaScore}/${triviaQuestions.length}</strong> (${pct}%)</p>
+        <br>
+        <button class="btn btn-gold" onclick="startTrivia()" style="margin:0.5rem">Play Again 🔄</button>
+        <button class="btn btn-outline" onclick="document.getElementById('t-category').value='all';startTrivia()" style="margin:0.5rem">All Topics</button>
+      </div>`;
+    return;
+  }
+  triviaAnswered=false;
+  const q=triviaQuestions[triviaIndex];
+  updateScoreBar();
+  document.getElementById('trivia-area').innerHTML=`
+    <div class="trivia-question">
+      <div style="font-size:0.75rem;color:var(--muted);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.1em">Question ${triviaIndex+1} of ${triviaQuestions.length}</div>
+      <div class="trivia-q-text">${q.q}</div>
+      <div class="trivia-options">
+        ${q.o.map((opt,i)=>`<button class="trivia-opt" onclick="answerTrivia(${i})" id="opt-${i}">${String.fromCharCode(65+i)}. ${opt}</button>`).join('')}
+      </div>
+      <div id="result-msg" style="margin-top:0.75rem"></div>
+    </div>
+    <button class="btn btn-outline" id="next-btn" style="display:none;margin-top:0.5rem" onclick="nextTrivia()">Next Question →</button>`;
+}
+function answerTrivia(i) {
+  if(triviaAnswered) return;
+  triviaAnswered=true;
+  const q=triviaQuestions[triviaIndex];
+  const opts=document.querySelectorAll('.trivia-opt');
+  opts.forEach(o=>o.disabled=true);
+  opts[q.a].classList.add('correct');
+  const msg=document.getElementById('result-msg');
+  if(i===q.a){
+    triviaScore++; triviaStreak++;
+    msg.className='result-msg result-correct';
+    msg.textContent=triviaStreak>2?`🔥 ${triviaStreak} in a row! You're on fire!`:'✅ Correct! Great job!';
+  } else {
+    opts[i].classList.add('wrong');
+    triviaStreak=0;
+    msg.className='result-msg result-wrong';
+    msg.textContent=`❌ Not quite. The answer is: ${q.o[q.a]}`;
+  }
+  document.getElementById('next-btn').style.display='inline-block';
+  updateScoreBar();
+}
+function nextTrivia() { triviaIndex++; renderTrivia(); }
+
+// ═══════════════════════════════════════════
+// CROSSWORD
+// ═══════════════════════════════════════════
+const CW_THEMES = {
+  wellness: [
+    {word:'PEACE',clue:'A state of inner calm and tranquility'},
+    {word:'HEAL',clue:'To restore health and wholeness'},
+    {word:'CALM',clue:'Free from agitation or excitement'},
+    {word:'REST',clue:'Sleep and recovery time'},
+    {word:'HOPE',clue:'Feeling that good things will happen'},
+    {word:'GRACE',clue:'Divine love and kindness'},
+    {word:'JOY',clue:'Deep happiness and delight'},
+    {word:'LOVE',clue:'A profound affection and caring'},
+    {word:'SOUL',clue:'The spiritual part of a person'},
+    {word:'GLOW',clue:'A steady light or warm radiance'},
+    {word:'PURE',clue:'Clean and free of contamination'},
+    {word:'RISE',clue:'To move upward; to get up'},
+  ],
+  nature: [
+    {word:'BLOOM',clue:'Flowers that have opened fully'},
+    {word:'RIVER',clue:'A natural flowing body of water'},
+    {word:'LEAF',clue:'A flat green part of a plant'},
+    {word:'RAIN',clue:'Water drops falling from clouds'},
+    {word:'TREE',clue:'A tall woody plant with a trunk'},
+    {word:'DAWN',clue:'The first light of morning'},
+    {word:'NEST',clue:'A bird\'s cozy home'},
+    {word:'SEED',clue:'A plant embryo that can grow'},
+    {word:'DEW',clue:'Tiny morning water droplets on grass'},
+    {word:'WING',clue:'A bird or butterfly\'s flight organ'},
+    {word:'SOIL',clue:'The earth in which plants grow'},
+    {word:'MOON',clue:'Earth\'s natural satellite'},
+  ],
+  faith: [
+    {word:'PRAYER',clue:'Speaking with God'},
+    {word:'GRACE',clue:'Unmerited divine favor'},
+    {word:'FAITH',clue:'Complete trust and belief'},
+    {word:'HOPE',clue:'The anchor of the soul'},
+    {word:'LOVE',clue:'The greatest of all virtues'},
+    {word:'WORD',clue:'The Bible; God\'s written message'},
+    {word:'LIGHT',clue:'Jesus called himself the ___ of the world'},
+    {word:'SOUL',clue:'The immortal spiritual part of a person'},
+    {word:'JOY',clue:'The Lord\'s strength for believers'},
+    {word:'LAMB',clue:'Symbol of Jesus\' sacrifice'},
+    {word:'AMEN',clue:'Word meaning "so be it"'},
+    {word:'VINE',clue:'Jesus said "I am the ___"'},
+  ],
+  health: [
+    {word:'NURSE',clue:'A healthcare professional who cares for patients'},
+    {word:'HEART',clue:'The organ that pumps blood'},
+    {word:'SLEEP',clue:'Essential rest for body repair'},
+    {word:'MOVE',clue:'Exercise in a simple word'},
+    {word:'WATER',clue:'Essential for life; stay hydrated'},
+    {word:'LUNG',clue:'The breathing organ'},
+    {word:'BONE',clue:'Rigid connective tissue in the body'},
+    {word:'VEIN',clue:'Carries blood back to the heart'},
+    {word:'SKIN',clue:'The body\'s largest organ'},
+    {word:'CELL',clue:'The basic unit of life'},
+    {word:'GENE',clue:'Unit of hereditary information'},
+    {word:'IRON',clue:'Mineral that prevents anemia'},
+  ],
+};
+
+let cwData = null;
+
+function generateCrossword() {
+  const theme = document.getElementById('cw-theme').value;
+  const words = CW_THEMES[theme] || CW_THEMES.wellness;
+  cwData = buildCrossword(words);
+  renderCrossword();
+}
+
+function buildCrossword(wordDefs) {
+  const SIZE = 13;
+  let grid = Array.from({length:SIZE},()=>Array(SIZE).fill(null));
+  const placed = [];
+  const shuffled = [...wordDefs].sort(()=>Math.random()-0.5);
+
+  shuffled.forEach((def,idx)=>{
+    const word = def.word.toUpperCase();
+    if (idx===0) {
+      // Place first word horizontally in middle
+      const r=Math.floor(SIZE/2), c=Math.floor((SIZE-word.length)/2);
+      for(let i=0;i<word.length;i++) grid[r][c+i]={letter:word[i],black:false};
+      placed.push({...def,word,r,c,dir:'across',num:1});
+      return;
+    }
+    // Try to intersect with existing words
+    let best=null;
+    for(const p of placed) {
+      for(let wi=0;wi<word.length;wi++){
+        for(let pi=0;pi<p.word.length;pi++){
+          if(word[wi]===p.word[pi]){
+            let r,c;
+            if(p.dir==='across'){
+              // New word goes down
+              r=p.r-wi; c=p.c+pi;
+              if(r<0||r+word.length>SIZE) continue;
+              let fits=true;
+              for(let i=0;i<word.length;i++){
+                const cell=grid[r+i][c];
+                if(cell&&cell.letter!==word[i]){fits=false;break;}
+                if(i===0&&r>0&&grid[r-1][c]){fits=false;break;}
+                if(i===word.length-1&&r+i<SIZE-1&&grid[r+i+1][c]){fits=false;break;}
+                // Check sides
+                if(i!==wi){
+                  if(c>0&&grid[r+i][c-1]){fits=false;break;}
+                  if(c<SIZE-1&&grid[r+i][c+1]){fits=false;break;}
+                }
+              }
+              if(fits) best={r,c,dir:'down'};
+            } else {
+              // New word goes across
+              r=p.r+pi; c=p.c-wi;
+              if(c<0||c+word.length>SIZE) continue;
+              let fits=true;
+              for(let i=0;i<word.length;i++){
+                const cell=grid[r][c+i];
+                if(cell&&cell.letter!==word[i]){fits=false;break;}
+                if(i===0&&c>0&&grid[r][c-1]){fits=false;break;}
+                if(i===word.length-1&&c+i<SIZE-1&&grid[r][c+i+1]){fits=false;break;}
+                if(i!==wi){
+                  if(r>0&&grid[r-1][c+i]){fits=false;break;}
+                  if(r<SIZE-1&&grid[r+1][c+i]){fits=false;break;}
+                }
+              }
+              if(fits) best={r,c,dir:'across'};
+            }
+          }
+        }
+      }
+      if(best) break;
+    }
+    if(best){
+      for(let i=0;i<word.length;i++){
+        const r2=best.dir==='across'?best.r:best.r+i;
+        const c2=best.dir==='across'?best.c+i:best.c;
+        grid[r2][c2]={letter:word[i],black:false};
+      }
+      placed.push({...def,word,r:best.r,c:best.c,dir:best.dir,num:placed.length+1});
+    }
+  });
+
+  return {grid,placed,SIZE};
+}
+
+function renderCrossword() {
+  if(!cwData) return;
+  const {grid,placed,SIZE}=cwData;
+  const container=document.getElementById('cw-grid-container');
+
+  // Number cells
+  const numbered={};
+  placed.forEach(p=>{ numbered[`${p.r},${p.c}`]=p.num; });
+
+  const gridEl=document.createElement('div');
+  gridEl.className='cw-grid';
+  gridEl.style.gridTemplateColumns=`repeat(${SIZE},34px)`;
+
+  for(let r=0;r<SIZE;r++){
+    for(let c=0;c<SIZE;c++){
+      const cell=document.createElement(grid[r][c]?'input':'div');
+      if(!grid[r][c]){
+        cell.className='cw-cell black';
+      } else {
+        cell.className='cw-cell';
+        cell.maxLength=1;
+        cell.dataset.r=r; cell.dataset.c=c;
+        cell.dataset.ans=grid[r][c].letter;
+        cell.addEventListener('input',e=>{
+          e.target.value=e.target.value.toUpperCase().slice(-1);
+          if(e.target.value) moveCwFocus(r,c);
+        });
+        cell.addEventListener('keydown',cwKeyNav);
+        cell.addEventListener('focus',()=>cell.classList.add('active'));
+        cell.addEventListener('blur',()=>cell.classList.remove('active'));
+        const num=numbered[`${r},${c}`];
+        if(num){
+          const numEl=document.createElement('span');
+          numEl.className='cw-num'; numEl.textContent=num;
+          cell.style.position='relative';
+          setTimeout(()=>{ if(cell.parentNode) cell.insertAdjacentElement('afterbegin',numEl); },0);
+        }
+      }
+      gridEl.appendChild(cell);
+    }
+  }
+
+  container.innerHTML='';
+  container.appendChild(gridEl);
+
+  // Clues
+  const across=placed.filter(p=>p.dir==='across').sort((a,b)=>a.num-b.num);
+  const down=placed.filter(p=>p.dir==='down').sort((a,b)=>a.num-b.num);
+  document.getElementById('cw-clues').innerHTML=`
+    <div>
+      <div class="cw-clue-section"><h3>Across</h3>${across.map(p=>`<div class="cw-clue-item" onclick="focusCwWord(${p.r},${p.c})"><span>${p.num}.</span>${p.clue}</div>`).join('')}</div>
+    </div>
+    <div>
+      <div class="cw-clue-section"><h3>Down</h3>${down.map(p=>`<div class="cw-clue-item" onclick="focusCwWord(${p.r},${p.c})"><span>${p.num}.</span>${p.clue}</div>`).join('')}</div>
+    </div>`;
+}
+
+function focusCwWord(r,c) {
+  const el=document.querySelector(`.cw-cell[data-r="${r}"][data-c="${c}"]`);
+  if(el) el.focus();
+}
+function moveCwFocus(r,c) {
+  // Move to next empty in same word — simplified: just move right or down
+  const right=document.querySelector(`.cw-cell[data-r="${r}"][data-c="${c+1}"]`);
+  const down=document.querySelector(`.cw-cell[data-r="${r+1}"][data-c="${c}"]`);
+  if(right) right.focus();
+  else if(down) down.focus();
+}
+function cwKeyNav(e) {
+  const r=+this.dataset.r, c=+this.dataset.c;
+  const moves={ArrowRight:[r,c+1],ArrowLeft:[r,c-1],ArrowDown:[r+1,c],ArrowUp:[r-1,c]};
+  if(moves[e.key]){
+    e.preventDefault();
+    const [nr,nc]=moves[e.key];
+    const el=document.querySelector(`.cw-cell[data-r="${nr}"][data-c="${nc}"]`);
+    if(el&&!el.classList.contains('black')) el.focus();
+  }
+}
+function checkCrossword() {
+  document.querySelectorAll('.cw-cell:not(.black)').forEach(cell=>{
+    cell.classList.remove('correct');
+    if(cell.value&&cell.value.toUpperCase()===cell.dataset.ans) cell.classList.add('correct');
+  });
+}
+function revealCrossword() {
+  document.querySelectorAll('.cw-cell:not(.black)').forEach(cell=>{
+    cell.value=cell.dataset.ans;
+    cell.classList.add('correct');
+  });
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+window.addEventListener('load',()=>{
+  // Load default word search
+  document.getElementById('ws-theme').value='animals';
+  loadTheme();
+  generateWordSearch();
+  // Init coloring
+  initCanvas();
+  drawScene();
+  // Start trivia silently
+  // Crossword will init when tab opened
+});
+</script>
+
+</body>
+</html>
