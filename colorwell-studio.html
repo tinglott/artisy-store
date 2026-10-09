@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ColorWell Studio — Coloring Book Maker | T. Lott Creative</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --purple: #7c3aed;
+            --purple-light: #a78bfa;
+            --gold: #f59e0b;
+            --teal: #0d9488;
+            --bg: #0f0e17;
+            --card: #1a1828;
+            --card2: #221f35;
+            --text: #f0eeff;
+            --muted: #9992b8;
+            --border: #2d2a45;
+            --green: #059669;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+        /* NAV */
+        .site-nav {
+            background: #0a0914;
+            border-bottom: 1px solid var(--border);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .site-nav .brand { font-size: 1rem; font-weight: 900; letter-spacing: 2px; color: var(--gold); text-decoration: none; }
+        .site-nav .nav-links { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+        .site-nav .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.82rem; transition: color 0.2s; }
+        .site-nav .nav-links a:hover { color: var(--gold); }
+        .site-nav .nav-links .btn-buy { background: #9f1239; color: #fff; padding: 6px 14px; border-radius: 50px; font-weight: 700; font-size: 0.8rem; }
+
+        /* HERO */
+        .hero {
+            background: linear-gradient(135deg, #2d1b69 0%, #0f0e17 70%);
+            padding: 40px 20px 30px;
+            text-align: center;
+        }
+        .hero-badge { display: inline-block; background: var(--gold); color: #0f0e17; font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; padding: 5px 14px; border-radius: 20px; margin-bottom: 14px; text-transform: uppercase; }
+        .hero h1 { font-size: clamp(1.6rem, 4vw, 2.6rem); font-weight: 900; margin-bottom: 10px; }
+        .hero h1 span { color: var(--purple-light); }
+        .hero p { font-size: 0.95rem; color: var(--muted); max-width: 560px; margin: 0 auto 0; line-height: 1.6; }
+
+        /* TABS */
+        .tabs-wrap { max-width: 900px; margin: 30px auto 0; padding: 0 16px; }
+        .tabs { display: flex; border-bottom: 2px solid var(--border); gap: 4px; }
+        .tab-btn {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+        }
+        .tab-btn.active { color: var(--purple-light); border-bottom-color: var(--purple); }
+        .tab-btn:hover:not(.active) { color: var(--text); }
+        .tab-content { display: none; padding: 30px 0; }
+        .tab-content.active { display: block; }
+
+        /* UPLOAD ZONE */
+        .upload-zone {
+            border: 3px dashed var(--purple);
+            border-radius: 20px;
+            padding: 60px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: rgba(124,58,237,0.05);
+        }
+        .upload-zone:hover, .upload-zone.drag-over {
+            border-color: var(--purple-light);
+            background: rgba(124,58,237,0.12);
+        }
+        .upload-zone .icon { font-size: 3.5rem; margin-bottom: 16px; }
+        .upload-zone h3 { font-size: 1.3rem; font-weight: 800; margin-bottom: 8px; }
+        .upload-zone p { color: var(--muted); font-size: 0.9rem; }
+        #fileInput { display: none; }
+
+        /* PAGES GRID */
+        .pages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 16px;
+            margin-top: 24px;
+        }
+        .page-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            cursor: grab;
+        }
+        .page-card:active { cursor: grabbing; }
+        .page-card img { width: 100%; aspect-ratio: 3/4; object-fit: contain; background: #fff; display: block; }
+        .page-card .card-footer {
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .page-card .page-num { font-size: 0.75rem; color: var(--muted); }
+        .page-card .btn-remove {
+            background: none;
+            border: none;
+            color: #f87171;
+            cursor: pointer;
+            font-size: 0.85rem;
+            padding: 2px 6px;
+            border-radius: 6px;
+        }
+        .page-card .btn-remove:hover { background: rgba(248,113,113,0.15); }
+        .page-card .drag-handle {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            font-size: 0.7rem;
+            padding: 3px 6px;
+            border-radius: 6px;
+        }
+
+        /* ACTIONS BAR */
+        .actions-bar {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 24px;
+            padding: 20px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+        }
+        .actions-bar .page-count { color: var(--muted); font-size: 0.9rem; flex: 1; }
+
+        /* BUTTONS */
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 12px; font-weight: 700; font-size: 0.9rem; cursor: pointer; border: none; transition: all 0.2s; text-decoration: none; }
+        .btn-primary { background: linear-gradient(135deg, var(--purple), #5b21b6); color: #fff; }
+        .btn-primary:hover { opacity: 0.88; }
+        .btn-gold { background: var(--gold); color: #0f0e17; }
+        .btn-gold:hover { opacity: 0.88; }
+        .btn-outline { background: transparent; border: 2px solid var(--border); color: var(--purple-light); }
+        .btn-outline:hover { border-color: var(--purple-light); }
+        .btn-green { background: var(--green); color: #fff; }
+        .btn-green:hover { opacity: 0.88; }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* PDF OPTIONS */
+        .pdf-options {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-top: 24px;
+        }
+        .pdf-options h3 { font-size: 1rem; font-weight: 800; margin-bottom: 16px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+        @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group label { font-size: 0.8rem; color: var(--muted); font-weight: 600; }
+        .form-group input, .form-group select {
+            background: var(--card2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+        }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--purple); }
+
+        /* COLORING BOOKS STORE */
+        .store-section { max-width: 900px; margin: 0 auto; }
+        .store-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+        .store-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+        .store-card:hover { transform: translateY(-3px); }
+        .store-card img { width: 100%; height: 200px; object-fit: cover; }
+        .store-card-body { padding: 16px; }
+        .store-card-title { font-weight: 800; font-size: 1rem; margin-bottom: 6px; }
+        .store-card-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.5; margin-bottom: 12px; }
+        .store-card-footer { display: flex; align-items: center; justify-content: space-between; }
+        .store-price { font-size: 1.4rem; font-weight: 900; color: var(--gold); }
+        .btn-shop { background: linear-gradient(135deg, var(--purple), #5b21b6); color: #fff; padding: 8px 18px; border-radius: 10px; font-weight: 700; font-size: 0.85rem; text-decoration: none; }
+        .btn-shop:hover { opacity: 0.88; }
+
+        /* AI CREATE TAB */
+        .ai-section { max-width: 700px; margin: 0 auto; }
+        .token-box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 24px; }
+        .token-box h4 { font-size: 0.85rem; font-weight: 700; color: var(--gold); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+        .token-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+        @media (max-width: 500px) { .token-row { grid-template-columns: 1fr; } }
+        .theme-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+        @media (max-width: 600px) { .theme-grid { grid-template-columns: repeat(2, 1fr); } }
+        .theme-btn {
+            aspect-ratio: 1;
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            background: var(--card);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            color: var(--text);
+        }
+        .theme-btn:hover, .theme-btn.active { border-color: var(--purple-light); background: var(--card2); }
+        .theme-btn .emoji { font-size: 2rem; }
+        .prompt-row { display: flex; gap: 10px; margin-bottom: 16px; }
+        .prompt-row input { flex: 1; background: var(--card2); border: 1px solid var(--border); color: var(--text); padding: 12px 16px; border-radius: 12px; font-size: 0.95rem; }
+        .prompt-row input:focus { outline: none; border-color: var(--purple); }
+        .status-msg { font-size: 0.85rem; color: var(--muted); margin-top: 8px; min-height: 20px; }
+
+        /* TOAST */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--green);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            z-index: 9999;
+            display: none;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+        }
+        .toast.show { display: block; animation: fadeInUp 0.3s ease; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+        /* EMPTY STATE */
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+        .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
+        .empty-state h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; color: var(--text); }
+
+        /* SECTION TITLE */
+        .section-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 20px; }
+        .section-title span { color: var(--gold); }
+
+        .max-container { max-width: 900px; margin: 0 auto; padding: 0 16px; }
+
+        footer { background: #080812; border-top: 1px solid var(--border); padding: 24px 20px; text-align: center; font-size: 0.82rem; color: var(--muted); }
+        footer a { color: var(--gold); text-decoration: none; }
+    </style>
+</head>
+<body>
+
+<nav class="site-nav">
+    <a href="/store.html" class="brand">ARTISY</a>
+    <div class="nav-links">
+        <a href="/">🏠 Home</a>
+        <a href="/store.html">🛍️ Store</a>
+        <a href="/book-nook/">📚 Book Nook</a>
+        <a href="/music_hub.html">🎵 Music Hub</a>
+        <a href="/comedy-nexus/">😂 Comedy</a>
+        <a href="/art-gallery/">🎨 Art Gallery</a>
+        <a href="/audiobook-previews.html">🎧 Listen Free</a>
+        <a href="https://tlott12.gumroad.com" target="_blank" class="btn-buy">Buy Now</a>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="hero-badge">🎨 Free Coloring Book Maker</div>
+    <h1>ColorWell Studio<br><span>Upload. Arrange. Print.</span></h1>
+    <p>Upload your PNG coloring pages, arrange them in any order, and export a beautiful print-ready PDF. Free to print at home — or sell as a digital product.</p>
+</section>
+
+<div class="tabs-wrap max-container">
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('upload')">📤 Upload PNGs → PDF</button>
+        <button class="tab-btn" onclick="switchTab('shop')">🛒 Buy Coloring Books</button>
+        <button class="tab-btn" onclick="switchTab('ai')">✨ AI Generate Pages</button>
+    </div>
+</div>
+
+<!-- ==================== UPLOAD TAB ==================== -->
+<div id="tab-upload" class="tab-content active max-container">
+
+    <!-- Drop zone -->
+    <div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <div class="icon">📂</div>
+        <h3>Drop your PNG coloring pages here</h3>
+        <p>Or click to browse files — JPG, PNG, WEBP accepted</p>
+        <p style="margin-top:10px;font-size:0.8rem;color:#6b6590;">Drag to reorder • Any number of pages • Prints as PDF</p>
+    </div>
+    <input type="file" id="fileInput" accept="image/*" multiple>
+
+    <!-- Actions bar (hidden until pages added) -->
+    <div class="actions-bar" id="actionsBar" style="display:none;">
+        <span class="page-count" id="pageCountMsg">0 pages loaded</span>
+        <button class="btn btn-outline" onclick="document.getElementById('fileInput').click()">
+            <i class="fas fa-plus"></i> Add More
+        </button>
+        <button class="btn btn-outline" onclick="clearPages()" style="color:#f87171;border-color:#f87171;">
+            <i class="fas fa-trash"></i> Clear All
+        </button>
+        <button class="btn btn-gold" onclick="scrollToPdfOptions()">
+            <i class="fas fa-file-pdf"></i> Export PDF ↓
+        </button>
+    </div>
+
+    <!-- Pages grid -->
+    <div class="pages-grid" id="pagesGrid"></div>
+
+    <!-- PDF Options -->
+    <div class="pdf-options" id="pdfOptions" style="display:none;">
+        <h3>📄 PDF Export Options</h3>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Book Title</label>
+                <input type="text" id="bookTitle" value="My Therapy Coloring Book" placeholder="e.g. Sacred Healing Collection">
+            </div>
+            <div class="form-group">
+                <label>Author / Brand</label>
+                <input type="text" id="bookAuthor" value="T. Lott Creative" placeholder="Your name or brand">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Page Size</label>
+                <select id="pageSize">
+                    <option value="a4">A4 (210×297mm) — Standard</option>
+                    <option value="letter">US Letter (8.5×11in)</option>
+                    <option value="a5">A5 (Half page)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Include Cover Page</label>
+                <select id="includeCover">
+                    <option value="yes">Yes — add title cover</option>
+                    <option value="no">No — pages only</option>
+                </select>
+            </div>
+        </div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;">
+            <button class="btn btn-primary" onclick="exportPDF()" id="exportBtn">
+                <i class="fas fa-file-pdf"></i> Download PDF
+            </button>
+            <button class="btn btn-green" onclick="printBook()">
+                <i class="fas fa-print"></i> Print Now
+            </button>
+        </div>
+        <p style="margin-top:12px;font-size:0.8rem;color:var(--muted);">✅ Your PDF is print-ready. You can sell it on Gumroad as a digital download or print at home for free.</p>
+    </div>
+
+    <!-- Sell tip -->
+    <div style="margin-top:30px;background:linear-gradient(135deg,#1e1035,#2d1b69);border:1px solid rgba(124,58,237,0.3);border-radius:16px;padding:24px;text-align:center;">
+        <h3 style="font-size:1rem;font-weight:800;margin-bottom:8px;">💰 Want to sell your coloring book?</h3>
+        <p style="font-size:0.85rem;color:var(--muted);margin-bottom:14px;">Export your PDF → Upload the ZIP to Gumroad → Done. Your buyers download and print at home.</p>
+        <a href="https://tlott12.gumroad.com" target="_blank" class="btn btn-gold" style="display:inline-flex;">
+            <i class="fas fa-store"></i> See our coloring books on Gumroad
+        </a>
+    </div>
+</div>
+
+<!-- ==================== SHOP TAB ==================== -->
+<div id="tab-shop" class="tab-content max-container">
+    <h2 class="section-title">🎨 Therapy Coloring Book <span>Collection</span></h2>
+    <p style="color:var(--muted);margin-bottom:24px;font-size:0.9rem;">Premium adult coloring books — print at home. Real scenes, full-page art. Instant digital download.</p>
+    <div class="store-grid">
+        <div class="store-card">
+            <img src="https://huggingface.co/datasets/ziggylott/coloring-book-previews/resolve/main/wellness/page_1.jpg" alt="Wellness Coloring Book" loading="lazy">
+            <div class="store-card-body">
+                <div class="store-card-title">💚 Wellness & Self-Care</div>
+                <div class="store-card-desc">20 full-page yoga, nature, and spa scenes. Restore your spirit through color.</div>
+                <div class="store-card-footer">
+                    <span class="store-price">$12.99</span>
+                    <a href="https://tlott12.gumroad.com/l/ntcnmw" target="_blank" class="btn-shop">Get it →</a>
+                </div>
+            </div>
+        </div>
+        <div class="store-card">
+            <img src="https://huggingface.co/datasets/ziggylott/coloring-book-previews/resolve/main/mindfulness/page_1.jpg" alt="Mindfulness Coloring Book" loading="lazy">
+            <div class="store-card-body">
+                <div class="store-card-title">🧘 Mindfulness</div>
+                <div class="store-card-desc">20 immersive meditation gardens, morning routines, peaceful reading nooks.</div>
+                <div class="store-card-footer">
+                    <span class="store-price">$12.99</span>
+                    <a href="https://tlott12.gumroad.com/l/nnicsn" target="_blank" class="btn-shop">Get it →</a>
+                </div>
+            </div>
+        </div>
+        <div class="store-card">
+            <img src="https://huggingface.co/datasets/ziggylott/coloring-book-previews/resolve/main/nature/page_1.jpg" alt="Nature Coloring Book" loading="lazy">
+            <div class="store-card-body">
+                <div class="store-card-title">🌿 Nature Collection</div>
+                <div class="store-card-desc">20 forest paths, waterfall retreats, and garden sanctuaries. Step into calm.</div>
+                <div class="store-card-footer">
+                    <span class="store-price">$12.99</span>
+                    <a href="https://tlott12.gumroad.com/l/smuad" target="_blank" class="btn-shop">Get it →</a>
+                </div>
+            </div>
+        </div>
+        <div class="store-card">
+            <img src="https://huggingface.co/datasets/ziggylott/coloring-book-previews/resolve/main/sacred/page_1.jpg" alt="Sacred Coloring Book" loading="lazy">
+            <div class="store-card-body">
+                <div class="store-card-title">🕊️ Sacred Moments</div>
+                <div class="store-card-desc">20 spiritually inspired scenes — worship, grace, and reverence for the soul.</div>
+                <div class="store-card-footer">
+                    <span class="store-price">$12.99</span>
+                    <a href="https://tlott12.gumroad.com/l/txdxce" target="_blank" class="btn-shop">Get it →</a>
+                </div>
+            </div>
+        </div>
+        <div class="store-card">
+            <img src="https://huggingface.co/datasets/ziggylott/coloring-book-previews/resolve/main/sleep/page_1.jpg" alt="Sleep Coloring Book" loading="lazy">
+            <div class="store-card-body">
+                <div class="store-card-title">🌙 Sleep Stories</div>
+                <div class="store-card-desc">20 soothing bedtime scenes — moonlit gardens, dreamy clouds, cozy corners.</div>
+                <div class="store-card-footer">
+                    <span class="store-price">$12.99</span>
+                    <a href="https://tlott12.gumroad.com/l/mycsjf" target="_blank" class="btn-shop">Get it →</a>
+                </div>
+            </div>
+        </div>
+        <div class="store-card" style="background:linear-gradient(135deg,#1e1035,#2d1b69);border-color:rgba(124,58,237,0.4);">
+            <div style="padding:30px 20px;text-align:center;">
+                <div style="font-size:2.5rem;margin-bottom:12px;">🌸</div>
+                <div class="store-card-title">Sacred Cycles Renewal</div>
+                <div class="store-card-desc">Wellness journey for women — journals, affirmations, healing practices.</div>
+                <div style="margin-top:16px;">
+                    <span class="store-price">$37</span><br>
+                    <a href="https://tlott12.gumroad.com/l/oqlhbt" target="_blank" class="btn-shop" style="display:inline-block;margin-top:10px;">Explore →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="text-align:center;margin-top:32px;">
+        <a href="/coloring-books.html" class="btn btn-outline" style="display:inline-flex;">
+            <i class="fas fa-eye"></i> View Full Coloring Book Store
+        </a>
+    </div>
+</div>
+
+<!-- ==================== AI CREATE TAB ==================== -->
+<div id="tab-ai" class="tab-content max-container">
+    <div class="ai-section">
+        <h2 class="section-title">✨ AI <span>Generate</span> Coloring Pages</h2>
+        <p style="color:var(--muted);margin-bottom:24px;font-size:0.9rem;">Generate original coloring pages with AI — no art skills needed. Enter your API keys once, then create as many pages as you want.</p>
+
+        <div class="token-box">
+            <h4>🔑 API Keys (one-time setup)</h4>
+            <div class="token-row">
+                <div class="form-group">
+                    <label>HuggingFace Token (hf_...)</label>
+                    <input type="password" id="hfToken" placeholder="hf_xxxxxxxxxxxx">
+                </div>
+                <div class="form-group">
+                    <label>Groq API Key (gsk_...)</label>
+                    <input type="password" id="groqToken" placeholder="gsk_xxxxxxxxxxxx">
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="saveTokens()" style="width:100%;">
+                <i class="fas fa-save"></i> Save Keys & Start Creating
+            </button>
+            <p id="tokenStatus" style="margin-top:10px;font-size:0.8rem;color:var(--muted);"></p>
+        </div>
+
+        <h3 style="font-size:0.9rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Choose a Theme</h3>
+        <div class="theme-grid">
+            <button class="theme-btn" onclick="setTheme(this,'serene wellness and self-care')"><span class="emoji">🌿</span>Wellness</button>
+            <button class="theme-btn" onclick="setTheme(this,'sacred spiritual geometry')"><span class="emoji">🌙</span>Sacred</button>
+            <button class="theme-btn" onclick="setTheme(this,'healing nature outdoors')"><span class="emoji">🌸</span>Nature</button>
+            <button class="theme-btn" onclick="setTheme(this,'peaceful sleep and dreams')"><span class="emoji">😴</span>Sleep</button>
+        </div>
+
+        <div class="prompt-row">
+            <input type="text" id="aiPrompt" placeholder="e.g. woman meditating by a garden waterfall..." id="aiPrompt">
+            <button class="btn btn-primary" onclick="generateAIPage()" id="genBtn">
+                <i class="fas fa-wand-magic-sparkles"></i> Generate
+            </button>
+        </div>
+        <p class="status-msg" id="aiStatus"></p>
+
+        <div style="margin-top:20px;padding:16px;background:var(--card);border-radius:12px;border:1px solid var(--border);">
+            <p style="font-size:0.82rem;color:var(--muted);">💡 <strong>Tip:</strong> Once you generate pages here, switch to the <strong>Upload PNGs → PDF</strong> tab to combine them into a coloring book PDF. AI images are automatically added to your collection.</p>
+        </div>
+    </div>
+</div>
+
+<div style="height:40px;"></div>
+<div class="toast" id="toast"></div>
+
+<footer>
+    <div style="margin-bottom:8px;">🎨 <strong>T. Lott Creative</strong> — <a href="/store.html">Store</a> · <a href="/book-nook/">Book Nook</a> · <a href="/coloring-books.html">Coloring Books</a> · <a href="https://tlott12.gumroad.com" target="_blank">Gumroad</a></div>
+    <div>© T. Lott Creative · ColorWell Studio — Free to use</div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+// ====== STATE ======
+let pages = [];   // { dataUrl, name, file }
+let hfToken = '';
+let groqToken = '';
+let activeTheme = '';
+let dragSrcIdx = null;
+
+// ====== TABS ======
+function switchTab(name) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    event.currentTarget.classList.add('active');
+}
+
+// ====== UPLOAD ======
+const fileInput = document.getElementById('fileInput');
+const dropZone = document.getElementById('dropZone');
+
+fileInput.addEventListener('change', e => addFiles(Array.from(e.target.files)));
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    addFiles(Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/')));
+});
+
+function addFiles(files) {
+    files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = e => {
+            pages.push({ dataUrl: e.target.result, name: file.name });
+            renderPages();
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+function renderPages() {
+    const grid = document.getElementById('pagesGrid');
+    const actionsBar = document.getElementById('actionsBar');
+    const pdfOptions = document.getElementById('pdfOptions');
+    const countMsg = document.getElementById('pageCountMsg');
+
+    if (pages.length === 0) {
+        grid.innerHTML = '';
+        actionsBar.style.display = 'none';
+        pdfOptions.style.display = 'none';
+        return;
+    }
+
+    actionsBar.style.display = 'flex';
+    pdfOptions.style.display = 'block';
+    countMsg.textContent = pages.length + ' page' + (pages.length > 1 ? 's' : '') + ' loaded';
+
+    grid.innerHTML = pages.map((p, i) => `
+        <div class="page-card" draggable="true" data-idx="${i}"
+             ondragstart="dragStart(${i})" ondragover="dragOver(event,${i})" ondrop="dragDrop(${i})" ondragend="dragEnd()">
+            <span class="drag-handle">⠿ drag</span>
+            <img src="${p.dataUrl}" alt="Page ${i+1}" loading="lazy">
+            <div class="card-footer">
+                <span class="page-num">Page ${i+1}</span>
+                <button class="btn-remove" onclick="removePage(${i})"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function removePage(idx) {
+    pages.splice(idx, 1);
+    renderPages();
+}
+
+function clearPages() {
+    if (pages.length && confirm('Clear all pages?')) { pages = []; renderPages(); }
+}
+
+// ====== DRAG REORDER ======
+function dragStart(idx) { dragSrcIdx = idx; }
+function dragOver(e, idx) { e.preventDefault(); }
+function dragDrop(idx) {
+    if (dragSrcIdx === null || dragSrcIdx === idx) return;
+    const moved = pages.splice(dragSrcIdx, 1)[0];
+    pages.splice(idx, 0, moved);
+    renderPages();
+}
+function dragEnd() { dragSrcIdx = null; }
+
+function scrollToPdfOptions() {
+    document.getElementById('pdfOptions').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ====== PDF EXPORT ======
+async function exportPDF() {
+    if (pages.length === 0) { showToast('❌ No pages to export'); return; }
+    const btn = document.getElementById('exportBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Building PDF...';
+
+    try {
+        const { jsPDF } = window.jspdf;
+        const sizeKey = document.getElementById('pageSize').value;
+        const sizes = { a4: 'a4', letter: 'letter', a5: [148, 210] };
+        const format = sizes[sizeKey];
+
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format });
+        const pw = pdf.internal.pageSize.getWidth();
+        const ph = pdf.internal.pageSize.getHeight();
+
+        // Cover page
+        if (document.getElementById('includeCover').value === 'yes') {
+            const title = document.getElementById('bookTitle').value || 'My Coloring Book';
+            const author = document.getElementById('bookAuthor').value || 'T. Lott Creative';
+            pdf.setFillColor(15, 14, 23);
+            pdf.rect(0, 0, pw, ph, 'F');
+            pdf.setTextColor(245, 158, 11);
+            pdf.setFontSize(26);
+            pdf.text(title, pw/2, ph/2 - 16, { align: 'center' });
+            pdf.setTextColor(153, 146, 184);
+            pdf.setFontSize(13);
+            pdf.text(author, pw/2, ph/2 + 6, { align: 'center' });
+            pdf.setFontSize(10);
+            pdf.text(pages.length + ' coloring pages · Print at home', pw/2, ph/2 + 20, { align: 'center' });
+        }
+
+        // Pages
+        for (let i = 0; i < pages.length; i++) {
+            pdf.addPage();
+            const img = new Image();
+            img.src = pages[i].dataUrl;
+            await new Promise(res => { img.onload = res; img.onerror = res; });
+            const imgW = img.naturalWidth || 800;
+            const imgH = img.naturalHeight || 1066;
+            const ratio = Math.min((pw - 10) / imgW, (ph - 10) / imgH);
+            const dw = imgW * ratio;
+            const dh = imgH * ratio;
+            const x = (pw - dw) / 2;
+            const y = (ph - dh) / 2;
+            const fmt = pages[i].dataUrl.startsWith('data:image/png') ? 'PNG' : 'JPEG';
+            pdf.addImage(pages[i].dataUrl, fmt, x, y, dw, dh);
+        }
+
+        const fname = (document.getElementById('bookTitle').value || 'coloring_book').replace(/[^a-z0-9]/gi,'_') + '.pdf';
+        pdf.save(fname);
+        showToast('✅ PDF downloaded — ' + pages.length + ' pages');
+    } catch (err) {
+        console.error(err);
+        showToast('❌ Export failed: ' + err.message);
+    }
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-file-pdf"></i> Download PDF';
+}
+
+function printBook() {
+    if (pages.length === 0) { showToast('❌ No pages to print'); return; }
+    const win = window.open('');
+    const imgs = pages.map(p => `<img src="${p.dataUrl}" style="width:100%;page-break-after:always;display:block;">`).join('');
+    win.document.write(`<html><head><title>Print Coloring Book</title>
+    <style>body{margin:0;}img{max-width:100%;}</style></head>
+    <body>${imgs}<script>window.onload=()=>{window.print();setTimeout(()=>window.close(),1000);}<\/script></body></html>`);
+}
+
+// ====== AI ======
+function setTheme(btn, theme) {
+    document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeTheme = theme;
+    const inp = document.getElementById('aiPrompt');
+    if (!inp.value) inp.placeholder = 'e.g. ' + theme + ' scene...';
+}
+
+function saveTokens() {
+    const hf = document.getElementById('hfToken').value.trim();
+    const groq = document.getElementById('groqToken').value.trim();
+    if (!hf.startsWith('hf_')) { showToast('❌ HF token must start with hf_'); return; }
+    if (!groq.startsWith('gsk_')) { showToast('❌ Groq key must start with gsk_'); return; }
+    hfToken = hf;
+    groqToken = groq;
+    document.getElementById('tokenStatus').textContent = '✅ Keys saved! You can now generate coloring pages.';
+    document.getElementById('tokenStatus').style.color = '#34d399';
+    showToast('✅ API keys saved');
+}
+
+async function generateAIPage() {
+    if (!hfToken) { showToast('❌ Save your API keys first'); return; }
+    const promptTxt = document.getElementById('aiPrompt').value.trim() || activeTheme || 'healing garden meditation scene';
+    const status = document.getElementById('aiStatus');
+    const btn = document.getElementById('genBtn');
+    btn.disabled = true;
+    status.textContent = '🤖 Enhancing prompt with Groq...';
+
+    let finalPrompt = promptTxt;
+    if (groqToken) {
+        try {
+            const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                method:'POST',
+                headers:{'Authorization':'Bearer '+groqToken,'Content-Type':'application/json'},
+                body: JSON.stringify({
+                    model:'llama-3.3-70b-versatile',
+                    messages:[
+                        {role:'system',content:'You are a coloring book prompt expert. Convert user themes into one detailed prompt for FLUX.1 image generation. Return ONLY the prompt text — no explanation. Always include: "therapeutic adult coloring page, black and white line art, thick outlines, white background, no shading, printable"'},
+                        {role:'user',content:'Theme: '+promptTxt}
+                    ],
+                    max_tokens:150
+                })
+            });
+            if (r.ok) { const d = await r.json(); finalPrompt = d.choices[0].message.content.trim(); }
+        } catch(e) { console.warn('Groq skip'); }
+    }
+
+    status.textContent = '🎨 Generating image with FLUX.1...';
+    try {
+        const r = await fetch('https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell', {
+            method:'POST',
+            headers:{'Authorization':'Bearer '+hfToken,'Content-Type':'application/json'},
+            body: JSON.stringify({
+                inputs: finalPrompt + ', therapeutic adult coloring page, black and white line art, thick outlines, white background, no shading, printable',
+                parameters:{ width:768, height:1024, num_inference_steps:4 }
+            })
+        });
+        if (!r.ok) throw new Error('API error ' + r.status);
+        const blob = await r.blob();
+        const reader = new FileReader();
+        reader.onload = e => {
+            pages.push({ dataUrl: e.target.result, name: promptTxt });
+            renderPages();
+            showToast('✅ Page added to your collection!');
+            status.textContent = '✅ Done! Switch to "Upload PNGs → PDF" tab to export.';
+        };
+        reader.readAsDataURL(blob);
+    } catch(err) {
+        status.textContent = '❌ Error: ' + err.message;
+        showToast('❌ Generation failed');
+    }
+    btn.disabled = false;
+}
+
+// ====== TOAST ======
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+// Reset file input so same files can be re-selected
+fileInput.addEventListener('click', () => { fileInput.value = ''; });
+</script>
+</body>
+</html>

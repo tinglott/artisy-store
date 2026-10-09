@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Divine Counsel — Faith-Based Reflection | T. Lott</title>
+  <meta name="description" content="An AI faith-reflection tool for optional scripture and prayer. Not therapy, counseling, medical care, or crisis support." />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Lato:wght@300;400;700&display=swap');
+
+    :root {
+      --gold: #C9A84C;
+      --gold-light: #E8D5A3;
+      --deep-purple: #1A0A2E;
+      --purple: #2D1B5E;
+      --purple-mid: #4A2C8A;
+      --cream: #FAF7F0;
+      --warm-white: #FDF9F3;
+      --text-dark: #1A1A2E;
+      --text-mid: #4A4A6A;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Lato', sans-serif;
+      background: linear-gradient(135deg, #0D0520 0%, #1A0A2E 40%, #2D1B5E 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── Cross / light rays header ── */
+    .header {
+      width: 100%;
+      max-width: 680px;
+      padding: 28px 20px 0;
+      text-align: center;
+    }
+
+    .cross-icon {
+      font-size: 2.8rem;
+      filter: drop-shadow(0 0 18px rgba(201,168,76,0.7));
+      animation: glow 3s ease-in-out infinite alternate;
+    }
+    @keyframes glow {
+      from { filter: drop-shadow(0 0 10px rgba(201,168,76,0.5)); }
+      to   { filter: drop-shadow(0 0 28px rgba(201,168,76,1)); }
+    }
+
+    .header h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem;
+      color: var(--gold);
+      letter-spacing: 1px;
+      margin: 8px 0 4px;
+    }
+    .header p.sub {
+      color: var(--gold-light);
+      font-size: 0.85rem;
+      font-weight: 300;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── Scripture of the day strip ── */
+    .scripture-banner {
+      width: 100%;
+      max-width: 680px;
+      margin: 16px 20px 0;
+      background: rgba(201,168,76,0.12);
+      border: 1px solid rgba(201,168,76,0.3);
+      border-radius: 12px;
+      padding: 12px 18px;
+      color: var(--gold-light);
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      text-align: center;
+    }
+    .scripture-banner strong { font-style: normal; color: var(--gold); font-size: 0.8rem; display: block; margin-top: 4px; }
+
+    /* ── Mood buttons ── */
+    .mood-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      padding: 14px 20px 0;
+      max-width: 680px;
+      width: 100%;
+    }
+    .mood-btn {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(201,168,76,0.35);
+      color: var(--gold-light);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .mood-btn:hover { background: rgba(201,168,76,0.2); border-color: var(--gold); color: #fff; }
+
+    /* ── Chat container ── */
+    .chat-wrap {
+      width: 100%;
+      max-width: 680px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 16px 16px 0;
+    }
+
+    .chat-box {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 320px;
+      max-height: 420px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(201,168,76,0.3) transparent;
+    }
+
+    /* ── Messages ── */
+    .msg { display: flex; align-items: flex-start; gap: 10px; }
+    .msg.user { flex-direction: row-reverse; }
+
+    .avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+      border: 2px solid rgba(201,168,76,0.4);
+    }
+    .avatar.divine { background: linear-gradient(135deg, #2D1B5E, #4A2C8A); }
+    .avatar.user-av { background: linear-gradient(135deg, #4A2C8A, #7B4FA0); }
+
+    .bubble {
+      max-width: 82%;
+      padding: 13px 16px;
+      border-radius: 18px;
+      font-size: 0.92rem;
+      line-height: 1.65;
+    }
+    .msg.divine .bubble {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(201,168,76,0.2);
+      color: #F0EBE3;
+      border-top-left-radius: 4px;
+    }
+    .msg.user .bubble {
+      background: linear-gradient(135deg, rgba(74,44,138,0.8), rgba(123,79,160,0.8));
+      border: 1px solid rgba(201,168,76,0.3);
+      color: #fff;
+      border-top-right-radius: 4px;
+    }
+
+    .scripture-inline {
+      margin-top: 10px;
+      padding: 10px 14px;
+      background: rgba(201,168,76,0.1);
+      border-left: 3px solid var(--gold);
+      border-radius: 0 10px 10px 0;
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      color: var(--gold-light);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    .scripture-inline cite { font-style: normal; color: var(--gold); font-size: 0.78rem; display: block; margin-top: 4px; }
+
+    .prayer-block {
+      margin-top: 10px;
+      padding: 12px 14px;
+      background: rgba(201,168,76,0.07);
+      border: 1px dashed rgba(201,168,76,0.3);
+      border-radius: 10px;
+      color: var(--gold-light);
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+    .prayer-block::before { content: "🙏 "; }
+
+    /* typing indicator */
+    .typing-dots { display: flex; gap: 5px; align-items: center; padding: 14px 18px; }
+    .dot { width: 7px; height: 7px; background: var(--gold); border-radius: 50%; animation: bounce 1.2s ease-in-out infinite; }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce { 0%,80%,100% { transform: translateY(0); } 40% { transform: translateY(-8px); } }
+
+    /* ── Quick replies ── */
+    .quick-replies {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      padding: 12px 4px 0;
+    }
+    .qr-btn {
+      background: rgba(201,168,76,0.1);
+      border: 1px solid rgba(201,168,76,0.3);
+      color: var(--gold-light);
+      border-radius: 20px;
+      padding: 6px 13px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'Lato', sans-serif;
+    }
+    .qr-btn:hover { background: rgba(201,168,76,0.25); color: #fff; }
+
+    /* ── Input row ── */
+    .input-row {
+      display: flex;
+      gap: 10px;
+      padding: 14px 16px 20px;
+      width: 100%;
+      max-width: 680px;
+    }
+    .input-row textarea {
+      flex: 1;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(201,168,76,0.35);
+      border-radius: 24px;
+      color: #fff;
+      padding: 12px 18px;
+      font-size: 0.9rem;
+      resize: none;
+      height: 50px;
+      font-family: 'Lato', sans-serif;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .input-row textarea::placeholder { color: rgba(255,255,255,0.35); }
+    .input-row textarea:focus { border-color: var(--gold); }
+    .send-btn {
+      background: linear-gradient(135deg, var(--gold), #A07830);
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      color: #fff;
+      font-size: 1.3rem;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.15s, opacity 0.15s;
+    }
+    .send-btn:hover { transform: scale(1.08); }
+    .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Prayer / Resource footer chips ── */
+    .footer-row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 0 16px 30px;
+      max-width: 680px;
+      width: 100%;
+    }
+    .chip {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(201,168,76,0.25);
+      color: var(--gold-light);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .chip:hover { background: rgba(201,168,76,0.15); }
+
+    /* ── Privacy and care notice ── */
+    .privacy-notice {
+      width: calc(100% - 32px); max-width: 648px; margin: 10px 16px 0;
+      padding: 12px 16px; border: 1px solid rgba(201,168,76,.45); border-radius: 10px;
+      background: rgba(255,255,255,.08); color: #F0EBE3; font-size: .8rem; line-height: 1.55;
+    }
+    .privacy-notice strong { color: var(--gold-light); }
+
+    /* ── Crisis strip ── */
+    .crisis-strip {
+      width: 100%;
+      max-width: 680px;
+      margin: 0 0 8px;
+      background: rgba(180,60,60,0.2);
+      border: 1px solid rgba(200,80,80,0.4);
+      border-radius: 8px;
+      padding: 7px 16px;
+      font-size: 0.75rem;
+      color: #FFB5B5;
+      text-align: center;
+    }
+    .crisis-strip a { color: #FFA0A0; font-weight: 700; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="cross-icon">✝️</div>
+    <h1>Divine Counsel</h1>
+    <p class="sub">Faith-Based Reflection · Optional Scripture · Prayer</p>
+    <p class="sub" style="margin-top:4px;font-size:0.75rem;">Created by Ting Lott</p>
+  </div>
+
+  <!-- Crisis -->
+  <div class="crisis-strip" style="margin:14px 16px 0;width:calc(100% - 32px);max-width:648px;">
+    🆘 In the U.S., if you are in crisis, call or text <a href="tel:988">988</a> (Suicide &amp; Crisis Lifeline), available 24/7. If there is immediate danger, contact local emergency services.
+  </div>
+
+  <div class="privacy-notice" role="note"><strong>About this tool:</strong> Divine Counsel is an AI faith-reflection tool, not a therapist, counselor, medical provider, or crisis service, and it is not a human minister. Messages and conversation history from this chat are sent to Pollinations.ai to generate replies. Its data-retention and sharing practices have not been verified. Do not share names, contact details, or sensitive health or child information. Seek qualified professional care for clinical concerns.</div>
+
+  <!-- Daily scripture -->
+  <div class="scripture-banner" id="daily-scripture">
+    "I can do all things through Christ who strengthens me."
+    <strong>— Philippians 4:13 (KJV)</strong>
+  </div>
+
+  <!-- Mood buttons -->
+  <div class="mood-row">
+    <button class="mood-btn" onclick="sendMood('I feel broken and lost')">💔 Broken</button>
+    <button class="mood-btn" onclick="sendMood('I am anxious and afraid')">😰 Fearful</button>
+    <button class="mood-btn" onclick="sendMood('I feel hopeless')">🌧️ Hopeless</button>
+    <button class="mood-btn" onclick="sendMood('I need forgiveness')">🕊️ Forgiveness</button>
+    <button class="mood-btn" onclick="sendMood('I am grieving a loss')">🕯️ Grieving</button>
+    <button class="mood-btn" onclick="sendMood('I need prayer right now')">🙏 Prayer</button>
+  </div>
+
+  <!-- Chat -->
+  <div class="chat-wrap">
+    <div class="chat-box" id="chatBox"></div>
+
+    <!-- Quick replies -->
+    <div class="quick-replies" id="quickReplies">
+      <button class="qr-btn" onclick="sendQuick('I feel like God has abandoned me')">God abandoned me?</button>
+      <button class="qr-btn" onclick="sendQuick('Help me find peace in this storm')">Peace in the storm</button>
+      <button class="qr-btn" onclick="sendQuick('I need strength to keep going')">I need strength</button>
+      <button class="qr-btn" onclick="sendQuick('Pray with me please')">Pray with me</button>
+      <button class="qr-btn" onclick="sendQuick('I struggle with anger and unforgiveness')">Forgiveness struggle</button>
+      <button class="qr-btn" onclick="sendQuick('I feel unworthy of God\'s love')">Feel unworthy</button>
+    </div>
+  </div>
+
+  <!-- Input -->
+  <div class="input-row">
+    <textarea id="userInput" placeholder="Share what's on your heart..." rows="1"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}"></textarea>
+    <button class="send-btn" id="sendBtn" onclick="sendMessage()">✉</button>
+  </div>
+
+  <!-- Footer chips -->
+  <div class="footer-row">
+    <button class="chip" onclick="sendQuick('Give me a scripture for today')">📖 Daily Scripture</button>
+    <button class="chip" onclick="sendQuick('Lead me in a prayer')">🙏 Prayer Request</button>
+    <button class="chip" onclick="sendQuick('Give me a word of encouragement')">✨ Encouragement</button>
+    <button class="chip" onclick="sendQuick('Help me understand God\'s purpose for my pain')">💡 Purpose in Pain</button>
+  </div>
+
+<script>
+const DAILY_SCRIPTURES = [
+  { verse: "For I know the plans I have for you, declares the Lord, plans to prosper you and not to harm you, plans to give you hope and a future.", ref: "Jeremiah 29:11 (NIV)" },
+  { verse: "The Lord is my shepherd; I shall not want.", ref: "Psalm 23:1 (KJV)" },
+  { verse: "Come to me, all you who are weary and burdened, and I will give you rest.", ref: "Matthew 11:28 (NIV)" },
+  { verse: "Trust in the Lord with all thine heart; and lean not unto thine own understanding.", ref: "Proverbs 3:5 (KJV)" },
+  { verse: "Be anxious for nothing, but in everything by prayer and supplication, with thanksgiving, let your requests be made known to God.", ref: "Philippians 4:6 (NKJV)" },
+  { verse: "I will never leave thee, nor forsake thee.", ref: "Hebrews 13:5 (KJV)" },
+  { verse: "The Lord is near to the brokenhearted and saves the crushed in spirit.", ref: "Psalm 34:18 (ESV)" },
+];
+const todayScripture = DAILY_SCRIPTURES[new Date().getDay() % DAILY_SCRIPTURES.length];
+document.getElementById('daily-scripture').innerHTML =
+  `"${todayScripture.verse}" <strong>— ${todayScripture.ref}</strong>`;
+
+const chatBox = document.getElementById('chatBox');
+const userInput = document.getElementById('userInput');
+const sendBtn = document.getElementById('sendBtn');
+
+let conversationHistory = [];
+let isTyping = false;
+
+const SYSTEM_PROMPT = `You are Grace, an AI faith-reflection companion. You are not a therapist, counselor, clinician, minister, or human. Offer optional scripture, prayer, and general spiritual reflection in a warm, respectful tone. Do not diagnose, provide treatment, or claim clinical expertise, divine authority, or that the user was sent here for a reason. Never suggest that faith alone replaces medical or mental-health care. If asked for prayer, provide an optional prayer without pressure. If the user describes immediate danger, suicidal thoughts, or self-harm, encourage contacting emergency services or calling/texting 988 in the U.S. Do not describe this chat as private or confidential.`;
+
+function safeFormattedContent(content) {
+  const escaped = String(content ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  return escaped
+    .replace(/\[SCRIPTURE\](.*?)\|(.*?)\[\/SCRIPTURE\]/gs, (_, verse, ref) => '<div class="scripture-inline">"' + verse.trim() + '" <cite>— ' + ref.trim() + '</cite></div>')
+    .replace(/\[PRAYER\](.*?)\[\/PRAYER\]/gs, (_, prayer) => '<div class="prayer-block">' + prayer.trim() + '</div>')
+    .replace(/\n\n/g, '<br><br>')
+    .replace(/\n/g, '<br>');
+}
+
+function appendDivineMessage(content) {
+  const msg = document.createElement('div');
+  msg.className = 'msg divine';
+
+  const html = safeFormattedContent(content);
+  msg.innerHTML = `
+    <div class="avatar divine">✝️</div>
+    <div class="bubble">${html}</div>`;
+  chatBox.appendChild(msg);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function appendUserMessage(text) {
+  const msg = document.createElement('div');
+  msg.className = 'msg user';
+  msg.innerHTML = `
+    <div class="avatar user-av">🙏</div>
+    <div class="bubble">${text.replace(/</g,'&lt;')}</div>`;
+  chatBox.appendChild(msg);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function showTyping() {
+  const el = document.createElement('div');
+  el.className = 'msg divine';
+  el.id = 'typingIndicator';
+  el.innerHTML = `<div class="avatar divine">✝️</div>
+    <div class="bubble" style="padding:10px 16px;">
+      <div class="typing-dots">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+    </div>`;
+  chatBox.appendChild(el);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function removeTyping() {
+  const el = document.getElementById('typingIndicator');
+  if (el) el.remove();
+}
+
+async function typeMessage(content) {
+  // Show message character by character for warm feel
+  const msg = document.createElement('div');
+  msg.className = 'msg divine';
+
+  const html = safeFormattedContent(content);
+
+  msg.innerHTML = `<div class="avatar divine">✝️</div><div class="bubble" id="typingBubble"></div>`;
+  chatBox.appendChild(msg);
+  chatBox.scrollTop = chatBox.scrollHeight;
+
+  // Render HTML progressively
+  const bubble = document.getElementById('typingBubble');
+  const words = html.split(/(?<=\s)/);
+  let rendered = '';
+  for (let i = 0; i < words.length; i++) {
+    rendered += words[i];
+    bubble.innerHTML = rendered;
+    chatBox.scrollTop = chatBox.scrollHeight;
+    await new Promise(r => setTimeout(r, 22));
+  }
+  bubble.removeAttribute('id');
+}
+
+async function callAI(userText) {
+  conversationHistory.push({ role: 'user', content: userText });
+
+  const messages = [
+    { role: 'system', content: SYSTEM_PROMPT },
+    ...conversationHistory
+  ];
+
+  try {
+    const res = await fetch('https://text.pollinations.ai/openai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'openai-large',
+        messages,
+        temperature: 0.82,
+        max_tokens: 700
+      })
+    });
+    const data = await res.json();
+    const reply = data.choices?.[0]?.message?.content || "Beloved, I'm here. Please share what's on your heart.";
+    conversationHistory.push({ role: 'assistant', content: reply });
+    return reply;
+  } catch (e) {
+    return "Beloved child of God, I'm having a moment of technical difficulty. Please know that God hears your prayers even when technology fails us. Try again in just a moment. 🙏";
+  }
+}
+
+async function sendMessage() {
+  const text = userInput.value.trim();
+  if (!text || isTyping) return;
+
+  document.getElementById('quickReplies').style.display = 'none';
+  appendUserMessage(text);
+  userInput.value = '';
+  sendBtn.disabled = true;
+  isTyping = true;
+
+  showTyping();
+  const reply = await callAI(text);
+  removeTyping();
+  await typeMessage(reply);
+
+  sendBtn.disabled = false;
+  isTyping = false;
+}
+
+function sendMood(text) {
+  userInput.value = text;
+  sendMessage();
+}
+function sendQuick(text) {
+  userInput.value = text;
+  sendMessage();
+}
+
+// Opening grace message
+window.addEventListener('load', () => {
+  const welcome = `Welcome. I'm Grace, an AI faith-reflection companion. I can share optional scripture, prayer, and general reflection. I am not a counselor, therapist, medical provider, or crisis service. Please avoid sharing identifying or sensitive information.
+
+[SCRIPTURE]The Lord is close to the brokenhearted and saves those who are crushed in spirit.|Psalm 34:18 (NIV)[/SCRIPTURE]
+
+Would you like a scripture, a prayer, or a moment to reflect? 🙏`;
+
+  setTimeout(() => typeMessage(welcome), 600);
+});
+</script>
+</body>
+</html>
