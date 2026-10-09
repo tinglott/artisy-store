@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CarouselStudio — Free AI Video Carousel Creator</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: linear-gradient(135deg, #fef3c7 0%, #fce7f3 50%, #f0f9ff 100%); min-height: 100vh; padding: 2rem 1rem; }
+    .container { max-width: 1000px; margin: 0 auto; }
+    
+    /* HEADER */
+    header { text-align: center; margin-bottom: 3rem; }
+    .logo { font-size: 3rem; margin-bottom: 0.5rem; }
+    h1 { font-size: 2.5rem; color: #1f2937; margin-bottom: 0.5rem; font-weight: 800; }
+    .tagline { color: #6b7280; font-size: 1.1rem; margin-bottom: 1.5rem; }
+    .badge { display: inline-block; background: rgba(34, 197, 94, 0.15); color: #166534; padding: 0.5rem 1.2rem; border-radius: 50px; font-size: 0.9rem; font-weight: 600; margin-bottom: 1.5rem; border: 1px solid #86efac; }
+    
+    /* WORKFLOW CARDS */
+    .workflow { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem; }
+    .card { background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: 2px solid #f0f0f0; transition: all 0.3s; }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.12); border-color: #e5e7eb; }
+    .card-num { font-size: 2.5rem; font-weight: 900; color: #f59e0b; margin-bottom: 0.5rem; }
+    .card-title { font-size: 1.2rem; font-weight: 700; color: #1f2937; margin-bottom: 0.8rem; }
+    .card-desc { color: #6b7280; line-height: 1.6; font-size: 0.95rem; margin-bottom: 1.2rem; }
+    .card-btn { display: inline-block; background: linear-gradient(135deg, #f59e0b, #fbbf24); color: white; padding: 0.75rem 1.5rem; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: all 0.2s; border: none; cursor: pointer; }
+    .card-btn:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3); }
+    
+    /* HERO SECTION */
+    .hero-box { background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%); border-radius: 20px; padding: 3rem 2rem; margin-bottom: 2.5rem; border: 2px solid #e5e7eb; text-align: center; }
+    .hero-box h2 { font-size: 1.8rem; color: #1f2937; margin-bottom: 1rem; font-weight: 800; }
+    .hero-box p { color: #6b7280; font-size: 1.05rem; line-height: 1.8; margin-bottom: 1.5rem; max-width: 600px; margin-left: auto; margin-right: auto; }
+    
+    /* CTA BUTTONS */
+    .cta-group { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 2rem; }
+    .btn-primary { background: linear-gradient(135deg, #f59e0b, #fbbf24); color: white; padding: 1rem 2rem; border-radius: 50px; text-decoration: none; font-weight: 700; font-size: 1rem; transition: all 0.2s; border: none; cursor: pointer; box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3); }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(245, 158, 11, 0.4); }
+    .btn-secondary { background: white; color: #f59e0b; padding: 1rem 2rem; border-radius: 50px; text-decoration: none; font-weight: 700; font-size: 1rem; border: 2px solid #f59e0b; transition: all 0.2s; }
+    .btn-secondary:hover { background: #fff9e6; }
+    
+    /* FEATURES */
+    .features { background: white; border-radius: 16px; padding: 2.5rem; margin-bottom: 2.5rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: 1px solid #e5e7eb; }
+    .features h3 { font-size: 1.5rem; color: #1f2937; margin-bottom: 1.5rem; font-weight: 800; }
+    .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+    .feature-item { padding: 1rem; background: #fef9e7; border-radius: 12px; border-left: 4px solid #f59e0b; }
+    .feature-item strong { color: #92400e; display: block; margin-bottom: 0.3rem; }
+    .feature-item p { color: #6b7280; font-size: 0.9rem; }
+    
+    /* FOOTER */
+    footer { text-align: center; color: #9ca3af; font-size: 0.9rem; margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid #e5e7eb; }
+    
+    /* ANIMATIONS */
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .card, .hero-box, .features { animation: slideUp 0.6s ease-out forwards; opacity: 0; }
+    .card:nth-child(1) { animation-delay: 0.1s; }
+    .card:nth-child(2) { animation-delay: 0.2s; }
+    .card:nth-child(3) { animation-delay: 0.3s; }
+    
+    /* MOBILE */
+    @media (max-width: 640px) {
+      h1 { font-size: 1.8rem; }
+      .workflow { grid-template-columns: 1fr; }
+      .hero-box { padding: 1.5rem 1rem; }
+      .cta-group { flex-direction: column; }
+      .btn-primary, .btn-secondary { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">🎠</div>
+      <h1>CarouselStudio</h1>
+      <p class="tagline">Transform your art into AI-powered video carousels — completely free</p>
+      <span class="badge">✨ Free Forever — No Login, No Backend</span>
+    </header>
+
+    <div class="hero-box">
+      <h2>Create gallery-style showcase videos with free AI tools</h2>
+      <p>Upload your art, generate smooth zoom-pan animations using HuggingFace's free text-to-video Spaces, stitch clips together with free CapCut, and share to any platform. Perfect for portfolios, products, and storytelling.</p>
+    </div>
+
+    <!-- 5-STEP WORKFLOW -->
+    <div class="workflow">
+      <div class="card">
+        <div class="card-num">1️⃣</div>
+        <div class="card-title">Gather Your Art</div>
+        <div class="card-desc">Use FLUX.1 Schnell via Pollinations to generate 4–6 finished art pieces. Save to your phone or device.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-num">2️⃣</div>
+        <div class="card-title">Generate Animations</div>
+        <div class="card-desc">Feed each artwork into a free HuggingFace Space (Wan 2.2 5B or LTX-2). Use pre-written motion prompts. Get 3–5 second animated clips back.</div>
+        <button class="card-btn" onclick="openSpace('wan')">→ Open Wan 2.2 5B</button>
+      </div>
+
+      <div class="card">
+        <div class="card-num">3️⃣</div>
+        <div class="card-title">Chain for Continuity</div>
+        <div class="card-desc">For seamless transitions, feed the last frame of clip 1 as the starting image for clip 2. Keeps the visual thread alive across pieces.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-num">4️⃣</div>
+        <div class="card-title">Stitch & Enhance</div>
+        <div class="card-desc">Download all clips to your phone. Use free CapCut to add crossfades, transitions, music, and branding (logo, title card).</div>
+        <button class="card-btn" onclick="window.open('https://www.capcut.com', '_blank')">→ Open CapCut</button>
+      </div>
+
+      <div class="card">
+        <div class="card-num">5️⃣</div>
+        <div class="card-title">Export & Share</div>
+        <div class="card-desc">Export as 9:16 (vertical) for Instagram/TikTok, 1:1 for feed posts, or 16:9 for YouTube. Upload to your store, social channels, or portfolio.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-num">💡</div>
+        <div class="card-title">Pro Tip</div>
+        <div class="card-desc">Save your animation prompts and art themes. Reuse them for new carousels. Build a library of free, repeatable templates.</div>
+      </div>
+    </div>
+
+    <!-- FEATURES -->
+    <div class="features">
+      <h3>✨ Why CarouselStudio?</h3>
+      <div class="feature-grid">
+        <div class="feature-item">
+          <strong>100% Free</strong>
+          <p>No subscriptions, no API keys needed. All tools are open-source or free tier.</p>
+        </div>
+        <div class="feature-item">
+          <strong>AI-Powered</strong>
+          <p>HuggingFace text-to-video & image-to-video for smooth Ken Burns effects.</p>
+        </div>
+        <div class="feature-item">
+          <strong>Multi-Platform</strong>
+          <p>Export vertical, square, or widescreen. Perfect for TikTok, Instagram, YouTube, and stores.</p>
+        </div>
+        <div class="feature-item">
+          <strong>No Coding</strong>
+          <p>Drag, click, and download. Built for creators, not engineers.</p>
+        </div>
+        <div class="feature-item">
+          <strong>Repeatable</strong>
+          <p>Save prompts and workflows. Scale to 10, 50, or 100 carousels.</p>
+        </div>
+        <div class="feature-item">
+          <strong>Brand Control</strong>
+          <p>Add your logo, music, colors, and messaging in CapCut. Full creative ownership.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRE-WRITTEN ANIMATION PROMPTS -->
+    <div class="features">
+      <h3>📋 Pre-Written Animation Prompts (Copy & Paste)</h3>
+      <div style="background: #f9fafb; padding: 1.5rem; border-radius: 12px; border-left: 4px solid #3b82f6; margin-bottom: 1rem;">
+        <p style="color: #6b7280; margin-bottom: 1rem; font-size: 0.95rem;">Use these exact prompts in Wan 2.2 5B or LTX-2 Spaces. Feed in your art image + paste the motion prompt → generate → download clip.</p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+          <div style="background: white; padding: 1rem; border-radius: 8px; border: 1px solid #e5e7eb;">
+            <strong style="color: #1f2937; display: block; margin-bottom: 0.5rem;">🌌 Celestial / Spiritual</strong>
+            <code style="display: block; color: #6b7280; font-size: 0.85rem; line-height: 1.5; white-space: pre-wrap;">slow gentle zoom in, subtle parallax effect, ethereal golden light, sacred atmosphere, no distortion</code>
+            <button style="background: #dbeafe; border: 1px solid #93c5fd; color: #1e40af; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.85rem; margin-top: 0.5rem; cursor: pointer;" onclick="copyPrompt(this)">📋 Copy</button>
+          </div>
+
+          <div style="background: white; padding: 1rem; border-radius: 8px; border: 1px solid #e5e7eb;">
+            <strong style="color: #1f2937; display: block; margin-bottom: 0.5rem;">🌿 Botanical / Nature</strong>
+            <code style="display: block; color: #6b7280; font-size: 0.85rem; line-height: 1.5; white-space: pre-wrap;">smooth zoom in on details, natural sunlight dappling, organic motion, serene, 4 second pan</code>
+            <button style="background: #dcfce7; border: 1px solid #86efac; color: #166534; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.85rem; margin-top: 0.5rem; cursor: pointer;" onclick="copyPrompt(this)">📋 Copy</button>
+          </div>
+
+          <div style="background: white; padding: 1rem; border-radius: 8px; border: 1px solid #e5e7eb;">
+            <strong style="color: #1f2937; display: block; margin-bottom: 0.5rem;">🏙️ Skyline / Architecture</strong>
+            <code style="display: block; color: #6b7280; font-size: 0.85rem; line-height: 1.5; white-space: pre-wrap;">elegant slow pan across scene, golden hour lighting, architectural precision, cinematic depth, 5 second glide</code>
+            <button style="background: #fef3c7; border: 1px solid #fcd34d; color: #92400e; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.85rem; margin-top: 0.5rem; cursor: pointer;" onclick="copyPrompt(this)">📋 Copy</button>
+          </div>
+
+          <div style="background: white; padding: 1rem; border-radius: 8px; border: 1px solid #e5e7eb;">
+            <strong style="color: #1f2937; display: block; margin-bottom: 0.5rem;">💎 Abstract / Artistic</strong>
+            <code style="display: block; color: #6b7280; font-size: 0.85rem; line-height: 1.5; white-space: pre-wrap;">hypnotic swirl, soft color transitions, dreamlike zoom, artistic blend, no text, 4 second float</code>
+            <button style="background: #f3e8ff; border: 1px solid #d8b4fe; color: #6b21a8; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.85rem; margin-top: 0.5rem; cursor: pointer;" onclick="copyPrompt(this)">📋 Copy</button>
+          </div>
+
+          <div style="background: white; padding: 1rem; border-radius: 8px; border: 1px solid #e5e7eb;">
+            <strong style="color: #1f2937; display: block; margin-bottom: 0.5rem;">🎨 Gallery Walk</strong>
+            <code style="display: block; color: #6b7280; font-size: 0.85rem; line-height: 1.5; white-space: pre-wrap;">museum quality slow pan, gallery lighting, elegant transitions, no movement distortion, 5 second contemplative zoom</code>
+            <button style="background: #fce7f3; border: 1px solid #fbcfe8; color: #9d174d; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.85rem; margin-top: 0.5rem; cursor: pointer;" onclick="copyPrompt(this)">📋 Copy</button>
+          </div>
+
+          <div style="background: white; padding: 1rem; border-radius: 8px; border: 1px solid #e5e7eb;">
+            <strong style="color: #1f2937; display: block; margin-bottom: 0.5rem;">✨ Ethereal / Healing</strong>
+            <code style="display: block; color: #6b7280; font-size: 0.85rem; line-height: 1.5; white-space: pre-wrap;">soft diffusion, peaceful floating motion, warm light rays, healing energy, meditative pace, 6 second gentle sway</code>
+            <button style="background: #fce7f3; border: 1px solid #fbcfe8; color: #9d174d; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.85rem; margin-top: 0.5rem; cursor: pointer;" onclick="copyPrompt(this)">📋 Copy</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUICK ACCESS LINKS -->
+    <div class="cta-group">
+      <button class="btn-primary" onclick="openSpace('wan')">🎠 Open Wan 2.2 5B Space</button>
+      <button class="btn-primary" onclick="openSpace('ltx')">🚀 Open LTX-2 Space</button>
+      <button class="btn-secondary" onclick="openCapCut()">✂️ Open CapCut</button>
+    </div>
+
+    <footer>
+      <p>CarouselStudio is a free, open-source workflow guide. All tools are built by HuggingFace, Meta, and Bytedance. No data is stored.</p>
+      <p style="margin-top: 1rem;">Brought to you by <strong style="color: #1f2937;">Ting Lott</strong> — Psychiatric Nurse, Teacher, Minister, Creator. 💜</p>
+    </footer>
+  </div>
+
+  <script>
+    function openSpace(type) {
+      if (type === 'wan') {
+        window.open('https://huggingface.co/spaces/Wan-AI/Wan-2.2-5B', '_blank');
+      } else if (type === 'ltx') {
+        window.open('https://huggingface.co/spaces/Lightricks/ltx-2', '_blank');
+      }
+    }
+
+    function openCapCut() {
+      window.open('https://www.capcut.com', '_blank');
+    }
+
+    function copyPrompt(btn) {
+      const code = btn.parentElement.querySelector('code');
+      const text = code.textContent.trim();
+      navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = '✅ Copied!';
+        setTimeout(() => { btn.textContent = '📋 Copy'; }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>
