@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARTISY Marketing Machine</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=DM+Sans:wght@400;500;600;700&display=swap');
+:root{
+  --navy:#14213D;--navy-deep:#0B1526;--gold:#C9A227;--gold-deep:#8B6914;
+  --cream:#F8F3E7;--forest:#33503E;--plum:#5A3B5D;--ink:#1B1B1B;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;background:var(--cream);font-family:'DM Sans',sans-serif;color:var(--ink);}
+
+/* === LAYOUT === */
+.app{display:flex;min-height:100vh;}
+.rail{width:360px;min-width:360px;background:var(--navy);color:var(--cream);padding:24px 20px 28px;display:flex;flex-direction:column;gap:16px;overflow-y:auto;}
+.stage{flex:1;display:flex;flex-direction:column;align-items:center;padding:28px 24px;gap:18px;background:radial-gradient(circle at 20% 15%,rgba(20,33,61,.06),transparent 50%),var(--cream);overflow-y:auto;}
+
+/* === BRAND === */
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:2px;}
+.brand .seal{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--gold);font-weight:700;flex-shrink:0;}
+.brand h1{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:22px;letter-spacing:.02em;}
+.brand p{margin:2px 0 0;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);opacity:.85;}
+
+/* === FORM ELEMENTS === */
+.section-label{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);opacity:.9;margin-bottom:6px;display:block;}
+select,input,textarea{width:100%;background:rgba(248,243,231,.07);border:1px solid rgba(248,243,231,.22);color:var(--cream);border-radius:8px;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;}
+select:focus,input:focus,textarea:focus{border-color:var(--gold);}
+select option{color:#111;}
+textarea{resize:vertical;min-height:52px;}
+.chips{display:flex;flex-wrap:wrap;gap:5px;}
+.chip{padding:5px 11px;border-radius:999px;border:1px solid rgba(248,243,231,.22);font-size:11.5px;cursor:pointer;background:transparent;color:var(--cream);transition:all .15s;}
+.chip:hover{border-color:var(--gold);}
+.chip.active{background:var(--gold);border-color:var(--gold);color:var(--navy-deep);font-weight:600;}
+.divider{height:1px;background:rgba(248,243,231,.12);margin:2px 0;}
+
+/* === PLATFORM GRID === */
+.platform-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.plat-btn{padding:8px 6px;border-radius:8px;border:1px solid rgba(248,243,231,.22);background:transparent;color:var(--cream);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;text-align:center;line-height:1.3;transition:all .15s;}
+.plat-btn .plat-icon{font-size:16px;display:block;margin-bottom:2px;}
+.plat-btn:hover{border-color:var(--gold);}
+.plat-btn.active{background:var(--gold);border-color:var(--gold);color:var(--navy-deep);font-weight:700;}
+
+/* === BUTTONS === */
+.btn-primary{background:var(--gold);color:var(--navy-deep);border:none;padding:10px 14px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;width:100%;}
+.btn-secondary{background:transparent;border:1.5px solid var(--gold);color:var(--gold);padding:10px 14px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;width:100%;}
+.btn-danger{background:transparent;border:1px solid rgba(248,243,231,.3);color:rgba(248,243,231,.6);padding:8px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;width:100%;}
+.btn-primary:hover,.btn-secondary:hover{opacity:.9;}
+
+/* === CANVAS === */
+.canvas-wrap{position:relative;box-shadow:0 24px 60px -16px rgba(11,21,38,.35);border-radius:4px;overflow:hidden;flex-shrink:0;}
+canvas{display:block;background:var(--navy);}
+.dim-badge{position:absolute;bottom:10px;right:12px;background:rgba(11,21,38,.75);color:var(--gold);font-size:10px;padding:3px 8px;border-radius:4px;font-family:'DM Sans',sans-serif;letter-spacing:.06em;}
+.nav-arrow{position:absolute;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;background:rgba(20,33,61,.85);color:var(--cream);border:1px solid rgba(248,243,231,.3);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.nav-arrow.left{left:-50px;}
+.nav-arrow.right{right:-50px;}
+.nav-arrow:disabled{opacity:.25;cursor:default;}
+
+/* === FILMSTRIP === */
+.filmstrip{display:flex;gap:8px;max-width:90vw;overflow-x:auto;padding:4px 2px;}
+.thumb{width:56px;height:56px;border-radius:6px;border:2px solid transparent;cursor:pointer;flex-shrink:0;background:var(--navy);}
+.thumb.active{border-color:var(--gold);}
+
+/* === COPY PANEL === */
+.copy-panel{width:100%;max-width:780px;background:white;border-radius:14px;padding:22px 24px;box-shadow:0 4px 24px rgba(20,33,61,.1);}
+.copy-panel h3{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;margin-bottom:16px;color:var(--navy);}
+.copy-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+.copy-tab{padding:6px 14px;border-radius:999px;border:1px solid rgba(20,33,61,.2);font-size:12px;cursor:pointer;background:transparent;color:var(--navy);font-family:'DM Sans',sans-serif;transition:all .15s;}
+.copy-tab.active{background:var(--navy);color:var(--cream);border-color:var(--navy);}
+.copy-block{background:var(--cream);border-radius:10px;padding:16px;font-size:13.5px;line-height:1.7;color:var(--ink);min-height:80px;white-space:pre-wrap;word-wrap:break-word;}
+.copy-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+.copy-action-btn{padding:8px 16px;border-radius:8px;border:1.5px solid var(--navy);background:transparent;color:var(--navy);font-size:12.5px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.copy-action-btn.solid{background:var(--navy);color:var(--cream);}
+.copy-action-btn:hover{opacity:.8;}
+.gen-spinner{display:none;font-size:12px;color:var(--gold);padding:4px 0;}
+
+/* === PLANNER === */
+.planner-panel{width:100%;max-width:780px;background:white;border-radius:14px;padding:22px 24px;box-shadow:0 4px 24px rgba(20,33,61,.1);}
+.planner-panel h3{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;margin-bottom:14px;color:var(--navy);}
+.planner-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+.day-cell{border-radius:8px;padding:7px 5px;font-size:10px;text-align:center;border:1px solid rgba(20,33,61,.12);cursor:pointer;transition:all .15s;line-height:1.3;}
+.day-cell:hover{border-color:var(--gold);background:rgba(201,162,39,.06);}
+.day-cell .day-num{font-weight:700;font-size:13px;color:var(--navy);display:block;}
+.day-cell .day-platform{font-size:15px;display:block;margin:2px 0;}
+.day-cell .day-title{color:rgba(27,27,27,.6);font-size:9px;word-break:break-word;}
+.day-header{font-size:10px;font-weight:700;text-align:center;color:rgba(27,27,27,.4);padding:4px 0;letter-spacing:.06em;text-transform:uppercase;}
+
+/* === TOAST === */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--navy);color:var(--cream);padding:12px 22px;border-radius:10px;font-size:13px;font-weight:600;transition:transform .3s ease;z-index:9999;box-shadow:0 8px 30px rgba(0,0,0,.2);}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+/* === TABS (stage top) === */
+.stage-tabs{display:flex;gap:8px;width:100%;max-width:780px;}
+.stage-tab{flex:1;padding:11px 8px;border-radius:10px;border:1.5px solid rgba(20,33,61,.18);background:transparent;color:var(--navy);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;text-align:center;}
+.stage-tab.active{background:var(--navy);color:var(--cream);border-color:var(--navy);}
+
+/* === CAMPAIGN PACK === */
+.pack-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:780px;}
+.pack-card{background:white;border-radius:12px;padding:16px;box-shadow:0 2px 12px rgba(20,33,61,.08);display:flex;flex-direction:column;gap:8px;}
+.pack-card h4{font-size:13px;font-weight:700;color:var(--navy);}
+.pack-card p{font-size:11px;color:rgba(27,27,27,.55);line-height:1.4;}
+.pack-card .pack-dims{font-size:10px;background:rgba(201,162,39,.12);color:var(--gold-deep);padding:3px 8px;border-radius:4px;display:inline-block;font-weight:600;}
+.pack-btn{padding:8px;border-radius:8px;border:1.5px solid var(--navy);background:transparent;color:var(--navy);font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.pack-btn:hover{background:var(--navy);color:var(--cream);}
+
+::-webkit-scrollbar{height:6px;width:6px;}
+::-webkit-scrollbar-thumb{background:rgba(20,33,61,.2);border-radius:4px;}
+
+@media(max-width:860px){
+  .app{flex-direction:column;}
+  .rail{width:100%;min-width:0;}
+  .platform-grid{grid-template-columns:repeat(4,1fr);}
+  .nav-arrow.left{left:6px;}
+  .nav-arrow.right{right:6px;}
+  .pack-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ===== RAIL ===== -->
+<aside class="rail">
+  <div class="brand">
+    <div class="seal">✦</div>
+    <div>
+      <h1>ARTISY Marketing Machine</h1>
+      <p>All platforms. On-brand. Deployed.</p>
+    </div>
+  </div>
+
+  <div>
+    <span class="section-label">Category</span>
+    <div class="chips" id="categoryChips"></div>
+  </div>
+
+  <div>
+    <span class="section-label">Product</span>
+    <select id="productSelect"></select>
+  </div>
+
+  <div class="divider"></div>
+
+  <div>
+    <span class="section-label">Platform</span>
+    <div class="platform-grid" id="platformGrid"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div>
+    <span class="section-label">Format</span>
+    <div class="chips" id="formatChips"></div>
+  </div>
+
+  <div id="slideCountWrap" style="display:none;">
+    <span class="section-label">Carousel Slides</span>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button onclick="adjustSlides(-1)" style="width:30px;height:30px;border-radius:50%;border:1px solid rgba(248,243,231,.3);background:transparent;color:var(--cream);font-size:18px;cursor:pointer;">–</button>
+      <span id="slideCount" style="font-size:15px;font-weight:700;">4</span>
+      <button onclick="adjustSlides(1)" style="width:30px;height:30px;border-radius:50%;border:1px solid rgba(248,243,231,.3);background:transparent;color:var(--cream);font-size:18px;cursor:pointer;">+</button>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <button class="btn-primary" id="generateCopyBtn" onclick="generateAICopy()">✨ Generate AI Copy</button>
+  <button class="btn-secondary" onclick="downloadCurrent()">⬇ Download This Slide</button>
+  <button class="btn-secondary" id="downloadAllBtn" style="display:none;" onclick="downloadAllSlides()">⬇ Download All Slides</button>
+  <button class="btn-danger" onclick="showTab('planner')">📅 30-Day Campaign Planner</button>
+  <button class="btn-danger" onclick="showTab('pack')">🚀 Campaign Pack (All Formats)</button>
+</aside>
+
+<!-- ===== STAGE ===== -->
+<main class="stage">
+  <div class="stage-tabs">
+    <button class="stage-tab active" onclick="showTab('canvas')" id="tab-canvas">🎨 Ad Creator</button>
+    <button class="stage-tab" onclick="showTab('copy')" id="tab-copy">✍️ Copy & Captions</button>
+    <button class="stage-tab" onclick="showTab('pack')" id="tab-pack">🚀 Campaign Pack</button>
+    <button class="stage-tab" onclick="showTab('planner')" id="tab-planner">📅 30-Day Planner</button>
+  </div>
+
+  <!-- Canvas tab -->
+  <div id="view-canvas" style="display:flex;flex-direction:column;align-items:center;gap:16px;width:100%;">
+    <div class="canvas-wrap">
+      <button class="nav-arrow left" id="prevSlide" style="display:none;" onclick="changeSlide(-1)">‹</button>
+      <canvas id="canvas"></canvas>
+      <button class="nav-arrow right" id="nextSlide" style="display:none;" onclick="changeSlide(1)">›</button>
+      <div class="dim-badge" id="dimBadge">1080 × 1080</div>
+    </div>
+    <div class="filmstrip" id="filmstrip" style="display:none;"></div>
+    <p style="font-size:12px;color:rgba(27,27,27,.5);max-width:600px;text-align:center;line-height:1.6;">Pick a platform → choose a format → click <strong>Generate AI Copy</strong> for captions and hashtags. Download any size, all on-brand, no photos required.</p>
+  </div>
+
+  <!-- Copy tab -->
+  <div id="view-copy" style="display:none;width:100%;max-width:780px;">
+    <div class="copy-panel">
+      <h3>✍️ AI-Generated Copy & Captions</h3>
+      <div class="copy-tabs" id="copyTabs"></div>
+      <div class="gen-spinner" id="genSpinner">⏳ Generating with AI…</div>
+      <div class="copy-block" id="copyBlock">Select a platform and click "Generate AI Copy" to get captions, hooks, and hashtags tailored to each channel.</div>
+      <div class="copy-actions">
+        <button class="copy-action-btn solid" onclick="copyToClipboard()">📋 Copy</button>
+        <button class="copy-action-btn" onclick="generateAICopy()">🔄 Regenerate</button>
+        <button class="copy-action-btn" onclick="downloadCopyDoc()">⬇ Save as .txt</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Campaign Pack tab -->
+  <div id="view-pack" style="display:none;width:100%;max-width:780px;">
+    <div style="background:white;border-radius:14px;padding:22px 24px;box-shadow:0 4px 24px rgba(20,33,61,.1);margin-bottom:16px;">
+      <h3 style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--navy);margin-bottom:8px;">🚀 Campaign Pack</h3>
+      <p style="font-size:13px;color:rgba(27,27,27,.6);margin-bottom:18px;line-height:1.6;">Download your selected product ad in every platform format at once. One product, all channels, ready to post.</p>
+      <button class="btn-primary" onclick="downloadCampaignPack()" style="max-width:260px;">⬇ Download All Formats</button>
+    </div>
+    <div class="pack-grid" id="packGrid"></div>
+  </div>
+
+  <!-- Planner tab -->
+  <div id="view-planner" style="display:none;width:100%;max-width:780px;">
+    <div class="planner-panel">
+      <h3>📅 30-Day Content Calendar</h3>
+      <p style="font-size:13px;color:rgba(27,27,27,.55);margin-bottom:16px;line-height:1.6;">A pre-built rotation across all your platforms — post one piece of content per day, every channel covered in 30 days.</p>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px;">
+        <div class="day-header">Sun</div><div class="day-header">Mon</div><div class="day-header">Tue</div>
+        <div class="day-header">Wed</div><div class="day-header">Thu</div><div class="day-header">Fri</div><div class="day-header">Sat</div>
+      </div>
+      <div class="planner-grid" id="plannerGrid"></div>
+      <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="copy-action-btn solid" onclick="downloadPlanner()">⬇ Download as .txt</button>
+        <button class="copy-action-btn" onclick="buildPlanner()">🔄 Regenerate</button>
+      </div>
+    </div>
+  </div>
+</main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// PRODUCT CATALOG
+// ============================================================
+const CATEGORY_META = {
+  wellness: { label:'Wellness',   accent:'#33503E', icon:'🌿', pain:'running on empty?' },
+  faith:    { label:'Faith',      accent:'#8B6914', icon:'🙏', pain:'searching for peace?' },
+  fiction:  { label:'Fiction',    accent:'#5A3B5D', icon:'📖', pain:'craving a story that stays with you?' },
+  aiTools:  { label:'AI Tools',   accent:'#14213D', icon:'🤖', pain:'drowning in busywork?' },
+  marketing:{ label:'Marketing',  accent:'#14213D', icon:'📣', pain:'posting into total silence?' },
+  finance:  { label:'Finance',    accent:'#2D5A27', icon:'💰', pain:'leaving money on the table?' },
+  children: { label:'Children',   accent:'#7B3F00', icon:'🌟', pain:'looking for stories that inspire?' }
+};
+
+const PRODUCTS = [
+  { title:'Stress Less',            price:'17.99', tag:'Best Seller', category:'wellness',  desc:"A nurse's clinical framework for unwinding your nervous system." },
+  { title:'Finding Calm',           price:'16.99', tag:'Top Rated',   category:'wellness',  desc:"Practical anxiety tools from a nurse who's seen real healing." },
+  { title:'Whole Body Blueprint',   price:'19.99', tag:'Wellness',    category:'wellness',  desc:'A complete nurse-designed guide to holistic body and mind wellness.' },
+  { title:'Sacred Cycles',          price:'37.00', tag:'Faith-Based', category:'faith',     desc:'A Scripture-rooted healing journey through grief, growth, and grace.' },
+  { title:'Inner Kingdom',          price:'6.99',  tag:'New',         category:'faith',     desc:'Faith-rooted mindset tools for women ready to walk in their calling.' },
+  { title:'Dial-Up',                price:'16.99', tag:'New Release', category:'fiction',   desc:'A poignant coming-of-age story set in 2001.' },
+  { title:'The Repo',               price:'16.99', tag:'Thriller',    category:'fiction',   desc:'Corporate warfare meets digital autonomy in this gripping thriller.' },
+  { title:'Trending',               price:'16.99', tag:'YA Fiction',  category:'fiction',   desc:'Silence is power — until the world demands to be seen.' },
+  { title:'The Last Telling',       price:'16.99', tag:'Literary',    category:'fiction',   desc:"A grandmother's stories hold the key to a lost language." },
+  { title:'Copilot Unlocked',       price:'29.99', tag:'Hot',         category:'aiTools',   desc:'Master AI tools to save 10+ hours a week with real workflows.' },
+  { title:'Hook, Engage, Convert',  price:'12.99', tag:'Marketing',   category:'marketing', desc:'The content playbook: hooks that stop scroll, copy that converts.' },
+  { title:'30-Day Social Challenge',price:'14.99', tag:'Social',      category:'marketing', desc:'Build your brand in 30 days with daily guided content missions.' },
+  { title:'Beyond Productivity',    price:'24.99', tag:'Productivity',category:'aiTools',   desc:'Stop grinding and start living — sustainable output without burnout.' },
+  { title:'Pretty For Cheap',       price:'19.99', tag:'Real Estate', category:'finance',   desc:'Real estate investing strategies that work on any budget.' },
+  { title:'Sell the Feeling',       price:'22.99', tag:'Sales',       category:'marketing', desc:'Emotional selling mastery — connect hearts before you open wallets.' }
+];
+
+// ============================================================
+// PLATFORMS
+// ============================================================
+const PLATFORMS = {
+  instagram: { label:'Instagram', icon:'📸', formats:['square','portrait','story','reel'], defaultFmt:'square' },
+  tiktok:    { label:'TikTok',    icon:'🎵', formats:['reel'],                            defaultFmt:'reel'   },
+  pinterest: { label:'Pinterest', icon:'📌', formats:['pin','square'],                    defaultFmt:'pin'    },
+  facebook:  { label:'Facebook',  icon:'👥', formats:['landscape','square','story'],       defaultFmt:'landscape' },
+  twitter:   { label:'Twitter/X', icon:'🐦', formats:['landscape','square'],              defaultFmt:'landscape' },
+  linkedin:  { label:'LinkedIn',  icon:'💼', formats:['landscape','square'],              defaultFmt:'landscape' },
+  youtube:   { label:'YouTube',   icon:'▶️',  formats:['thumbnail','shorts'],              defaultFmt:'thumbnail' },
+  bluesky:   { label:'Bluesky',   icon:'🦋', formats:['square','landscape'],              defaultFmt:'square'    }
+};
+
+const FORMAT_DIMS = {
+  square:    { w:1080, h:1080,  label:'Square 1:1',          desc:'Instagram / Facebook / LinkedIn' },
+  portrait:  { w:1080, h:1350,  label:'Portrait 4:5',        desc:'Instagram Feed' },
+  story:     { w:1080, h:1920,  label:'Story / Reel 9:16',   desc:'Instagram / Facebook Story' },
+  reel:      { w:1080, h:1920,  label:'Reel / Short 9:16',   desc:'TikTok / Instagram Reel' },
+  pin:       { w:1000, h:1500,  label:'Pinterest Pin 2:3',   desc:'Pinterest Standard' },
+  landscape: { w:1200, h:630,   label:'Landscape 1.91:1',    desc:'Facebook / Twitter / LinkedIn' },
+  thumbnail: { w:1280, h:720,   label:'Thumbnail 16:9',      desc:'YouTube' },
+  shorts:    { w:1080, h:1920,  label:'Shorts 9:16',         desc:'YouTube Shorts' }
+};
+
+// ============================================================
+// STATE
+// ============================================================
+let state = {
+  categoryFilter: 'all',
+  productIndex: 0,
+  platform: 'instagram',
+  format: 'square',
+  slideCount: 4,
+  currentSlide: 0,
+  currentTab: 'canvas',
+  copyData: {}
+};
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+// ============================================================
+// UI BUILD
+// ============================================================
+function buildCategoryChips() {
+  const wrap = document.getElementById('categoryChips');
+  wrap.innerHTML = '';
+  const all = mkChip('All', state.categoryFilter === 'all', () => { state.categoryFilter='all'; state.productIndex=0; refreshAll(); });
+  wrap.appendChild(all);
+  Object.keys(CATEGORY_META).forEach(key => {
+    const c = CATEGORY_META[key];
+    wrap.appendChild(mkChip(c.icon+' '+c.label, state.categoryFilter===key, () => {
+      state.categoryFilter=key; state.productIndex=0; refreshAll();
+    }));
+  });
+}
+
+function mkChip(text, active, onclick) {
+  const b = document.createElement('button');
+  b.className = 'chip' + (active ? ' active' : '');
+  b.textContent = text;
+  b.onclick = onclick;
+  return b;
+}
+
+function filteredProducts() {
+  return state.categoryFilter === 'all' ? PRODUCTS : PRODUCTS.filter(p => p.category === state.categoryFilter);
+}
+
+function buildProductSelect() {
+  const sel = document.getElementById('productSelect');
+  const prev = filteredProducts()[state.productIndex]?.title;
+  sel.innerHTML = '';
+  filteredProducts().forEach((p, i) => {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = p.title + ' — $' + p.price;
+    sel.appendChild(opt);
+  });
+  sel.value = state.productIndex;
+  sel.onchange = () => { state.productIndex = parseInt(sel.value); state.currentSlide=0; render(); };
+}
+
+function buildPlatformGrid() {
+  const grid = document.getElementById('platformGrid');
+  grid.innerHTML = '';
+  Object.keys(PLATFORMS).forEach(key => {
+    const p = PLATFORMS[key];
+    const btn = document.createElement('button');
+    btn.className = 'plat-btn' + (state.platform===key ? ' active':'');
+    btn.innerHTML = '<span class="plat-icon">'+p.icon+'</span>'+p.label;
+    btn.onclick = () => {
+      state.platform = key;
+      state.format = p.defaultFmt;
+      state.currentSlide = 0;
+      buildPlatformGrid();
+      buildFormatChips();
+      render();
+    };
+    grid.appendChild(btn);
+  });
+}
+
+function buildFormatChips() {
+  const wrap = document.getElementById('formatChips');
+  wrap.innerHTML = '';
+  const fmts = PLATFORMS[state.platform].formats;
+  if (!fmts.includes(state.format)) state.format = fmts[0];
+  fmts.forEach(fmt => {
+    const d = FORMAT_DIMS[fmt];
+    const b = mkChip(d.label, state.format===fmt, () => {
+      state.format=fmt; state.currentSlide=0; buildFormatChips(); render();
+    });
+    wrap.appendChild(b);
+  });
+  const isCarousel = fmts.length > 1 && state.format === 'carousel';
+  document.getElementById('slideCountWrap').style.display = isCarousel ? 'block':'none';
+  document.getElementById('downloadAllBtn').style.display = isCarousel ? 'block':'none';
+}
+
+function buildPackGrid() {
+  const grid = document.getElementById('packGrid');
+  grid.innerHTML = '';
+  const product = filteredProducts()[state.productIndex] || PRODUCTS[0];
+  Object.keys(FORMAT_DIMS).forEach(fmt => {
+    const d = FORMAT_DIMS[fmt];
+    const card = document.createElement('div');
+    card.className = 'pack-card';
+    card.innerHTML = `
+      <h4>${d.label}</h4>
+      <p>${d.desc}</p>
+      <span class="pack-dims">${d.w} × ${d.h}px</span>
+      <button class="pack-btn" onclick="downloadFormat('${fmt}')">⬇ Download</button>`;
+    grid.appendChild(card);
+  });
+}
+
+function adjustSlides(delta) {
+  state.slideCount = Math.max(3, Math.min(6, state.slideCount + delta));
+  document.getElementById('slideCount').textContent = state.slideCount;
+  state.currentSlide = 0;
+  render();
+}
+
+function changeSlide(delta) {
+  const max = state.slideCount - 1;
+  state.currentSlide = Math.max(0, Math.min(max, state.currentSlide + delta));
+  render();
+}
+
+function showTab(tab) {
+  state.currentTab = tab;
+  ['canvas','copy','pack','planner'].forEach(t => {
+    document.getElementById('view-'+t).style.display = t===tab ? (t==='canvas'?'flex':'block') : 'none';
+    document.getElementById('tab-'+t)?.classList.toggle('active', t===tab);
+  });
+  if (tab === 'pack') buildPackGrid();
+  if (tab === 'planner') buildPlanner();
+  if (tab === 'copy' && Object.keys(state.copyData).length === 0) generateAICopy();
+}
+
+// ============================================================
+// CANVAS DRAWING
+// ============================================================
+function dims() { return FORMAT_DIMS[state.format]; }
+
+function setCanvasSize() {
+  const d = dims();
+  canvas.width = d.w; canvas.height = d.h;
+  const maxH = Math.min(window.innerHeight * 0.68, 600);
+  const scale = maxH / d.h;
+  canvas.style.height = maxH + 'px';
+  canvas.style.width = (d.w * scale) + 'px';
+  document.getElementById('dimBadge').textContent = d.w + ' × ' + d.h;
+}
+
+function hexRgba(hex, a) {
+  const h = hex.replace('#','');
+  const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+function wrapText(text, maxW) {
+  const words = text.split(' ');
+  const lines = [];
+  let line = '';
+  for (const w of words) {
+    const test = line ? line+' '+w : w;
+    if (ctx.measureText(test).width > maxW && line) { lines.push(line); line=w; }
+    else line = test;
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+function rrect(x,y,w,h,r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+}
+
+const CAROUSEL_SLIDES = [
+  (p, meta, w, h) => ({ eyebrow:'BEFORE ARTISY', headline:'Still '+meta.pain, sub:"There's a better way, nurse-approved.", kind:'hook' }),
+  (p, meta, w, h) => ({ eyebrow:'THE PROBLEM', headline:'You deserve real relief.', sub:'Not generic advice. Real tools, built by a nurse with 17 years in the field.', kind:'feature' }),
+  (p, meta, w, h) => ({ eyebrow:'THE SOLUTION', headline:p.title, sub:p.desc, kind:'feature' }),
+  (p, meta, w, h) => ({ eyebrow:'WHY IT WORKS', headline:'Nurse-Designed. Not guessed.', sub:'Built by Ting Lott RN — clinical experience, not a content template.', kind:'proof' }),
+  (p, meta, w, h) => ({ eyebrow:meta.label.toUpperCase(), headline:p.title, sub:'Starting at $'+p.price, price:p.price, tag:'Get it today', kind:'offer' }),
+  (p, meta, w, h) => ({ eyebrow:'FINAL REMINDER', headline:'You found this for a reason.', sub:'Get '+p.title+' now at shop.artistrystore.com', price:p.price, kind:'offer' })
+];
+
+function slideContent(product, index, total) {
+  const meta = CATEGORY_META[product.category] || CATEGORY_META.wellness;
+  if (state.format !== 'square' && !['portrait'].includes(state.format)) {
+    // Non-carousel: single offer slide
+    return { eyebrow: meta.label.toUpperCase(), headline: product.title, sub: product.desc, price: product.price, tag: product.tag, meta, kind:'offer' };
+  }
+  const fn = CAROUSEL_SLIDES[Math.min(index, CAROUSEL_SLIDES.length-1)];
+  const s = fn(product, meta, 0, 0);
+  s.meta = meta;
+  return s;
+}
+
+function drawSlide(index) {
+  const list = filteredProducts();
+  if (!list.length) return;
+  const product = list[state.productIndex] || list[0];
+  const meta = CATEGORY_META[product.category] || CATEGORY_META.wellness;
+  const { w, h } = dims();
+  const accent = meta.accent;
+  const c = slideContent(product, index, state.slideCount);
+  const isVertical = h > w;
+  const isLandscape = w > h;
+  const pad = w * (isLandscape ? 0.06 : 0.09);
+
+  // Background
+  const grad = ctx.createLinearGradient(0, 0, w, h);
+  grad.addColorStop(0, '#14213D'); grad.addColorStop(1, '#0B1526');
+  ctx.fillStyle = grad; ctx.fillRect(0,0,w,h);
+
+  // Glow
+  const glow = ctx.createRadialGradient(w*.85,h*.1,10,w*.85,h*.1,w*.6);
+  glow.addColorStop(0, hexRgba(accent,.3)); glow.addColorStop(1, hexRgba(accent,0));
+  ctx.fillStyle=glow; ctx.fillRect(0,0,w,h);
+
+  // Top bar
+  ctx.fillStyle=accent; ctx.fillRect(0,0,w, Math.max(8, w*.008));
+
+  // Logo wordmark
+  const logoY = h * (isLandscape ? 0.1 : 0.06);
+  ctx.fillStyle='#F8F3E7';
+  ctx.font = `600 ${w*0.026}px 'DM Sans'`;
+  ctx.textBaseline='top';
+  ctx.fillText('ARTISY', pad, logoY);
+  ctx.fillStyle='#C9A227';
+  ctx.font = `500 ${w*0.015}px 'DM Sans'`;
+  ctx.fillText('T. LOTT CREATIVE', pad, logoY + w*0.034);
+
+  // RN seal (top right)
+  const sr = w*0.042;
+  const sx = w - pad - sr, sy = h*(isLandscape?.1:.055) + sr;
+  ctx.strokeStyle='#C9A227'; ctx.lineWidth=w*.0035;
+  ctx.beginPath(); ctx.arc(sx,sy,sr,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(sx,sy,sr*.75,0,Math.PI*2); ctx.stroke();
+  ctx.fillStyle='#C9A227';
+  ctx.font=`700 ${sr*.55}px 'DM Sans'`;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('RN', sx, sy-sr*.12);
+  ctx.font=`500 ${sr*.28}px 'DM Sans'`;
+  ctx.fillText('EST.', sx, sy+sr*.32);
+  ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+
+  // Eyebrow badge
+  let cy = h * (isLandscape ? .28 : .30);
+  const eyebrowText = (c.tag ? c.tag.toUpperCase()+'  ·  ' : '') + (c.eyebrow || meta.label.toUpperCase());
+  ctx.font=`700 ${w*0.022}px 'DM Sans'`;
+  const ebW = ctx.measureText(eyebrowText).width + w*.055;
+  const ebH = w*.044;
+  ctx.fillStyle=hexRgba(accent,.88);
+  rrect(pad, cy, ebW, ebH, ebH/2); ctx.fill();
+  ctx.fillStyle='#F8F3E7';
+  ctx.textBaseline='middle';
+  ctx.fillText(eyebrowText, pad+w*.028, cy+ebH/2);
+  ctx.textBaseline='alphabetic';
+  cy += ebH + w*0.055;
+
+  // Headline
+  ctx.fillStyle='#F8F3E7';
+  const hSize = isLandscape ? w*.062 : w*.074;
+  ctx.font=`700 italic ${hSize}px 'Cormorant Garamond'`;
+  const maxLineW = isLandscape ? w*.48 : w-pad*2;
+  const headLines = wrapText(c.headline || product.title, maxLineW);
+  headLines.slice(0,isLandscape?2:3).forEach(line => {
+    ctx.fillText(line, pad, cy);
+    cy += hSize * 1.12;
+  });
+  cy += w * .018;
+
+  // Sub
+  ctx.fillStyle = hexRgba('#F8F3E7', .8);
+  const subSize = isLandscape ? w*.024 : w*.027;
+  ctx.font=`400 ${subSize}px 'DM Sans'`;
+  const subLines = wrapText(c.sub || product.desc, maxLineW);
+  subLines.slice(0, isLandscape?3:4).forEach(line => {
+    ctx.fillText(line, pad, cy);
+    cy += subSize * 1.5;
+  });
+
+  // CTA / price pill
+  if (c.kind === 'offer' || c.price) {
+    const pillY = h - h*(isLandscape?.18:.14);
+    const ctaText = c.price ? '$'+c.price+'  ·  Get It Now →' : 'Get It Now →';
+    ctx.font=`700 ${w*0.028}px 'DM Sans'`;
+    const ctaW = ctx.measureText(ctaText).width + w*.065;
+    const ctaH = w*.06;
+    ctx.fillStyle='#C9A227';
+    rrect(pad, pillY, ctaW, ctaH, ctaH/2); ctx.fill();
+    ctx.fillStyle='#0B1526';
+    ctx.textBaseline='middle';
+    ctx.fillText(ctaText, pad+w*.033, pillY+ctaH/2);
+    ctx.textBaseline='alphabetic';
+  }
+
+  // Footer
+  ctx.fillStyle=hexRgba('#F8F3E7',.5);
+  ctx.font=`500 ${w*0.016}px 'DM Sans'`;
+  ctx.fillText('shop.artistrystore.com', pad, h-h*.035);
+
+  // Carousel dots
+  if (state.format === 'square' && state.slideCount > 1) {
+    const dr=w*.007, gap=w*.024, totalW=(state.slideCount-1)*gap;
+    let dx=w/2-totalW/2, dy=h-h*.035;
+    for (let i=0;i<state.slideCount;i++) {
+      ctx.beginPath(); ctx.arc(dx,dy,dr,0,Math.PI*2);
+      ctx.fillStyle = i===index ? '#C9A227' : hexRgba('#F8F3E7',.3);
+      ctx.fill(); dx+=gap;
+    }
+  }
+
+  // Platform watermark (small, bottom right)
+  const plat = PLATFORMS[state.platform];
+  if (plat) {
+    ctx.fillStyle=hexRgba('#F8F3E7',.35);
+    ctx.font=`500 ${w*0.016}px 'DM Sans'`;
+    ctx.textAlign='right';
+    ctx.fillText(plat.icon+' '+plat.label, w-pad, h-h*.035);
+    ctx.textAlign='left';
+  }
+}
+
+function render() {
+  setCanvasSize();
+  const d = dims();
+  const isCarousel = (state.format === 'square' && state.platform === 'instagram') || state.format === 'carousel';
+  document.getElementById('prevSlide').style.display = isCarousel ? 'flex':'none';
+  document.getElementById('nextSlide').style.display = isCarousel ? 'flex':'none';
+  document.getElementById('prevSlide').disabled = state.currentSlide === 0;
+  document.getElementById('nextSlide').disabled = state.currentSlide >= state.slideCount-1;
+  document.getElementById('slideCountWrap').style.display = isCarousel ? 'block':'none';
+  document.getElementById('downloadAllBtn').style.display = isCarousel ? 'block':'none';
+
+  if (document.fonts?.ready) {
+    document.fonts.ready.then(() => { drawSlide(state.currentSlide); buildFilmstrip(isCarousel); });
+  } else {
+    drawSlide(state.currentSlide); buildFilmstrip(isCarousel);
+  }
+}
+
+function buildFilmstrip(isCarousel) {
+  const strip = document.getElementById('filmstrip');
+  strip.style.display = isCarousel ? 'flex':'none';
+  if (!isCarousel) return;
+  strip.innerHTML = '';
+  for (let i=0;i<state.slideCount;i++) {
+    drawSlide(i);
+    const thumb = document.createElement('canvas');
+    const d = dims();
+    thumb.width = 56; thumb.height = Math.round(56 * d.h / d.w);
+    thumb.className = 'thumb' + (i===state.currentSlide?' active':'');
+    thumb.getContext('2d').drawImage(canvas, 0, 0, thumb.width, thumb.height);
+    const idx = i;
+    thumb.onclick = () => { state.currentSlide=idx; render(); };
+    strip.appendChild(thumb);
+  }
+  drawSlide(state.currentSlide);
+}
+
+// ============================================================
+// DOWNLOADS
+// ============================================================
+function canvasToBlob() {
+  return new Promise(res => canvas.toBlob(res, 'image/png'));
+}
+
+async function downloadCurrent() {
+  drawSlide(state.currentSlide);
+  const blob = await canvasToBlob();
+  const product = filteredProducts()[state.productIndex] || PRODUCTS[0];
+  const name = product.title.toLowerCase().replace(/[^a-z0-9]+/g,'-').slice(0,30);
+  triggerDownload(blob, `${name}-${state.platform}-${state.format}.png`);
+}
+
+async function downloadAllSlides() {
+  const product = filteredProducts()[state.productIndex] || PRODUCTS[0];
+  const name = product.title.toLowerCase().replace(/[^a-z0-9]+/g,'-').slice(0,30);
+  for (let i=0;i<state.slideCount;i++) {
+    drawSlide(i);
+    const blob = await canvasToBlob();
+    triggerDownload(blob, `${name}-slide-${i+1}.png`);
+    await sleep(300);
+  }
+  drawSlide(state.currentSlide);
+  toast('All slides downloaded!');
+}
+
+async function downloadFormat(fmt) {
+  const prev = state.format;
+  state.format = fmt;
+  setCanvasSize();
+  drawSlide(0);
+  const blob = await canvasToBlob();
+  const product = filteredProducts()[state.productIndex] || PRODUCTS[0];
+  const name = product.title.toLowerCase().replace(/[^a-z0-9]+/g,'-').slice(0,30);
+  triggerDownload(blob, `${name}-${fmt}.png`);
+  state.format = prev;
+  render();
+}
+
+async function downloadCampaignPack() {
+  toast('Downloading all formats...');
+  const fmts = Object.keys(FORMAT_DIMS);
+  const product = filteredProducts()[state.productIndex] || PRODUCTS[0];
+  const name = product.title.toLowerCase().replace(/[^a-z0-9]+/g,'-').slice(0,30);
+  for (const fmt of fmts) {
+    state.format = fmt;
+    setCanvasSize();
+    drawSlide(0);
+    const blob = await canvasToBlob();
+    triggerDownload(blob, `${name}-${fmt}.png`);
+    await sleep(350);
+  }
+  toast('Campaign pack complete! (' + fmts.length + ' formats)');
+}
+
+function triggerDownload(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ============================================================
+// AI COPY GENERATION (Pollinations AI — free, no key)
+// ============================================================
+const COPY_TYPES = {
+  instagram: { label:'Instagram', emoji:'📸' },
+  tiktok:    { label:'TikTok',    emoji:'🎵' },
+  pinterest: { label:'Pinterest', emoji:'📌' },
+  facebook:  { label:'Facebook',  emoji:'👥' },
+  twitter:   { label:'Twitter/X', emoji:'🐦' },
+  linkedin:  { label:'LinkedIn',  emoji:'💼' },
+  bluesky:   { label:'Bluesky',   emoji:'🦋' }
+};
+
+let activeCopyTab = 'instagram';
+
+async function generateAICopy() {
+  const product = filteredProducts()[state.productIndex] || PRODUCTS[0];
+  const meta = CATEGORY_META[product.category] || CATEGORY_META.wellness;
+
+  document.getElementById('genSpinner').style.display='block';
+  document.getElementById('copyBlock').textContent='Generating...';
+  showTab('copy');
+
+  const prompt = `You are a social media copywriter for ARTISY by Ting Lott RN, a nurse-turned-author who creates wellness, faith, and fiction books. Write platform-specific ad captions for this product:
+
+Product: "${product.title}"
+Category: ${meta.label}
+Price: $${product.price}
+Description: ${product.desc}
+Website: shop.artistrystore.com
+Brand tagline: Nurse-designed. Made with care.
+
+Write a short, punchy caption for each platform below. Use the exact format shown:
+
+---INSTAGRAM---
+[2-3 sentences. Emotional hook. 8-10 relevant hashtags. Include CTA to link in bio.]
+
+---TIKTOK---
+[1 strong hook sentence. 2-3 sentences. 5-7 trending hashtags. Casual, urgent tone.]
+
+---PINTEREST---
+[Keyword-rich description 2-3 sentences. 5 hashtags. Focus on search discovery.]
+
+---FACEBOOK---
+[2-4 sentences. Conversational, warm. No hashtags. Include full URL: shop.artistrystore.com]
+
+---TWITTER---
+[Under 240 chars. One hook + CTA + URL: shop.artistrystore.com. 2-3 hashtags.]
+
+---LINKEDIN---
+[Professional tone. 3-4 sentences. Ting's clinical background. 3-5 hashtags.]
+
+---BLUESKY---
+[Authentic, community tone. 2-3 sentences. 3-4 hashtags.]`;
+
+  try {
+    const encoded = encodeURIComponent(prompt);
+    const resp = await fetch(`https://text.pollinations.ai/${encoded}`, {
+      signal: AbortSignal.timeout(25000)
+    });
+    const text = await resp.text();
+    parseCopyData(text);
+  } catch(e) {
+    // Fallback: generate template copy
+    generateTemplateCopy(product, meta);
+  }
+
+  document.getElementById('genSpinner').style.display='none';
+  buildCopyTabs();
+  renderCopyTab(activeCopyTab);
+}
+
+function parseCopyData(text) {
+  state.copyData = {};
+  const keys = Object.keys(COPY_TYPES);
+  keys.forEach(k => {
+    const label = k.toUpperCase();
+    const regex = new RegExp(`---${label}---([\\s\\S]*?)(?=---[A-Z]+---|$)`, 'i');
+    const match = text.match(regex);
+    state.copyData[k] = match ? match[1].trim() : generateTemplateCopyForPlatform(k, filteredProducts()[state.productIndex]||PRODUCTS[0]);
+  });
+}
+
+function generateTemplateCopy(product, meta) {
+  state.copyData = {};
+  Object.keys(COPY_TYPES).forEach(k => {
+    state.copyData[k] = generateTemplateCopyForPlatform(k, product);
+  });
+}
+
+function generateTemplateCopyForPlatform(platform, product) {
+  const meta = CATEGORY_META[product.category] || CATEGORY_META.wellness;
+  const url = 'shop.artistrystore.com';
+  const templates = {
+    instagram: `✨ "${product.title}" — nurse-designed, heart-built.\n\n${product.desc}\n\n$${product.price} · Link in bio ↑\n\n#ArtisyByTing #${meta.label.replace(/ /,'')} #NurseAuthor #DigitalBooks #WellnessReads #TingLott #BookRecommendations #SelfHelp #HealingJourney #ReadMore`,
+    tiktok: `POV: You finally found something built by someone who actually knows what you're going through 👇\n\n"${product.title}" — $${product.price} at ${url}\n\n#BookTok #ArtisyByTing #NurseLife #${meta.label.replace(/ /,'')}Books #MustRead #TingLott`,
+    pinterest: `${product.title} by Ting Lott RN — ${product.desc} Perfect for anyone on a ${meta.label.toLowerCase()} journey. Available now at ${url} for just $${product.price}.\n\n#${meta.label.replace(/ /,'')} #DigitalDownload #ArtisyBooks #TingLott #NurseAuthor`,
+    facebook: `Have you heard about "${product.title}"? 🌟\n\n${product.desc}\n\nTing Lott, RN has spent 17 years in healthcare — and now she's channeling that wisdom into books that actually help. Get yours for $${product.price} at ${url}`,
+    twitter: `"${product.title}" — ${product.desc.slice(0,80)}... $${product.price} 📖 ${url} #ArtisyByTing #${meta.label.replace(/ /,'')}`,
+    linkedin: `Proud to share "${product.title}" — a ${meta.label.toLowerCase()} resource built on 17 years of nursing experience.\n\n${product.desc}\n\nAvailable at ${url} for $${product.price}.\n\n#HealthAndWellness #NursingLeadership #DigitalBooks #TingLott #ProfessionalDevelopment`,
+    bluesky: `✨ New read: "${product.title}" by Ting Lott RN\n\n${product.desc}\n\n$${product.price} → ${url}\n\n#Books #${meta.label.replace(/ /,'')} #TingLott`
+  };
+  return templates[platform] || templates.instagram;
+}
+
+function buildCopyTabs() {
+  const wrap = document.getElementById('copyTabs');
+  wrap.innerHTML = '';
+  Object.keys(COPY_TYPES).forEach(k => {
+    const ct = COPY_TYPES[k];
+    const b = document.createElement('button');
+    b.className = 'copy-tab' + (k===activeCopyTab?' active':'');
+    b.textContent = ct.emoji + ' ' + ct.label;
+    b.onclick = () => { activeCopyTab=k; buildCopyTabs(); renderCopyTab(k); };
+    wrap.appendChild(b);
+  });
+}
+
+function renderCopyTab(k) {
+  const block = document.getElementById('copyBlock');
+  block.textContent = state.copyData[k] || 'Click "Generate AI Copy" to create captions for this platform.';
+}
+
+function copyToClipboard() {
+  const text = state.copyData[activeCopyTab] || '';
+  navigator.clipboard.writeText(text).then(() => toast('Copied to clipboard!')).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta); toast('Copied!');
+  });
+}
+
+function downloadCopyDoc() {
+  const product = filteredProducts()[state.productIndex] || PRODUCTS[0];
+  let out = `ARTISY Marketing Copy — ${product.title}\nGenerated by ARTISY Marketing Machine\n${'='.repeat(50)}\n\n`;
+  Object.keys(COPY_TYPES).forEach(k => {
+    out += `### ${COPY_TYPES[k].label.toUpperCase()} ###\n\n${state.copyData[k]||''}\n\n${'─'.repeat(40)}\n\n`;
+  });
+  const blob = new Blob([out], {type:'text/plain'});
+  const name = product.title.toLowerCase().replace(/[^a-z0-9]+/g,'-').slice(0,30);
+  triggerDownload(blob, `${name}-copy-pack.txt`);
+  toast('Copy pack saved!');
+}
+
+// ============================================================
+// 30-DAY PLANNER
+// ============================================================
+const PLANNER_ROTATION = [
+  { platform:'instagram', type:'Square Ad',     icon:'📸', fmt:'square' },
+  { platform:'tiktok',    type:'TikTok Reel',   icon:'🎵', fmt:'reel'   },
+  { platform:'pinterest', type:'Pinterest Pin', icon:'📌', fmt:'pin'    },
+  { platform:'facebook',  type:'Facebook Post', icon:'👥', fmt:'landscape'},
+  { platform:'instagram', type:'IG Story',      icon:'📱', fmt:'story'  },
+  { platform:'twitter',   type:'Twitter Post',  icon:'🐦', fmt:'landscape'},
+  { platform:'linkedin',  type:'LinkedIn Post', icon:'💼', fmt:'landscape'},
+];
+
+function buildPlanner() {
+  const grid = document.getElementById('plannerGrid');
+  grid.innerHTML = '';
+  const list = filteredProducts();
+  if (!list.length) return;
+  for (let day=1; day<=30; day++) {
+    const rotation = PLANNER_ROTATION[(day-1) % PLANNER_ROTATION.length];
+    const product = list[(day-1) % list.length];
+    const cell = document.createElement('div');
+    cell.className = 'day-cell';
+    cell.title = `Day ${day}: ${product.title} on ${rotation.platform}`;
+    cell.innerHTML = `<span class="day-num">${day}</span><span class="day-platform">${rotation.icon}</span><span class="day-title">${product.title.split(' ').slice(0,2).join(' ')}</span>`;
+    cell.onclick = () => {
+      state.platform = rotation.platform;
+      state.format = rotation.fmt;
+      const pi = list.findIndex(p => p.title === product.title);
+      if (pi >= 0) state.productIndex = pi;
+      state.categoryFilter = 'all';
+      state.currentSlide = 0;
+      refreshAll();
+      showTab('canvas');
+      toast('Day '+day+' loaded → '+rotation.platform+' '+rotation.type);
+    };
+    grid.appendChild(cell);
+  }
+}
+
+function downloadPlanner() {
+  const list = filteredProducts();
+  let out = 'ARTISY 30-DAY CONTENT CALENDAR\nGenerated by ARTISY Marketing Machine\n'+'='.repeat(50)+'\n\n';
+  out += 'Day | Platform       | Format         | Product\n';
+  out += '-'.repeat(70)+'\n';
+  for (let day=1;day<=30;day++) {
+    const r = PLANNER_ROTATION[(day-1)%PLANNER_ROTATION.length];
+    const p = list[(day-1)%list.length];
+    out += `${String(day).padEnd(4)}| ${r.platform.padEnd(15)}| ${r.type.padEnd(15)}| ${p.title}\n`;
+  }
+  const blob = new Blob([out],{type:'text/plain'});
+  triggerDownload(blob,'artisy-30day-content-calendar.txt');
+  toast('Calendar saved!');
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function refreshAll() {
+  buildCategoryChips();
+  buildProductSelect();
+  buildPlatformGrid();
+  buildFormatChips();
+  render();
+}
+
+refreshAll();
+</script>
+</body>
+</html>
