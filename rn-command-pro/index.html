@@ -1,0 +1,2873 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RN Command Pro — Nurse Command Center</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="assets/voice-whisper.js"></script>
+    <style>
+        :root {
+            --bg: #0a1628;
+            --bg-elevated: #0f1d32;
+            --card: #152238;
+            --card-hover: #1a2a45;
+            --accent: #00d4aa;
+            --accent-dim: rgba(0, 212, 170, 0.15);
+            --accent-glow: rgba(0, 212, 170, 0.4);
+            --danger: #ff6b6b;
+            --warning: #fbbf24;
+            --purple: #8b5cf6;
+            --pink: #ec4899;
+            --blue: #3b82f6;
+            --text: #e8f1f8;
+            --text-dim: #7a8ba3;
+            --border: #243352;
+            --border-light: #2d4263;
+        }
+
+        .dark {
+            --bg: #0a1628;
+            --bg-elevated: #0f1d32;
+            --card: #152238;
+            --card-hover: #1a2a45;
+            --text: #e8f1f8;
+            --text-dim: #7a8ba3;
+            --border: #243352;
+        }
+
+        html:not(.dark) {
+            --bg: #f0f4f8;
+            --bg-elevated: #ffffff;
+            --card: #ffffff;
+            --card-hover: #f8fafc;
+            --text: #1a2d42;
+            --text-dim: #5a6f85;
+            --border: #d1dce6;
+            --border-light: #e2eaf1;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                radial-gradient(circle at 20% 80%, var(--accent-dim) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        header {
+            position: relative;
+            z-index: 10;
+            padding: 16px 24px;
+            background: var(--bg-elevated);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--accent), #00a896);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0a1628;
+            font-size: 1rem;
+        }
+
+        .logo span { color: var(--accent); }
+
+        .header-actions { display: flex; gap: 10px; align-items: center; }
+
+        .wrapper {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+        }
+
+        main {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            transition: 0.3s ease;
+        }
+
+        .tab-nav {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 24px;
+            background: var(--card);
+            padding: 6px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            flex: 1;
+            min-width: 90px;
+            padding: 12px 10px;
+            border: none;
+            border-radius: 10px;
+            background: transparent;
+            color: var(--text-dim);
+            font-weight: 600;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .tab-btn:hover { color: var(--text); background: var(--card-hover); }
+
+        .tab-btn.active {
+            background: var(--accent);
+            color: #0a1628;
+            box-shadow: 0 4px 15px var(--accent-glow);
+        }
+
+        .tab-btn[data-color="blue"].active { background: var(--blue); box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4); }
+        .tab-btn[data-color="danger"].active { background: var(--danger); box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4); }
+        .tab-btn[data-color="purple"].active { background: var(--purple); box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4); }
+        .tab-btn[data-color="pink"].active { background: var(--pink); box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4); }
+
+        .module {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 24px;
+            border: 1px solid var(--border);
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .module.active { display: block; }
+
+        .module h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .module h3 i { color: var(--accent); }
+
+        .module-desc {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+        }
+
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+
+        .input-group { display: flex; flex-direction: column; gap: 6px; }
+        .input-group.full { grid-column: 1 / -1; }
+
+        label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-dim);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 200px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        textarea.listening {
+            border-color: var(--danger);
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.2);
+        }
+
+        button {
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #00a896);
+            color: #0a1628;
+            box-shadow: 0 4px 15px var(--accent-glow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--accent-glow);
+        }
+
+        .btn-primary:disabled, .btn-secondary:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: var(--card-hover);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover { background: var(--border); }
+
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border-radius: 10px;
+        }
+
+        .btn-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .template-btn {
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            font-weight: 600;
+            font-size: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .template-btn:hover { background: var(--card-hover); border-color: var(--accent); }
+        .template-btn i { font-size: 1.2rem; }
+
+        .template-btn.voice { background: var(--danger); color: #fff; border-color: var(--danger); }
+        .template-btn.voice.active { animation: pulse 1s infinite; }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.4); }
+            50% { box-shadow: 0 0 0 10px rgba(255, 107, 107, 0); }
+        }
+
+        /* Calculator Styles */
+        .calc-categories { display: flex; flex-direction: column; gap: 20px; }
+
+        .calc-category h4 {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            padding-left: 4px;
+        }
+
+        .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        .calc-btn {
+            padding: 16px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            text-align: left;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .calc-btn:hover { border-color: var(--accent); background: var(--card-hover); }
+
+        .calc-btn.high-risk { border-left: 3px solid var(--danger); }
+
+        .calc-view { animation: fadeIn 0.3s ease; }
+
+        .calc-view .back-btn {
+            background: none;
+            border: none;
+            color: var(--blue);
+            font-weight: 600;
+            margin-bottom: 16px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .calc-view h3 { margin-bottom: 20px; }
+
+        .calc-res {
+            margin-top: 20px;
+            padding: 24px;
+            background: linear-gradient(135deg, var(--accent-dim), transparent);
+            border: 1px solid var(--accent);
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        .calc-res-label {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .calc-res-value {
+            font-family: 'IBM Plex Mono', monospace;
+            color: var(--accent);
+            font-size: 2.2rem;
+            font-weight: 700;
+        }
+
+        .verify-check {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 16px;
+            padding: 12px;
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid var(--danger);
+            border-radius: 10px;
+            color: var(--danger);
+            font-size: 0.85rem;
+        }
+
+        .verify-check input { width: auto; }
+
+        /* Critical Care */
+        .assessment-card {
+            background: var(--bg);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+
+        .assessment-card h4 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            font-size: 1rem;
+        }
+
+        .assessment-card h4 i { font-size: 1.2rem; }
+
+        .gcs-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+
+        .gcs-col label {
+            display: block;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .gcs-col select {
+            padding: 12px;
+            text-align: center;
+        }
+
+        .gcs-result {
+            margin-top: 16px;
+            padding: 16px;
+            background: var(--card);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .gcs-result .score {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .gcs-result .interpretation {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+
+        .burn-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .burn-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: var(--card);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .burn-area input {
+            width: 60px;
+            text-align: center;
+            padding: 8px;
+        }
+
+        .burn-total {
+            grid-column: 1 / -1;
+            padding: 16px;
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), transparent);
+            border: 1px solid var(--warning);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .burn-total .value {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--warning);
+        }
+
+        /* ACLS Reference */
+        .reference-card {
+            background: var(--bg);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 12px;
+            border-left: 3px solid var(--accent);
+        }
+
+        .reference-card h4 {
+            font-size: 0.9rem;
+            color: var(--accent);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .reference-card p {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .reference-card strong { color: var(--text); }
+
+        .drug-badge {
+            display: inline-block;
+            background: var(--accent-dim);
+            color: var(--accent);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 6px;
+            margin-bottom: 6px;
+        }
+
+        /* Reference Links */
+        .ref-grid { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+
+        .ref-link {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .ref-link:hover { border-color: var(--accent); background: var(--card-hover); }
+
+        .ref-link i {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--accent-dim);
+            color: var(--accent);
+            border-radius: 10px;
+            font-size: 1.1rem;
+        }
+
+        /* ===== NEW: Transcription ===== */
+        .progress-wrap {
+            height: 10px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            overflow: hidden;
+            margin-top: 12px;
+            display: none;
+        }
+
+        .progress-wrap.show { display: block; }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent), #00a896);
+            transition: width 0.25s ease;
+        }
+
+        .status-line {
+            margin-top: 10px;
+            font-size: 0.82rem;
+            color: var(--text-dim);
+            min-height: 1.2em;
+        }
+
+        .rec-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--danger);
+            margin-right: 6px;
+            animation: pulse 1s infinite;
+        }
+
+        .file-pick {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: var(--bg);
+            border: 1px dashed var(--border-light);
+            border-radius: 12px;
+            cursor: pointer;
+        }
+
+        .file-pick:hover { border-color: var(--accent); }
+
+        audio { width: 100%; margin-top: 12px; }
+
+        .word-count { font-size: 0.75rem; color: var(--text-dim); margin-top: 6px; text-align: right; }
+
+        /* ===== NEW: Telehealth ===== */
+        .appt-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .appt-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .appt-title { font-weight: 700; font-size: 0.95rem; }
+        .appt-meta { color: var(--text-dim); font-size: 0.8rem; margin-top: 2px; }
+
+        .appt-link {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--blue);
+            word-break: break-all;
+            margin-top: 8px;
+        }
+
+        .appt-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+
+        .appt-actions .btn { padding: 9px 14px; font-size: 0.78rem; }
+
+        .visit-frame {
+            width: 100%;
+            height: 480px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .consent-check {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-top: 16px;
+            padding: 12px;
+            background: rgba(0, 212, 170, 0.08);
+            border: 1px solid var(--accent);
+            border-radius: 10px;
+            font-size: 0.85rem;
+        }
+
+        .consent-check input { width: auto; margin-top: 3px; }
+
+        .privacy-note {
+            display: flex;
+            gap: 10px;
+            padding: 12px;
+            background: rgba(251, 191, 36, 0.08);
+            border: 1px solid var(--warning);
+            border-radius: 10px;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .privacy-note i { color: var(--warning); margin-top: 2px; }
+
+        /* Sidebar */
+        .sidebar {
+            width: 420px;
+            background: var(--bg-elevated);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transition: 0.3s ease;
+        }
+
+        .sidebar.hidden { margin-right: -420px; }
+
+        .chat-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+        }
+
+        .chat-title-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+
+        .close-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        .close-btn:hover { background: var(--card); color: var(--text); }
+
+        .chat-actions {
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-action-btn {
+            flex: 1;
+            padding: 10px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-dim);
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .chat-action-btn:hover { color: var(--text); border-color: var(--accent); }
+
+        .chat-history {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .bubble {
+            padding: 14px 18px;
+            border-radius: 16px;
+            max-width: 90%;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .bubble.user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, var(--accent), #00a896);
+            color: #0a1628;
+            border-bottom-right-radius: 4px;
+        }
+
+        .bubble.bot {
+            align-self: flex-start;
+            background: var(--card);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-bottom-left-radius: 4px;
+        }
+
+        .bubble.bot p { margin: 0.5em 0; }
+        .bubble.bot p:first-child { margin-top: 0; }
+        .bubble.bot p:last-child { margin-bottom: 0; }
+        .bubble.bot ul, .bubble.bot ol { margin: 0.5em 0; padding-left: 1.5em; }
+        .bubble.bot li { margin: 0.25em 0; }
+        .bubble.bot code {
+            background: var(--bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.85em;
+        }
+        .bubble.bot pre {
+            background: var(--bg);
+            padding: 12px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 0.5em 0;
+        }
+        .bubble.bot pre code { background: transparent; padding: 0; }
+        .bubble.bot strong { color: var(--accent); }
+        .bubble.bot h1, .bubble.bot h2, .bubble.bot h3, .bubble.bot h4 {
+            margin: 0.8em 0 0.4em 0;
+            color: var(--text);
+        }
+        .bubble.bot h1:first-child, .bubble.bot h2:first-child, .bubble.bot h3:first-child { margin-top: 0; }
+
+        .bubble.loading {
+            display: flex;
+            gap: 6px;
+            padding: 18px 22px;
+        }
+
+        .bubble.loading span {
+            width: 8px;
+            height: 8px;
+            background: var(--text-dim);
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out;
+        }
+
+        .bubble.loading span:nth-child(1) { animation-delay: -0.32s; }
+        .bubble.loading span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        .chat-input {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 12px;
+            background: var(--bg-elevated);
+        }
+
+        .chat-input input {
+            flex: 1;
+            border-radius: 12px;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--card);
+            color: var(--text);
+            padding: 14px 24px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success { border-color: var(--accent); }
+        .toast.success i { color: var(--accent); }
+
+        .toast.error { border-color: var(--danger); }
+        .toast.error i { color: var(--danger); }
+
+        /* ===== Secret API Key Box ===== */
+        .api-key-box { position: relative; }
+
+        .api-key-panel {
+            position: absolute;
+            top: 48px;
+            right: 0;
+            width: 320px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+            z-index: 100;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .api-key-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .secret-input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .secret-input-wrap input {
+            padding-right: 44px;
+            font-family: 'IBM Plex Mono', monospace;
+            letter-spacing: 1px;
+        }
+
+        .toggle-vis {
+            position: absolute;
+            right: 8px;
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            padding: 6px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .toggle-vis:hover {
+            color: var(--accent);
+            background: var(--accent-dim);
+        }
+
+        /* Memo list */
+        .memo-list {
+            margin-top: 16px;
+            max-height: 180px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .memo-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+        .memo-item:hover { border-color: var(--accent); }
+        .memo-item .memo-actions { display: flex; gap: 6px; }
+
+        /* Mobile */
+        @media (max-width: 900px) {
+            .sidebar {
+                position: fixed;
+                right: 0;
+                top: 0;
+                bottom: 0;
+                width: 100%;
+                max-width: 420px;
+                z-index: 100;
+                box-shadow: -10px 0 40px rgba(0, 0, 0, 0.3);
+            }
+
+            .sidebar.hidden { margin-right: 0; transform: translateX(100%); }
+
+            main { padding: 16px; }
+
+            .input-grid, .calc-grid, .gcs-grid, .burn-grid { grid-template-columns: 1fr; }
+            .btn-grid { grid-template-columns: repeat(2, 1fr); }
+            .visit-frame { height: 60vh; }
+
+            .tab-btn span { display: none; }
+            .tab-btn i { margin: 0; font-size: 1rem; }
+            .tab-btn { min-width: 48px; }
+        }
+
+        @media (max-width: 500px) {
+            header { padding: 12px 16px; }
+            .logo { font-size: 1rem; }
+            .logo-icon { width: 32px; height: 32px; font-size: 0.9rem; }
+            .btn span { display: none; }
+            .api-key-panel {
+                width: calc(100vw - 32px);
+                right: -8px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">
+        <div class="logo-icon"><i class="fas fa-heartbeat"></i></div>
+        RN COMMAND <span>PRO</span>
+    </div>
+    <div class="header-actions">
+        <!-- Secret API Key Box -->
+        <div class="api-key-box" id="apiKeyBox">
+            <button class="btn btn-secondary btn-icon" onclick="toggleApiKeyBox()" title="API Keys">
+                <i class="fas fa-key"></i>
+            </button>
+            <div class="api-key-panel" id="apiKeyPanel" style="display:none;">
+                <div class="api-key-header">
+                    <span><i class="fas fa-lock"></i> API Keys (local only)</span>
+                    <button class="close-btn" onclick="toggleApiKeyBox()"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="input-group">
+                    <label for="tinyfishKey">TinyFish API Key</label>
+                    <div class="secret-input-wrap">
+                        <input type="password" id="tinyfishKey" placeholder="tf_••••••••••••••••" autocomplete="off" spellcheck="false">
+                        <button type="button" class="toggle-vis" onclick="toggleVisibility('tinyfishKey')">
+                            <i class="fas fa-eye" id="eye-tinyfishKey"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="input-group" style="margin-top:10px;">
+                    <label for="hfKey">Hugging Face Token (optional)</label>
+                    <div class="secret-input-wrap">
+                        <input type="password" id="hfKey" placeholder="hf_••••••••••••••••" autocomplete="off" spellcheck="false">
+                        <button type="button" class="toggle-vis" onclick="toggleVisibility('hfKey')">
+                            <i class="fas fa-eye" id="eye-hfKey"></i>
+                        </button>
+                    </div>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:14px;">
+                    <button class="btn btn-primary" style="flex:1;" onclick="saveApiKeys()">
+                        <i class="fas fa-save"></i> Save
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearApiKeys()">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                <p style="font-size:0.7rem;color:var(--text-dim);margin-top:10px;">
+                    Keys stay in this browser only. Never leave your device.
+                </p>
+            </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="toggleSidebar()">
+            <i class="fas fa-robot"></i>
+            <span>AI Assistant</span>
+        </button>
+    </div>
+</header>
+
+<div class="wrapper">
+    <main>
+        <div class="tab-nav">
+            <button class="tab-btn active" data-color="green" onclick="setTab('notes', this)">
+                <i class="fas fa-clipboard-list"></i>
+                <span>NOTES</span>
+            </button>
+            <button class="tab-btn" data-color="pink" onclick="setTab('transcribe', this)">
+                <i class="fas fa-file-audio"></i>
+                <span>TRANSCRIBE</span>
+            </button>
+            <button class="tab-btn" data-color="blue" onclick="setTab('telehealth', this)">
+                <i class="fas fa-video"></i>
+                <span>TELEHEALTH</span>
+            </button>
+            <button class="tab-btn" data-color="blue" onclick="setTab('math', this)">
+                <i class="fas fa-calculator"></i>
+                <span>MATH</span>
+            </button>
+            <button class="tab-btn" data-color="danger" onclick="setTab('crit', this)">
+                <i class="fas fa-bolt"></i>
+                <span>CRITICAL</span>
+            </button>
+            <button class="tab-btn" data-color="purple" onclick="setTab('refs', this)">
+                <i class="fas fa-book-medical"></i>
+                <span>REFS</span>
+            </button>
+        </div>
+
+        <!-- NOTES MODULE -->
+        <div id="notes" class="module active">
+            <h3><i class="fas fa-edit"></i> Clinical Documentation</h3>
+            <p class="module-desc">Document patient information with quick templates. Use voice or type. Memos auto-save locally.</p>
+
+            <textarea id="noteArea" placeholder="Start charting or use templates below..."></textarea>
+
+            <div class="btn-grid">
+                <button class="template-btn voice" id="voiceBtn" onclick="toggleVoice()">
+                    <i class="fas fa-microphone"></i>
+                    VOICE
+                </button>
+                <button class="template-btn" onclick="insertTemplate('HANDOFF')">
+                    <i class="fas fa-exchange-alt" style="color: var(--purple);"></i>
+                    HANDOFF
+                </button>
+                <button class="template-btn" onclick="insertTemplate('SBAR')">
+                    <i class="fas fa-comments" style="color: var(--accent);"></i>
+                    SBAR
+                </button>
+                <button class="template-btn" onclick="insertTemplate('PSYCH')">
+                    <i class="fas fa-brain" style="color: var(--pink);"></i>
+                    PSYCH
+                </button>
+                <button class="template-btn" onclick="insertTemplate('VITALS')">
+                    <i class="fas fa-heartbeat" style="color: var(--warning);"></i>
+                    VITALS
+                </button>
+                <button class="template-btn" onclick="insertTemplate('NEURO')">
+                    <i class="fas fa-user-md" style="color: var(--blue);"></i>
+                    NEURO
+                </button>
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap;">
+                <button class="btn btn-primary" onclick="copyNote()">
+                    <i class="fas fa-copy"></i> Copy
+                </button>
+                <button class="btn btn-secondary" onclick="saveMemo()">
+                    <i class="fas fa-bookmark"></i> Save Memo
+                </button>
+                <button class="btn btn-secondary" onclick="askAIAboutNote()">
+                    <i class="fas fa-wand-magic-sparkles"></i> AI Enhance
+                </button>
+                <button class="btn btn-secondary" onclick="speakNote()">
+                    <i class="fas fa-volume-up"></i> Read Aloud
+                </button>
+                <button class="btn btn-secondary" onclick="clearNote()">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+
+            <!-- Saved Memos -->
+            <div id="memoSection" style="margin-top:20px;">
+                <h4 style="font-size:0.85rem;color:var(--text-dim);margin-bottom:8px;">Saved Memos</h4>
+                <div class="memo-list" id="memoList"></div>
+            </div>
+        </div>
+
+        <!-- TRANSCRIBE MODULE -->
+        <div id="transcribe" class="module">
+            <h3><i class="fas fa-file-audio" style="color: var(--pink);"></i> Transcription Studio</h3>
+            <p class="module-desc">Record a voice note or upload an audio file — Whisper transcribes it <strong>100% on this device</strong>. No audio is uploaded anywhere. First use downloads the speech model once.</p>
+
+            <div class="input-grid">
+                <div class="input-group">
+                    <label for="txLanguage">Language</label>
+                    <select id="txLanguage">
+                        <option value="en" selected>English</option>
+                        <option value="es">Spanish</option>
+                        <option value="fr">French</option>
+                        <option value="de">German</option>
+                        <option value="pt">Portuguese</option>
+                        <option value="it">Italian</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Record on this device</label>
+                    <button class="btn btn-secondary" id="recBtn" onclick="toggleRecording()">
+                        <i class="fas fa-microphone"></i> <span id="recLabel">Start Recording</span>
+                    </button>
+                </div>
+            </div>
+
+            <div style="margin-top:16px;">
+                <label>Or upload an audio file</label>
+                <label class="file-pick" for="audioFile">
+                    <i class="fas fa-upload" style="color: var(--accent); font-size:1.2rem;"></i>
+                    <span id="filePickLabel">Tap to choose an audio file (MP3, WAV, M4A…)</span>
+                </label>
+                <input type="file" id="audioFile" accept="audio/*" style="display:none;" onchange="onAudioSelected()">
+            </div>
+
+            <audio id="audioPlayback" controls style="display:none;"></audio>
+
+            <div style="display:flex; gap:12px; margin-top:16px; flex-wrap:wrap;">
+                <button class="btn btn-primary" id="transcribeBtn" onclick="transcribeCurrentAudio()" disabled>
+                    <i class="fas fa-wand-magic-sparkles"></i> Transcribe on This Device
+                </button>
+            </div>
+
+            <div class="progress-wrap" id="txProgressWrap"><div class="progress-bar" id="txProgressBar"></div></div>
+            <div class="status-line" id="txStatus">Whisper engine ready. Pick or record audio to begin.</div>
+
+            <div style="margin-top:16px;">
+                <label for="transcriptArea">Transcript</label>
+                <textarea id="transcriptArea" placeholder="Your transcript will appear here. You can edit it before sending it to Notes." oninput="updateTxWords()"></textarea>
+                <div class="word-count" id="txWordCount">0 words</div>
+            </div>
+
+            <div style="display:flex; gap:12px; margin-top:12px; flex-wrap:wrap;">
+                <button class="btn btn-primary" onclick="sendTranscriptToNotes()">
+                    <i class="fas fa-clipboard-list"></i> Send to Notes
+                </button>
+                <button class="btn btn-secondary" onclick="saveTranscriptMemo()">
+                    <i class="fas fa-bookmark"></i> Save as Memo
+                </button>
+                <button class="btn btn-secondary" onclick="copyTranscript()">
+                    <i class="fas fa-copy"></i> Copy
+                </button>
+                <button class="btn btn-secondary" onclick="document.getElementById('transcriptArea').value=''; updateTxWords();">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+
+            <div class="reference-card">
+                <h4><i class="fas fa-lightbulb"></i> Tip</h4>
+                <p>For live dictation while you talk, use the red <strong>VOICE</strong> button in the Notes tab. Use this studio for recordings and audio files — and for transcribing telehealth visit audio you recorded with consent.</p>
+            </div>
+        </div>
+
+        <!-- TELEHEALTH MODULE -->
+        <div id="telehealth" class="module">
+            <h3><i class="fas fa-video" style="color: var(--blue);"></i> Telehealth Visits</h3>
+            <p class="module-desc">Video visits powered by Jitsi — free, no account or app needed for your patient. Each visit gets its own private room link you can copy and send.</p>
+
+            <div class="privacy-note">
+                <i class="fas fa-shield-halved"></i>
+                <div><strong>Privacy first:</strong> use patient <strong>initials only</strong> — never full names or medical record numbers here. Anyone holding a visit link can join that room, so share links the same way you'd share a phone number. Live transcription only starts after the patient consents (checkbox below the video).</div>
+            </div>
+
+            <div class="assessment-card">
+                <h4><i class="fas fa-calendar-plus" style="color: var(--accent);"></i> New Appointment</h4>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="apptPatient">Patient (initials only)</label>
+                        <input type="text" id="apptPatient" placeholder="e.g., J.D." maxlength="12">
+                    </div>
+                    <div class="input-group">
+                        <label for="apptReason">Visit Reason</label>
+                        <input type="text" id="apptReason" placeholder="e.g., Med check-in, wellness visit" maxlength="80">
+                    </div>
+                    <div class="input-group">
+                        <label for="apptDate">Date</label>
+                        <input type="date" id="apptDate">
+                    </div>
+                    <div class="input-group">
+                        <label for="apptTime">Time</label>
+                        <input type="time" id="apptTime">
+                    </div>
+                </div>
+                <button class="btn btn-primary" style="margin-top:16px;" onclick="createAppointment()">
+                    <i class="fas fa-plus"></i> Create Appointment &amp; Visit Link
+                </button>
+            </div>
+
+            <h4 style="font-size:0.9rem; margin: 20px 0 10px;">Your Appointments</h4>
+            <div id="apptList"></div>
+
+            <!-- Active visit -->
+            <div id="visitPanel" style="display:none; margin-top:20px;">
+                <div class="assessment-card">
+                    <h4><i class="fas fa-video" style="color: var(--danger);"></i> <span id="visitTitle">Visit</span></h4>
+                    <div id="jitsiContainer" class="visit-frame"></div>
+                    <p style="font-size:0.78rem; color:var(--text-dim); margin-top:8px;">If the video doesn't load here, use <strong>Open in New Tab</strong> on the appointment card — same room, same link.</p>
+
+                    <div class="consent-check">
+                        <input type="checkbox" id="consentCheck" onchange="onConsentChange()">
+                        <label for="consentCheck" style="text-transform:none; letter-spacing:0; font-size:0.85rem; color:var(--text);">The patient has given verbal consent to live transcription of this visit for my nursing notes.</label>
+                    </div>
+
+                    <div style="display:flex; gap:12px; margin-top:14px; flex-wrap:wrap;">
+                        <button class="btn btn-secondary" id="visitTxBtn" onclick="toggleVisitTranscription()" disabled>
+                            <i class="fas fa-closed-captioning"></i> <span id="visitTxLabel">Start Live Transcription</span>
+                        </button>
+                        <span class="status-line" id="visitTxStatus" style="margin-top:12px;"></span>
+                    </div>
+
+                    <div style="margin-top:16px;">
+                        <label for="visitNote">Visit Note (transcription lands here — type to add)</label>
+                        <textarea id="visitNote" placeholder="Visit note…"></textarea>
+                    </div>
+
+                    <div style="display:flex; gap:12px; margin-top:12px; flex-wrap:wrap;">
+                        <button class="btn btn-primary" onclick="endVisitAndSave()">
+                            <i class="fas fa-flag-checkered"></i> End Visit &amp; Save Note
+                        </button>
+                        <button class="btn btn-secondary" onclick="copyVisitNote()">
+                            <i class="fas fa-copy"></i> Copy Note
+                        </button>
+                        <button class="btn btn-secondary" onclick="closeVisitPanel(false)">
+                            <i class="fas fa-times"></i> Close Without Saving
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="reference-card">
+                <h4><i class="fas fa-circle-info"></i> How it works</h4>
+                <p>1. Create the appointment — a unique Jitsi room link is generated.<br>
+                2. Tap <strong>Copy Link</strong> and text it to your patient. They tap it and join from any browser — no install, no account.<br>
+                3. Tap <strong>Start Visit</strong> when it's time. Get consent, tick the box, and start live transcription so the conversation flows straight into your visit note.<br>
+                4. <strong>End Visit &amp; Save Note</strong> files it under Saved Memos in the Notes tab.</p>
+            </div>
+        </div>
+
+        <!-- MATH MODULE -->
+        <div id="math" class="module">
+            <div id="calcMenu">
+                <h3><i class="fas fa-prescription-bottle-medical"></i> Clinical Calculators</h3>
+                <p class="module-desc">Tap a calculator to begin. High-risk calculations require dual verification.</p>
+
+                <div class="calc-categories">
+                    <div class="calc-category">
+                        <h4>Medication Dosing</h4>
+                        <div class="calc-grid">
+                            <button class="calc-btn high-risk" onclick="openCalc('drip')">
+                                <i class="fas fa-tint"></i> mcg/kg/min → mL/hr
+                            </button>
+                            <button class="calc-btn high-risk" onclick="openCalc('narcotic')">
+                                <i class="fas fa-pills"></i> Narcotic Waste
+                            </button>
+                            <button class="calc-btn" onclick="openCalc('poliquid')">
+                                <i class="fas fa-prescription-bottle"></i> PO Liquid Dose
+                            </button>
+                            <button class="calc-btn" onclick="openCalc('tablet')">
+                                <i class="fas fa-tablets"></i> Tablet Dose
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="calc-category">
+                        <h4>Clinical Metrics</h4>
+                        <div class="calc-grid">
+                            <button class="calc-btn" onclick="openCalc('io')">
+                                <i class="fas fa-droplet"></i> I&O Balance
+                            </button>
+                            <button class="calc-btn" onclick="openCalc('bmi')">
+                                <i class="fas fa-weight-scale"></i> BMI
+                            </button>
+                            <button class="calc-btn" onclick="openCalc('o2tank')">
+                                <i class="fas fa-lungs"></i> O₂ Tank Time
+                            </button>
+                            <button class="calc-btn" onclick="openCalc('ibw')">
+                                <i class="fas fa-ruler-vertical"></i> Ideal Body Weight
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="calcView" class="calc-view" style="display: none;"></div>
+        </div>
+
+        <!-- CRITICAL MODULE -->
+        <div id="crit" class="module">
+            <h3><i class="fas fa-heart-pulse" style="color: var(--danger);"></i> Critical Care Tools</h3>
+            <p class="module-desc">Rapid assessments and ACLS protocols for emergency situations.</p>
+
+            <div class="assessment-card">
+                <h4><i class="fas fa-brain" style="color: var(--blue);"></i> Glasgow Coma Scale</h4>
+                <div class="gcs-grid">
+                    <div class="gcs-col">
+                        <label>Eye (1-4)</label>
+                        <select id="gcsEye" onchange="updateGCS()">
+                            <option value="4">4 - Spontaneous</option>
+                            <option value="3">3 - To Voice</option>
+                            <option value="2">2 - To Pain</option>
+                            <option value="1">1 - None</option>
+                        </select>
+                    </div>
+                    <div class="gcs-col">
+                        <label>Verbal (1-5)</label>
+                        <select id="gcsVerbal" onchange="updateGCS()">
+                            <option value="5">5 - Oriented</option>
+                            <option value="4">4 - Confused</option>
+                            <option value="3">3 - Inappropriate</option>
+                            <option value="2">2 - Incomprehensible</option>
+                            <option value="1">1 - None</option>
+                        </select>
+                    </div>
+                    <div class="gcs-col">
+                        <label>Motor (1-6)</label>
+                        <select id="gcsMotor" onchange="updateGCS()">
+                            <option value="6">6 - Obeys Commands</option>
+                            <option value="5">5 - Localizes Pain</option>
+                            <option value="4">4 - Withdraws</option>
+                            <option value="3">3 - Flexion</option>
+                            <option value="2">2 - Extension</option>
+                            <option value="1">1 - None</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="gcs-result">
+                    <div class="score" id="gcsScore">15</div>
+                    <div class="interpretation" id="gcsInterp">Normal / Alert</div>
+                </div>
+            </div>
+
+            <div class="assessment-card">
+                <h4><i class="fas fa-fire" style="color: var(--warning);"></i> Burn Assessment (Rule of 9s)</h4>
+                <div class="burn-grid">
+                    <div class="burn-area">
+                        <span>Head (9%)</span>
+                        <input type="number" id="burnHead" placeholder="%" min="0" max="9" oninput="updateBurn()">
+                    </div>
+                    <div class="burn-area">
+                        <span>Chest (9%)</span>
+                        <input type="number" id="burnChest" placeholder="%" min="0" max="9" oninput="updateBurn()">
+                    </div>
+                    <div class="burn-area">
+                        <span>Abdomen (9%)</span>
+                        <input type="number" id="burnAbd" placeholder="%" min="0" max="9" oninput="updateBurn()">
+                    </div>
+                    <div class="burn-area">
+                        <span>Back (18%)</span>
+                        <input type="number" id="burnBack" placeholder="%" min="0" max="18" oninput="updateBurn()">
+                    </div>
+                    <div class="burn-area">
+                        <span>Each Arm (9%)</span>
+                        <input type="number" id="burnArms" placeholder="%" min="0" max="18" oninput="updateBurn()">
+                    </div>
+                    <div class="burn-area">
+                        <span>Each Leg (18%)</span>
+                        <input type="number" id="burnLegs" placeholder="%" min="0" max="36" oninput="updateBurn()">
+                    </div>
+                    <div class="burn-area">
+                        <span>Perineum (1%)</span>
+                        <input type="number" id="burnPeri" placeholder="%" min="0" max="1" oninput="updateBurn()">
+                    </div>
+                    <div class="burn-total">
+                        <div class="label">Total Body Surface Area</div>
+                        <div class="value" id="burnTotal">0%</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="reference-card">
+                <h4><i class="fas fa-list-check"></i> H's &amp; T's (Reversible Causes)</h4>
+                <p>
+                    <strong>H's:</strong> Hypovolemia, Hypoxia, Hydrogen ion (acidosis), Hypo/Hyperkalemia, Hypothermia<br>
+                    <strong>T's:</strong> Tension pneumothorax, Tamponade (cardiac), Toxins, Thrombosis (pulmonary/coronary)
+                </p>
+            </div>
+
+            <div class="reference-card">
+                <h4><i class="fas fa-syringe"></i> Epinephrine</h4>
+                <p>
+                    <span class="drug-badge">VF/pVT</span>
+                    <span class="drug-badge">Asystole/PEA</span><br>
+                    <strong>1 mg IV/IO</strong> every 3-5 minutes during arrest
+                </p>
+            </div>
+
+            <div class="reference-card">
+                <h4><i class="fas fa-syringe"></i> Amiodarone</h4>
+                <p>
+                    <span class="drug-badge">VF/pVT</span><br>
+                    <strong>1st dose:</strong> 300 mg IV/IO bolus<br>
+                    <strong>2nd dose:</strong> 150 mg IV/IO
+                </p>
+            </div>
+
+            <div class="reference-card">
+                <h4><i class="fas fa-syringe"></i> Lidocaine (Alternative)</h4>
+                <p>
+                    <span class="drug-badge">VF/pVT</span><br>
+                    <strong>1st dose:</strong> 1-1.5 mg/kg IV/IO<br>
+                    <strong>2nd dose:</strong> 0.5-0.75 mg/kg
+                </p>
+            </div>
+        </div>
+
+        <!-- REFS MODULE -->
+        <div id="refs" class="module">
+            <h3><i class="fas fa-book-medical" style="color: var(--purple);"></i> Quick References</h3>
+            <p class="module-desc">Essential nursing resources and drug references.</p>
+
+            <div class="ref-grid">
+                <a href="https://www.webmd.com/pill-identification/default.htm" target="_blank" class="ref-link">
+                    <i class="fas fa-pills"></i>
+                    <div>
+                        <div>WebMD Pill Identifier</div>
+                        <small style="color: var(--text-dim);">Identify medications by appearance</small>
+                    </div>
+                </a>
+                <a href="https://www.manuelsweb.com/nrs_calculators.htm" target="_blank" class="ref-link">
+                    <i class="fas fa-calculator"></i>
+                    <div>
+                        <div>Manuel's Web Calculators</div>
+                        <small style="color: var(--text-dim);">Comprehensive nursing math tools</small>
+                    </div>
+                </a>
+                <a href="https://www.merckmanuals.com/professional" target="_blank" class="ref-link">
+                    <i class="fas fa-stethoscope"></i>
+                    <div>
+                        <div>Merck Manual Professional</div>
+                        <small style="color: var(--text-dim);">Clinical reference guide</small>
+                    </div>
+                </a>
+                <a href="https://en.wikipedia.org/wiki/Nursing" target="_blank" class="ref-link">
+                    <i class="fas fa-graduation-cap"></i>
+                    <div>
+                        <div>Wikipedia: Nursing</div>
+                        <small style="color: var(--text-dim);">General nursing knowledge</small>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <!-- AI SIDEBAR -->
+    <aside class="sidebar hidden" id="sidebar">
+        <div class="chat-header">
+            <div class="chat-title">
+                <div class="chat-title-icon">🩺</div>
+                Clinical AI Assistant
+            </div>
+            <button class="close-btn" onclick="toggleSidebar()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="chat-actions">
+            <button class="chat-action-btn" onclick="quickPrompt('care plan')">
+                <i class="fas fa-clipboard-check"></i> Care Plan
+            </button>
+            <button class="chat-action-btn" onclick="quickPrompt('drug info')">
+                <i class="fas fa-pills"></i> Drug Info
+            </button>
+            <button class="chat-action-btn" onclick="quickPrompt('protocol')">
+                <i class="fas fa-list-ol"></i> Protocol
+            </button>
+        </div>
+
+        <div class="chat-history" id="chatHistory">
+            <div class="bubble bot">
+                <p>Hello! I'm your clinical AI assistant. I can help you with:</p>
+                <ul>
+                    <li><strong>Care Plans</strong> – Generate nursing care plans for diagnoses</li>
+                    <li><strong>Drug Information</strong> – Dosing, interactions, nursing considerations</li>
+                    <li><strong>Clinical Protocols</strong> – Guidelines and best practices</li>
+                    <li><strong>Calculations</strong> – Help verify or explain nursing math</li>
+                    <li><strong>Live research</strong> – Uses TinyFish when a key is present</li>
+                </ul>
+                <p><em>⚠️ Always verify with official sources and your facility's protocols.</em></p>
+            </div>
+        </div>
+
+        <div class="chat-input">
+            <input type="text" id="chatInput" placeholder="Ask about medications, care plans..." onkeydown="if(event.key==='Enter' && !isLoading) askAI()">
+            <button class="btn btn-primary btn-icon" onclick="askAI()" id="sendBtn">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </aside>
+</div>
+
+<div class="toast" id="toast">
+    <i class="fas fa-check-circle"></i>
+    <span id="toastMessage">Success!</span>
+</div>
+
+<script>
+    // Dark mode detection
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.classList.add('dark');
+    }
+    if (window.matchMedia) {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            document.documentElement.classList.toggle('dark', event.matches);
+        });
+    }
+
+    const MONICA_NURSING_BOT_URL = 'https://monica.im/share/bot?botId=CgQhupTj';
+
+    function esc(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    // ========== TAB NAVIGATION ==========
+    function setTab(tabId, btn) {
+        document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        if (btn) btn.classList.add('active');
+
+        if (tabId === 'math') {
+            document.getElementById('calcMenu').style.display = 'block';
+            document.getElementById('calcView').style.display = 'none';
+        }
+    }
+
+    function switchToTab(tabId) {
+        const btn = Array.from(document.querySelectorAll('.tab-btn')).find(b => (b.getAttribute('onclick') || '').includes("'" + tabId + "'"));
+        if (btn) btn.click();
+        else setTab(tabId, null);
+    }
+
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('hidden');
+    }
+
+    // ========== TOAST ==========
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        const toastMsg = document.getElementById('toastMessage');
+        const icon = toast.querySelector('i');
+
+        toast.className = 'toast ' + type;
+        toastMsg.textContent = message;
+        icon.className = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // ========== API KEY SECRET BOX ==========
+    function toggleApiKeyBox() {
+        const panel = document.getElementById('apiKeyPanel');
+        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        if (panel.style.display === 'block') loadApiKeys();
+    }
+
+    function toggleVisibility(id) {
+        const input = document.getElementById(id);
+        const eye = document.getElementById('eye-' + id);
+        if (input.type === 'password') {
+            input.type = 'text';
+            eye.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            input.type = 'password';
+            eye.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
+
+    function saveApiKeys() {
+        const tf = document.getElementById('tinyfishKey').value.trim();
+        const hf = document.getElementById('hfKey').value.trim();
+        if (tf) localStorage.setItem('rn_tf_key', tf);
+        else localStorage.removeItem('rn_tf_key');
+        if (hf) localStorage.setItem('rn_hf_key', hf);
+        else localStorage.removeItem('rn_hf_key');
+        showToast('API keys saved locally', 'success');
+        toggleApiKeyBox();
+    }
+
+    function loadApiKeys() {
+        document.getElementById('tinyfishKey').value = localStorage.getItem('rn_tf_key') || '';
+        document.getElementById('hfKey').value = localStorage.getItem('rn_hf_key') || '';
+    }
+
+    function clearApiKeys() {
+        localStorage.removeItem('rn_tf_key');
+        localStorage.removeItem('rn_hf_key');
+        document.getElementById('tinyfishKey').value = '';
+        document.getElementById('hfKey').value = '';
+        showToast('API keys cleared', 'success');
+    }
+
+    function getTinyFishKey() {
+        return localStorage.getItem('rn_tf_key') || '';
+    }
+
+    function getHFKey() {
+        return localStorage.getItem('rn_hf_key') || '';
+    }
+
+    document.addEventListener('click', (e) => {
+        const box = document.getElementById('apiKeyBox');
+        const panel = document.getElementById('apiKeyPanel');
+        if (panel && panel.style.display === 'block' && box && !box.contains(e.target)) {
+            panel.style.display = 'none';
+        }
+    });
+
+    // ========== NOTES MODULE + MEMOS ==========
+    let recognition = null;
+    let isListening = false;
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+
+        recognition.onresult = (e) => {
+            const result = e.results[e.results.length - 1];
+            if (result.isFinal) {
+                const area = document.getElementById('noteArea');
+                area.value += (area.value ? ' ' : '') + result[0].transcript;
+                area.scrollTop = area.scrollHeight;
+            }
+        };
+
+        recognition.onend = () => {
+            if (isListening) {
+                try { recognition.start(); } catch (err) {}
+            }
+        };
+
+        recognition.onerror = (e) => {
+            console.warn('Speech error:', e.error);
+            isListening = false;
+            updateVoiceBtn();
+            if (e.error !== 'aborted') {
+                showToast('Voice input error – try again', 'error');
+            }
+        };
+    }
+
+    function toggleVoice() {
+        if (!recognition) {
+            showToast('Voice input not supported in this browser', 'error');
+            return;
+        }
+
+        isListening = !isListening;
+
+        if (isListening) {
+            try {
+                recognition.start();
+                document.getElementById('noteArea').classList.add('listening');
+            } catch (err) {
+                isListening = false;
+                showToast('Could not start microphone', 'error');
+            }
+        } else {
+            recognition.stop();
+            document.getElementById('noteArea').classList.remove('listening');
+        }
+
+        updateVoiceBtn();
+    }
+
+    function updateVoiceBtn() {
+        const btn = document.getElementById('voiceBtn');
+        btn.classList.toggle('active', isListening);
+        btn.innerHTML = isListening ? '<i class="fas fa-stop"></i> STOP' : '<i class="fas fa-microphone"></i> VOICE';
+    }
+
+    function insertTemplate(type) {
+        const area = document.getElementById('noteArea');
+        const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+        const templates = {
+            HANDOFF: `\n[${time}] ═══ SHIFT HANDOFF ═══\nRoom/Bed: \nDiagnosis: \nCode Status: \nEvents This Shift: \nIV Access/GTTs: \nLabs Pending: \nTasks for Next Shift: \n`,
+            SBAR: `\n[${time}] ═══ SBAR REPORT ═══\nS (Situation): \nB (Background): \nA (Assessment): \nR (Recommendation): \n`,
+            PSYCH: `\n[${time}] ═══ MENTAL STATUS ═══\nAppearance: \nBehavior: \nMood/Affect: \nThought Process: \nThought Content: \nSI/HI Assessment: \nSafety Plan: \n`,
+            VITALS: `\n[${time}] VITALS: T: ____ HR: ____ RR: ____ BP: ___/___ SpO2: ___% Pain: ___/10\n`,
+            NEURO: `\n[${time}] ═══ NEURO CHECK ═══\nLOC: \nPupils: L ___ R ___ PERRLA: \nGrip Strength: L ___ R ___\nFoot Push: L ___ R ___\nOrientation: Person☐ Place☐ Time☐ Situation☐\n`
+        };
+
+        area.value += templates[type];
+        area.focus();
+        area.scrollTop = area.scrollHeight;
+    }
+
+    async function copyNote() {
+        const text = document.getElementById('noteArea').value.trim();
+        if (!text) {
+            showToast('Nothing to copy – write a note first', 'error');
+            return;
+        }
+        try {
+            await navigator.clipboard.writeText(text);
+            showToast('Note copied to clipboard!', 'success');
+        } catch (err) {
+            showToast('Failed to copy – try selecting manually', 'error');
+        }
+    }
+
+    function clearNote() {
+        document.getElementById('noteArea').value = '';
+        showToast('Note cleared', 'success');
+    }
+
+    function speakNote() {
+        const text = document.getElementById('noteArea').value.trim();
+        if (!text) {
+            showToast('Nothing to read', 'error');
+            return;
+        }
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const utt = new SpeechSynthesisUtterance(text);
+            utt.rate = 0.95;
+            window.speechSynthesis.speak(utt);
+            showToast('Reading note aloud…', 'success');
+        } else {
+            showToast('Speech synthesis not supported', 'error');
+        }
+    }
+
+    // Memo system (local knowledge base)
+    function saveMemoText(text) {
+        const memos = JSON.parse(localStorage.getItem('rn_memos') || '[]');
+        const id = Date.now() + Math.floor(Math.random() * 1000);
+        memos.unshift({
+            id,
+            title: text.slice(0, 40) + (text.length > 40 ? '…' : ''),
+            content: text,
+            time: new Date().toLocaleString()
+        });
+        localStorage.setItem('rn_memos', JSON.stringify(memos.slice(0, 50))); // keep last 50
+        renderMemos();
+        return id;
+    }
+
+    function saveMemo() {
+        const text = document.getElementById('noteArea').value.trim();
+        if (!text) {
+            showToast('Write something first', 'error');
+            return;
+        }
+        saveMemoText(text);
+        showToast('Memo saved', 'success');
+    }
+
+    function renderMemos() {
+        const list = document.getElementById('memoList');
+        const memos = JSON.parse(localStorage.getItem('rn_memos') || '[]');
+        if (!memos.length) {
+            list.innerHTML = '<p style="color:var(--text-dim);font-size:0.8rem;">No memos yet</p>';
+            return;
+        }
+        list.innerHTML = memos.map(m => `
+            <div class="memo-item" onclick="loadMemo(${m.id})">
+                <div>
+                    <div>${esc(m.title)}</div>
+                    <small style="color:var(--text-dim);">${esc(m.time)}</small>
+                </div>
+                <div class="memo-actions">
+                    <button class="btn btn-secondary btn-icon" style="width:28px;height:28px;font-size:0.7rem;" onclick="event.stopPropagation();deleteMemo(${m.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function loadMemo(id) {
+        const memos = JSON.parse(localStorage.getItem('rn_memos') || '[]');
+        const m = memos.find(x => x.id === id);
+        if (m) {
+            document.getElementById('noteArea').value = m.content;
+            showToast('Memo loaded', 'success');
+        }
+    }
+
+    function deleteMemo(id) {
+        let memos = JSON.parse(localStorage.getItem('rn_memos') || '[]');
+        memos = memos.filter(x => x.id !== id);
+        localStorage.setItem('rn_memos', JSON.stringify(memos));
+        renderMemos();
+        showToast('Memo deleted', 'success');
+    }
+
+    function askAIAboutNote() {
+        const note = document.getElementById('noteArea').value.trim();
+        if (!note) {
+            showToast('Write a note first for AI to enhance', 'error');
+            return;
+        }
+        document.getElementById('sidebar').classList.remove('hidden');
+        document.getElementById('chatInput').value = `Please review and enhance this clinical note for clarity, completeness, and proper medical terminology:\n\n${note}`;
+        askAI();
+    }
+
+    // ========== CALCULATOR MODULE ==========
+    const calculators = {
+        drip: {
+            name: 'mcg/kg/min → mL/hr',
+            highRisk: true,
+            fields: [
+                { id: 'dose', label: 'Dose (mcg/kg/min)', placeholder: 'e.g., 5' },
+                { id: 'weight', label: 'Weight (kg)', placeholder: 'e.g., 70' },
+                { id: 'conc', label: 'Concentration (mcg/mL)', placeholder: 'e.g., 1600' }
+            ],
+            calculate: (vals) => {
+                const result = (vals.dose * vals.weight * 60) / vals.conc;
+                return { value: result.toFixed(2), unit: 'mL/hr' };
+            }
+        },
+        narcotic: {
+            name: 'Narcotic Waste Calculation',
+            highRisk: true,
+            fields: [
+                { id: 'drawn', label: 'Amount Drawn (mg)', placeholder: 'e.g., 10' },
+                { id: 'given', label: 'Amount Given (mg)', placeholder: 'e.g., 4' }
+            ],
+            calculate: (vals) => {
+                const result = vals.drawn - vals.given;
+                return { value: result.toFixed(2), unit: 'mg waste' };
+            }
+        },
+        poliquid: {
+            name: 'PO Liquid Dose',
+            highRisk: false,
+            fields: [
+                { id: 'ordered', label: 'Dose Ordered (mg)', placeholder: 'e.g., 250' },
+                { id: 'available', label: 'Available (mg)', placeholder: 'e.g., 125' },
+                { id: 'volume', label: 'Per Volume (mL)', placeholder: 'e.g., 5' }
+            ],
+            calculate: (vals) => {
+                const result = (vals.ordered / vals.available) * vals.volume;
+                return { value: result.toFixed(2), unit: 'mL' };
+            }
+        },
+        tablet: {
+            name: 'Tablet Dose',
+            highRisk: false,
+            fields: [
+                { id: 'ordered', label: 'Dose Ordered (mg)', placeholder: 'e.g., 500' },
+                { id: 'available', label: 'Tablet Strength (mg)', placeholder: 'e.g., 250' }
+            ],
+            calculate: (vals) => {
+                const result = vals.ordered / vals.available;
+                return { value: result.toFixed(2), unit: 'tablets' };
+            }
+        },
+        io: {
+            name: 'I&O Balance',
+            highRisk: false,
+            fields: [
+                { id: 'intake', label: 'Total Intake (mL)', placeholder: 'e.g., 2400' },
+                { id: 'output', label: 'Total Output (mL)', placeholder: 'e.g., 1800' }
+            ],
+            calculate: (vals) => {
+                const result = vals.intake - vals.output;
+                const status = result >= 0 ? 'positive' : 'negative';
+                return { value: (result >= 0 ? '+' : '') + result, unit: `mL (${status})` };
+            }
+        },
+        bmi: {
+            name: 'BMI Calculator',
+            highRisk: false,
+            fields: [
+                { id: 'weight', label: 'Weight (kg)', placeholder: 'e.g., 70' },
+                { id: 'height', label: 'Height (cm)', placeholder: 'e.g., 170' }
+            ],
+            calculate: (vals) => {
+                const result = vals.weight / Math.pow(vals.height / 100, 2);
+                let category = '';
+                if (result < 18.5) category = 'Underweight';
+                else if (result < 25) category = 'Normal';
+                else if (result < 30) category = 'Overweight';
+                else category = 'Obese';
+                return { value: result.toFixed(1), unit: `kg/m² (${category})` };
+            }
+        },
+        o2tank: {
+            name: 'O₂ Tank Duration',
+            highRisk: false,
+            fields: [
+                { id: 'psi', label: 'Tank PSI', placeholder: 'e.g., 1500' },
+                { id: 'flow', label: 'Flow Rate (L/min)', placeholder: 'e.g., 4' }
+            ],
+            calculate: (vals) => {
+                const result = ((vals.psi - 200) * 0.28) / vals.flow;
+                const hours = Math.floor(result / 60);
+                const mins = Math.round(result % 60);
+                return { value: result.toFixed(0), unit: `min (${hours}h ${mins}m)` };
+            }
+        },
+        ibw: {
+            name: 'Ideal Body Weight',
+            highRisk: false,
+            fields: [
+                { id: 'height', label: 'Height (inches)', placeholder: 'e.g., 70' },
+                { id: 'sex', label: 'Sex (M/F)', placeholder: 'M or F', type: 'text' }
+            ],
+            calculate: (vals) => {
+                const isMale = vals.sex.toString().toUpperCase().startsWith('M');
+                const base = isMale ? 50 : 45.5;
+                const result = base + 2.3 * (vals.height - 60);
+                return { value: result.toFixed(1), unit: 'kg' };
+            }
+        }
+    };
+
+    let currentCalc = null;
+    let dualVerified = false;
+
+    function openCalc(calcId) {
+        currentCalc = calculators[calcId];
+        dualVerified = false;
+
+        document.getElementById('calcMenu').style.display = 'none';
+        const view = document.getElementById('calcView');
+        view.style.display = 'block';
+
+        let html = `
+            <button class="back-btn" onclick="closeCalc()">
+                <i class="fas fa-arrow-left"></i> Back to Calculators
+            </button>
+            <h3>${currentCalc.name}</h3>
+            <div class="input-grid">
+        `;
+
+        currentCalc.fields.forEach(field => {
+            html += `
+                <div class="input-group">
+                    <label>${field.label}</label>
+                    <input type="${field.type || 'number'}" id="calc_${field.id}"
+                           placeholder="${field.placeholder}" oninput="runCalculation()">
+                </div>
+            `;
+        });
+
+        html += '</div>';
+
+        if (currentCalc.highRisk) {
+            html += `
+                <div class="verify-check">
+                    <input type="checkbox" id="verifyCheck" onchange="dualVerified = this.checked; runCalculation()">
+                    <label for="verifyCheck">⚠️ Dual Verification Confirmed (Second RN witnessed)</label>
+                </div>
+            `;
+        }
+
+        html += `
+            <div class="calc-res" id="calcResult" style="display: none;">
+                <div class="calc-res-label">Result</div>
+                <div class="calc-res-value" id="calcValue">—</div>
+            </div>
+        `;
+
+        view.innerHTML = html;
+    }
+
+    function closeCalc() {
+        document.getElementById('calcMenu').style.display = 'block';
+        document.getElementById('calcView').style.display = 'none';
+        currentCalc = null;
+    }
+
+    function runCalculation() {
+        if (!currentCalc) return;
+
+        const vals = {};
+        let allFilled = true;
+
+        currentCalc.fields.forEach(field => {
+            const input = document.getElementById('calc_' + field.id);
+            const val = field.type === 'text' ? input.value : parseFloat(input.value);
+            if ((field.type === 'text' && !val) || (field.type !== 'text' && isNaN(val))) {
+                allFilled = false;
+            }
+            vals[field.id] = val;
+        });
+
+        const resultDiv = document.getElementById('calcResult');
+        const valueDiv = document.getElementById('calcValue');
+
+        if (allFilled && (!currentCalc.highRisk || dualVerified)) {
+            const result = currentCalc.calculate(vals);
+            valueDiv.textContent = `${result.value} ${result.unit}`;
+            resultDiv.style.display = 'block';
+        } else {
+            resultDiv.style.display = 'none';
+        }
+    }
+
+    // ========== CRITICAL CARE ==========
+    function updateGCS() {
+        const eye = parseInt(document.getElementById('gcsEye').value);
+        const verbal = parseInt(document.getElementById('gcsVerbal').value);
+        const motor = parseInt(document.getElementById('gcsMotor').value);
+        const total = eye + verbal + motor;
+
+        document.getElementById('gcsScore').textContent = total;
+
+        let interp = '';
+        if (total <= 8) interp = 'Severe (Coma) – Consider intubation';
+        else if (total <= 12) interp = 'Moderate Impairment';
+        else if (total <= 14) interp = 'Mild Impairment';
+        else interp = 'Normal / Alert';
+
+        document.getElementById('gcsInterp').textContent = interp;
+    }
+
+    function updateBurn() {
+        const fields = ['Head', 'Chest', 'Abd', 'Back', 'Arms', 'Legs', 'Peri'];
+        let total = 0;
+        fields.forEach(f => {
+            const val = parseFloat(document.getElementById('burn' + f).value) || 0;
+            total += val;
+        });
+        document.getElementById('burnTotal').textContent = total + '%';
+    }
+</script>
+
+<script>
+    // ========== AI ASSISTANT ==========
+    // Knowledge framing follows Ting's Monica "Nursing Bot" by T Lott:
+    // healthcare support and guidance, with empathy and professionalism,
+    // always promoting safe healthcare practices.
+    let isLoading = false;
+
+    async function askAI() {
+        if (isLoading) return;
+
+        const input = document.getElementById('chatInput');
+        const history = document.getElementById('chatHistory');
+        const text = input.value.trim();
+        if (!text) return;
+
+        const userBubble = document.createElement('div');
+        userBubble.className = 'bubble user';
+        userBubble.textContent = text;
+        history.appendChild(userBubble);
+        input.value = '';
+
+        isLoading = true;
+        updateSendButton();
+
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'bubble bot loading';
+        loadingDiv.innerHTML = '<span></span><span></span><span></span>';
+        history.appendChild(loadingDiv);
+        history.scrollTop = history.scrollHeight;
+
+        try {
+            let reply = '';
+
+            const tfKey = getTinyFishKey();
+            const needsLive = /protocol|guideline|current|latest|dosing|drug info|side effect|contraindication|acls|bls|research|interactions/i.test(text);
+
+            if (tfKey && needsLive) {
+                try {
+                    const searchRes = await fetch('https://api.search.tinyfish.ai/?q=' + encodeURIComponent(text + ' nursing clinical guideline'), {
+                        headers: { 'X-API-Key': tfKey }
+                    });
+                    if (searchRes.ok) {
+                        const data = await searchRes.json();
+                        const snippets = (data.results || []).slice(0, 3).map(r => `• ${r.title}: ${r.snippet || ''}`).join('\n');
+                        if (snippets) {
+                            reply = `**Live web research (TinyFish):**\n\n${snippets}\n\n*Always cross-check with your facility protocols and official drug references.*`;
+                        }
+                    }
+                } catch (e) {
+                    console.warn('TinyFish search failed', e);
+                }
+            }
+
+            if (!reply) {
+                reply = generateLocalClinicalReply(text);
+            }
+
+            const loadingBubble = history.querySelector('.bubble.loading');
+            if (loadingBubble) loadingBubble.remove();
+
+            const botBubble = document.createElement('div');
+            botBubble.className = 'bubble bot';
+            botBubble.innerHTML = marked.parse(reply);
+            history.appendChild(botBubble);
+
+        } catch (err) {
+            const loadingBubble = history.querySelector('.bubble.loading');
+            if (loadingBubble) loadingBubble.remove();
+            const errBubble = document.createElement('div');
+            errBubble.className = 'bubble bot';
+            errBubble.innerHTML = '<p>Sorry, I couldn\'t process your request. Please try again.</p>';
+            history.appendChild(errBubble);
+        }
+
+        isLoading = false;
+        updateSendButton();
+        history.scrollTop = history.scrollHeight;
+    }
+
+    const NURSING_KB = [
+        {
+            keys: ['care plan', 'nursing diagnosis', 'nanda'],
+            answer: `**Sample Nursing Care Plan Structure**
+
+**Assessment**
+Subjective + Objective data
+
+**Nursing Diagnosis (NANDA)**
+e.g., Acute Pain related to surgical incision as evidenced by patient report 7/10 and guarding
+
+**Planning / Goals**
+Patient will report pain ≤ 3/10 within 1 hour of intervention
+
+**Interventions**
+- Administer analgesics as ordered
+- Non-pharmacologic measures (positioning, ice, distraction)
+- Reassess pain q1h
+
+**Evaluation**
+Document response and revise plan as needed
+
+*Always tailor to the specific patient and facility policy.*`
+        },
+        {
+            keys: ['epinephrine', ' epi '],
+            answer: `**Epinephrine – ACLS**
+
+- **VF / pVT / Asystole / PEA**: 1 mg IV/IO every 3–5 minutes
+- High-quality CPR + early defibrillation remain priority
+- Always follow current AHA guidelines and your facility protocol.`
+        },
+        {
+            keys: ['amiodarone'],
+            answer: `**Amiodarone – ACLS (VF/pVT)**
+
+- 1st dose: 300 mg IV/IO bolus
+- 2nd dose: 150 mg IV/IO
+- Alternative: Lidocaine 1–1.5 mg/kg then 0.5–0.75 mg/kg
+
+Verify with current AHA algorithm.`
+        },
+        {
+            keys: ['lab value', 'normal range', 'labs', 'potassium', 'sodium'],
+            answer: `**Common Adult Lab Reference Ranges**
+
+- Sodium (Na): 136–145 mEq/L
+- Potassium (K): 3.5–5.0 mEq/L — critical: <2.5 or >6.5
+- Calcium (Ca): 8.5–10.5 mg/dL
+- Magnesium (Mg): 1.3–2.1 mEq/L
+- Glucose (fasting): 70–99 mg/dL
+- BUN: 10–20 mg/dL · Creatinine: 0.5–1.2 mg/dL
+- WBC: 5,000–10,000/mm³
+- Hemoglobin: M 14–18, F 12–16 g/dL
+- Platelets: 150,000–400,000/mm³
+- PT: 11–12.5 sec · INR: 0.9–1.2 (2–3 on warfarin therapy)
+- aPTT: 30–40 sec (1.5–2× control on heparin)
+- Troponin: <0.04 ng/mL · BNP: <100 pg/mL
+
+*Ranges vary by lab — always compare against your facility's reference values.*`
+        },
+        {
+            keys: ['insulin'],
+            answer: `**Insulin Quick Reference**
+
+- **Rapid-acting** (lispro/aspart): onset 15 min, peak 1–2 hr — give with meals
+- **Short-acting** (regular): onset 30–60 min, peak 2–3 hr — only insulin given IV
+- **Intermediate** (NPH): onset 2–4 hr, peak 4–12 hr — cloudy, roll gently
+- **Long-acting** (glargine/detemir): onset 2–4 hr, no peak — never mix in syringe
+
+**Safety:** double-check dose with a second RN per policy, watch for hypoglycemia (shakiness, sweating, confusion) — treat <70 mg/dL with fast carbs/glucagon per protocol. Rotate injection sites.`
+        },
+        {
+            keys: ['metformin'],
+            answer: `**Metformin – Nursing Considerations**
+
+- First-line for type 2 diabetes; does **not** cause hypoglycemia alone
+- **Hold before contrast studies** and during acute illness per protocol — lactic acidosis risk, especially with renal impairment
+- Check renal function (eGFR) before starting and periodically
+- Common: GI upset — give with food
+- Long-term use can lower B12 — monitor`
+        },
+        {
+            keys: ['warfarin', 'heparin', 'anticoagul'],
+            answer: `**Anticoagulation – Nursing Essentials**
+
+**Warfarin**
+- Monitor **INR** (therapeutic 2–3 for most indications)
+- Antidote: **Vitamin K** (severe bleed: PCC/FFP per provider)
+- Many drug/food interactions — vitamin K–rich foods should be *consistent*, not eliminated
+
+**Heparin (IV)**
+- Monitor **aPTT** (1.5–2× control) and platelets — watch for **HIT** (platelet drop >50%)
+- Antidote: **Protamine sulfate**
+
+**Both:** assess for bleeding (gums, urine, stool, bruising), fall precautions, avoid IM injections.`
+        },
+        {
+            keys: ['opioid', 'naloxone', 'narcan', 'oxycodone', 'morphine'],
+            answer: `**Opioid Safety & Naloxone**
+
+- Assess **respiratory rate, sedation level, and pain** before and after dosing — hold and notify for RR < 10–12 or oversedation per policy
+- **Naloxone (Narcan)** reverses opioid overdose: 0.4 mg IM/IV/IN, may repeat q2–3 min — patient may re-sedate as naloxone wears off (30–90 min), keep monitoring
+- Watch for constipation (start bowel regimen), nausea, falls — especially in older adults
+- Never crush extended-release tablets`
+        },
+        {
+            keys: ['lithium'],
+            answer: `**Lithium – Nursing Essentials** *(psych staple)*
+
+- **Therapeutic range: 0.6–1.2 mEq/L** (acute mania up to 1.5) — narrow window!
+- **Toxicity signs:** coarse tremor, vomiting, diarrhea, ataxia, confusion → hold dose, notify provider, check level
+- Levels rise with **dehydration, low salt intake, NSAIDs, thiazides** — counsel consistent fluid/salt intake
+- Monitor thyroid and renal function long-term
+- Draw levels 12 hours after the evening dose`
+        },
+        {
+            keys: ['serotonin syndrome', 'neuroleptic malignant', 'nms'],
+            answer: `**Serotonin Syndrome vs NMS — Know the Difference**
+
+**Serotonin Syndrome** (too much serotonin — SSRI + MAOI/linezolid/tramadol combos)
+- Fast onset (hours): agitation, **clonus/hyperreflexia**, sweating, diarrhea, hyperthermia
+- Stop serotonergic agents, supportive care, benzodiazepines
+
+**Neuroleptic Malignant Syndrome** (dopamine blockade — antipsychotics)
+- Slower onset (days): **"lead-pipe" rigidity**, high fever, altered mental status, autonomic instability
+- Stop antipsychotics immediately, notify provider — this is an emergency
+
+*Both can be fatal — escalate early.*`
+        },
+        {
+            keys: ['suicide', 'self harm', 'self-harm', 'si assessment', 'risk assessment'],
+            answer: `**Suicide Risk Assessment – Nursing Framework**
+
+Ask directly and calmly — asking does **not** plant the idea:
+- "Have you had thoughts of harming yourself?"
+- **Plan?** Specificity matters · **Means?** Access to method · **Intent?** · **Timeline?**
+- Protective factors: family, faith, reasons for living, future plans
+- Risk factors: prior attempts, substance use, hopelessness, recent loss, access to firearms/meds
+
+**Actions:** continuous observation per policy, remove means, involve provider + treatment team, document objectively, use your facility's validated tool (e.g., Columbia/C-SSRS).
+
+*Lead with empathy. A calm, non-judging presence is itself an intervention.*`
+        },
+        {
+            keys: ['de-escalat', 'agitat', 'aggressi'],
+            answer: `**Verbal De-escalation – Core Moves**
+
+- **One voice:** one staff member talks; others support quietly
+- Give space (two arm lengths), open posture, hands visible, exit available for both of you
+- Low, slow voice. Short sentences. Use their name.
+- Acknowledge feelings first: "I can see you're upset — help me understand."
+- Offer choices, not ultimatums: "Would water or a quiet room help?"
+- Set limits calmly and factually, with the reason
+- Watch your own exit path and early-warning signs; call for support early — de-escalation is a team sport`
+        },
+        {
+            keys: ['mental status', 'mse'],
+            answer: `**Mental Status Exam (MSE) – Components**
+
+- **Appearance:** grooming, hygiene, attire, apparent age
+- **Behavior:** eye contact, psychomotor activity, cooperation
+- **Speech:** rate, rhythm, volume, tone
+- **Mood** (their words) vs **Affect** (what you observe): range, congruence
+- **Thought Process:** linear, tangential, circumstantial, flight of ideas, loose associations
+- **Thought Content:** delusions, obsessions, SI/HI — ask directly
+- **Perception:** hallucinations (ask which sense, what content)
+- **Cognition:** orientation ×4, memory, attention
+- **Insight & Judgment**
+
+The PSYCH template in the Notes tab mirrors this structure.`
+        },
+        {
+            keys: ['isolation', 'precaution'],
+            answer: `**Isolation Precautions – Quick Map**
+
+- **Standard:** everyone, always — hand hygiene, gloves for body fluids
+- **Contact** (MRSA, VRE, C. diff): gown + gloves; soap-and-water for C. diff (spores resist sanitizer)
+- **Droplet** (influenza, meningitis, pertussis): surgical mask within 3–6 ft
+- **Airborne** (TB, measles, varicella): fit-tested N95/respirator + negative-pressure room, door closed
+
+*When in doubt, check your facility's infection-prevention policy and the CDC isolation guidelines.*`
+        },
+        {
+            keys: ['sepsis', 'qsofa', 'sirs'],
+            answer: `**Sepsis – Early Recognition Saves Lives**
+
+**SIRS (2+):** Temp >100.9°F or <96.8 · HR >90 · RR >20 · WBC >12k or <4k
+**qSOFA (2+ = higher risk):** RR ≥22 · altered mentation · SBP ≤100
+
+**Nursing priorities:**
+- Recognize & escalate early — say the word "sepsis"
+- Cultures **before** antibiotics, lactate, broad-spectrum antibiotics within the hour per bundle
+- 30 mL/kg crystalloid for hypotension/lactate ≥4 per protocol
+- Reassess perfusion: mentation, urine output (≥0.5 mL/kg/hr), MAP ≥65`
+        },
+        {
+            keys: ['lorazepam', 'benzodiazepine', 'ativan'],
+            answer: `**Benzodiazepines (e.g., Lorazepam/Ativan) – Nursing Points**
+
+- Uses: acute agitation, anxiety, alcohol withdrawal (CIWA), seizures
+- Watch: sedation, respiratory depression (worse with opioids/alcohol), falls in older adults
+- Antidote: **Flumazenil** — use caution (seizure risk in dependent patients)
+- Taper chronic use — abrupt stop can cause withdrawal seizures
+- Document response and level of sedation after each dose`
+        },
+        {
+            keys: ['antidepressant', 'ssri', 'sertraline', 'fluoxetine'],
+            answer: `**SSRIs – Nursing Points** (sertraline, fluoxetine, escitalopram…)
+
+- Take **2–6 weeks** for full effect — set expectations early
+- Never combine casually with MAOIs (washout needed) — serotonin syndrome risk
+- Watch activation/jitteriness early on, and increased SI monitoring in young patients per boxed warning
+- Hyponatremia (SIADH) risk in older adults
+- Don't stop abruptly — discontinuation syndrome (dizziness, "brain zaps", flu-like feelings)`
+        }
+    ];
+
+    function generateLocalClinicalReply(q) {
+        const lower = ' ' + q.toLowerCase() + ' ';
+        for (const entry of NURSING_KB) {
+            if (entry.keys.some(k => lower.includes(k))) return entry.answer;
+        }
+        return `I can help with care plans, drug information, protocols, nursing math, and a built-in library covering labs, insulin, anticoagulation, psych safety (lithium, serotonin syndrome vs NMS, suicide risk assessment, de-escalation), isolation precautions, sepsis, and more — try asking about any of those.
+
+For the deepest nursing questions, tap the **Nursing Bot** button above — it opens your own Monica Nursing Bot by T Lott for full AI answers. And if you add your TinyFish key (key icon in the header), I'll also research current guidelines live when a question needs it.
+
+**Always verify** with official drug references, facility protocols, and the prescriber. This is educational support only.`;
+    }
+
+    function updateSendButton() {
+        const btn = document.getElementById('sendBtn');
+        btn.disabled = isLoading;
+        btn.innerHTML = isLoading ? '<i class="fas fa-spinner fa-spin"></i>' : '<i class="fas fa-paper-plane"></i>';
+    }
+
+    function quickPrompt(type) {
+        const prompts = {
+            'care plan': 'Generate a nursing care plan for a patient with ',
+            'drug info': 'Provide nursing considerations, dosing, and side effects for ',
+            'protocol': 'What is the nursing protocol for '
+        };
+        document.getElementById('chatInput').value = prompts[type];
+        document.getElementById('chatInput').focus();
+    }
+
+    // Wire in Ting's Monica Nursing Bot: a one-tap button in the chat actions,
+    // plus a first-position card in the Refs tab.
+    (function wireMonicaBot() {
+        const actions = document.querySelector('.chat-actions');
+        if (actions) {
+            const b = document.createElement('button');
+            b.className = 'chat-action-btn';
+            b.innerHTML = '<i class="fas fa-graduation-cap"></i> Nursing Bot';
+            b.title = 'Open your Monica Nursing Bot by T Lott';
+            b.onclick = () => window.open(MONICA_NURSING_BOT_URL, '_blank');
+            actions.appendChild(b);
+        }
+        const refGrid = document.querySelector('.ref-grid');
+        if (refGrid) {
+            const a = document.createElement('a');
+            a.href = MONICA_NURSING_BOT_URL;
+            a.target = '_blank';
+            a.className = 'ref-link';
+            a.innerHTML = '<i class="fas fa-robot"></i><div><div>Nursing Bot by T Lott (Monica)</div><small style="color: var(--text-dim);">Your full nursing-knowledge AI — opens in Monica</small></div>';
+            refGrid.prepend(a);
+        }
+    })();
+</script>
+
+<script>
+    // ========== TRANSCRIPTION STUDIO (Whisper, on-device) ==========
+    let txAudioBlob = null;
+    let txAudioUrl = null;
+    let mediaRecorder = null;
+    let recChunks = [];
+    let recStream = null;
+    let recTimer = null;
+    let recSeconds = 0;
+    let isRecording = false;
+
+    function fmtTime(s) {
+        const m = Math.floor(s / 60);
+        const r = s % 60;
+        return m + ':' + String(r).padStart(2, '0');
+    }
+
+    function setCurrentAudio(blob, label) {
+        txAudioBlob = blob;
+        if (txAudioUrl) URL.revokeObjectURL(txAudioUrl);
+        txAudioUrl = URL.createObjectURL(blob);
+        const player = document.getElementById('audioPlayback');
+        player.src = txAudioUrl;
+        player.style.display = 'block';
+        document.getElementById('transcribeBtn').disabled = false;
+        document.getElementById('txStatus').textContent = label + ' · ready to transcribe on this device.';
+    }
+
+    function onAudioSelected() {
+        const file = document.getElementById('audioFile').files[0];
+        if (!file) return;
+        document.getElementById('filePickLabel').textContent = file.name + ' · ' + (file.size / 1024 / 1024).toFixed(1) + ' MB';
+        setCurrentAudio(file, file.name);
+    }
+
+    async function toggleRecording() {
+        if (isRecording) {
+            stopRecording();
+            return;
+        }
+        if (!navigator.mediaDevices || !window.MediaRecorder) {
+            showToast('Recording is not supported in this browser — upload an audio file instead', 'error');
+            return;
+        }
+        try {
+            recStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        } catch (e) {
+            showToast('Microphone permission is needed to record', 'error');
+            return;
+        }
+        recChunks = [];
+        mediaRecorder = new MediaRecorder(recStream);
+        mediaRecorder.ondataavailable = (e) => { if (e.data.size) recChunks.push(e.data); };
+        mediaRecorder.onstop = () => {
+            const blob = new Blob(recChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+            if (recStream) recStream.getTracks().forEach(t => t.stop());
+            setCurrentAudio(blob, 'Recording (' + fmtTime(recSeconds) + ')');
+        };
+        mediaRecorder.start();
+        isRecording = true;
+        recSeconds = 0;
+        document.getElementById('recLabel').innerHTML = '<span class="rec-dot"></span>Recording… 0:00 — tap to stop';
+        recTimer = setInterval(() => {
+            recSeconds++;
+            document.getElementById('recLabel').innerHTML = '<span class="rec-dot"></span>Recording… ' + fmtTime(recSeconds) + ' — tap to stop';
+        }, 1000);
+    }
+
+    function stopRecording() {
+        isRecording = false;
+        clearInterval(recTimer);
+        document.getElementById('recLabel').textContent = 'Start Recording';
+        if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
+    }
+
+    async function decodeAudioToSamples(blob) {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) throw new Error('Web Audio is not supported in this browser.');
+        const ctx = new Ctx();
+        try {
+            const source = await ctx.decodeAudioData(await blob.arrayBuffer());
+            const frames = Math.ceil(source.duration * 16000);
+            const offline = new OfflineAudioContext(1, frames, 16000);
+            const mono = offline.createBuffer(1, source.length, source.sampleRate);
+            const target = mono.getChannelData(0);
+            for (let c = 0; c < source.numberOfChannels; c++) {
+                const channel = source.getChannelData(c);
+                for (let i = 0; i < channel.length; i++) target[i] += channel[i] / source.numberOfChannels;
+            }
+            const node = offline.createBufferSource();
+            node.buffer = mono;
+            node.connect(offline.destination);
+            node.start();
+            const rendered = await offline.startRendering();
+            return new Float32Array(rendered.getChannelData(0));
+        } finally { await ctx.close(); }
+    }
+
+    async function transcribeCurrentAudio() {
+        if (!txAudioBlob) {
+            showToast('Record or choose an audio file first', 'error');
+            return;
+        }
+        if (!window.VoiceWhisper) {
+            showToast('The transcription engine did not load — check your connection and reload', 'error');
+            return;
+        }
+        const btn = document.getElementById('transcribeBtn');
+        const wrap = document.getElementById('txProgressWrap');
+        const bar = document.getElementById('txProgressBar');
+        const status = document.getElementById('txStatus');
+        btn.disabled = true;
+        wrap.classList.add('show');
+        bar.style.width = '4%';
+        status.textContent = 'Decoding audio on this device…';
+        try {
+            const samples = await decodeAudioToSamples(txAudioBlob);
+            status.textContent = 'Loading Whisper model… the first use downloads the model files.';
+            const text = await window.VoiceWhisper.transcribe(samples, document.getElementById('txLanguage').value, function (p) {
+                if (!p) return;
+                if (p.status === 'progress' && Number.isFinite(p.progress)) {
+                    bar.style.width = Math.max(5, Math.min(82, Math.round(p.progress * 0.82))) + '%';
+                    status.textContent = 'Downloading local model · ' + Math.round(p.progress) + '%';
+                } else if (p.status === 'ready') {
+                    bar.style.width = '86%';
+                    status.textContent = 'Model ready · transcribing locally…';
+                }
+            });
+            bar.style.width = '100%';
+            if (!text || !text.trim()) throw new Error('No speech was detected in this audio.');
+            const area = document.getElementById('transcriptArea');
+            area.value = ((area.value.trim() + ' ' + text.trim()).trim());
+            updateTxWords();
+            status.textContent = 'Transcript ready. Review it, then send it to Notes or save it as a memo.';
+            showToast('Transcription complete — done entirely on this device', 'success');
+        } catch (e) {
+            status.textContent = 'Transcription could not finish. ' + (e && e.message ? e.message : 'Try a shorter MP3 or WAV file.');
+            showToast('Transcription could not finish', 'error');
+        } finally {
+            btn.disabled = false;
+            setTimeout(() => wrap.classList.remove('show'), 1200);
+        }
+    }
+
+    function updateTxWords() {
+        const v = document.getElementById('transcriptArea').value.trim();
+        document.getElementById('txWordCount').textContent = (v ? v.split(/\s+/).length : 0) + ' words';
+    }
+
+    function sendTranscriptToNotes() {
+        const text = document.getElementById('transcriptArea').value.trim();
+        if (!text) {
+            showToast('Nothing to send — transcribe something first', 'error');
+            return;
+        }
+        const area = document.getElementById('noteArea');
+        const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        area.value += `\n[${time}] ═══ TRANSCRIPT ═══\n${text}\n`;
+        switchToTab('notes');
+        showToast('Transcript added to Notes', 'success');
+    }
+
+    function saveTranscriptMemo() {
+        const text = document.getElementById('transcriptArea').value.trim();
+        if (!text) {
+            showToast('Nothing to save — transcribe something first', 'error');
+            return;
+        }
+        const time = new Date().toLocaleString();
+        saveMemoText(`[${time}] ═══ TRANSCRIPT ═══\n${text}`);
+        showToast('Transcript saved as memo', 'success');
+    }
+
+    async function copyTranscript() {
+        const text = document.getElementById('transcriptArea').value.trim();
+        if (!text) {
+            showToast('Nothing to copy yet', 'error');
+            return;
+        }
+        try {
+            await navigator.clipboard.writeText(text);
+            showToast('Transcript copied', 'success');
+        } catch (e) {
+            showToast('Copy failed — select the text manually', 'error');
+        }
+    }
+
+    // ========== TELEHEALTH (Jitsi) ==========
+    let jitsiApi = null;
+    let currentVisitId = null;
+    let visitRecognition = null;
+    let visitTxOn = false;
+
+    function getAppts() {
+        return JSON.parse(localStorage.getItem('rn_appts') || '[]');
+    }
+
+    function setAppts(appts) {
+        localStorage.setItem('rn_appts', JSON.stringify(appts));
+    }
+
+    function randomRoom() {
+        const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
+        let s = '';
+        for (let i = 0; i < 12; i++) s += chars[Math.floor(Math.random() * chars.length)];
+        return 'rncommandpro-' + s;
+    }
+
+    function apptLink(appt) {
+        return 'https://meet.jit.si/' + appt.room;
+    }
+
+    function createAppointment() {
+        const patient = document.getElementById('apptPatient').value.trim();
+        const reason = document.getElementById('apptReason').value.trim();
+        const date = document.getElementById('apptDate').value;
+        const time = document.getElementById('apptTime').value;
+        if (!patient) {
+            showToast('Enter patient initials first', 'error');
+            return;
+        }
+        const appt = {
+            id: Date.now(),
+            patient,
+            reason: reason || 'Telehealth visit',
+            date: date || '',
+            time: time || '',
+            room: randomRoom(),
+            created: new Date().toLocaleString()
+        };
+        const appts = getAppts();
+        appts.unshift(appt);
+        setAppts(appts);
+        renderAppts();
+        document.getElementById('apptPatient').value = '';
+        document.getElementById('apptReason').value = '';
+        showToast('Appointment created — copy the link and send it to your patient', 'success');
+    }
+
+    function renderAppts() {
+        const list = document.getElementById('apptList');
+        const appts = getAppts();
+        if (!appts.length) {
+            list.innerHTML = '<p style="color:var(--text-dim);font-size:0.85rem;">No appointments yet. Create your first one above.</p>';
+            return;
+        }
+        list.innerHTML = appts.map(a => `
+            <div class="appt-card">
+                <div class="appt-top">
+                    <div>
+                        <div class="appt-title"><i class="fas fa-user" style="color: var(--accent);"></i> ${esc(a.patient)}</div>
+                        <div class="appt-meta">${esc(a.reason)}${a.date ? ' · ' + esc(a.date) : ''}${a.time ? ' at ' + esc(a.time) : ''}</div>
+                    </div>
+                    <button class="btn btn-secondary btn-icon" style="width:32px;height:32px;font-size:0.75rem;" title="Delete appointment" onclick="deleteAppt(${a.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                <div class="appt-link">${apptLink(a)}</div>
+                <div class="appt-actions">
+                    <button class="btn btn-primary" onclick="copyApptLink(${a.id})"><i class="fas fa-link"></i> Copy Link</button>
+                    <button class="btn btn-secondary" onclick="startVisit(${a.id})"><i class="fas fa-video"></i> Start Visit</button>
+                    <button class="btn btn-secondary" onclick="window.open('${apptLink(a)}', '_blank')"><i class="fas fa-up-right-from-square"></i> Open in New Tab</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    async function copyApptLink(id) {
+        const appt = getAppts().find(a => a.id === id);
+        if (!appt) return;
+        try {
+            await navigator.clipboard.writeText(apptLink(appt));
+            showToast('Visit link copied — send it to your patient', 'success');
+        } catch (e) {
+            showToast('Copy failed — long-press the link to copy it', 'error');
+        }
+    }
+
+    function deleteAppt(id) {
+        if (currentVisitId === id) closeVisitPanel(false);
+        setAppts(getAppts().filter(a => a.id !== id));
+        renderAppts();
+        showToast('Appointment deleted', 'success');
+    }
+
+    function loadJitsi(cb) {
+        if (window.JitsiMeetExternalAPI) return cb();
+        const s = document.createElement('script');
+        s.src = 'https://meet.jit.si/external_api.js';
+        s.onload = cb;
+        s.onerror = () => showToast('Video service failed to load — use "Open in New Tab" instead', 'error');
+        document.head.appendChild(s);
+    }
+
+    function startVisit(id) {
+        const appt = getAppts().find(a => a.id === id);
+        if (!appt) return;
+        currentVisitId = id;
+        document.getElementById('visitPanel').style.display = 'block';
+        document.getElementById('visitTitle').textContent = 'Visit — ' + appt.patient + (appt.reason ? ' · ' + appt.reason : '');
+        document.getElementById('consentCheck').checked = false;
+        document.getElementById('visitTxBtn').disabled = true;
+        document.getElementById('visitTxStatus').textContent = '';
+        const when = (appt.date || '') + (appt.time ? ' ' + appt.time : '');
+        document.getElementById('visitNote').value =
+            `TELEHEALTH VISIT — ${appt.patient}\n${appt.reason}${when ? ' · ' + when : ''}\nPractitioner: Ting Lott, RN\nConsent to transcription: (pending)\n\n`;
+
+        const container = document.getElementById('jitsiContainer');
+        container.innerHTML = '';
+        if (jitsiApi) { try { jitsiApi.dispose(); } catch (e) {} jitsiApi = null; }
+
+        loadJitsi(() => {
+            try {
+                jitsiApi = new JitsiMeetExternalAPI('meet.jit.si', {
+                    roomName: appt.room,
+                    parentNode: container,
+                    width: '100%',
+                    height: '100%',
+                    userInfo: { displayName: 'Ting Lott, RN' },
+                    configOverwrite: { prejoinPageEnabled: true },
+                    interfaceConfigOverwrite: { SHOW_JITSI_WATERMARK: false, SHOW_BRAND_WATERMARK: false }
+                });
+            } catch (e) {
+                showToast('Could not embed video — use "Open in New Tab" on the appointment card', 'error');
+            }
+        });
+
+        document.getElementById('visitPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function onConsentChange() {
+        const checked = document.getElementById('consentCheck').checked;
+        const btn = document.getElementById('visitTxBtn');
+        btn.disabled = !checked || !SpeechRecognition;
+        const note = document.getElementById('visitNote');
+        note.value = note.value.replace('Consent to transcription: (pending)', 'Consent to transcription: ' + (checked ? 'YES — verbal consent obtained' : '(pending)'));
+        if (!SpeechRecognition) {
+            document.getElementById('visitTxStatus').textContent = 'Live transcription is not supported in this browser.';
+        }
+    }
+
+    function toggleVisitTranscription() {
+        if (!SpeechRecognition) return;
+        if (visitTxOn) {
+            stopVisitTranscription();
+            return;
+        }
+        visitRecognition = new SpeechRecognition();
+        visitRecognition.continuous = true;
+        visitRecognition.interimResults = true;
+        visitRecognition.onresult = (e) => {
+            let interim = '';
+            for (let i = e.resultIndex; i < e.results.length; i++) {
+                if (e.results[i].isFinal) {
+                    const area = document.getElementById('visitNote');
+                    area.value += e.results[i][0].transcript.trim() + ' ';
+                    area.scrollTop = area.scrollHeight;
+                } else {
+                    interim += e.results[i][0].transcript;
+                }
+            }
+            document.getElementById('visitTxStatus').textContent = interim ? 'Listening: ' + interim : '';
+        };
+        visitRecognition.onend = () => {
+            if (visitTxOn) { try { visitRecognition.start(); } catch (err) {} }
+        };
+        visitRecognition.onerror = (e) => {
+            if (e.error !== 'aborted' && e.error !== 'no-speech') {
+                document.getElementById('visitTxStatus').textContent = 'Transcription note: ' + e.error;
+            }
+        };
+        try {
+            visitRecognition.start();
+            visitTxOn = true;
+            document.getElementById('visitTxLabel').textContent = 'Stop Live Transcription';
+            document.getElementById('visitTxStatus').textContent = 'Listening… speak normally. (Your microphone hears your side of the room — place the device where both voices are audible.)';
+        } catch (err) {
+            showToast('Could not start microphone transcription', 'error');
+        }
+    }
+
+    function stopVisitTranscription() {
+        visitTxOn = false;
+        document.getElementById('visitTxLabel').textContent = 'Start Live Transcription';
+        document.getElementById('visitTxStatus').textContent = '';
+        if (visitRecognition) { try { visitRecognition.stop(); } catch (e) {} visitRecognition = null; }
+    }
+
+    function endVisitAndSave() {
+        const text = document.getElementById('visitNote').value.trim();
+        if (text) {
+            saveMemoText(text);
+            showToast('Visit note saved — find it under Saved Memos in Notes', 'success');
+        }
+        closeVisitPanel(true);
+    }
+
+    async function copyVisitNote() {
+        const text = document.getElementById('visitNote').value.trim();
+        if (!text) {
+            showToast('Nothing to copy yet', 'error');
+            return;
+        }
+        try {
+            await navigator.clipboard.writeText(text);
+            showToast('Visit note copied', 'success');
+        } catch (e) {
+            showToast('Copy failed — select the text manually', 'error');
+        }
+    }
+
+    function closeVisitPanel(saved) {
+        stopVisitTranscription();
+        if (jitsiApi) { try { jitsiApi.dispose(); } catch (e) {} jitsiApi = null; }
+        document.getElementById('jitsiContainer').innerHTML = '';
+        document.getElementById('visitPanel').style.display = 'none';
+        currentVisitId = null;
+        if (!saved) showToast('Visit closed without saving', 'success');
+    }
+
+    // ========== INIT ==========
+    updateGCS();
+    renderMemos();
+    renderAppts();
+    (function initApptDate() {
+        const d = document.getElementById('apptDate');
+        if (d && !d.value) d.value = new Date().toISOString().slice(0, 10);
+    })();
+</script>
+
+</body>
+</html>
