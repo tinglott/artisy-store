@@ -253,10 +253,10 @@
     <header>
       <div>
         <h1>WriteAI</h1>
-        <span class="badge">4-LLM Hybrid • Privacy-first • Production Ready</span>
+        <span class="badge">3-LLM Hybrid • Privacy-first • Production Ready</span>
       </div>
       <div style="font-size:0.85rem;color:var(--muted)">
-        Grok → Gemini → Mistral → Groq (auto-fallback)
+        Gemini → Mistral → Groq (auto-fallback)
       </div>
     </header>
 
@@ -264,23 +264,18 @@
     <div class="settings">
       <div>
         <label>API Keys (stored only in your browser)</label>
-        <input type="password" id="grokKey" placeholder="xAI/Grok key (optional)" />
-        <div class="llm-status">Grok (primary) - Get free: https://console.x.ai</div>
-      </div>
-
-      <div>
         <input type="password" id="geminiKey" placeholder="Google Gemini key (optional)" />
-        <div class="llm-status">Gemini 2.5 Flash (fallback 1) - Get free: https://aistudio.google.com</div>
+        <div class="llm-status">Gemini 2.5 Flash (primary) - Get free: https://aistudio.google.com</div>
       </div>
 
       <div>
         <input type="password" id="mistralKey" placeholder="Mistral key (optional)" />
-        <div class="llm-status">Mistral (fallback 2) - Get free: https://console.mistral.ai</div>
+        <div class="llm-status">Mistral (fallback 1) - Get free: https://console.mistral.ai</div>
       </div>
 
       <div>
         <input type="password" id="groqKey" placeholder="Groq key (optional)" />
-        <div class="llm-status">Groq (fallback 3) - Get free: https://console.groq.com</div>
+        <div class="llm-status">Groq (fallback 2) - Get free: https://console.groq.com</div>
       </div>
 
       <button class="primary" onclick="saveSettings()" style="grid-column: 1/-1;">Save Keys</button>
@@ -333,9 +328,8 @@ Example: Me and him went to the store yesterday and we buyed some stuff that was
     </div>
 
     <div class="footer">
-      <strong>4-LLM Hybrid WriteAI</strong> • Privacy-first • Free tier supported<br/>
-      Get free keys: <a href="https://console.x.ai" target="_blank">xAI Grok</a> • 
-      <a href="https://aistudio.google.com" target="_blank">Google Gemini</a> • 
+      <strong>3-LLM Hybrid WriteAI</strong> • Privacy-first • Free tier supported<br/>
+      Get free keys: <a href="https://aistudio.google.com" target="_blank">Google Gemini</a> • 
       <a href="https://console.mistral.ai" target="_blank">Mistral</a> • 
       <a href="https://console.groq.com" target="_blank">Groq</a>
     </div>
@@ -350,27 +344,25 @@ Example: Me and him went to the store yesterday and we buyed some stuff that was
 
     // Config tokens — split to avoid pattern matching, joined at runtime
     function _cfg() {
-      const p = ['xai-oPypRA5Ae','kk6KONoylq5c','pCWObvWlLuRj','hK2JX5PxPani','Iul3CsGYqoR6','JsEHLzz1SdWK','nk69onlNta5'];
       const q = ['AQ.Ab8RN6Ifg','fpMKiC6p6_ix','iSUSS9x0ra0D','IhDpWP0VtHXt','zXxKw'];
       const r = ['xF6hnBZnte','YnEja0qVVg','k9BbNp8wUp3d'];
       const s = ['gsk_1D37UFvE','XrD405CfNot','UWGdyb3FYIfc','MbvcFVBX72Z3','yIxHL3MW7'];
-      return { writeai_grok: p.join(''), writeai_gemini: q.join(''), writeai_mistral: r.join(''), writeai_groq: s.join('') };
+      return { writeai_gemini: q.join(''), writeai_mistral: r.join(''), writeai_groq: s.join('') };
     }
 
     function loadSettings() {
+      localStorage.removeItem('writeai_grok'); // retired engine (Oct 2026) — forget any stored key
       // Seed defaults into localStorage on first visit only
       const cfg = _cfg();
       Object.entries(cfg).forEach(([k, v]) => {
         if (!localStorage.getItem(k)) localStorage.setItem(k, v);
       });
-      $('grokKey').value    = localStorage.getItem('writeai_grok')    || '';
       $('geminiKey').value  = localStorage.getItem('writeai_gemini')  || '';
       $('mistralKey').value = localStorage.getItem('writeai_mistral') || '';
       $('groqKey').value    = localStorage.getItem('writeai_groq')    || '';
     }
 
     function saveSettings() {
-      localStorage.setItem('writeai_grok', $('grokKey').value.trim());
       localStorage.setItem('writeai_gemini', $('geminiKey').value.trim());
       localStorage.setItem('writeai_mistral', $('mistralKey').value.trim());
       localStorage.setItem('writeai_groq', $('groqKey').value.trim());
@@ -403,20 +395,12 @@ Example: Me and him went to the store yesterday and we buyed some stuff that was
     // ---------- Core Multi-LLM Hybrid ----------
 
     async function callLLM(systemPrompt, userText) {
-      const grokKey = $('grokKey').value.trim();
       const geminiKey = $('geminiKey').value.trim();
       const mistralKey = $('mistralKey').value.trim();
       const groqKey = $('groqKey').value.trim();
 
       // Array of providers to try in fallback order
       const providers = [];
-
-      if (grokKey) {
-        providers.push({
-          name: 'Grok (xAI)',
-          call: () => callGrok(grokKey, systemPrompt, userText)
-        });
-      }
 
       if (geminiKey) {
         providers.push({
@@ -440,7 +424,7 @@ Example: Me and him went to the store yesterday and we buyed some stuff that was
       }
 
       if (providers.length === 0) {
-        throw new Error('Please add at least one API key (Grok, Gemini, Mistral, or Groq)');
+        throw new Error('Please add at least one API key (Gemini, Mistral, or Groq)');
       }
 
       const failures = [];
@@ -462,33 +446,6 @@ Example: Me and him went to the store yesterday and we buyed some stuff that was
 
       // All providers failed — show every reason, not just the last one
       throw new Error(`All writing engines failed — ${failures.join(' · ')}`);
-    }
-
-    async function callGrok(key, systemPrompt, userText) {
-      const response = await fetchWithTimeout('https://api.x.ai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${key}`
-        },
-        body: JSON.stringify({
-          model: 'grok-3-latest',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userText }
-          ],
-          temperature: 0.3,
-          max_tokens: 4096
-        })
-      });
-
-      if (!response.ok) {
-        const err = await response.text();
-        throw new Error(`Grok error ${response.status}: ${err.slice(0, 200)}`);
-      }
-
-      const data = await response.json();
-      return data.choices?.[0]?.message?.content || '';
     }
 
     async function callGemini(key, systemPrompt, userText) {
