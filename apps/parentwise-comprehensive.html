@@ -2,101 +2,194 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#1a6fa8">
+    <link href="https://fonts.googleapis.com/css2?family=Righteous&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <title>ParentWise — Parenting Guide for Ages 0–18</title>
     <style>
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:system-ui,-apple-system,sans-serif;background:#f8f6f3;color:#333;line-height:1.6}
-        h1,h2,h3{color:#2c1810}
-        a{color:#c4916c;text-decoration:none}
-        button{background:#c4916c;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:14px;transition:all .2s}
-        button:hover{background:#a37650}
-        input,select,textarea{padding:8px;border:1px solid #ddd;border-radius:4px;font-family:inherit;font-size:14px}
-        .container{max-width:1200px;margin:0 auto;padding:0 10px}
-        .nav{background:#fff;padding:12px 0;box-shadow:0 2px 4px rgba(0,0,0,.1);position:sticky;top:0;z-index:100}
-        .nav-content{display:flex;justify-content:space-between;align-items:center;gap:10px}
-        .logo{font-size:18px;font-weight:bold;color:#2c1810}
-        .nav-links{display:flex;gap:12px;flex-wrap:wrap}
-        .nav-links button{padding:6px 12px;font-size:13px;margin:0}
-        .section{display:none;padding:20px 0}
-        .section.active{display:block}
-        .card{background:#fff;padding:16px;border-radius:8px;margin:12px 0;box-shadow:0 1px 3px rgba(0,0,0,.1)}
-        .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:12px 0}
-        .stat-box{background:#f0e8e0;padding:12px;border-radius:6px;text-align:center}
-        .stat-box .num{font-size:24px;font-weight:bold;color:#c4916c}
-        .stat-box .label{font-size:12px;color:#666}
-        .milestone-item{padding:8px;border-left:4px solid #c4916c;margin:8px 0;background:#fafaf8}
-        .checked .milestone-item{border-left-color:#90c590;opacity:.7}
-        .activity-card{border:2px solid #e0dcd8;padding:12px;border-radius:6px;cursor:pointer;transition:all .2s}
-        .activity-card:hover{background:#fff9f5;border-color:#c4916c}
-        .tag{display:inline-block;background:#e8ddd0;color:#333;padding:4px 8px;border-radius:3px;font-size:12px;margin:2px}
-        .progress-bar{width:100%;height:8px;background:#e0dcd8;border-radius:4px;overflow:hidden;margin:4px 0}
-        .progress-fill{height:100%;background:#90c590;transition:width .3s}
-        .tracker-row{display:grid;grid-template-columns:150px 1fr;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #eee}
-        .form-group{margin:12px 0}
-        .form-group label{display:block;font-weight:bold;margin-bottom:4px;font-size:13px}
-        .form-group input,.form-group select,.form-group textarea{width:100%;padding:8px}
-        .btn-group{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}
-        .banner{background:#fff9f5;border-left:4px solid #c4916c;padding:12px;border-radius:4px;margin:12px 0}
-        .warning{background:#fef3cd;border-left-color:#ff9800}
-        .success{background:#d4edda;border-left-color:#28a745}
-        .chat-msg{padding:8px 12px;border-radius:6px;margin:8px 0;max-width:85%}
-        .chat-msg.user{background:#c4916c;color:#fff;margin-left:auto;text-align:right}
-        .chat-msg.ai{background:#e8ddd0;color:#333}
-        .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center}
-        .modal.active{display:flex}
-        .modal-content{background:#fff;padding:20px;border-radius:8px;max-width:90%;max-height:90%;overflow-y:auto;box-shadow:0 4px 6px rgba(0,0,0,.3)}
-        .close-modal{float:right;cursor:pointer;font-size:24px;color:#999;border:none;background:none;padding:0}
-        .badge{display:inline-block;background:#c4916c;color:#fff;padding:4px 8px;border-radius:3px;font-size:11px;font-weight:bold}
-        .age-selector{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
-        .age-btn{padding:8px 12px;border:2px solid #ddd;border-radius:6px;background:white;cursor:pointer;transition:all .2s}
-        .age-btn.active{background:#c4916c;color:#fff;border-color:#c4916c}
-        .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:12px 0}
-        .achievement{text-align:center;padding:12px;background:#fef3cd;border-radius:6px;border:2px solid #ffc107}
-        .achievement .icon{font-size:32px;margin-bottom:4px}
-        @media(max-width:768px){
-            .nav-links{flex-direction:column;width:100%}
-            .tracker-row{grid-template-columns:1fr}
-            .chat-msg{max-width:100%}
-            .modal-content{max-width:95%}
-            .grid{grid-template-columns:1fr}
-        }
-    </style>
+/* ===== ParentWise in the Willow Tales house style =====
+   Tokens lifted from Willow Tales css/app.css (kids-app/app/css/app.css):
+   --sky #1a6fa8, --sky2 #3d9bd1, --sand #f4c87a, --gold #ffd740,
+   --accent #e8530a, --accent2 #c8420a, --grass #7ab648, --correct #38c172,
+   --cream #fff8dc, --card #fffdf0, --text #2c1a00, --brown #5a3a0a;
+   fonts Righteous (headings) + Nunito (body); topbar/bottomnav cream with
+   4px #e8a030 border; cards cream, 18-20px radius, 4px gold border, big shadow;
+   buttons min 52px with 0 4-6px 0 hard shadow. Parent-friendly pass:
+   base type 18px, every tap target >=56px, doors >=112px. */
+:root{
+  --sky:#1a6fa8; --sky2:#3d9bd1; --sand:#f4c87a; --gold:#ffd740;
+  --accent:#e8530a; --accent2:#c8420a; --grass:#7ab648; --correct:#38c172;
+  --cream:#fff8dc; --card:#fffdf0; --text:#2c1a00; --brown:#5a3a0a;
+  --line:#e8a030; --softline:#e8dcc0; --field:#ffffff;
+}
+html[data-theme="dark"]{
+  --sky:#0b2a44; --sky2:#123a5c; --sand:#3a2c14; --card:#1e344e;
+  --cream:#132a42; --text:#eef1f8; --brown:#f4c87a; --field:#132a42; --softline:#3d5a78;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{font-family:'Nunito',-apple-system,'Segoe UI',sans-serif;font-size:18px;line-height:1.55;
+  background:linear-gradient(180deg,var(--sky) 0%,var(--sky2) 42%,var(--sand) 130%) fixed;
+  color:var(--text);min-height:100vh}
+h1,h2,h3{font-family:'Righteous','Nunito',cursive;color:var(--accent2);line-height:1.25}
+h4{color:var(--brown)}
+a{color:var(--accent2);font-weight:700}
+button{background:var(--accent);color:#fff;border:none;padding:14px 22px;border-radius:16px;cursor:pointer;
+  font-size:1.05rem;font-weight:800;font-family:inherit;min-height:56px;box-shadow:0 4px 0 #8a2800}
+button:active{transform:translateY(2px);box-shadow:0 1px 0 #8a2800}
+input,select,textarea{padding:14px;border:3px solid var(--softline);border-radius:14px;font-family:inherit;
+  font-size:1.05rem;min-height:56px;width:100%;background:var(--field);color:var(--text)}
+input[type="checkbox"],input[type="radio"]{width:28px;height:28px;min-height:28px;accent-color:var(--accent);flex:none}
+textarea{min-height:96px}
+label{font-weight:700}
+.container{max-width:880px;margin:0 auto;padding:18px 14px 124px}
+/* topbar (Willow) */
+.pw-topbar{position:sticky;top:0;z-index:500;background:rgba(255,248,220,.97);background:var(--cream);
+  padding:10px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:4px solid var(--line);min-height:64px}
+.pw-topbar .logo{font-family:'Righteous',cursive;font-size:1.35rem;color:var(--accent2)}
+.pw-icon-btn{background:#ffe0a0;border:3px solid var(--line);border-radius:50%;width:52px;height:52px;min-height:52px;
+  font-size:1.35rem;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:none;padding:0}
+html[data-theme="dark"] .pw-icon-btn{background:#2a4a6b}
+/* screens */
+.section{display:none;padding:8px 0 20px}
+.section.active{display:block}
+.section>h2{font-family:'Righteous',cursive;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.4);font-size:1.65rem;margin:10px 4px 14px}
+.pw-back{background:var(--cream);color:var(--brown);border:3px solid var(--line);box-shadow:0 3px 0 #b97c1e;margin:6px 0 4px}
+.card{background:var(--card);padding:20px;border-radius:20px;margin:14px 0;box-shadow:0 8px 20px rgba(0,0,0,.25);border:3px solid var(--line)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:14px 0}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.stat-box{background:var(--card);border:3px solid var(--softline);padding:16px;border-radius:16px;text-align:center}
+.stat-box .num{font-size:1.9rem;font-weight:800;color:var(--accent2)}
+.stat-box .label{font-size:.9rem;color:var(--brown);font-weight:700}
+.milestone-item{padding:14px;border:3px solid var(--softline);border-radius:14px;margin:10px 0;background:var(--field);min-height:60px;font-size:1.05rem}
+.milestone-item input{margin-right:6px}
+.checked .milestone-item{border-color:var(--correct);opacity:.75}
+.activity-card{border:3px solid var(--softline);background:var(--card);padding:18px;border-radius:16px;cursor:pointer;min-height:64px}
+.activity-card:active{transform:scale(.97)}
+.tag{display:inline-block;background:#ffe0a0;color:var(--brown);padding:6px 12px;border-radius:999px;font-size:.85rem;font-weight:800;margin:2px}
+.progress-bar{height:12px;background:var(--softline);border-radius:6px;overflow:hidden}
+.progress-fill{height:100%;background:var(--correct);border-radius:6px}
+.form-group{margin:16px 0}
+.form-group label{display:block;margin-bottom:8px;font-size:1.05rem}
+.btn-group{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.banner{background:#fff3d6;border:3px solid var(--gold);color:var(--brown);padding:16px;border-radius:14px;font-weight:700;margin:12px 0}
+.banner.warning{background:#ffe0e0;border-color:#e3342f}
+.banner.success{background:#d4f5e0;border-color:var(--correct)}
+.chat-msg{padding:16px 18px;border-radius:16px;margin:10px 0;font-size:1.05rem;line-height:1.6;white-space:pre-wrap}
+.chat-msg.user{background:#ffe0a0;border:2px solid var(--line)}
+.chat-msg.ai{background:var(--field);border:2px solid var(--softline)}
+.achievement{background:var(--card);border:3px solid var(--softline);border-radius:16px;padding:16px;text-align:center}
+.achievement .icon{font-size:2.2rem}
+iframe{width:100%!important;aspect-ratio:16/9;height:auto!important;border:0;border-radius:16px;background:#000}
+footer{font-size:.95rem}
+html[data-theme="dark"] footer p,html[data-theme="dark"] footer strong{color:#dbe6f2!important}
+/* home */
+.pw-hero{font-size:2rem;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.4);margin:8px 4px 6px}
+.pw-sub{color:#fff;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,.4);margin:0 4px 16px;font-size:1.1rem}
+.pw-sos{width:100%;min-height:80px;font-size:1.4rem;border-radius:20px;border:4px solid #fff;
+  background:linear-gradient(135deg,#d63c14,#b71c1c);box-shadow:0 8px 0 #6d0f0f,0 12px 28px rgba(0,0,0,.35);margin:4px 0 8px}
+.pw-sos:active{transform:translateY(3px);box-shadow:0 2px 0 #6d0f0f}
+.pw-strip{font-size:1.05rem}
+.pw-strip .progress-strip{height:10px;background:var(--softline);border-radius:5px;margin-top:10px;overflow:hidden}
+.pw-strip .progress-strip i{display:block;height:100%;background:var(--correct);border-radius:5px}
+.pw-doors{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}
+.pw-door{background:var(--card);border:4px solid var(--line);border-radius:20px;padding:20px 10px;min-height:118px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;
+  box-shadow:0 6px 16px rgba(0,0,0,.25);font-family:inherit;font-size:1.2rem;font-weight:800;color:var(--text);text-align:center}
+.pw-door:active{transform:scale(.96)}
+.pw-door .de{font-size:2.5rem}
+.pw-door small{color:var(--brown);font-weight:700;font-size:.9rem}
+.pw-door-sm{min-height:88px;font-size:1.05rem}
+.pw-door-sm .de{font-size:1.9rem}
+.pw-more{font-family:'Righteous',cursive;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.4);font-size:1.35rem;margin:18px 4px 0}
+/* bottom nav (Willow) */
+.pw-bottomnav{position:fixed;bottom:0;left:0;right:0;background:var(--cream);border-top:4px solid var(--line);
+  display:flex;z-index:600;padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+.pw-bottomnav button{flex:1;background:none;border:none;box-shadow:none;font-size:.78rem;font-weight:800;color:var(--brown);
+  cursor:pointer;padding:8px 2px;min-height:64px;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:inherit}
+.pw-bottomnav button .ni{font-size:1.6rem}
+.pw-bottomnav button.on{color:var(--accent2)}
+/* tools */
+.pw-tool-tabs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0 14px}
+.pw-tool-tabs button{background:var(--card);color:var(--text);border:3px solid var(--line);box-shadow:0 3px 0 #b97c1e;font-size:1rem}
+.pw-tool-tabs button.on{background:var(--accent);color:#fff;box-shadow:0 3px 0 #8a2800}
+.pw-panel{display:none}
+.pw-panel.on{display:block}
+.pw-calm-tabs{display:flex;gap:10px;justify-content:center;margin:8px 0 16px}
+.pw-calm-tab{width:64px;height:64px;min-height:64px;border-radius:14px;background:var(--field);border:3px solid var(--softline);
+  font-family:'Righteous',cursive;font-size:1.6rem;color:var(--brown);box-shadow:none;padding:0}
+.pw-calm-tab.on{background:var(--accent);color:#fff;border-color:#8a2800}
+.pw-calm-letter{font-family:'Righteous',cursive;font-size:3rem;color:var(--accent2);text-align:center}
+.pw-calm-label{font-weight:800;font-size:1.25rem;text-align:center;margin:6px 0}
+.pw-calm-desc{text-align:center;font-size:1.08rem}
+.pw-row{display:flex;gap:10px;align-items:center;margin:10px 0}
+.pw-row input{flex:1}
+.pw-del{background:#e3342f;box-shadow:0 3px 0 #8f1d1d;min-width:56px;padding:10px}
+.pw-check{width:32px!important;height:32px!important;min-height:32px!important;flex:none}
+.pw-done{text-decoration:line-through;opacity:.65}
+.pw-ft{display:grid;grid-template-columns:1fr;gap:12px}
+.pw-ft-box{background:var(--field);border:3px solid var(--line);border-radius:16px;padding:18px;text-align:center}
+.pw-ft-box h4{font-family:'Righteous',cursive;font-size:1.2rem;margin-bottom:10px}
+.pw-ft-arrow{text-align:center;font-size:2rem;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.4)}
+.pw-timer{font-family:'Righteous',cursive;font-size:3.8rem;text-align:center;color:var(--accent2);margin:10px 0}
+.pw-timer-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
+.pw-tokens{font-size:2.4rem;text-align:center;letter-spacing:6px;margin:12px 0;min-height:60px}
+.pw-big{width:100%;font-size:1.2rem}
+/* SOS overlay */
+.pw-sos-overlay{position:fixed;inset:0;background:rgba(16,32,52,.97);z-index:2000;display:none;flex-direction:column;
+  align-items:center;justify-content:center;padding:24px;text-align:center;color:#fff}
+.pw-sos-overlay.on{display:flex}
+.pw-sos-circle{width:170px;height:170px;border-radius:50%;background:radial-gradient(circle,#3d9bd1,#1a6fa8);
+  border:5px solid var(--gold);display:flex;align-items:center;justify-content:center;font-family:'Righteous',cursive;
+  font-size:2.6rem;color:#fff;margin:22px 0;animation:pwBreathe 5s ease-in-out infinite}
+@keyframes pwBreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.13)}}
+.pw-sos-overlay p{font-size:1.35rem;font-weight:700;max-width:520px;line-height:1.5}
+.pw-sos-close{background:var(--cream);color:var(--brown);border:3px solid var(--line);box-shadow:0 4px 0 #b97c1e;margin-top:26px;font-size:1.2rem;padding:16px 34px}
+@media (min-width:700px){.container{padding:24px 24px 124px}.pw-ft{grid-template-columns:1fr auto 1fr;align-items:center}.pw-ft-arrow{transform:rotate(0deg)}}
+@media (max-width:380px){.pw-doors{gap:10px}.pw-door{font-size:1.05rem;min-height:104px}}
+</style>
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="nav">
-        <div class="container">
-            <div class="nav-content">
-                <div class="logo">🍼 ParentWise</div>
-                <div class="nav-links">
-                    <button onclick="goHome()">Home</button>
-                    <button onclick="goSection('setup')">Setup</button>
-                    <button onclick="goSection('tracker')">Trackers</button>
-                    <button onclick="goSection('milestones')">Milestones</button>
-                    <button onclick="goSection('activities')">Activities</button>
-                    <button onclick="goSection('guides')">Guides</button>
-                    <button onclick="goSection('advisor')">Guide</button>
-                    <button onclick="goSection('videos')">Videos</button>
-                    <button onclick="goSection('analytics')">Progress</button>
-                </div>
-            </div>
-        </div>
-    </nav>
+    
+<header class="pw-topbar">
+  <div class="logo">🍼 ParentWise</div>
+  <button class="pw-icon-btn" id="pwThemeBtn" onclick="pwToggleTheme()" aria-label="Night mode on or off" title="Night mode">🌙</button>
+</header>
+
 
     <div class="container">
         <!-- HOME -->
-        <div id="home" class="section active">
-            <h1 style="margin-top:20px">Welcome to ParentWise</h1>
-            <p style="margin:12px 0;color:#666">Your companion for raising healthy, happy children ages 0-18 — trackers, milestones, activities, and plain-spoken guides, all in one place</p>
+        
+<div id="home" class="section active">
+  <h1 class="pw-hero">Welcome to ParentWise</h1>
+  <p class="pw-sub">Help for raising children ages 0&ndash;18. Plain words, big buttons, everything close by.</p>
+  <button class="pw-sos" onclick="pwOpenSos()">&#x1F198; I Need a Calm Minute</button>
+  <div id="homeContent"></div>
+  <div class="card pw-strip" id="pwHomeStrip"><strong>Your day at a glance</strong><p style="margin-top:6px">Add your child to see your progress here.</p></div>
+  <div class="pw-doors">
+    <button class="pw-door" onclick="goSection('tracker')"><span class="de">📝</span>Track Today<small>Sleep, food, mood</small></button>
+    <button class="pw-door" onclick="goSection('milestones')"><span class="de">⭐</span>Milestones<small>See what comes next</small></button>
+    <button class="pw-door" onclick="goSection('tools')"><span class="de">🧰</span>Tools<small>Calm, routines, timer</small></button>
+    <button class="pw-door" onclick="goSection('guides')"><span class="de">📖</span>Guides<small>Plain-spoken help</small></button>
+    <button class="pw-door" onclick="goSection('advisor')"><span class="de">💬</span>Ask a Question<small>Quick answers</small></button>
+    <button class="pw-door" onclick="goSection('videos')"><span class="de">▶️</span>Videos<small>Short and helpful</small></button>
+  </div>
+  <h2 class="pw-more">More</h2>
+  <div class="pw-doors">
+    <button class="pw-door pw-door-sm" onclick="goSection('setup')"><span class="de">👶</span>My Child</button>
+    <button class="pw-door pw-door-sm" onclick="goSection('activities')"><span class="de">🎨</span>Activities</button>
+    <button class="pw-door pw-door-sm" onclick="goSection('analytics')"><span class="de">📊</span>Progress</button>
+    <button class="pw-door pw-door-sm" onclick="pwOpenSos()"><span class="de">🌿</span>Calm Minute</button>
+  </div>
+
             
-            <div id="homeContent" style="margin-top:20px"></div>
-            
-            <button onclick="goSection('setup')" style="margin-top:20px;padding:12px 24px;font-size:16px">Get Started</button>
+            <button onclick="goSection('setup')" style="width:100%;margin-top:14px">Add My Child</button>
         </div>
 
         <!-- SETUP -->
         <div id="setup" class="section">
+  <button class="pw-back" onclick="goHome()">&#8249; Home</button>
             <h2>Personalization Setup</h2>
             
             <div class="card">
@@ -145,6 +238,7 @@
 
         <!-- TRACKERS -->
         <div id="tracker" class="section">
+  <button class="pw-back" onclick="goHome()">&#8249; Home</button>
             <h2>Health & Wellness Trackers</h2>
             
             <div class="card">
@@ -218,6 +312,7 @@
 
         <!-- MILESTONES -->
         <div id="milestones" class="section">
+  <button class="pw-back" onclick="goHome()">&#8249; Home</button>
             <h2>Development Milestones</h2>
             
             <div class="card">
@@ -229,6 +324,7 @@
 
         <!-- ACTIVITIES -->
         <div id="activities" class="section">
+  <button class="pw-back" onclick="goHome()">&#8249; Home</button>
             <h2>Age-Appropriate Activities</h2>
             
             <div class="card">
@@ -249,6 +345,7 @@
 
         <!-- EXPERT GUIDES -->
         <div id="guides" class="section">
+  <button class="pw-back" onclick="goHome()">&#8249; Home</button>
             <h2>Expert Parenting Guides</h2>
             
             <div class="card">
@@ -264,6 +361,7 @@
 
         <!-- AI ADVISOR -->
         <div id="advisor" class="section">
+  <button class="pw-back" onclick="goHome()">&#8249; Home</button>
             <h2>ParentWise Guide</h2>
             
             <div class="card">
@@ -288,7 +386,86 @@
 
 
         <!-- QUICK REFERENCE VIDEOS -->
-        <div id="videos" class="section">
+        
+<!-- TOOLS -->
+<div id="tools" class="section">
+  <button class="pw-back" onclick="goHome()">&#8249; Home</button>
+  <h2>Tools</h2>
+  <p style="color:#fff;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,.4);margin:0 4px 12px">Simple tools for hard moments. Tap one.</p>
+  <div class="pw-tool-tabs">
+    <button id="pwTab-calm" class="on" onclick="pwShowTool('calm')">🌿 CALM Steps</button>
+    <button id="pwTab-routine" onclick="pwShowTool('routine')">🗓️ My Routine</button>
+    <button id="pwTab-firstthen" onclick="pwShowTool('firstthen')">➡️ First / Then</button>
+    <button id="pwTab-timer" onclick="pwShowTool('timer')">⏱️ Focus Timer</button>
+    <button id="pwTab-schedule" onclick="pwShowTool('schedule')">✅ My Day List</button>
+    <button id="pwTab-tokens" onclick="pwShowTool('tokens')">⭐ Star Board</button>
+  </div>
+
+  <div class="card pw-panel on" id="pwPanel-calm">
+    <h3 style="text-align:center">The CALM Steps</h3>
+    <p style="text-align:center;margin:8px 0">For tantrums and big feelings. One step at a time.</p>
+    <div class="pw-calm-tabs">
+      <button class="pw-calm-tab on" data-calm="C" onclick="pwCalm('C')">C</button>
+      <button class="pw-calm-tab" data-calm="A" onclick="pwCalm('A')">A</button>
+      <button class="pw-calm-tab" data-calm="L" onclick="pwCalm('L')">L</button>
+      <button class="pw-calm-tab" data-calm="M" onclick="pwCalm('M')">M</button>
+    </div>
+    <div id="pwCalmDisplay"></div>
+  </div>
+
+  <div class="card pw-panel" id="pwPanel-routine">
+    <h3>My Routine</h3>
+    <p style="margin:8px 0">Build a morning or bedtime routine, step by step. It saves on this device.</p>
+    <div id="pwRoutineList"></div>
+    <div class="pw-row"><input type="text" id="pwRoutineInput" placeholder="New step, e.g. Brush teeth" aria-label="New routine step"><button onclick="pwRoutineAdd()">Add</button></div>
+  </div>
+
+  <div class="card pw-panel" id="pwPanel-firstthen">
+    <h3 style="text-align:center">First / Then Board</h3>
+    <p style="text-align:center;margin:8px 0">Show this to your child. Keep &ldquo;Then&rdquo; something they love.</p>
+    <div class="pw-ft">
+      <div class="pw-ft-box"><h4>FIRST</h4><input type="text" id="pwFirstInput" placeholder="e.g. Put on shoes" style="text-align:center" oninput="pwFirstThenSave()"></div>
+      <div class="pw-ft-arrow">⬇️</div>
+      <div class="pw-ft-box"><h4>THEN</h4><input type="text" id="pwThenInput" placeholder="e.g. Play outside" style="text-align:center" oninput="pwFirstThenSave()"></div>
+    </div>
+  </div>
+
+  <div class="card pw-panel" id="pwPanel-timer">
+    <h3 style="text-align:center">Focus Timer</h3>
+    <p style="text-align:center;margin:8px 0">Pick a time. Work or play until it rings down to zero.</p>
+    <div class="pw-timer-btns">
+      <button onclick="pwTimerSet(5)">5 min</button>
+      <button onclick="pwTimerSet(10)">10 min</button>
+      <button onclick="pwTimerSet(25)">25 min</button>
+    </div>
+    <div class="pw-timer" id="pwTimerDisplay">10:00</div>
+    <div class="pw-timer-btns">
+      <button onclick="pwTimerStart()">Start</button>
+      <button onclick="pwTimerPause()">Pause</button>
+      <button onclick="pwTimerReset()">Reset</button>
+    </div>
+    <p style="text-align:center" id="pwTimerMsg"></p>
+  </div>
+
+  <div class="card pw-panel" id="pwPanel-schedule">
+    <h3>My Day List</h3>
+    <p style="margin:8px 0">A simple list for today. Tap the box when a step is done.</p>
+    <div id="pwScheduleList"></div>
+    <div class="pw-row"><input type="text" id="pwScheduleInput" placeholder="New item, e.g. Pack school bag" aria-label="New list item"><button onclick="pwScheduleAdd()">Add</button></div>
+  </div>
+
+  <div class="card pw-panel" id="pwPanel-tokens">
+    <h3 style="text-align:center">Star Board</h3>
+    <p style="text-align:center;margin:8px 0">Earn a star for each good job. Five stars earns the reward you chose together.</p>
+    <div class="pw-tokens" id="pwTokenDisplay"></div>
+    <p style="text-align:center;font-weight:800" id="pwTokenCount"></p>
+    <button class="pw-big" onclick="pwTokenAdd()">⭐ Add a Star</button>
+    <button class="pw-big" style="background:var(--cream);color:var(--brown);border:3px solid var(--line);box-shadow:0 3px 0 #b97c1e;margin-top:12px" onclick="pwTokenReset()">Start Over</button>
+  </div>
+</div>
+
+<div id="videos" class="section">
+  <button class="pw-back" onclick="goHome()">&#8249; Home</button>
             <h2>Quick Reference Videos</h2>
             <p style="color:#666;margin:12px 0">Trusted voices for the journey — from the American Academy of Pediatrics, children's hospitals, and licensed specialists. Watch when you need it; every video here was hand-picked for ParentWise families.</p>
 
@@ -318,6 +495,7 @@
 
         <!-- ANALYTICS -->
         <div id="analytics" class="section">
+  <button class="pw-back" onclick="goHome()">&#8249; Home</button>
             <h2>Progress & Analytics</h2>
             
             <div class="card">
@@ -850,7 +1028,7 @@ ParentWise is education and support, not medical care. Questions about developme
               answer: `Autism is a different way of experiencing the world — social signals, senses, language, and interests set to different levels. It is a spectrum: every autistic child is a different constellation. "Asperger's" is the older name many families still use; in 2013 it was folded into the single diagnosis of autism spectrum disorder — same children, updated map. Autism is not caused by vaccines or parenting (that science is settled), and it is not something a child is "suffering from" every moment — many autistic people describe it as a way of being, with real challenges and real strengths. Our Autism & Asperger's guide (Guides section) goes deep, kindly.` },
             { keys: ['autism signs','signs of autism','autism screening','autism diagnos','early signs'], topic: 'autism signs',
               answer: `Early signs worth acting on (CDC's Learn the Signs): not responding to their name by 12 months; not pointing to show you things by 14 months; no single words by 16 months; no two-word phrases by 24 months; avoiding eye contact or seeming in their own world; repetitive movements or lining things up; and — at ANY age — loss of speech or social skills they once had. Acting early is everything: pediatricians screen for autism at the 18- and 24-month visits, but don't wait for a visit if your gut speaks — ask now. Under 3, a developmental evaluation through early intervention is free — and you can make that referral yourself, no doctor's note needed. Only a professional evaluation can diagnose; a parent noticing early is how stories change.` },
-            { keys: ['autism communicat','nonverbal','doesn\'t talk','eye contact','literal'], topic: 'autism communication',
+            { keys: ['autism communicat','nonverbal','aac','doesn\'t talk','eye contact','literal'], topic: 'autism communication',
               answer: `Meet your child where their language lives. Speak plainly and kindly — idioms and sarcasm can land like a foreign language. Give processing time: repeating a question doesn't make it arrive faster, just louder inside. Pictures, written words, gestures, signs, and speech devices are ALL real communication — honor every form your child uses. And never force eye contact: many autistic children listen better when they aren't made to look. Fewer words, kind tone, wait — that's the doorway.` },
             { keys: ['sensory','overload','noise','lights','textures','calm corner','ear defenders'], topic: 'sensory',
               answer: `For many autistic children the world arrives turned up: lights buzz, tags scratch like sandpaper, the cafeteria is a wall of sound. Learn {name}'s settings: overload can look like hands over ears, sudden silence, bolting, or a storm from "nowhere." What helps: a calm corner at home (soft light, something heavy like a cushion or lap pad, something loved, no questions asked), ear defenders in your bag, sensory breaks treated as maintenance rather than rewards, and checking the basics — hunger, tiredness, a scratchy seam — before assuming behavior.` },
@@ -963,5 +1141,122 @@ ParentWise is education and support, not medical care. Questions about developme
         // Initialize
         loadData();
     </script>
+
+<nav class="pw-bottomnav" aria-label="Main">
+  <button data-pwsec="home" class="on" onclick="goHome()"><span class="ni">🏠</span>Home</button>
+  <button data-pwsec="tracker" onclick="goSection('tracker')"><span class="ni">📝</span>Track</button>
+  <button data-pwsec="advisor" onclick="goSection('advisor')"><span class="ni">💬</span>Ask</button>
+  <button data-pwsec="tools" onclick="goSection('tools')"><span class="ni">🧰</span>Tools</button>
+  <button data-pwsec="guides" onclick="goSection('guides')"><span class="ni">📖</span>Guides</button>
+</nav>
+
+<div class="pw-sos-overlay" id="pwSosOverlay" role="dialog" aria-label="Calm minute">
+  <h2 style="font-family:'Righteous',cursive;color:#fff;font-size:1.8rem">A Calm Minute</h2>
+  <div class="pw-sos-circle"><span id="pwSosCount">30</span></div>
+  <p id="pwSosText">Breathe in slowly&hellip;</p>
+  <button class="pw-sos-close" onclick="pwCloseSos()">I Feel Calmer</button>
+</div>
+
+<script>
+/* ===== ParentWise Willow-style shell + Tools (added Oct 20 rebuild) ===== */
+(function(){
+  var origGo = window.goSection;
+  window.goSection = function(s){
+    origGo(s);
+    try{ window.scrollTo({top:0}); }catch(e){}
+    document.querySelectorAll('.pw-bottomnav button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-pwsec')===s); });
+    if(s==='home') pwRefreshHome();
+  };
+  window.goHome = function(){ window.goSection('home'); };
+})();
+
+function pwRefreshHome(){
+  var strip=document.getElementById('pwHomeStrip'); if(!strip) return;
+  var data={}; try{ data=JSON.parse(localStorage.getItem('parentwiseData')||'{}'); }catch(e){}
+  var kids=data.children||[]; var checked=(data.milestonesChecked||[]).length; var days=(data.trackers||[]).length;
+  if(!kids.length){ strip.innerHTML='<strong>Your day at a glance</strong><p style="margin-top:6px">Add your child to see your progress here.</p>'; return; }
+  var c=kids[0]; var PW_FOCUS={sleep:'Sleep',feeding:'Feeding/Nutrition',behavior:'Behavior',development:'Development',screen:'Screen Time',safety:'Safety',school:'School/Learning',social:'Social Skills'}; var focus=(c.challenges&&c.challenges.length)?('<p style="margin-top:6px">Focus areas: '+c.challenges.map(function(k){return PW_FOCUS[k]||k;}).join(', ')+'</p>'):'';
+  var total=6; var pct=Math.min(100, Math.round(checked/total*100));
+  strip.innerHTML='<strong>'+c.name+' &mdash; at a glance</strong>'+focus+
+    '<p style="margin-top:6px">&#11088; '+checked+' milestone'+(checked===1?'':'s')+' celebrated &mdash; and saved</p>'+
+    '<p>&#128221; '+days+' day'+(days===1?'':'s')+' tracked</p>'+
+    '<div class="progress-strip"><i style="width:'+pct+'%"></i></div>';
+}
+
+function pwToggleTheme(){
+  var dark=document.documentElement.getAttribute('data-theme')==='dark';
+  if(dark){ document.documentElement.removeAttribute('data-theme'); localStorage.setItem('pwTheme','light'); document.getElementById('pwThemeBtn').textContent='\uD83C\uDF19'; }
+  else{ document.documentElement.setAttribute('data-theme','dark'); localStorage.setItem('pwTheme','dark'); document.getElementById('pwThemeBtn').textContent='\u2600\uFE0F'; }
+}
+(function(){ try{ if(localStorage.getItem('pwTheme')==='dark'){ document.documentElement.setAttribute('data-theme','dark'); var b=document.getElementById('pwThemeBtn'); if(b) b.textContent='\u2600\uFE0F'; } }catch(e){} })();
+
+/* --- CALM --- */
+var PW_CALM={
+  C:{label:'Check Your Own State',desc:'Regulate yourself first. Take a slow breath. Your calm is your child\u2019s anchor.'},
+  A:{label:'Acknowledge & Label',desc:'Name the feeling out loud: \u201CYou\u2019re feeling really frustrated.\u201D Naming it helps it shrink. Being understood calms faster than logic.'},
+  L:{label:'Listen & Limit',desc:'Hold space for feelings while keeping the boundary: \u201CIt\u2019s okay to be angry. It\u2019s not okay to hit. I\u2019m here with you.\u201D'},
+  M:{label:'Move Forward',desc:'Once the storm passes, problem-solve together. Offer choices, repair if needed, and reconnect. This teaches resilience.'}
+};
+function pwCalm(step){
+  var d=PW_CALM[step]; if(!d) return;
+  document.getElementById('pwCalmDisplay').innerHTML='<div class="pw-calm-letter">'+step+'</div><div class="pw-calm-label">'+d.label+'</div><p class="pw-calm-desc">'+d.desc+'</p>';
+  document.querySelectorAll('.pw-calm-tab').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-calm')===step); });
+}
+function pwShowTool(name){
+  ['calm','routine','firstthen','timer','schedule','tokens'].forEach(function(n){
+    document.getElementById('pwPanel-'+n).classList.toggle('on', n===name);
+    document.getElementById('pwTab-'+n).classList.toggle('on', n===name);
+  });
+}
+/* --- Routine --- */
+function pwRoutineLoad(){ try{ return JSON.parse(localStorage.getItem('pwRoutine')||'null')||['Wake up','Brush teeth','Eat breakfast','Get dressed','Shoes on']; }catch(e){ return []; } }
+function pwRoutineSave(v){ localStorage.setItem('pwRoutine', JSON.stringify(v)); }
+function pwRoutineRender(){
+  var list=pwRoutineLoad(); var el=document.getElementById('pwRoutineList');
+  el.innerHTML=list.map(function(s,i){ return '<div class="pw-row"><strong style="min-width:28px;text-align:center">'+(i+1)+'.</strong><input type="text" value="'+String(s).replace(/"/g,'&quot;')+'" onchange="pwRoutineEdit('+i+',this.value)" aria-label="Routine step '+(i+1)+'"><button class="pw-del" onclick="pwRoutineRemove('+i+')" aria-label="Remove step">\u2715</button></div>'; }).join('')||'<p>No steps yet. Add your first step below.</p>';
+}
+function pwRoutineAdd(){ var inp=document.getElementById('pwRoutineInput'); var v=inp.value.trim(); if(!v) return; var l=pwRoutineLoad(); l.push(v); pwRoutineSave(l); inp.value=''; pwRoutineRender(); }
+function pwRoutineRemove(i){ var l=pwRoutineLoad(); l.splice(i,1); pwRoutineSave(l); pwRoutineRender(); }
+function pwRoutineEdit(i,v){ var l=pwRoutineLoad(); l[i]=v; pwRoutineSave(l); }
+/* --- First / Then --- */
+function pwFirstThenSave(){ localStorage.setItem('pwFirstThen', JSON.stringify({first:document.getElementById('pwFirstInput').value, then:document.getElementById('pwThenInput').value})); }
+function pwFirstThenLoad(){ try{ var d=JSON.parse(localStorage.getItem('pwFirstThen')||'{}'); if(d.first) document.getElementById('pwFirstInput').value=d.first; if(d.then) document.getElementById('pwThenInput').value=d.then; }catch(e){} }
+/* --- Timer --- */
+var pwT={total:600,left:600,timer:null};
+function pwTimerFmt(s){ var m=Math.floor(s/60), r=s%60; return m+':'+(r<10?'0':'')+r; }
+function pwTimerDraw(){ document.getElementById('pwTimerDisplay').textContent=pwTimerFmt(pwT.left); }
+function pwTimerSet(min){ pwTimerPause(); pwT.total=min*60; pwT.left=pwT.total; document.getElementById('pwTimerMsg').textContent=''; pwTimerDraw(); }
+function pwTimerStart(){ if(pwT.timer) return; if(pwT.left<=0) pwT.left=pwT.total; pwT.timer=setInterval(function(){ pwT.left--; pwTimerDraw(); if(pwT.left<=0){ pwTimerPause(); document.getElementById('pwTimerMsg').textContent='\u23F0 Time is up. Great focusing!'; } },1000); }
+function pwTimerPause(){ if(pwT.timer){ clearInterval(pwT.timer); pwT.timer=null; } }
+function pwTimerReset(){ pwTimerPause(); pwT.left=pwT.total; document.getElementById('pwTimerMsg').textContent=''; pwTimerDraw(); }
+/* --- Schedule --- */
+function pwScheduleLoad(){ try{ return JSON.parse(localStorage.getItem('pwSchedule')||'null')||[{task:'Wake up',done:false},{task:'Brush teeth',done:false},{task:'Eat breakfast',done:false}]; }catch(e){ return []; } }
+function pwScheduleSave(v){ localStorage.setItem('pwSchedule', JSON.stringify(v)); }
+function pwScheduleRender(){
+  var list=pwScheduleLoad(); var el=document.getElementById('pwScheduleList');
+  el.innerHTML=list.map(function(it,i){ return '<div class="pw-row"><input class="pw-check" type="checkbox" '+(it.done?'checked':'')+' onchange="pwScheduleToggle('+i+')" aria-label="Done"><span style="flex:1" class="'+(it.done?'pw-done':'')+'">'+String(it.task).replace(/</g,'&lt;')+'</span><button class="pw-del" onclick="pwScheduleRemove('+i+')" aria-label="Remove item">\u2715</button></div>'; }).join('')||'<p>Your list is empty. Add an item below.</p>';
+}
+function pwScheduleAdd(){ var inp=document.getElementById('pwScheduleInput'); var v=inp.value.trim(); if(!v) return; var l=pwScheduleLoad(); l.push({task:v,done:false}); pwScheduleSave(l); inp.value=''; pwScheduleRender(); }
+function pwScheduleToggle(i){ var l=pwScheduleLoad(); l[i].done=!l[i].done; pwScheduleSave(l); pwScheduleRender(); }
+function pwScheduleRemove(i){ var l=pwScheduleLoad(); l.splice(i,1); pwScheduleSave(l); pwScheduleRender(); }
+/* --- Tokens --- */
+function pwTokenLoad(){ return parseInt(localStorage.getItem('pwTokens')||'0',10)||0; }
+function pwTokenRender(){ var n=pwTokenLoad(); var stars=''; for(var i=0;i<5;i++) stars+=(i<n?'\u2B50':'\u2606'); document.getElementById('pwTokenDisplay').textContent=stars; document.getElementById('pwTokenCount').textContent=n+' / 5 stars'+(n>=5?' \u2014 Reward earned! Great job!':''); }
+function pwTokenAdd(){ var n=Math.min(5,pwTokenLoad()+1); localStorage.setItem('pwTokens',String(n)); pwTokenRender(); }
+function pwTokenReset(){ localStorage.setItem('pwTokens','0'); pwTokenRender(); }
+/* --- SOS calm reset --- */
+var pwSosTimer=null;
+function pwOpenSos(){
+  var ov=document.getElementById('pwSosOverlay'); ov.classList.add('on');
+  var left=30; document.getElementById('pwSosCount').textContent=left; document.getElementById('pwSosText').textContent='Breathe in slowly\u2026';
+  if(pwSosTimer) clearInterval(pwSosTimer);
+  pwSosTimer=setInterval(function(){ left--; if(left<0){ pwCloseSos(); return; } document.getElementById('pwSosCount').textContent=left;
+    document.getElementById('pwSosText').textContent = left>20 ? 'Breathe in slowly\u2026' : (left>10 ? 'Breathe out slowly\u2026' : 'You are safe. This moment will pass.'); },1000);
+}
+function pwCloseSos(){ var ov=document.getElementById('pwSosOverlay'); if(ov) ov.classList.remove('on'); if(pwSosTimer){ clearInterval(pwSosTimer); pwSosTimer=null; } }
+/* --- init tools --- */
+pwCalm('C'); pwRoutineRender(); pwFirstThenLoad(); pwTimerDraw(); pwScheduleRender(); pwTokenRender(); pwRefreshHome();
+</script>
+
 </body>
 </html>
