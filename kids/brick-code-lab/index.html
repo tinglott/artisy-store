@@ -1,470 +1,1310 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🌙 Nap Time Adventures</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brick Code Lab — Build it, Code it, Play it</title>
 <style>
-  :root {
-    --bg: #0a0a2e;
-    --bg2: #111148;
-    --card: #1a1a4e;
-    --accent: #ffd700;
-    --accent2: #87ceeb;
-    --text: #e8e8ff;
-    --muted: #9999cc;
-    --green: #44ff99;
-    --radius: 16px;
+  :root{
+    --bgA:#bfe9ff; --bgB:#eaf7ff;
+    --panel:#ffffff; --edge:#d7e9f5;
+    --ink:#12263f; --soft:#4c6482;
+    --coral:#ff6a3d; --teal:#2ec4b6; --sun:#ffcc33;
+    --plate:#cfe3ee; --grid:#b8d4e4;
+    --code:#16283c;
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
-
-  /* Stars background */
-  body::before {
-    content: '';
-    position: fixed; inset: 0; pointer-events: none; z-index: 0;
-    background-image:
-      radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.8) 0%, transparent 100%),
-      radial-gradient(1px 1px at 30% 5%, rgba(255,255,255,0.6) 0%, transparent 100%),
-      radial-gradient(1px 1px at 55% 20%, rgba(255,255,255,0.9) 0%, transparent 100%),
-      radial-gradient(1px 1px at 75% 8%, rgba(255,255,255,0.7) 0%, transparent 100%),
-      radial-gradient(1px 1px at 90% 25%, rgba(255,255,255,0.8) 0%, transparent 100%),
-      radial-gradient(1px 1px at 15% 40%, rgba(255,255,255,0.5) 0%, transparent 100%),
-      radial-gradient(1px 1px at 45% 35%, rgba(255,255,255,0.7) 0%, transparent 100%),
-      radial-gradient(2px 2px at 65% 12%, rgba(255,220,100,0.9) 0%, transparent 100%),
-      radial-gradient(1px 1px at 85% 45%, rgba(255,255,255,0.6) 0%, transparent 100%),
-      radial-gradient(1px 1px at 25% 60%, rgba(255,255,255,0.4) 0%, transparent 100%),
-      radial-gradient(1px 1px at 70% 55%, rgba(255,255,255,0.7) 0%, transparent 100%),
-      radial-gradient(1px 1px at 5% 75%, rgba(255,255,255,0.5) 0%, transparent 100%),
-      radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,0.6) 0%, transparent 100%),
-      radial-gradient(2px 2px at 80% 70%, rgba(255,220,100,0.8) 0%, transparent 100%),
-      radial-gradient(1px 1px at 95% 85%, rgba(255,255,255,0.7) 0%, transparent 100%),
-      radial-gradient(1px 1px at 20% 90%, rgba(255,255,255,0.5) 0%, transparent 100%),
-      radial-gradient(1px 1px at 60% 90%, rgba(255,255,255,0.6) 0%, transparent 100%);
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bgA:#0d1b2a; --bgB:#132a3d;
+      --panel:#16283c; --edge:#24405a;
+      --ink:#eaf4ff; --soft:#9db8d0;
+    }
   }
-
-  .container { max-width: 900px; margin: 0 auto; padding: 20px; position: relative; z-index: 1; }
-  header { text-align: center; padding: 40px 0 30px; }
-  header .moon { font-size: 64px; line-height: 1; margin-bottom: 12px; animation: float 4s ease-in-out infinite; }
-  @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-  header h1 { font-size: 2.4rem; font-weight: 800; color: var(--accent); letter-spacing: -0.5px; }
-  header p { color: var(--accent2); margin-top: 8px; font-size: 1.05rem; }
-
-  /* Tabs */
-  .tabs { display: flex; gap: 8px; margin-bottom: 24px; background: var(--card); border-radius: var(--radius); padding: 6px; }
-  .tab { flex: 1; padding: 10px; border: none; border-radius: 12px; background: transparent; color: var(--muted); cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: all 0.2s; }
-  .tab.active { background: var(--bg2); color: var(--accent); }
-  .tab:hover:not(.active) { color: var(--text); }
-
-  .panel { display: none; }
-  .panel.active { display: block; }
-
-  /* Lullaby section */
-  .song-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 24px; }
-  .song-card { background: var(--card); border-radius: var(--radius); padding: 16px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent; text-align: center; }
-  .song-card:hover { border-color: var(--accent); transform: translateY(-2px); }
-  .song-card.playing { border-color: var(--green); background: #1a3a2a; }
-  .song-card .emoji { font-size: 2rem; margin-bottom: 8px; }
-  .song-card .name { font-weight: 600; font-size: 0.9rem; color: var(--text); }
-  .song-card .duration { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
-  .song-card .play-btn { margin-top: 10px; font-size: 1.4rem; }
-
-  .player-bar { background: var(--card); border-radius: var(--radius); padding: 16px 20px; display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
-  .player-bar .now-playing { flex: 1; }
-  .player-bar .now-playing .label { font-size: 0.75rem; color: var(--muted); }
-  .player-bar .now-playing .title { font-weight: 700; color: var(--accent); }
-  .player-controls { display: flex; gap: 10px; align-items: center; }
-  .btn-ctrl { background: var(--bg); border: 2px solid var(--muted); color: var(--text); width: 44px; height: 44px; border-radius: 50%; cursor: pointer; font-size: 1.1rem; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
-  .btn-ctrl:hover { border-color: var(--accent); color: var(--accent); }
-  .btn-ctrl.primary { background: var(--accent); border-color: var(--accent); color: var(--bg); font-size: 1.2rem; width: 52px; height: 52px; }
-  .volume-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
-  .volume-row input[type=range] { flex: 1; accent-color: var(--accent); }
-  .volume-row label { color: var(--muted); font-size: 0.8rem; min-width: 50px; }
-
-  .section-title { font-size: 1.1rem; font-weight: 700; color: var(--accent2); margin-bottom: 12px; margin-top: 20px; }
-  .sounds-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
-  .sound-card { background: var(--card); border-radius: 12px; padding: 14px; cursor: pointer; text-align: center; border: 2px solid transparent; transition: all 0.2s; }
-  .sound-card:hover { border-color: var(--accent2); }
-  .sound-card.playing { border-color: var(--green); background: #0a2a1e; }
-  .sound-card .emoji { font-size: 1.8rem; }
-  .sound-card .name { font-size: 0.8rem; font-weight: 600; margin-top: 6px; }
-
-  /* Stories section */
-  .story-select { background: var(--card); border: 2px solid var(--muted); border-radius: var(--radius); padding: 12px 16px; width: 100%; color: var(--text); font-size: 1rem; cursor: pointer; margin-bottom: 16px; }
-  .story-select:focus { outline: none; border-color: var(--accent); }
-  .story-card { background: var(--card); border-radius: var(--radius); padding: 24px; line-height: 1.8; }
-  .story-card h2 { color: var(--accent); font-size: 1.4rem; margin-bottom: 16px; }
-  .story-card p { color: var(--text); margin-bottom: 12px; font-size: 1rem; }
-  .story-nav { display: flex; gap: 12px; margin-top: 20px; justify-content: center; }
-  .btn { background: var(--accent); color: var(--bg); padding: 10px 24px; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 0.95rem; transition: all 0.2s; }
-  .btn:hover { opacity: 0.85; transform: translateY(-1px); }
-  .btn.secondary { background: var(--card); color: var(--text); border: 2px solid var(--muted); }
-  .btn.secondary:hover { border-color: var(--accent); color: var(--accent); }
-
-  /* Dream Journal */
-  .journal-form { background: var(--card); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; }
-  .journal-form textarea { width: 100%; background: var(--bg); border: 2px solid var(--muted); border-radius: 10px; color: var(--text); padding: 12px; font-size: 0.95rem; resize: vertical; min-height: 100px; font-family: inherit; }
-  .journal-form textarea:focus { outline: none; border-color: var(--accent); }
-  .journal-form input[type=text] { width: 100%; background: var(--bg); border: 2px solid var(--muted); border-radius: 10px; color: var(--text); padding: 10px 14px; font-size: 0.95rem; margin-bottom: 10px; font-family: inherit; }
-  .journal-form input:focus { outline: none; border-color: var(--accent); }
-  .entries { display: flex; flex-direction: column; gap: 12px; }
-  .entry { background: var(--card); border-radius: 12px; padding: 16px; border-left: 4px solid var(--accent); }
-  .entry .entry-date { font-size: 0.75rem; color: var(--muted); margin-bottom: 6px; }
-  .entry .entry-title { font-weight: 700; color: var(--accent2); margin-bottom: 6px; }
-  .entry .entry-text { font-size: 0.9rem; color: var(--text); line-height: 1.6; }
-  .entry .delete-btn { background: none; border: none; color: var(--muted); cursor: pointer; float: right; font-size: 1rem; }
-  .entry .delete-btn:hover { color: #ff6b6b; }
-  .empty-state { text-align: center; padding: 40px; color: var(--muted); }
-  .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
-
-  /* Responsive */
-  @media (max-width: 600px) {
-    header h1 { font-size: 1.8rem; }
-    .song-grid { grid-template-columns: repeat(2, 1fr); }
-    .sounds-grid { grid-template-columns: repeat(3, 1fr); }
+  :root[data-theme="light"]{
+    --bgA:#bfe9ff; --bgB:#eaf7ff; --panel:#fff; --edge:#d7e9f5;
+    --ink:#12263f; --soft:#4c6482; --plate:#cfe3ee; --grid:#b8d4e4;
   }
+  :root[data-theme="dark"]{
+    --bgA:#0d1b2a; --bgB:#132a3d; --panel:#16283c; --edge:#24405a;
+    --ink:#eaf4ff; --soft:#9db8d0; --plate:#1d3a52; --grid:#2b5375;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{
+    margin:0;padding:14px;min-height:100%;
+    font-family:"Nunito",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    color:var(--ink);background:linear-gradient(180deg,var(--bgA),var(--bgB));
+  }
+  .shell{max-width:1240px;margin:0 auto}
+  header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+  .brand{display:flex;align-items:center;gap:11px}
+  .brand .mark{position:relative;width:38px;height:34px;flex:0 0 auto}
+  .brand .mark i{position:absolute;left:3px;width:32px;height:13px;border-radius:5px;box-shadow:inset 0 2px 0 rgba(255,255,255,.5)}
+  .brand .mark i:nth-child(1){top:0;background:var(--coral)}
+  .brand .mark i:nth-child(2){top:9px;background:var(--sun)}
+  .brand .mark i:nth-child(3){top:18px;background:var(--teal)}
+  .brand h1{margin:0;font:800 1.32rem/1 "Baloo 2",sans-serif;letter-spacing:-.01em}
+  .brand p{margin:3px 0 0;font-size:.72rem;font-weight:700;color:var(--soft);letter-spacing:.06em;text-transform:uppercase}
+  .tally{margin-left:auto;display:flex;gap:9px;flex-wrap:wrap}
+  .tally span{
+    background:var(--panel);border:2px solid var(--edge);border-radius:14px;padding:5px 12px;
+    font-size:.74rem;font-weight:800;color:var(--soft);letter-spacing:.03em
+  }
+  .tally b{color:var(--ink);font-size:.95rem;margin-right:3px}
+  .cols{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
+  .left{flex:1 1 260px;min-width:250px;display:flex;flex-direction:column;gap:12px}
+  .right{flex:1 1 500px;min-width:320px;display:flex;flex-direction:column;gap:12px}
+  .card{
+    background:var(--panel);border:2px solid var(--edge);border-radius:20px;padding:13px;
+    box-shadow:0 8px 22px rgba(23,63,98,.09)
+  }
+  .card h2{
+    margin:0 0 9px;font:800 .68rem/1 "Nunito",sans-serif;letter-spacing:.13em;
+    text-transform:uppercase;color:var(--soft);display:flex;align-items:center;gap:7px
+  }
+  .card h2 em{
+    font-style:normal;background:var(--coral);color:#fff;width:19px;height:19px;border-radius:50%;
+    display:grid;place-items:center;font-size:.68rem;flex:0 0 auto
+  }
+  .bricks{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .brick{
+    display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 4px;cursor:pointer;
+    background:transparent;border:2px solid transparent;border-radius:14px;color:var(--ink);
+    font:800 .68rem/1.15 "Nunito",sans-serif
+  }
+  .brick:hover{background:rgba(255,106,61,.08)}
+  .brick[aria-pressed="true"]{border-color:var(--coral);background:rgba(255,106,61,.12)}
+  .studs{display:grid;gap:3px}
+  .studs u{
+    display:block;width:11px;height:11px;border-radius:50%;background:var(--sun);
+    box-shadow:inset 0 -2px 0 rgba(0,0,0,.16),0 1px 0 rgba(0,0,0,.1)
+  }
+  .swatches{display:flex;flex-wrap:wrap;gap:7px}
+  .sw{
+    width:34px;height:34px;border-radius:11px;cursor:pointer;border:3px solid rgba(0,0,0,.12);
+    box-shadow:inset 0 3px 0 rgba(255,255,255,.42)
+  }
+  .sw[aria-pressed="true"]{border-color:var(--ink);transform:scale(1.06)}
+  .tools{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .btn{
+    padding:10px 8px;font:800 .84rem/1 "Nunito",sans-serif;cursor:pointer;color:var(--ink);
+    background:transparent;border:2px solid var(--edge);border-radius:14px
+  }
+  .btn:hover{background:rgba(0,0,0,.04)}
+  .btn[aria-pressed="true"]{border-color:var(--coral);background:rgba(255,106,61,.14)}
+  .btn.go{grid-column:1/-1;background:var(--coral);border-color:var(--coral);color:#fff;font-size:.95rem;padding:13px}
+  .btn.go:hover{filter:brightness(1.05)}
+  .btn.wide{grid-column:1/-1}
+  .stage{
+    background:var(--panel);border:2px solid var(--edge);border-radius:20px;padding:9px;
+    box-shadow:0 8px 22px rgba(23,63,98,.09);position:relative
+  }
+  #view{display:block;width:100%;border-radius:14px;touch-action:none;cursor:crosshair}
+  .toast{
+    position:absolute;left:50%;bottom:16px;transform:translate(-50%,10px);opacity:0;transition:.22s;
+    background:var(--ink);color:var(--panel);padding:8px 15px;border-radius:999px;
+    font:800 .8rem/1 "Nunito",sans-serif;pointer-events:none;white-space:nowrap
+  }
+  .toast.on{opacity:1;transform:translate(-50%,0)}
+  .tips{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+  .tips span{
+    font-size:.7rem;font-weight:700;color:var(--soft);background:rgba(0,0,0,.045);
+    border-radius:999px;padding:4px 10px
+  }
+  /* ---- code panel ---- */
+  .codehead{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+  .codehead h2{margin:0}
+  .palette{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .pblk{
+    border:none;border-radius:12px;padding:8px 12px;cursor:pointer;color:#fff;
+    font:800 .78rem/1 "Nunito",sans-serif;box-shadow:0 3px 0 rgba(0,0,0,.22)
+  }
+  .pblk:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.22)}
+  .mv{background:#2f80ed}.tr{background:#9b51e0}.rp{background:#f2994a}.wt{background:#27ae60}.em{background:#eb5757}
+  .program{
+    background:var(--code);border-radius:16px;padding:11px;min-height:78px;
+    display:flex;flex-direction:column;gap:7px
+  }
+  .program .empty{color:#7d97b0;font-weight:700;font-size:.8rem;text-align:center;padding:14px 0;margin:0}
+  .sblk{
+    background:#233d57;border-radius:11px;padding:8px 9px;color:#eaf4ff;
+    font:800 .78rem/1 "Nunito",sans-serif;display:flex;align-items:center;gap:8px;flex-wrap:wrap
+  }
+  .sblk .tag{background:rgba(255,255,255,.14);border-radius:8px;padding:3px 8px;font-size:.7rem}
+  .sblk select,.sblk input{
+    font:800 .76rem/1 "Nunito",sans-serif;padding:4px 6px;border-radius:8px;border:1px solid #3d6689;
+    background:#16283c;color:#eaf4ff
+  }
+  .sblk input{width:52px;text-align:center}
+  .sblk .rm{margin-left:auto;background:#eb5757;border:none;color:#fff;border-radius:8px;
+    width:23px;height:23px;cursor:pointer;font:800 .82rem/1 "Nunito",sans-serif}
+  .runrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+  .runrow .btn.play{background:var(--teal);border-color:var(--teal);color:#fff}
+  .status{margin:9px 0 0;font-size:.79rem;font-weight:800;color:var(--soft);min-height:1.1em}
+  .status b{color:var(--coral)}
+  .quest{margin:0;font-size:.83rem;font-weight:700;color:var(--soft);line-height:1.55}
+  .quest b{color:var(--ink)}
+  .quest .tick{color:var(--teal)}
+  /* ---- template gallery ---- */
+  .gallery{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .tmpl{
+    position:relative;cursor:pointer;background:transparent;border:2px solid var(--edge);
+    border-radius:16px;padding:9px 8px 8px;text-align:center;color:var(--ink);
+    font:800 .74rem/1.2 "Nunito",sans-serif;transition:.15s
+  }
+  .tmpl:hover{border-color:var(--coral);background:rgba(255,106,61,.07)}
+  .tmpl[aria-pressed="true"]{border-color:var(--coral);background:rgba(255,106,61,.13)}
+  .tmpl .icon{font-size:1.6rem;line-height:1;display:block;margin-bottom:4px}
+  .tmpl .lv{
+    position:absolute;top:6px;right:6px;font-size:.56rem;letter-spacing:.06em;
+    text-transform:uppercase;background:var(--edge);color:var(--soft);
+    border-radius:999px;padding:2px 6px
+  }
+  .tmpl .pc{display:block;margin-top:3px;font-size:.6rem;color:var(--soft);font-weight:700}
+  .stepsbar{
+    display:flex;align-items:center;gap:8px;background:var(--code);border-radius:14px;
+    padding:9px 11px;margin-bottom:9px
+  }
+  .stepsbar .num{
+    background:var(--coral);color:#fff;font:800 .8rem/1 "Baloo 2",sans-serif;
+    border-radius:9px;padding:5px 9px;flex:0 0 auto
+  }
+  .stepsbar .txt{color:#eaf4ff;font:800 .78rem/1.25 "Nunito",sans-serif;flex:1 1 auto}
+  .stepsbar .txt small{display:block;color:#9db8d0;font-size:.68rem;font-weight:700;margin-top:2px}
+  .stepsbar button{
+    background:rgba(255,255,255,.14);border:none;color:#eaf4ff;border-radius:9px;
+    padding:6px 10px;font:800 .7rem/1 "Nunito",sans-serif;cursor:pointer
+  }
+  .stepsbar button:hover{background:rgba(255,255,255,.24)}
+  .stepsbar button.on{background:var(--sun);color:#3a2a00}
+  .pieceList{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+  .pieceList i{
+    font-style:normal;font-size:.66rem;font-weight:800;color:var(--soft);
+    background:rgba(0,0,0,.05);border-radius:8px;padding:3px 7px
+  }
+  .pieceList i u{
+    display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:4px;
+    vertical-align:-1px;box-shadow:inset 0 1px 0 rgba(255,255,255,.5)
+  }
+  .diffRow{display:flex;gap:6px;margin-bottom:9px}
+  .diffRow button{
+    flex:1;padding:7px 4px;font:800 .74rem/1 "Nunito",sans-serif;cursor:pointer;
+    border:2px solid var(--edge);border-radius:12px;background:transparent;color:var(--ink)
+  }
+  .diffRow button:hover{background:rgba(0,0,0,.04)}
+  .diffRow button[aria-pressed="true"]{border-color:var(--coral);background:rgba(255,106,61,.14)}
 </style>
 </head>
 <body>
-<div class="container">
+<div class="shell">
+
   <header>
-    <div class="moon">🌙</div>
-    <h1>Nap Time Adventures</h1>
-    <p>Soothing lullabies & bedtime stories for little dreamers ✨</p>
+    <div class="brand">
+      <span class="mark"><i></i><i></i><i></i></span>
+      <div>
+        <h1>Brick Code Lab</h1>
+        <p>Build it · Code it · Play it</p>
+      </div>
+    </div>
+    <div class="tally">
+      <span><b id="tBricks">0</b>bricks</span>
+      <span><b id="tLayers">0</b>layers</span>
+      <span><b id="tSteps">0</b>code steps</span>
+      <span><b id="tFps">60</b>fps</span>
+    </div>
   </header>
 
-  <div class="tabs">
-    <button class="tab active" onclick="showTab('lullabies')">🎵 Lullabies</button>
-    <button class="tab" onclick="showTab('sounds')">🌿 Sleep Sounds</button>
-    <button class="tab" onclick="showTab('stories')">📖 Stories</button>
-    <button class="tab" onclick="showTab('journal')">✏️ Dream Journal</button>
-  </div>
-
-  <!-- Lullabies Panel -->
-  <div id="panel-lullabies" class="panel active">
-    <div class="player-bar" id="playerBar" style="display:none">
-      <span id="playerEmoji" style="font-size:2rem">🎵</span>
-      <div class="now-playing">
-        <div class="label">Now playing</div>
-        <div class="title" id="playerTitle">—</div>
+  <div class="cols">
+    <div class="left">
+      <div class="card">
+        <h2><em>1</em>Pick a build to copy</h2>
+        <div class="diffRow">
+          <button id="dEasy" aria-pressed="true">🟢 Starter</button>
+          <button id="dMed" aria-pressed="false">🟡 Builder</button>
+          <button id="dHard" aria-pressed="false">🔴 Master</button>
+        </div>
+        <div class="gallery" id="gallery"></div>
+        <div id="stepsCard"></div>
       </div>
-      <div class="player-controls">
-        <button class="btn-ctrl" onclick="prevTrack()" title="Previous">⏮</button>
-        <button class="btn-ctrl primary" id="playPauseBtn" onclick="togglePlay()">▶</button>
-        <button class="btn-ctrl" onclick="nextTrack()" title="Next">⏭</button>
+
+
+      <div class="card">
+        <h2><em>2</em>Choose a brick</h2>
+        <div class="bricks" id="brickList"></div>
       </div>
-    </div>
-    <div class="volume-row">
-      <label>🔊 Volume</label>
-      <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.8" oninput="setVolume(this.value)">
-    </div>
 
-    <div class="section-title" style="margin-top:20px">🎶 Lullabies</div>
-    <div class="song-grid" id="songGrid"></div>
-  </div>
-
-  <!-- Sleep Sounds Panel -->
-  <div id="panel-sounds" class="panel">
-    <p style="color:var(--muted);margin-bottom:16px;font-size:0.9rem">Mix soothing background sounds with your lullabies for deeper sleep 💤</p>
-    <div class="sounds-grid" id="soundsGrid"></div>
-    <div class="volume-row" style="margin-top:16px">
-      <label>🎚 Sound Vol</label>
-      <input type="range" id="soundVolumeSlider" min="0" max="1" step="0.05" value="0.5" oninput="setSoundVolume(this.value)">
-    </div>
-  </div>
-
-  <!-- Stories Panel -->
-  <div id="panel-stories" class="panel">
-    <select class="story-select" id="storySelect" onchange="loadStory(this.value)">
-      <option value="">— Pick a bedtime story —</option>
-    </select>
-    <div id="storyContainer"></div>
-  </div>
-
-  <!-- Dream Journal Panel -->
-  <div id="panel-journal" class="panel">
-    <div class="journal-form">
-      <input type="text" id="entryTitle" placeholder="Dream title (e.g. The Flying Castle)">
-      <textarea id="entryText" placeholder="What did you dream about? Write it here while you still remember... 🌙"></textarea>
-      <div style="display:flex;justify-content:flex-end;margin-top:10px">
-        <button class="btn" onclick="saveEntry()">Save Dream ✨</button>
+      <div class="card">
+        <h2><em>3</em>Choose a colour</h2>
+        <div class="swatches" id="swatches"></div>
       </div>
+
+      <div class="card">
+        <h2><em>4</em>Tap the baseplate</h2>
+        <div class="tools">
+          <button class="btn" id="bBuild" aria-pressed="true">🔨 Build</button>
+          <button class="btn" id="bErase" aria-pressed="false">🧽 Erase</button>
+          <button class="btn" id="bUndo">↩ Undo</button>
+          <button class="btn" id="bClear">🗑 Clear</button>
+        </div>
+        <p class="quest" style="margin-top:11px" id="quest"></p>
+      </div>
+
     </div>
-    <div id="entriesList"></div>
+
+    <div class="right">
+
+      <div class="stage">
+        <canvas id="view"></canvas>
+        <div class="toast" id="toast"></div>
+        <div class="tips">
+          <span>☝️ Tap a brick face to stack</span>
+          <span>✌️ Drag to slide a brick</span>
+          <span>🔄 One finger on the sky rotates</span>
+          <span>🤏 Pinch to zoom</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="codehead">
+          <h2><em>5</em>Teach the robot</h2>
+        </div>
+        <div class="palette">
+          <button class="pblk mv" data-k="move">➡️ Drive forward</button>
+          <button class="pblk tr" data-k="turn">↩️ Turn right</button>
+          <button class="pblk rp" data-k="repeat">🔁 Repeat</button>
+          <button class="pblk wt" data-k="wait">⏳ Wait</button>
+          <button class="pblk em" data-k="beep">🔊 Beep</button>
+        </div>
+        <div class="program" id="program"></div>
+        <div class="runrow">
+          <button class="btn play" id="bPlay">▶ Hit play</button>
+          <button class="btn" id="bWipe">🧹 New program</button>
+        </div>
+        <p class="status" id="status">Add a block, then press <b>Hit play</b>.</p>
+      </div>
+
+    </div>
   </div>
 </div>
 
-<audio id="mainAudio" preload="none"></audio>
-<audio id="ambientAudio" preload="none" loop></audio>
-
+<script src="https://cdn.jsdelivr.net/npm/three@0.156.1/build/three.min.js"></script>
 <script>
-const HF_CDN = "./audio";
+(function(){
+"use strict";
 
-const LULLABIES = [
-  { id: "twinkle-twinkle", name: "Twinkle Twinkle", emoji: "⭐", file: "twinkle-twinkle.mp3" },
-  { id: "saties-lullaby", name: "Satie's Lullaby", emoji: "🎹", file: "saties-lullaby.mp3" },
-  { id: "sleep-tight", name: "Sleep Tight", emoji: "🛏️", file: "sleep-tight.mp3" },
-  { id: "summer-lullaby", name: "Summer Lullaby", emoji: "☀️", file: "summer-lullaby.mp3" },
-  { id: "sweet-lullaby", name: "Sweet Lullaby", emoji: "🍯", file: "sweet-lullaby.mp3" },
-  { id: "sweet-ay-ay", name: "Sweet Ay Ay", emoji: "🎵", file: "sweet-ay-ay.mp3" },
+/* ============================================================
+   Brick Code Lab — brick grid + robot you program with blocks
+   ============================================================ */
+
+var PITCH = 10, BASEH = 4, SUB = 6, SIZE = 12, LAYERS = 16;
+var W = SIZE * SUB, D = SIZE * SUB;
+var S_STUD = PITCH / SUB;
+
+var SHAPES = [
+  {id:'1x1', w:1, d:1, label:'1×1'},
+  {id:'1x2', w:2, d:1, label:'1×2'},
+  {id:'1x3', w:3, d:1, label:'1×3'},
+  {id:'1x4', w:4, d:1, label:'1×4'},
+  {id:'2x2', w:2, d:2, label:'2×2'},
+  {id:'2x4', w:4, d:2, label:'2×4'},
+  {id:'2x8', w:8, d:2, label:'2×8'},
+  {id:'4x4', w:4, d:4, label:'4×4'}
+];
+var COLORS = [
+  '#e5342b','#f2b705','#2f80ed','#2fa84f',
+  '#ff6a3d','#9b51e0','#eb5757','#1d2a35',
+  '#f5f2ea','#7ed3e8','#8a5a2b','#b9c6d1'
 ];
 
-const SOUNDS = [
-  { id: "gentle-rain", name: "Gentle Rain", emoji: "🌧️", file: "gentle-rain.mp3" },
-  { id: "ocean-waves", name: "Ocean Waves", emoji: "🌊", file: "ocean-waves.mp3" },
-  { id: "forest-sounds", name: "Forest", emoji: "🌲", file: "forest-sounds.mp3" },
-  { id: "babbling-stream", name: "Stream", emoji: "💧", file: "babbling-stream.mp3" },
-  { id: "white-noise", name: "White Noise", emoji: "📻", file: "white-noise.mp3" },
-  { id: "pink-noise", name: "Pink Noise", emoji: "🩷", file: "pink-noise.mp3" },
-  { id: "brown-noise", name: "Brown Noise", emoji: "🤎", file: "brown-noise.mp3" },
-];
+var vox = new Uint8Array(W * D * LAYERS);
+var parts = SHAPES.map(function(s){ return {w:s.w, d:s.d, color:COLORS[0]}; });
+var hist = [];
+var shapeI = 0, colorI = 0, erasing = false;
+var sel = {x:3*SUB, y:0, z:3*SUB};
 
-const STORIES = [
-  {
-    id: "luna-star",
-    title: "Luna and the Falling Star",
-    pages: [
-      "Once upon a time, high above the sleepy town of Willowbrook, lived a little star named Luna. Luna was the smallest star in the whole night sky, but she had the brightest twinkle of all.",
-      "One evening, Luna leaned a little too far over the edge of her cloud to wave at a child in a window below. Whoooosh! She tumbled through the night sky, spinning and glittering all the way down.",
-      "Luna landed softly in a garden, right in the middle of a bed of lavender. A little girl named Maisie looked out her window and gasped. 'A star! A real star fell into our garden!'",
-      "Maisie crept downstairs and out the back door in her pajamas. She found Luna nestled among the purple flowers, glowing warm and golden. 'Are you lost?' she whispered.",
-      "'A little,' admitted Luna. 'I was trying to wave hello, and I fell.' Maisie smiled and gently cupped Luna in her palms. The star felt like holding the warmth of a summer afternoon.",
-      "That night, Maisie fell asleep with Luna on her windowsill, lighting the room with the softest glow. And from then on, every night when Maisie looked up at the sky, she always found one star twinkling extra bright — just for her. 🌟 Sweet dreams.",
-    ],
-  },
-  {
-    id: "cloud-bunny",
-    title: "The Cloud Bunny's Bedtime Hop",
-    pages: [
-      "Up in the sky where the clouds are fluffiest lives a small white bunny named Pip. Pip isn't an ordinary bunny — she can hop from cloud to cloud all the way across the sky.",
-      "Every evening, it was Pip's special job to hop across the sky and pull the soft purple blanket of night over the horizon. Without Pip, the stars would have to wait forever to come out.",
-      "One evening, Pip found a baby cloud that was too small to hop onto. The little cloud was crying tiny raindrops. 'What's wrong?' asked Pip.",
-      "'I'm too little to be part of the sunset,' the baby cloud whimpered. Pip thought for a moment, then smiled. 'Every sky needs a little cloud. You're going to make the best, most beautiful pink wisp in the whole sunset.'",
-      "And she was right! As Pip hopped across, the tiny cloud turned the most magnificent shade of rose and gold, and all the other clouds cheered.",
-      "When the last star winked on and the moon rose up smiling, Pip curled into a soft cloud and closed her eyes. And somewhere below, a child looked up and whispered, 'I can see a bunny in the clouds.' 🐰 Sweet dreams.",
-    ],
-  },
-  {
-    id: "captain-yawn",
-    title: "Captain Yawn and the Sleepy Seas",
-    pages: [
-      "Every night, when the world grows quiet and the lamps go out, Captain Yawn sets sail on the Sleepy Seas. His ship is made of moonlight and his sails are made of the softest fog.",
-      "Captain Yawn's job is very important: he sails from house to house, sprinkling sleepy dust on pillows and tucking blankets under chins.",
-      "One night, he heard a small voice calling from a bedroom window. 'Captain Yawn! I can't sleep!' It was a boy named Theo, sitting up in bed with very wide eyes.",
-      "'Aha,' said the Captain, stroking his starry beard. 'I think I forgot your pillow.' He reached into his magic bag and pulled out a pinch of lavender-colored dust.",
-      "He sprinkled it gently over Theo's pillow. It smelled like warm cookies and night-blooming flowers. Theo lay back down and felt his eyes grow heavy almost immediately.",
-      "'Thank you, Captain Yawn,' he murmured sleepily. But the Captain was already gone, his ship leaving a trail of silver sparkles on the water. 🌊 Sleep well, little sailor.",
-    ],
-  },
-  {
-    id: "sleepy-dragon",
-    title: "Ember the Sleepy Dragon",
-    pages: [
-      "Deep inside Moonstone Mountain lived a very small dragon named Ember. Ember was different from other dragons — instead of breathing fire, she breathed warm golden light that made everything feel cozy.",
-      "Every night, Ember would fly through the village and peek into windows. When she found a child who couldn't sleep, she'd breathe her golden light gently through the crack in the curtains.",
-      "The light was like sunshine but softer — it smelled like chamomile tea and felt like a warm hug. Children who saw it would always, always fall asleep with a smile.",
-      "One evening, Ember peeked into a window and found a little girl named Zara staring at the ceiling. Zara was worried about something — she couldn't even say what.",
-      "Ember breathed her golden light, and Zara felt all her worries float away like bubbles. She imagined each bubble floating up, up, up into the night sky and popping into tiny stars.",
-      "Ember watched until Zara's eyes closed and her breathing became slow and deep. Then she flapped her tiny wings and flew back toward Moonstone Mountain, leaving a glow of gold behind her. 🐉 Dream warm dreams.",
-    ],
-  },
-  {
-    id: "moon-gardener",
-    title: "The Moon's Secret Garden",
-    pages: [
-      "Most people think the moon is bare and empty. But if you look very carefully on the clearest nights, you can just see the edges of the Moon Gardener's flowers.",
-      "The Moon Gardener is an old woman with silver hair who plants dreams. Each flower in her garden is a different dream — yellow ones are adventure dreams, blue ones are flying dreams, pink ones are dreams about home.",
-      "Every night before you fall asleep, the Moon Gardener walks through her garden and picks the perfect dream for you. She thinks carefully about who you are and what you love.",
-      "For children who love animals, she picks a dream about talking horses or friendly tigers. For children who love the sea, she picks a dream where you can breathe underwater.",
-      "She places the dream in a tiny seed pod and sends it drifting down on the night breeze, through your window, and into your pillow — ready for when you close your eyes.",
-      "So tonight, when you lay your head down, know that somewhere up on the moon, someone is choosing something wonderful just for you. 🌸 What will you dream?",
-    ],
-  },
-  {
-    id: "counting-sheep",
-    title: "101 Fluffy Sheep",
-    pages: [
-      "On the other side of sleep — just past where the yawns begin and the blinks slow down — there is a green meadow where 101 fluffy sheep are always waiting.",
-      "Their wool is cloud-soft and snow-white, and they know just what to do. One by one, they walk up to a little wooden fence and jump over it with a soft thump.",
-      "Sheep number one was named Biscuit. She had particularly bouncy hops. Sheep number two was named Fluff. Fluff always sneezed right before he jumped, which made everyone smile.",
-      "Sheep number three was Pudding, who was the fluffiest of all. You could barely see her legs under all that wool. She waddled up to the fence and floated over like a cotton ball on the breeze.",
-      "By the time sheep number twenty-seven — Marshmallow — had jumped the fence, your eyes had become very, very heavy. By sheep forty... it was hard to keep counting.",
-      "Sheep number one hundred and one — old Wooly, who wore tiny glasses — jumped the fence last with a gentle sigh. And by then, you were already dreaming. 🐑 One... two... three...",
-    ],
-  },
-];
-
-// State
-const mainAudio = document.getElementById('mainAudio');
-const ambientAudio = document.getElementById('ambientAudio');
-let currentTrack = -1;
-let isPlaying = false;
-let activeSound = null;
-
-function showTab(name) {
-  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', t.getAttribute('onclick').includes(name)));
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('panel-' + name).classList.add('active');
+function idx(x,y,z){ return (y*D + z)*W + x; }
+function inb(x,y,z){ return x>=0 && z>=0 && y>=0 && x<W && z<D && y<LAYERS; }
+function boxAt(x,y,z){ return inb(x,y,z) ? vox[idx(x,y,z)] : 0; }
+function snapStud(v){ return Math.max(0, Math.min(W-1, Math.round(v/SUB)*SUB)); }
+function levelHas(y){
+  for(var z=0; z<D; z++) for(var x=0; x<W; x++) if(vox[idx(x,y,z)]) return true;
+  return false;
 }
 
-// Build song grid
-function buildSongGrid() {
-  const grid = document.getElementById('songGrid');
-  LULLABIES.forEach((song, i) => {
-    const card = document.createElement('div');
-    card.className = 'song-card';
-    card.id = 'song-' + i;
-    card.innerHTML = `<div class="emoji">${song.emoji}</div><div class="name">${song.name}</div><div class="play-btn">▶</div>`;
-    card.onclick = () => playTrack(i);
-    grid.appendChild(card);
-  });
+/* ---------- placement ---------- */
+function fits(x,y,z,p){
+  x -= (p.w-1)*SUB/2; z -= (p.d-1)*SUB/2;
+  if(x % SUB || z % SUB) return false;                 // brick centre must sit on a stud
+  if(x<0 || z<0 || x+(p.w-1)*SUB >= W || z+(p.d-1)*SUB >= D) return false;
+  for(var i=0; i<p.w*SUB; i+=SUB)
+    for(var j=0; j<p.d*SUB; j+=SUB)
+      if(boxAt(x+i, y, z+j)) return false;
+  return true;                                          // baseplate always supports layer 0
+}
+function place(x,y,z,pi){
+  var p = parts[pi];
+  if(!fits(x,y,z,p)) return false;
+  x -= (p.w-1)*SUB/2; z -= (p.d-1)*SUB/2;
+  for(var i=0; i<p.w*SUB; i+=SUB)
+    for(var j=0; j<p.d*SUB; j+=SUB) vox[idx(x+i,y,z+j)] = pi+1;
+  hist.push({x:x,y:y,z:z,pi:pi});
+  return true;
+}
+function removeAt(x,y,z){
+  var v = boxAt(x,y,z); if(!v) return false;
+  var pi = v-1, p = parts[pi], ox = x, oz = z;
+  while(ox-SUB >= 0 && boxAt(ox-SUB,y,z) === v) ox -= SUB;
+  while(oz-SUB >= 0 && boxAt(x,y,oz-SUB) === v) oz -= SUB;
+  for(var i=0; i<p.w*SUB; i+=SUB)
+    for(var j=0; j<p.d*SUB; j+=SUB)
+      if(boxAt(ox+i,y,oz+j) === v) vox[idx(ox+i,y,oz+j)] = 0;
+  hist.push({x:ox,y:y,z:oz,pi:pi});
+  return true;
+}
+function undo(){
+  var r = hist.pop(); if(!r) return flash('Nothing to undo');
+  var p = parts[r.pi];
+  for(var i=0; i<p.w*SUB; i+=SUB)
+    for(var j=0; j<p.d*SUB; j+=SUB) vox[idx(r.x+i,r.y,r.z+j)] = 0;
+  rebuild(); flash('Undo');
 }
 
-function buildSoundsGrid() {
-  const grid = document.getElementById('soundsGrid');
-  SOUNDS.forEach(sound => {
-    const card = document.createElement('div');
-    card.className = 'sound-card';
-    card.id = 'sound-' + sound.id;
-    card.innerHTML = `<div class="emoji">${sound.emoji}</div><div class="name">${sound.name}</div>`;
-    card.onclick = () => toggleSound(sound);
-    grid.appendChild(card);
-  });
+/* ---------- scene ---------- */
+var canvas = document.getElementById('view');
+var renderer = new THREE.WebGLRenderer({canvas:canvas, antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+var scene = new THREE.Scene();
+var camera = new THREE.PerspectiveCamera(42, 1, 1, 4000);
+var orbit = {theta:-0.72, phi:0.98, dist:330, tx:0, ty:8, tz:0};
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0x9fb4c6, 1.15));
+var key = new THREE.DirectionalLight(0xffffff, 0.72); key.position.set(-150,250,160); scene.add(key);
+var fill = new THREE.DirectionalLight(0xffffff, 0.3); fill.position.set(180,130,-150); scene.add(fill);
+
+if(typeof THREE === 'undefined'){
+  document.body.innerHTML = '<p style="font:16px system-ui;padding:24px">The 3D engine could not load — reconnect and reopen.</p>';
+  return;
 }
 
-function playTrack(i) {
-  document.querySelectorAll('.song-card').forEach(c => c.classList.remove('playing'));
-  currentTrack = i;
-  const song = LULLABIES[i];
-  mainAudio.src = `${HF_CDN}/${song.file}`;
-  mainAudio.volume = document.getElementById('volumeSlider').value;
-  mainAudio.play().then(() => {
-    isPlaying = true;
-    document.getElementById('playPauseBtn').textContent = '⏸';
-    document.getElementById('playerEmoji').textContent = song.emoji;
-    document.getElementById('playerTitle').textContent = song.name;
-    document.getElementById('playerBar').style.display = 'flex';
-    document.getElementById('song-' + i).classList.add('playing');
-    document.querySelector('.play-btn', document.getElementById('song-' + i)).textContent = '⏸';
-  }).catch(e => console.warn('Playback error:', e));
-}
+/* baseplate */
+var plateTop = 0;
+(function(){
+  var plate = new THREE.Mesh(
+    new THREE.BoxGeometry(SIZE*PITCH, BASEH, SIZE*PITCH),
+    new THREE.MeshLambertMaterial({color:0xcfe3ee})
+  );
+  plate.position.y = -BASEH/2;
+  scene.add(plate);
 
-function togglePlay() {
-  if (isPlaying) {
-    mainAudio.pause();
-    isPlaying = false;
-    document.getElementById('playPauseBtn').textContent = '▶';
-  } else {
-    if (currentTrack === -1) { playTrack(0); return; }
-    mainAudio.play();
-    isPlaying = true;
-    document.getElementById('playPauseBtn').textContent = '⏸';
+  var studs = new THREE.InstancedMesh(
+    new THREE.CylinderGeometry(2.5,2.5,2.6,9),
+    new THREE.MeshLambertMaterial({color:0xbdd9ea}),
+    SIZE*SIZE
+  );
+  var m = new THREE.Matrix4(), k = 0;
+  for(var i=0;i<SIZE;i++) for(var j=0;j<SIZE;j++){
+    m.makeTranslation((i-(SIZE-1)/2)*PITCH, 1.2, (j-(SIZE-1)/2)*PITCH);
+    studs.setMatrixAt(k++, m);
   }
-}
+  studs.instanceMatrix.needsUpdate = true;
+  scene.add(studs);
+})();
 
-function prevTrack() { playTrack((currentTrack - 1 + LULLABIES.length) % LULLABIES.length); }
-function nextTrack() { playTrack((currentTrack + 1) % LULLABIES.length); }
+/* Brick body geometry uses standard Three.js primitives. The instanced studs below create the familiar brick texture. */
+var brickGeo = new THREE.BoxGeometry(PITCH, BASEH, PITCH);
 
-mainAudio.onended = () => nextTrack();
+var MAXB = 600, MAXS = 3000;
+var brickMesh = new THREE.InstancedMesh(brickGeo, new THREE.MeshLambertMaterial({}), MAXB);
+var studMesh  = new THREE.InstancedMesh(new THREE.CylinderGeometry(2.5,2.5,4,12),
+                 new THREE.MeshLambertMaterial({}), MAXS);
+scene.add(brickMesh); scene.add(studMesh);
 
-function setVolume(v) { mainAudio.volume = v; }
-function setSoundVolume(v) { ambientAudio.volume = v; }
+var ghost = new THREE.Mesh(brickGeo, new THREE.MeshLambertMaterial({transparent:true, opacity:.45}));
+ghost.visible = false; scene.add(ghost);
 
-function toggleSound(sound) {
-  const card = document.getElementById('sound-' + sound.id);
-  if (activeSound === sound.id) {
-    ambientAudio.pause();
-    card.classList.remove('playing');
-    activeSound = null;
-  } else {
-    document.querySelectorAll('.sound-card').forEach(c => c.classList.remove('playing'));
-    ambientAudio.src = `${HF_CDN}/${sound.file}`;
-    ambientAudio.volume = document.getElementById('soundVolumeSlider').value;
-    ambientAudio.play().catch(e => console.warn('Sound error:', e));
-    card.classList.add('playing');
-    activeSound = sound.id;
+/* ---------- rebuild instanced scene from grid ---------- */
+var tmp = new THREE.Object3D(), col = new THREE.Color();
+function rebuild(){
+  var bi = 0, si = 0, layers = 0, origins = 0, seen = {};
+  for(var y=0; y<LAYERS; y++){
+    var any = false;
+    for(var z=0; z<D; z++) for(var x=0; x<W; x++){
+      var v = vox[idx(x,y,z)]; if(!v) continue;
+      any = true;
+      var p = parts[v-1];
+      var ox = x, oz = z;
+      while(ox-SUB >= 0 && boxAt(ox-SUB,y,z) === v) ox -= SUB;
+      while(oz-SUB >= 0 && boxAt(x,y,oz-SUB) === v) oz -= SUB;
+      var key = (y*D+oz)*W + ox;
+      if(seen[key]) continue;
+      seen[key] = 1; origins++;
+
+      tmp.position.set((ox + (p.w-1)*SUB/2 - (W-1)/2) * S_STUD,
+                       y*(PITCH+BASEH) + BASEH/2,
+                       (oz + (p.d-1)*SUB/2 - (D-1)/2) * S_STUD);
+      tmp.rotation.set(0,0,0);
+      tmp.scale.set(p.w, 1, p.d);
+      tmp.updateMatrix();
+      if(bi < MAXB){ brickMesh.setMatrixAt(bi, tmp.matrix); col.set(p.color); brickMesh.setColorAt(bi,col); bi++; }
+
+      for(var i=0;i<p.w;i++) for(var j=0;j<p.d;j++){
+        tmp.position.set((ox + i*SUB - (W-1)/2) * S_STUD,
+                         y*(PITCH+BASEH) + BASEH + 1.4,
+                         (oz + j*SUB - (D-1)/2) * S_STUD);
+        tmp.scale.set(1,1,1); tmp.updateMatrix();
+        if(si < MAXS){ studMesh.setMatrixAt(si, tmp.matrix); studMesh.setColorAt(si,col); si++; }
+      }
+    }
+    if(any) layers = y+1;
   }
+  brickMesh.count = bi; studMesh.count = si;
+  brickMesh.instanceMatrix.needsUpdate = true; studMesh.instanceMatrix.needsUpdate = true;
+  if(brickMesh.instanceColor) brickMesh.instanceColor.needsUpdate = true;
+  if(studMesh.instanceColor) studMesh.instanceColor.needsUpdate = true;
+
+  document.getElementById('tBricks').textContent = origins;
+  document.getElementById('tLayers').textContent = layers;
+  builtLayers = layers; builtOrigins = origins;
+}
+var builtLayers = 0, builtOrigins = 0;
+
+/* ---------- picking: DDA against the voxel grid ---------- */
+var ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+function pick(cx, cy){
+  if(typeof THREE === 'undefined') return null;
+  var r = canvas.getBoundingClientRect();
+  ndc.x = ((cx - r.left)/r.width) * 2 - 1;
+  ndc.y = -((cy - r.top)/r.height) * 2 + 1;
+  ray.setFromCamera(ndc, camera);
+  var o = ray.ray.origin, d = ray.ray.direction.clone().normalize();
+  var sy = PITCH + BASEH;
+  var ox = o.x/S_STUD + (W-1)/2, oy = (o.y - BASEH/2)/sy, oz = o.z/S_STUD + (D-1)/2;
+  var dx = d.x/S_STUD, dy = d.y/sy, dz = d.z/S_STUD;
+  var sx = dx<0?-1:1, sY = dy<0?-1:1, sz = dz<0?-1:1;
+  var tdx = Math.abs(1/(dx||1e-9)), tdy = Math.abs(1/(dy||1e-9)), tdz = Math.abs(1/(dz||1e-9));
+  var vx = Math.floor(ox), vy = Math.floor(oy), vz = Math.floor(oz);
+  var tx = (dx>0 ? vx+1-ox : ox-vx) * tdx;
+  var ty = (dy>0 ? vy+1-oy : oy-vy) * tdy;
+  var tz = (dz>0 ? vz+1-oz : oz-vz) * tdz;
+  var nx=0, ny=0, nz=0, guard=0;
+  while(guard++ < 1500){
+    if(vy < 0 && dy <= 0) break;
+    if(vy >= 0 && vy < LAYERS && vox[idx(vx,vy,vz)]){
+      // ignore hits outside the plate footprint
+      if(vx>=0 && vz>=0 && vx<W && vz<D)
+        return {hit:1, x:vx, y:vy, z:vz, nx:nx, ny:ny, nz:nz};
+      break;
+    }
+    if(tx < ty && tx < tz){ tx += tdx; vx += sx; nx = -sx; ny = 0; nz = 0; }
+    else if(ty < tz){ ty += tdy; vy += sY; nx = 0; ny = -sY; nz = 0; }
+    else { tz += tdz; vz += sz; nx = 0; ny = 0; nz = -sz; }
+  }
+  // baseplate fallback
+  if(dy < 0){
+    var t = (-(BASEH/2) - oy) / dy;
+    if(t > 0){
+      var hx = Math.floor(ox + dx*t), hz = Math.floor(oz + dz*t);
+      if(hx>=0 && hz>=0 && hx<W && hz<D)
+        return {hit:0, x:hx, y:0, z:hz, nx:0, ny:1, nz:0};
+    }
+  }
+  return null;
 }
 
-// Stories
-function buildStorySelect() {
-  const sel = document.getElementById('storySelect');
-  STORIES.forEach(s => {
-    const opt = document.createElement('option');
-    opt.value = s.id;
-    opt.textContent = s.title;
-    sel.appendChild(opt);
-  });
+/* ---------- ghost preview ---------- */
+function targetFrom(pk){
+  var p = parts[shapeI];
+  if(!pk) return null;
+  if(erasing) return boxAt(pk.x,pk.y,pk.z) ? {x:pk.x, y:pk.y, z:pk.z, pi:boxAt(pk.x,pk.y,pk.z)-1, ok:false} : null;
+  var rx = pk.x + (pk.hit ? pk.nx*SUB : 0);
+  var ry = pk.y + (pk.hit ? pk.ny : 0);
+  var rz = pk.z + (pk.hit ? pk.nz*SUB : 0);
+  var cx = snapStud(rx - (p.w-1)*SUB/2);
+  var cz = snapStud(rz - (p.d-1)*SUB/2);
+  var cy = Math.max(0, Math.min(LAYERS-1, ry));
+  return {x:cx, y:cy, z:cz, pi:shapeI, ok:fits(cx,cy,cz,p)};
+}
+function showGhost(t){
+  var grid = t || targetFrom(lastPick);
+  if(!grid){ ghost.visible = false; return; }
+  var p = parts[grid.pi];
+  ghost.visible = true;
+  ghost.material.color.set(erasing ? '#eb5757' : p.color);
+  ghost.material.opacity = erasing ? .35 : (grid.ok ? .45 : .22);
+  ghost.position.set((grid.x + (p.w-1)*SUB/2 - (W-1)/2) * S_STUD,
+                     grid.y*(PITCH+BASEH) + BASEH/2,
+                     (grid.z + (p.d-1)*SUB/2 - (D-1)/2) * S_STUD);
+  ghost.scale.set(p.w, 1, p.d);
 }
 
-let storyPage = 0;
-let currentStory = null;
+/* ---------- pointer input ---------- */
+var pts = {}, nPts = 0, mode = null, dragStart = null, travel = 0, pinch0 = 0, lastPick = null;
 
-function loadStory(id) {
-  currentStory = STORIES.find(s => s.id === id);
-  storyPage = 0;
-  renderStory();
+canvas.addEventListener('pointerdown', function(e){
+  canvas.setPointerCapture(e.pointerId);
+  pts[e.pointerId] = {x:e.clientX, y:e.clientY};
+  nPts++;
+  travel = 0;
+  dragStart = {x:e.clientX, y:e.clientY, y2:sel.y};
+  if(nPts === 2){
+    var ids = Object.keys(pts), a = pts[ids[0]], b = pts[ids[1]];
+    pinch0 = Math.hypot(a.x-b.x, a.y-b.y); mode = 'pinch';
+  } else {
+    var pk = pick(e.clientX, e.clientY);
+    lastPick = pk;
+    mode = pk ? 'paint' : 'orbit';
+    if(pk) showGhost(targetFrom(pk));
+  }
+});
+
+canvas.addEventListener('pointermove', function(e){
+  var prev = pts[e.pointerId];
+  if(!prev){ lastPick = pick(e.clientX,e.clientY); showGhost(); return; }
+  travel += Math.hypot(e.clientX-prev.x, e.clientY-prev.y);
+  pts[e.pointerId] = {x:e.clientX, y:e.clientY};
+
+  if(mode === 'pinch' && nPts >= 2){
+    var ids = Object.keys(pts), a = pts[ids[0]], b = pts[ids[1]];
+    var dd = Math.hypot(a.x-b.x, a.y-b.y);
+    orbit.dist *= pinch0/(dd||1); pinch0 = dd;
+  } else if(mode === 'orbit'){
+    orbit.theta -= (e.clientX-prev.x)*0.008;
+    orbit.phi = Math.max(0.14, Math.min(1.44, orbit.phi - (e.clientY-prev.y)*0.006));
+  } else if(mode === 'paint'){
+    var pk = pick(e.clientX, e.clientY);
+    lastPick = pk;
+    if(pk && !erasing && travel > 12){
+      // slide on the layer you started on
+      var p = parts[shapeI];
+      lastPick = {hit:1, y:dragStart.y2,
+        x:snapStud(pk.x + (p.w-1)*SUB/2),
+        z:snapStud(pk.z + (p.d-1)*SUB/2),
+        nx:0, ny:0, nz:0};
+    }
+    showGhost();
+  }
+  orbit.dist = Math.max(130, Math.min(900, orbit.dist));
+});
+
+function lift(e){
+  if(!pts[e.pointerId]) return;
+  delete pts[e.pointerId]; nPts--;
+  if(mode === 'paint' && travel < 16) commit();
+  if(nPts === 0) mode = null;
 }
+canvas.addEventListener('pointerup', lift);
+canvas.addEventListener('pointercancel', lift);
+canvas.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+canvas.addEventListener('wheel', function(e){
+  e.preventDefault();
+  orbit.dist = Math.max(130, Math.min(900, orbit.dist * (1 + Math.sign(e.deltaY)*0.08)));
+}, {passive:false});
 
-function renderStory() {
-  const container = document.getElementById('storyContainer');
-  if (!currentStory) { container.innerHTML = ''; return; }
-  container.innerHTML = `
-    <div class="story-card">
-      <h2>${currentStory.title}</h2>
-      <p style="color:var(--muted);font-size:0.8rem;margin-bottom:16px">Page ${storyPage + 1} of ${currentStory.pages.length}</p>
-      <p>${currentStory.pages[storyPage]}</p>
-      <div class="story-nav">
-        ${storyPage > 0 ? '<button class="btn secondary" onclick="storyPage--;renderStory()">← Previous</button>' : ''}
-        ${storyPage < currentStory.pages.length - 1 ? '<button class="btn" onclick="storyPage++;renderStory()">Next Page →</button>' : '<button class="btn" onclick="loadStory(\'\')">✨ The End</button>'}
-      </div>
-    </div>`;
-}
-
-// Dream Journal (localStorage)
-function saveEntry() {
-  const title = document.getElementById('entryTitle').value.trim();
-  const text = document.getElementById('entryText').value.trim();
-  if (!text) return;
-  const entries = getEntries();
-  entries.unshift({ id: Date.now(), title: title || 'Untitled Dream', text, date: new Date().toLocaleDateString() });
-  localStorage.setItem('naptime-dreams', JSON.stringify(entries));
-  document.getElementById('entryTitle').value = '';
-  document.getElementById('entryText').value = '';
-  renderEntries();
-}
-
-function getEntries() {
-  try { return JSON.parse(localStorage.getItem('naptime-dreams') || '[]'); } catch { return []; }
-}
-
-function deleteEntry(id) {
-  const entries = getEntries().filter(e => e.id !== id);
-  localStorage.setItem('naptime-dreams', JSON.stringify(entries));
-  renderEntries();
-}
-
-function renderEntries() {
-  const list = document.getElementById('entriesList');
-  const entries = getEntries();
-  if (!entries.length) {
-    list.innerHTML = '<div class="empty-state"><div class="icon">🌙</div><p>No dreams recorded yet.<br>Start writing your first dream!</p></div>';
+function commit(){
+  var t = targetFrom(lastPick);
+  if(!t) return;
+  if(erasing){
+    if(removeAt(t.x,t.y,t.z)){ rebuild(); flash('Brick erased'); }
     return;
   }
-  list.innerHTML = '<div class="entries">' + entries.map(e => `
-    <div class="entry">
-      <button class="delete-btn" onclick="deleteEntry(${e.id})">✕</button>
-      <div class="entry-date">${e.date}</div>
-      <div class="entry-title">${e.title}</div>
-      <div class="entry-text">${e.text}</div>
-    </div>`).join('') + '</div>';
+  if(place(t.x,t.y,t.z,t.pi)){
+    rebuild();
+    flash(parts[t.pi].w + '×' + parts[t.pi].d + ' brick added');
+    sel.y = t.y;
+  } else flash('No room — try another stud');
 }
 
-// Init
-buildSongGrid();
-buildSoundsGrid();
-buildStorySelect();
-renderEntries();
+/* ---------- left-hand UI ---------- */
+var brickList = document.getElementById('brickList');
+SHAPES.forEach(function(s, i){
+  var b = document.createElement('button');
+  b.className = 'brick';
+  b.setAttribute('aria-pressed', i === 0 ? 'true' : 'false');
+  var cells = '';
+  for(var r=0; r<s.d; r++){
+    cells += '<span style="display:grid;grid-template-columns:repeat(' + s.w + ',11px);gap:3px">';
+    for(var c=0; c<s.w; c++) cells += '<u></u>';
+    cells += '</span>';
+  }
+  b.innerHTML = '<span class="studs" style="grid-template-columns:repeat(' + s.d + ',11px)">' + cells + '</span><span>' + s.label + '</span>';
+  b.onclick = function(){
+    shapeI = i;
+    Array.prototype.forEach.call(brickList.children, function(x){ x.setAttribute('aria-pressed','false'); });
+    b.setAttribute('aria-pressed','true');
+    showGhost();
+  };
+  brickList.appendChild(b);
+});
+
+var swBox = document.getElementById('swatches');
+COLORS.forEach(function(c, i){
+  var b = document.createElement('button');
+  b.className = 'sw';
+  b.style.background = c;
+  b.setAttribute('aria-pressed', i === 0 ? 'true' : 'false');
+  b.onclick = function(){
+    colorI = i;
+    Array.prototype.forEach.call(swBox.children, function(x){ x.setAttribute('aria-pressed','false'); });
+    b.setAttribute('aria-pressed','true');
+    parts.forEach(function(p){ p.color = c; });
+    rebuild(); showGhost();
+  };
+  swBox.appendChild(b);
+});
+
+var bBuild = document.getElementById('bBuild'), bErase = document.getElementById('bErase');
+bBuild.onclick = function(){
+  erasing = false;
+  bBuild.setAttribute('aria-pressed','true'); bErase.setAttribute('aria-pressed','false');
+  showGhost();
+};
+bErase.onclick = function(){
+  erasing = true;
+  bErase.setAttribute('aria-pressed','true'); bBuild.setAttribute('aria-pressed','false');
+  showGhost();
+};
+document.getElementById('bUndo').onclick = undo;
+document.getElementById('bClear').onclick = function(){
+  vox = new Uint8Array(W*D*LAYERS); hist = []; rebuild(); flash('Cleared — build something new!');
+};
+
+/* ============================================================
+   CODE PANEL — block program that drives the robot
+   ============================================================ */
+var PAL = {
+  move:  {label:'Drive forward', color:'#2f80ed'},
+  turn:  {label:'Turn right',    color:'#9b51e0'},
+  repeat:{label:'Repeat',        color:'#f2994a'},
+  wait:  {label:'Wait',          color:'#27ae60'},
+  beep:  {label:'Beep',          color:'#eb5757'}
+};
+var program = [];   // {kind, arg}
+var progBox = document.getElementById('program');
+var statusEl = document.getElementById('status');
+
+document.querySelectorAll('.pblk').forEach(function(btn){
+  btn.onclick = function(){
+    var kind = btn.dataset.k;
+    program.push({kind:kind, arg: kind==='move'?2 : kind==='turn'?1 : kind==='repeat'?3 : kind==='wait'?1 : 0});
+    drawProgram();
+  };
+});
+
+function drawProgram(){
+  if(!program.length){
+    progBox.innerHTML = '<p class="empty">Your program is empty — tap a block above 👆</p>';
+  } else {
+    progBox.innerHTML = '';
+    program.forEach(function(step, i){
+      var d = document.createElement('div');
+      d.className = 'sblk';
+      var ctl = '';
+      if(step.kind === 'move')
+        ctl = '<select><option value="forward">forward</option><option value="backward">backward</option></select>' +
+              '<input type="number" min="1" max="9" value="' + step.arg + '"><span>studs</span>';
+      if(step.kind === 'turn')
+        ctl = '<select><option value="right">right</option><option value="left">left</option></select>' +
+              '<input type="number" min="1" max="4" value="' + step.arg + '"><span>× 90°</span>';
+      if(step.kind === 'repeat')
+        ctl = '<input type="number" min="1" max="9" value="' + step.arg + '"><span>times → repeats the blocks below</span>';
+      if(step.kind === 'wait')
+        ctl = '<input type="number" min="1" max="9" value="' + step.arg + '"><span>seconds</span>';
+      if(step.kind === 'beep')
+        ctl = '<span>🤖 beep boop!</span>';
+
+      d.innerHTML = '<span class="tag" style="background:' + PAL[step.kind].color + '">' +
+                    PAL[step.kind].label + '</span>' + ctl +
+                    '<button class="rm" title="remove">✕</button>';
+
+      var sel = d.querySelector('select');
+      var num = d.querySelector('input');
+      if(sel){
+        sel.value = step.dir || sel.options[0].value;
+        sel.onchange = (function(st){ return function(){ st.dir = this.value; }; })(step);
+      }
+      if(num){
+        var max = (step.kind === 'turn') ? 4 : 9;
+        num.onchange = (function(st, m){
+          return function(){ st.arg = Math.max(1, Math.min(m, Number(this.value) || 1)); this.value = st.arg; };
+        })(step, max);
+      }
+      d.querySelector('.rm').onclick = (function(pos){
+        return function(){ program.splice(pos, 1); drawProgram(); };
+      })(i);
+      progBox.appendChild(d);
+    });
+  }
+  document.getElementById('tSteps').textContent = program.length;
+  if(program.length){
+    var moves = program.filter(function(s){ return s.kind === 'move'; }).length;
+    var turns = program.filter(function(s){ return s.kind === 'turn'; }).length;
+    var reps  = program.filter(function(s){ return s.kind === 'repeat'; }).length;
+    statusEl.innerHTML = program.length + ' block' + (program.length > 1 ? 's' : '') +
+      ' ready — robot will ' + moves + '× drive, ' + turns + '× turn and loop ' + reps + '×. Press <b>Hit play</b>.';
+  }
+}
+
+/* ---------- the robot ---------- */
+var robot = new THREE.Group();
+var wheels = [];
+(function(){
+  var yellow = new THREE.MeshLambertMaterial({color:0xf2b705});
+  var dark   = new THREE.MeshLambertMaterial({color:0x1d2a35});
+  var white  = new THREE.MeshLambertMaterial({color:0xf5f2ea});
+  var coral  = new THREE.MeshLambertMaterial({color:0xff6a3d});
+
+  var body = new THREE.Mesh(new THREE.BoxGeometry(17,14,13), yellow); body.position.y = 14; robot.add(body);
+  var head = new THREE.Mesh(new THREE.BoxGeometry(11,9,9), white); head.position.y = 25.5; robot.add(head);
+  [-2.8,2.8].forEach(function(x){
+    var e = new THREE.Mesh(new THREE.SphereGeometry(1.7,10,8), new THREE.MeshBasicMaterial({color:0x2f80ed}));
+    e.position.set(x,27,4.7); robot.add(e);
+  });
+  var ant = new THREE.Mesh(new THREE.CylinderGeometry(.8,.8,7,8), coral); ant.position.y = 33; robot.add(ant);
+  var tip = new THREE.Mesh(new THREE.SphereGeometry(2.2,12,10), coral); tip.position.y = 37; robot.add(tip);
+
+  [-1,1].forEach(function(s, k){
+    var arm = new THREE.Mesh(new THREE.BoxGeometry(4,11,4), dark); arm.position.set(s*10.5, 15, 0); robot.add(arm);
+    var w = new THREE.Mesh(new THREE.CylinderGeometry(5.5,5.5,3.6,14), dark);
+    w.rotation.z = Math.PI/2; w.position.set(s*10.5, 5.5, 0);
+    robot.add(w); wheels.push(w);
+  });
+  robot.position.set(0,0,0);
+  robot.visible = false;
+  scene.add(robot);
+})();
+
+/* ---------- run the program ---------- */
+var running = false, queue = [], qT = 0, qStep = null, beepT = 0;
+var pose = {x:0, z:0, ang:Math.PI/2};
+
+document.getElementById('bPlay').onclick = function(){
+  if(running){ stopRun(); return; }
+  if(!program.length){ flash('Add a block first!'); return; }
+  expand();
+  if(!queue.length){ flash('Nothing to run'); return; }
+  running = true;
+  this.textContent = '⏹ Stop';
+  robot.visible = true;
+  var spawn = spawnSpot();
+  robot.position.set(spawn.x, 0, spawn.z);
+  pose.x = spawn.x; pose.z = spawn.z; pose.ang = Math.PI/2;
+  statusEl.innerHTML = '🤖 Robot is running your program…';
+  nextStep();
+};
+
+function spawnSpot(){
+  // start next to the build, on the plate, facing the middle
+  var cx = 0, cz = 0, n = 0;
+  for(var y=0; y<LAYERS; y++) for(var z=0; z<D; z++) for(var x=0; x<W; x++)
+    if(vox[idx(x,y,z)]){ cx += x; cz += z; n++; }
+  if(!n) return {x:0, z:0};
+  var mx = (cx/n - (W-1)/2) * S_STUD, mz = (cz/n - (D-1)/2) * S_STUD;
+  var len = Math.hypot(mx,mz) || 1;
+  var R = Math.max(60, Math.min(SIZE*PITCH*0.45, len + 42));
+  return {x: mx/len*R, z: mz/len*R};
+}
+
+/* Flatten the block program into a run queue.
+   A Repeat block repeats every block that comes AFTER it, N times. */
+function expand(){
+  queue = [];
+  var loopAt = -1;
+  for(var i=0; i<program.length; i++) if(program[i].kind === 'repeat'){ loopAt = i; break; }
+  if(loopAt < 0){
+    program.forEach(function(s){ queue.push(s); });
+  } else {
+    var head = program.slice(0, loopAt);
+    var body = program.slice(loopAt + 1);
+    head.forEach(function(s){ queue.push(s); });
+    var times = program[loopAt].arg || 2;
+    for(var r=0; r<times; r++){
+      if(!body.length){ queue.push({kind:'beep'}); continue; }
+      body.forEach(function(s){ queue.push(s); });
+    }
+  }
+  if(queue.length > 80) queue = queue.slice(0, 80);
+}
+function nextStep(){
+  if(!queue.length){ finishRun(); return; }
+  qStep = queue.shift();
+  qT = 0;
+  if(qStep.kind === 'beep'){ beep(); }
+  if(qStep.kind === 'move'){
+    var dir = (qStep.dir === 'backward' ? -1 : 1);
+    var dist = qStep.arg * PITCH * dir;
+    qTarget = {x: pose.x + Math.cos(pose.ang)*dist, z: pose.z + Math.sin(pose.ang)*dist};
+    qDur = Math.min(1.5, 0.16 * qStep.arg + 0.25);
+  } else if(qStep.kind === 'turn'){
+    var sign = (qStep.dir === 'left' ? -1 : 1);
+    qTarget = {ang: pose.ang + sign * qStep.arg * Math.PI/2};
+    qDur = Math.min(1.3, 0.22 * qStep.arg + 0.2);
+  } else if(qStep.kind === 'wait'){
+    qTarget = null; qDur = Math.min(3, 0.4 * qStep.arg);
+  } else {
+    qTarget = null; qDur = 0.5;
+  }
+  qFrom = {x:pose.x, z:pose.z, ang:pose.ang};
+}
+var qFrom = {x:0,z:0,ang:0}, qTarget = null, qDur = 1;
+
+function finishRun(){
+  running = false; qStep = null;
+  var b = document.getElementById('bPlay'); b.textContent = '▶ Hit play';
+  statusEl.innerHTML = '✅ Program finished! Great job — try adding a <b>Repeat</b> block.';
+  flash('Robot finished the program 🎉');
+  checkQuest();
+}
+
+function stopRun(){
+  running = false; queue = []; qStep = null;
+  document.getElementById('bPlay').textContent = '▶ Hit play';
+  statusEl.innerHTML = '⏹ Stopped. Press <b>Hit play</b> to run it again.';
+}
+
+function beep(){
+  try{
+    var C = window.AudioContext || window.webkitAudioContext; if(!C) return;
+    var ctx = beep.ctx || (beep.ctx = new C());
+    var o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = 'square'; o.frequency.value = 880;
+    g.gain.value = .05;
+    o.connect(g); g.connect(ctx.destination);
+    o.start(); o.stop(ctx.currentTime + .12);
+  }catch(e){}
+}
+
+/* ---------- quests ---------- */
+var quests = [
+  {t:'Build a tower at least <b>3 layers</b> tall.', ok:function(){ return builtLayers >= 3; }},
+  {t:'Use <b>4 different colours</b> in your build.', ok:function(){ return colourCount() >= 4; }},
+  {t:'Write a program with a <b>Repeat</b> block.', ok:function(){ return program.some(function(s){ return s.kind==='repeat'; }); }},
+  {t:'Make the robot drive <b>forward 3+ times</b>.', ok:function(){ return program.filter(function(s){ return s.kind==='move'; }).length >= 3; }}
+];
+function colourCount(){
+  var set = {};
+  for(var i=0; i<vox.length; i++) if(vox[i]) set[parts[vox[i]-1].color] = 1;
+  return Object.keys(set).length;
+}
+function checkQuest(){
+  var el = document.getElementById('quest');
+  el.innerHTML = quests.map(function(q){
+    return '<span class="' + (q.ok() ? 'tick' : '') + '">' + (q.ok() ? '✅ ' : '⬜ ') + '</span>' + q.t;
+  }).join('<br>');
+}
+setInterval(checkQuest, 1200);
+
+/* ---------- toast ---------- */
+var toastT;
+function flash(msg){
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(toastT); toastT = setTimeout(function(){ t.classList.remove('on'); }, 1600);
+}
+
+/* ---------- resize + loop ---------- */
+function resize(){
+  var w = canvas.parentElement.clientWidth - 18;
+  var h = Math.max(360, Math.min(540, w*0.76));
+  renderer.setSize(w, h, false);
+  canvas.style.height = h + 'px';
+  camera.aspect = w/h; camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', resize);
+
+var last = performance.now(), fpsAcc = 0, fpsN = 0, tSim = 0;
+function frame(now){
+  var dt = Math.min(0.05, (now-last)/1000); last = now;
+  tSim += dt;
+
+  if(running && qStep){
+    qT += dt;
+    var k = Math.min(1, qT/qDur);
+    if(qStep.kind === 'move'){
+      pose.x = qFrom.x + (qTarget.x - qFrom.x)*k;
+      pose.z = qFrom.z + (qTarget.z - qFrom.z)*k;
+      wheels.forEach(function(w){ w.rotation.x += dt*10; });
+    } else if(qStep.kind === 'turn'){
+      var da = qTarget.ang - qFrom.ang;
+      pose.ang = qFrom.ang + da*k;
+      wheels.forEach(function(w,i){ w.rotation.x += dt*6*(i?1:-1); });
+    }
+    robot.position.x = pose.x;
+    robot.position.z = pose.z;
+    robot.rotation.y = -pose.ang + Math.PI/2;
+    if(k >= 1) nextStep();
+  } else if(robot.visible && !running){
+    robot.position.y = Math.sin(tSim*2)*0.6;
+  }
+
+  camera.position.set(orbit.tx + orbit.dist*Math.sin(orbit.phi)*Math.sin(orbit.theta),
+                      orbit.ty + orbit.dist*Math.cos(orbit.phi),
+                      orbit.tz + orbit.dist*Math.sin(orbit.phi)*Math.cos(orbit.theta));
+  camera.lookAt(orbit.tx, orbit.ty, orbit.tz);
+
+  renderer.render(scene, camera);
+
+  fpsAcc += dt; fpsN++;
+  if(fpsAcc > 0.5){
+    document.getElementById('tFps').textContent = Math.round(fpsN/fpsAcc);
+    fpsAcc = 0; fpsN = 0;
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ============================================================
+   TEMPLATE LIBRARY
+   Every template is a list of steps. Each step is a group of
+   brick placements, exactly like a page in a LEGO booklet:
+     s(shape, colour, x, y, z)   x/z are STUD coordinates, y is the layer
+   Kids see one step at a time, place the ghost, then press Next.
+   ============================================================ */
+
+function s(shape, colour, x, y, z){ return {sh:shape, c:colour, x:x, y:y, z:z}; }
+
+var C = {
+  red:'#e5342b', sun:'#f2b705', blue:'#2f80ed', green:'#2fa84f',
+  coral:'#ff6a3d', purple:'#9b51e0', rose:'#eb5757', dark:'#1d2a35',
+  white:'#f5f2ea', ice:'#7ed3e8', brown:'#8a5a2b', grey:'#b9c6d1'
+};
+
+var TEMPLATES = [
+
+/* ---------------- EASY ---------------- */
+{
+  id:'tower', name:'Rainbow Tower', icon:'🗼', diff:'easy', pieces:5,
+  blurb:'Stack five bricks straight up. The very first build!',
+  code:'Drive forward 2, Turn right 1, Repeat 3 times',
+  steps:[
+    [ s('2x4', C.blue, 4, 0, 4) ],
+    [ s('2x4', C.green, 4, 1, 4) ],
+    [ s('2x2', C.sun, 5, 2, 5) ],
+    [ s('2x2', C.coral, 5, 3, 5) ],
+    [ s('1x2', C.purple, 5, 4, 5) ]
+  ]
+},
+{
+  id:'dog', name:'Little Dog', icon:'🐶', diff:'easy', pieces:8,
+  blurb:'A body, a head and four stubby legs.',
+  code:'Wait 1, Beep, Drive forward 1',
+  steps:[
+    [ s('2x4', C.brown, 4, 0, 4), s('1x1', C.dark, 4, 0, 3), s('1x1', C.dark, 7, 0, 3), s('1x1', C.dark, 4, 0, 6), s('1x1', C.dark, 7, 0, 6) ],
+    [ s('2x2', C.brown, 5, 1, 5) ],
+    [ s('1x1', C.dark, 5, 2, 5), s('1x1', C.dark, 6, 2, 5) ]
+  ]
+},
+{
+  id:'rocket', name:'Space Rocket', icon:'🚀', diff:'easy', pieces:6,
+  blurb:'A tall rocket with fins and a pointy nose.',
+  code:'Drive forward 3, Beep, Beep',
+  steps:[
+    [ s('2x2', C.red, 5, 0, 5), s('1x2', C.grey, 5, 0, 3), s('1x2', C.grey, 5, 0, 7) ],
+    [ s('2x2', C.white, 5, 1, 5) ],
+    [ s('2x2', C.ice, 5, 2, 5) ],
+    [ s('1x1', C.coral, 5, 3, 5) ]
+  ]
+},
+{
+  id:'flower', name:'Garden Flower', icon:'🌸', diff:'easy', pieces:8,
+  blurb:'A green stem with four petals round a white middle.',
+  code:'Turn right 2, Wait 1, Beep',
+  steps:[
+    [ s('2x2', C.green, 5, 0, 5) ],
+    [ s('2x2', C.green, 5, 1, 5) ],
+    [ s('2x4', C.sun, 4, 2, 4) ],
+    [ s('1x1', C.coral, 4, 3, 4), s('1x1', C.coral, 6, 3, 4), s('1x1', C.coral, 4, 3, 5), s('1x1', C.coral, 6, 3, 5), s('1x1', C.white, 5, 3, 4) ]
+  ]
+},
+{
+  id:'duck', name:'Rubber Duck', icon:'🦆', diff:'easy', pieces:5,
+  blurb:'A round duck with a bright beak.',
+  code:'Drive forward 2, Beep, Turn left 1',
+  steps:[
+    [ s('2x4', C.sun, 4, 0, 4) ],
+    [ s('2x2', C.sun, 5, 1, 5) ],
+    [ s('2x2', C.sun, 5, 2, 5) ],
+    [ s('1x1', C.coral, 5, 3, 5), s('1x1', C.dark, 6, 3, 5) ]
+  ]
+},
+{
+  id:'car', name:'Race Car', icon:'🏎️', diff:'easy', pieces:7,
+  blurb:'Four wheels, a blue body and a red cabin.',
+  code:'Drive forward 4, Turn right 1',
+  steps:[
+    [ s('1x1', C.dark, 4, 0, 4), s('1x1', C.dark, 7, 0, 4), s('1x1', C.dark, 4, 0, 7), s('1x1', C.dark, 7, 0, 7) ],
+    [ s('2x4', C.blue, 4, 1, 4) ],
+    [ s('2x2', C.red, 5, 2, 5) ],
+    [ s('1x1', C.sun, 5, 3, 5) ]
+  ]
+},
+
+/* ---------------- MED ---------------- */
+{
+  id:'house', name:'Happy House', icon:'🏠', diff:'med', pieces:11,
+  blurb:'Walls, a brown door, blue windows and a red roof.',
+  code:'Drive forward 2, Turn right 1, Wait 1',
+  steps:[
+    [ s('2x8', C.sun, 2, 0, 3), s('2x8', C.sun, 2, 0, 7) ],
+    [ s('2x8', C.coral, 2, 1, 3), s('2x8', C.coral, 2, 1, 7) ],
+    [ s('2x4', C.brown, 4, 2, 3), s('2x4', C.coral, 4, 2, 7), s('1x1', C.blue, 3, 2, 3), s('1x1', C.blue, 8, 2, 3) ],
+    [ s('2x8', C.red, 2, 3, 3), s('2x8', C.red, 2, 3, 7) ],
+    [ s('2x2', C.red, 5, 4, 4) ]
+  ]
+},
+{
+  id:'bridge', name:'Long Bridge', icon:'🌉', diff:'med', pieces:15,
+  blurb:'Four tall pillars holding a long brown walkway.',
+  code:'Drive forward 3, Turn right 2, Drive forward 3',
+  steps:[
+    [ s('2x2', C.grey, 1, 0, 1), s('2x2', C.grey, 1, 0, 9), s('2x2', C.grey, 9, 0, 1), s('2x2', C.grey, 9, 0, 9) ],
+    [ s('2x2', C.grey, 1, 1, 1), s('2x2', C.grey, 1, 1, 9), s('2x2', C.grey, 9, 1, 1), s('2x2', C.grey, 9, 1, 9) ],
+    [ s('2x4', C.grey, 1, 2, 1), s('2x4', C.grey, 1, 2, 8), s('2x4', C.grey, 7, 2, 1), s('2x4', C.grey, 7, 2, 8) ],
+    [ s('2x4', C.brown, 4, 3, 1), s('2x4', C.brown, 4, 3, 7) ],
+    [ s('1x4', C.brown, 4, 4, 1) ]
+  ]
+},
+{
+  id:'robot', name:'Builder Robot', icon:'🤖', diff:'med', pieces:8,
+  blurb:'Two feet, a yellow body and two bright blue eyes.',
+  code:'Beep, Drive forward 2, Turn right 1, Beep',
+  steps:[
+    [ s('2x4', C.dark, 4, 0, 4), s('2x2', C.dark, 2, 0, 4), s('2x2', C.dark, 8, 0, 4) ],
+    [ s('2x4', C.sun, 4, 1, 5) ],
+    [ s('2x4', C.white, 4, 2, 5) ],
+    [ s('1x1', C.blue, 4, 3, 5), s('1x1', C.blue, 6, 3, 5), s('1x1', C.red, 5, 3, 5) ]
+  ]
+},
+{
+  id:'ship', name:'Sailing Boat', icon:'⛵', diff:'med', pieces:6,
+  blurb:'A brown hull with a white sail and a red flag.',
+  code:'Drive forward 2, Wait 1, Turn left 1',
+  steps:[
+    [ s('4x4', C.brown, 4, 0, 4) ],
+    [ s('2x2', C.brown, 5, 1, 5) ],
+    [ s('2x2', C.white, 5, 2, 5) ],
+    [ s('1x4', C.white, 5, 3, 5) ],
+    [ s('2x4', C.red, 4, 4, 4) ],
+    [ s('1x1', C.sun, 5, 5, 5) ]
+  ]
+},
+{
+  id:'tree', name:'Big Tree', icon:'🌳', diff:'med', pieces:7,
+  blurb:'A brown trunk, a wide green canopy and two red apples.',
+  code:'Turn right 3, Beep, Turn left 3',
+  steps:[
+    [ s('2x2', C.brown, 5, 0, 5) ],
+    [ s('2x2', C.brown, 5, 1, 5) ],
+    [ s('4x4', C.green, 4, 2, 4) ],
+    [ s('2x4', C.green, 3, 3, 4), s('2x4', C.green, 7, 3, 4) ],
+    [ s('1x1', C.red, 5, 4, 4), s('1x1', C.red, 5, 4, 5) ]
+  ]
+},
+{
+  id:'plane', name:'Jet Plane', icon:'✈️', diff:'med', pieces:6,
+  blurb:'A long fuselage with two wings and a tail.',
+  code:'Drive forward 5, Beep',
+  steps:[
+    [ s('2x8', C.ice, 2, 0, 5) ],
+    [ s('2x4', C.ice, 4, 1, 5), s('2x4', C.white, 0, 1, 4), s('2x4', C.white, 8, 1, 4) ],
+    [ s('1x2', C.red, 5, 2, 5), s('1x2', C.blue, 5, 2, 6) ]
+  ]
+},
+
+/* ---------------- HARD ---------------- */
+{
+  id:'castle', name:'Stone Castle', icon:'🏰', diff:'hard', pieces:23,
+  blurb:'Four corner towers, a blue keep and red flags.',
+  code:'Drive forward 2, Turn right 1, Repeat 4 times',
+  steps:[
+    [ s('4x4', C.grey, 0, 0, 0), s('4x4', C.grey, 8, 0, 0), s('4x4', C.grey, 0, 0, 8), s('4x4', C.grey, 8, 0, 8), s('2x4', C.grey, 4, 0, 0), s('2x4', C.grey, 0, 0, 4), s('2x4', C.grey, 8, 0, 4), s('2x4', C.grey, 4, 0, 4) ],
+    [ s('2x2', C.grey, 0, 1, 0), s('2x2', C.grey, 10, 1, 0), s('2x2', C.grey, 0, 1, 10), s('2x2', C.grey, 10, 1, 10), s('2x4', C.grey, 4, 1, 4) ],
+    [ s('2x2', C.grey, 0, 2, 0), s('2x2', C.grey, 10, 2, 0), s('2x2', C.grey, 0, 2, 10), s('2x2', C.grey, 10, 2, 10), s('2x2', C.blue, 4, 2, 4), s('1x1', C.blue, 6, 2, 4) ],
+    [ s('1x1', C.red, 0, 3, 0), s('1x1', C.red, 11, 3, 0), s('1x1', C.red, 0, 3, 11), s('1x1', C.red, 11, 3, 11) ]
+  ]
+},
+{
+  id:'dragon', name:'Friendly Dragon', icon:'🐲', diff:'hard', pieces:15,
+  blurb:'A long green body, icy wings and a smiling face.',
+  code:'Turn right 2, Beep, Repeat 3 times',
+  steps:[
+    [ s('2x2', C.green, 0, 0, 0), s('2x2', C.green, 10, 0, 0), s('2x2', C.green, 0, 0, 6), s('2x2', C.green, 10, 0, 6), s('2x4', C.green, 4, 0, 0), s('2x4', C.green, 4, 0, 4), s('2x4', C.green, 4, 0, 8), s('2x2', C.green, 0, 0, 2), s('2x2', C.green, 10, 0, 2) ],
+    [ s('2x4', C.ice, 0, 1, 2), s('2x4', C.ice, 8, 1, 2), s('2x2', C.green, 4, 1, 8) ],
+    [ s('2x2', C.sun, 4, 2, 8) ],
+    [ s('1x1', C.dark, 4, 3, 8), s('1x1', C.coral, 5, 3, 9) ]
+  ]
+},
+{
+  id:'satellite', name:'Space Satellite', icon:'🛰️', diff:'hard', pieces:6,
+  blurb:'A grey deck with a golden solar panel and a red light.',
+  code:'Drive forward 1, Beep, Turn right 4',
+  steps:[
+    [ s('4x4', C.grey, 2, 0, 2) ],
+    [ s('2x4', C.grey, 2, 1, 2) ],
+    [ s('2x2', C.sun, 2, 2, 2), s('2x2', C.white, 4, 2, 2) ],
+    [ s('2x2', C.sun, 4, 3, 2), s('1x1', C.red, 3, 3, 3) ]
+  ]
+},
+{
+  id:'city', name:'Little City', icon:'🌆', diff:'hard', pieces:16,
+  blurb:'Three towers of different heights on a shared plaza.',
+  code:'Drive forward 1, Turn right 2, Repeat 2 times',
+  steps:[
+    [ s('4x4', C.grey, 0, 0, 0), s('4x4', C.grey, 8, 0, 0), s('4x4', C.grey, 4, 0, 8), s('2x4', C.grey, 0, 0, 4), s('2x4', C.grey, 8, 0, 4), s('2x4', C.dark, 4, 0, 6) ],
+    [ s('2x2', C.blue, 0, 1, 0), s('2x2', C.blue, 10, 1, 0), s('2x2', C.sun, 4, 1, 8) ],
+    [ s('2x2', C.blue, 0, 2, 0), s('2x2', C.blue, 10, 2, 0), s('2x2', C.sun, 4, 2, 8) ],
+    [ s('2x2', C.ice, 10, 3, 0), s('2x2', C.coral, 4, 3, 8), s('1x1', C.sun, 0, 3, 0) ],
+    [ s('1x1', C.rose, 11, 4, 0) ]
+  ]
+}
+];
+
+/* ============================================================
+   TEMPLATE / STEP ENGINE
+   ============================================================ */
+var active = null;          // active template
+var stepI = 0;              // current step index
+var hue = 0;                // ghost highlight animation
+var diffFilter = 'easy';
+
+var galleryBox = document.getElementById('gallery');
+var stepsCard = document.getElementById('stepsCard');
+
+function byDiff(d){ return TEMPLATES.filter(function(t){ return t.diff === d; }); }
+
+function drawGallery(){
+  galleryBox.innerHTML = '';
+  byDiff(diffFilter).forEach(function(t){
+    var b = document.createElement('button');
+    b.className = 'tmpl';
+    b.setAttribute('aria-pressed', active && active.id === t.id ? 'true' : 'false');
+    b.innerHTML = '<span class="lv">' + t.pieces + ' pcs</span>' +
+                  '<span class="icon">' + t.icon + '</span>' + t.name +
+                  '<span class="pc">' + t.blurb + '</span>';
+    b.onclick = function(){ startTemplate(t); };
+    galleryBox.appendChild(b);
+  });
+}
+
+function startTemplate(t){
+  active = t; stepI = 0;
+  // clear the plate and lay down every step up to the current one
+  vox = new Uint8Array(W * D * LAYERS);
+  hist = [];
+  buildUpTo(0);
+  drawGallery();
+  drawSteps();
+  flash(t.icon + ' ' + t.name + ' — follow the steps!');
+}
+
+/* Place every brick from step 0 .. upto (inclusive) */
+function buildUpTo(upto){
+  vox = new Uint8Array(W * D * LAYERS);
+  for(var i = 0; i <= upto && i < active.steps.length; i++){
+    active.steps[i].forEach(function(p){ placeTemplateBrick(p); });
+  }
+  rebuild();
+}
+function placeTemplateBrick(p){
+  var si = SHAPES.map(function(x){ return x.id; }).indexOf(p.sh);
+  if(si < 0) si = 0;
+  var col = p.c, ci = COLORS.indexOf(col);
+  if(ci >= 0) parts[si].color = COLORS[ci];
+  else { parts[si].color = col; ci = null; }
+  var sp = SHAPES[si];
+  place((p.x + (sp.w - 1) / 2) * SUB, p.y, (p.z + (sp.d - 1) / 2) * SUB, si);
+}
+
+function tNext(){
+  if(!active) return flash('Pick a build first ☝️');
+  if(stepI >= active.steps.length - 1){ flash('🎉 Build complete! Now press Hit play'); return; }
+  stepI++;
+  buildUpTo(stepI);
+  drawSteps();
+  flash('Step ' + (stepI + 1) + ' of ' + active.steps.length);
+}
+function tPrev(){
+  if(!active) return;
+  if(stepI <= 0){ buildUpTo(-1); return flash('Back to an empty plate'); }
+  stepI--;
+  buildUpTo(stepI);
+  drawSteps();
+}
+function showWholeBuild(){
+  if(!active) return;
+  buildUpTo(active.steps.length - 1);
+  stepI = active.steps.length - 1;
+  drawSteps();
+  flash('Showing the finished ' + active.name);
+}
+
+function drawSteps(){
+  if(!active){ stepsCard.innerHTML = ''; return; }
+  var done = stepI + 1, total = active.steps.length;
+  var nextPieces = (active.steps[stepI] || []).map(function(p){
+    var col = p.c, n = p.sh.replace('x', '×');
+    return '<i><u style="background:' + col + '"></u>' + n + '</i>';
+  }).join('');
+
+  stepsCard.innerHTML =
+    '<div class="stepsbar">' +
+      '<span class="num">' + done + '/' + total + '</span>' +
+      '<span class="txt">' + active.icon + ' ' + active.name + ' — step ' + done +
+        '<small>' + (done === total ? 'Finished! Now code the robot →' : 'Add the pieces below, then press Next') + '</small>' +
+      '</span>' +
+      '<button id="sPrev">◀ Back</button>' +
+      '<button id="sNext" class="' + (done === total ? 'on' : '') + '">Next ▶</button>' +
+    '</div>' +
+    '<div class="pieceList">' + nextPieces + '</div>' +
+    '<p class="quest" style="margin-top:9px">🤖 <b>Code idea:</b> ' + active.code + '</p>' +
+    '<div class="tools" style="grid-template-columns:1fr 1fr;margin-top:9px">' +
+      '<button class="btn" id="sAll">👁 Show finished</button>' +
+      '<button class="btn" id="sReset">↺ Restart build</button>' +
+    '</div>';
+
+  document.getElementById("sNext").onclick = tNext;
+  document.getElementById("sPrev").onclick = tPrev;
+  document.getElementById('sAll').onclick = showWholeBuild;
+  document.getElementById('sReset').onclick = function(){ startTemplate(active); };
+}
+
+/* difficulty buttons */
+function wireDiff(id, d){
+  var b = document.getElementById(id);
+  b.onclick = function(){
+    diffFilter = d;
+    ['dEasy','dMed','dHard'].forEach(function(x){
+      document.getElementById(x).setAttribute('aria-pressed', x === id ? 'true' : 'false');
+    });
+    drawGallery();
+  };
+}
+wireDiff('dEasy','easy'); wireDiff('dMed','med'); wireDiff('dHard','hard');
+
+/* ============================================================
+   BOOT — open on the first Starter template so kids see a build
+   ============================================================ */
+parts.forEach(function(p){ p.color = COLORS[colorI]; });
+
+active = TEMPLATES[0];
+stepI = 0;
+buildUpTo(0);
+
+rebuild();
+resize();
+showGhost();
+drawGallery();
+drawSteps();
+drawProgram();
+checkQuest();
+
+/* gentle pulse on the ghost so the "next piece" spot is obvious */
+setInterval(function(){
+  if(!active) return;
+  hue += 0.08;
+  if(ghost.visible) ghost.material.opacity = 0.32 + Math.sin(hue) * 0.13;
+}, 60);
+
+requestAnimationFrame(frame);
+
+})();
 </script>
 </body>
 </html>
