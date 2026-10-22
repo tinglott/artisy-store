@@ -1,0 +1,1912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Card Studio — Postcards, Birthday Cards & Invitations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Lora:wght@400;500;600&family=Pacifico&family=Dancing+Script:wght@400;600&family=Playfair+Display:wght@500;700&family=Great+Vibes&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg-primary: #FFF8F0;
+        --bg-secondary: #FFEBD4;
+        --accent-warm: #E89B6C;
+        --accent-coral: #F4A261;
+        --accent-deep: #C1666B;
+        --text-primary: #3D3029;
+        --text-secondary: #6B5D56;
+        --card-bg: #FFFFFF;
+        --border-color: #E8D5C4;
+        --good: #1d7a3a;
+        --bad: #b3261e;
+    }
+    .dark {
+        --bg-primary: #1A1611;
+        --bg-secondary: #2D2419;
+        --accent-warm: #D4956F;
+        --accent-coral: #E89B6C;
+        --accent-deep: #D67982;
+        --text-primary: #F5E6D3;
+        --text-secondary: #C9B8A8;
+        --card-bg: #2A2118;
+        --border-color: #4A3D32;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        font-family: 'Lora', serif;
+        background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+        color: var(--text-primary);
+        min-height: 100vh;
+        padding: 1rem;
+        transition: background 0.3s ease;
+    }
+    .container { max-width: 1400px; margin: 0 auto; }
+    header { text-align: center; margin-bottom: 1.25rem; animation: fadeInDown 0.6s ease; }
+    h1 {
+        font-family: 'Crimson Text', serif;
+        font-size: clamp(2rem, 5vw, 3.25rem);
+        font-weight: 600; color: var(--accent-deep);
+        letter-spacing: -0.02em;
+    }
+    .subtitle { font-size: clamp(1rem, 2vw, 1.2rem); color: var(--text-secondary); font-style: italic; }
+    .steps-bar {
+        display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;
+        margin-bottom: 1.5rem; font-size: 0.95rem;
+    }
+    .steps-bar span {
+        background: var(--card-bg); border: 2px solid var(--border-color);
+        padding: 0.45rem 0.9rem; border-radius: 999px;
+    }
+    .steps-bar b { color: var(--accent-deep); }
+    .main-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; animation: fadeInUp 0.6s ease 0.15s backwards; }
+    @media (min-width: 900px) { .main-grid { grid-template-columns: 1fr 1fr; } }
+    .panel {
+        background: var(--card-bg); border-radius: 1.25rem; padding: 1.5rem;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.08); border: 2px solid var(--border-color);
+        margin-bottom: 1.5rem;
+    }
+    .panel-title {
+        font-family: 'Crimson Text', serif; font-size: 1.5rem; font-weight: 600;
+        margin-bottom: 1rem; color: var(--accent-deep);
+    }
+    .panel-title .step-no {
+        display: inline-block; background: linear-gradient(135deg, var(--accent-coral), var(--accent-deep));
+        color: #fff; border-radius: 50%; width: 1.9rem; height: 1.9rem; line-height: 1.9rem;
+        text-align: center; font-size: 1.05rem; margin-right: 0.5rem; vertical-align: middle;
+    }
+    .form-group { margin-bottom: 1.25rem; }
+    label { display: block; font-weight: 500; margin-bottom: 0.45rem; font-size: 0.95rem; }
+    .hint { font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.35rem; line-height: 1.45; }
+    input[type="text"], input[type="password"], textarea, select {
+        width: 100%; padding: 0.8rem 0.95rem; font-size: 16px; font-family: 'Lora', serif;
+        border: 2px solid var(--border-color); border-radius: 0.7rem;
+        background: var(--bg-primary); color: var(--text-primary); transition: all 0.2s ease;
+    }
+    textarea { resize: vertical; }
+    input:focus, textarea:focus, select:focus {
+        outline: none; border-color: var(--accent-coral);
+        box-shadow: 0 0 0 3px rgba(244,162,97,0.15);
+    }
+    .btn {
+        width: 100%; padding: 0.9rem 1.25rem; font-size: 16px; font-family: 'Lora', serif;
+        font-weight: 500; border: none; border-radius: 0.75rem; cursor: pointer;
+        transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    }
+    .btn-primary { background: linear-gradient(135deg, var(--accent-coral), var(--accent-deep)); color: #fff; box-shadow: 0 4px 12px rgba(232,155,108,0.3); }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(232,155,108,0.4); }
+    .btn-secondary { background: var(--accent-warm); color: #fff; box-shadow: 0 4px 12px rgba(232,155,108,0.2); }
+    .btn-secondary:hover { transform: translateY(-2px); background: var(--accent-coral); }
+    .btn-plain { background: var(--bg-primary); color: var(--text-primary); border: 2px solid var(--border-color); }
+    .btn-plain:hover { border-color: var(--accent-coral); }
+    .btn-small { padding: 0.55rem 0.8rem; font-size: 0.9rem; width: auto; }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+    .loading-state { opacity: 0.6; pointer-events: none; }
+
+    /* Card type switcher */
+    .type-switcher { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; }
+    .type-btn {
+        padding: 0.9rem 0.4rem; border-radius: 0.9rem; border: 2px solid var(--border-color);
+        background: var(--bg-primary); color: var(--text-primary); cursor: pointer;
+        font-family: 'Lora', serif; font-size: 0.98rem; font-weight: 600; text-align: center;
+        transition: all 0.2s ease;
+    }
+    .type-btn small { display: block; font-weight: 400; font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.2rem; }
+    .type-btn:hover { transform: translateY(-2px); }
+    .type-btn.active { border-color: var(--accent-deep); box-shadow: 0 0 0 3px rgba(193,102,107,0.18); background: var(--bg-secondary); }
+    .size-row { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+    .size-btn {
+        padding: 0.5rem 0.9rem; border-radius: 999px; border: 2px solid var(--border-color);
+        background: var(--bg-primary); color: var(--text-primary); cursor: pointer; font-family: 'Lora', serif; font-size: 0.9rem;
+    }
+    .size-btn.active { border-color: var(--accent-deep); background: var(--bg-secondary); font-weight: 600; }
+
+    /* Occasion templates */
+    .chip-row { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+    .chip {
+        padding: 0.45rem 0.8rem; border-radius: 999px; border: 2px solid var(--border-color);
+        background: var(--bg-primary); color: var(--text-primary); cursor: pointer;
+        font-family: 'Lora', serif; font-size: 0.88rem; transition: all 0.15s ease;
+    }
+    .chip:hover { border-color: var(--accent-coral); transform: translateY(-1px); }
+    .chip.active { border-color: var(--accent-deep); background: var(--bg-secondary); font-weight: 600; }
+
+    /* Themes */
+    .theme-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; }
+    .theme-btn {
+        height: 3.25rem; border: none; border-radius: 0.75rem; cursor: pointer;
+        transition: all 0.2s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .theme-btn:hover { transform: translateY(-2px); }
+    .theme-btn.active { transform: scale(1.05); box-shadow: 0 0 0 3px var(--accent-deep); }
+
+    /* Message library */
+    .library-list { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.6rem; }
+    .library-item {
+        text-align: left; padding: 0.75rem 0.9rem; border-radius: 0.75rem; cursor: pointer;
+        border: 2px solid var(--border-color); background: var(--bg-primary);
+        font-family: 'Lora', serif; font-size: 0.95rem; color: var(--text-primary); line-height: 1.5;
+        transition: all 0.15s ease; width: 100%;
+    }
+    .library-item:hover { border-color: var(--accent-coral); background: var(--bg-secondary); }
+    .library-item small { display: block; color: var(--accent-deep); font-weight: 600; margin-top: 0.3rem; font-size: 0.8rem; }
+
+    /* Preview */
+    .page-tabs { display: flex; gap: 0.5rem; margin-bottom: 0.9rem; }
+    .page-tab {
+        flex: 1; padding: 0.6rem; border-radius: 0.7rem; border: 2px solid var(--border-color);
+        background: var(--bg-primary); color: var(--text-primary); cursor: pointer;
+        font-family: 'Lora', serif; font-size: 0.95rem; font-weight: 600;
+    }
+    .page-tab.active { border-color: var(--accent-deep); background: var(--bg-secondary); }
+    .card-stage {
+        position: relative; width: 100%; border-radius: 1rem; overflow: hidden;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+        container-type: inline-size;
+        background: #ddd;
+        touch-action: none;
+    }
+    .card-bg { position: absolute; inset: 0; background-size: cover; background-position: center; }
+    .card-band { position: absolute; top: 0; left: 0; right: 0; height: 6%; display: none; }
+    .card-frame { position: absolute; inset: 0; pointer-events: none; border-radius: 1rem; display: none; }
+    .card-frame.frame-white { display: block; box-shadow: inset 0 0 0 14px rgba(255,255,255,0.92), inset 0 0 0 16px rgba(0,0,0,0.08); }
+    .card-frame.frame-gold { display: block; box-shadow: inset 0 0 0 3px rgba(212,175,55,0.95), inset 0 0 0 6px rgba(255,255,255,0.5); }
+    .card-frame.frame-double { display: block; box-shadow: inset 0 0 0 2px rgba(255,255,255,0.85), inset 0 0 0 10px rgba(0,0,0,0.10), inset 0 0 0 12px rgba(255,255,255,0.85); }
+    .card-borderline {
+        position: absolute; inset: 4.5%; border: 2px solid rgba(255,255,255,0.55);
+        border-radius: 0.6rem; pointer-events: none;
+    }
+    .card-words {
+        position: absolute; inset: 0; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; text-align: center;
+        padding: 8% 9%; cursor: grab; user-select: none; -webkit-user-select: none;
+    }
+    .card-words:active { cursor: grabbing; }
+    .card-words .scrim {
+        position: absolute; inset: 6% 5%; border-radius: 1rem; pointer-events: none;
+    }
+    .card-words .wline { position: relative; max-width: 100%; overflow-wrap: break-word; white-space: pre-wrap; }
+    .w-kicker { font-family: 'Lora', serif; letter-spacing: 0.32em; text-transform: uppercase; font-size: 2.6cqw; margin-bottom: 2.2cqw; }
+    .w-headline { font-size: 8cqw; line-height: 1.15; margin-bottom: 1.6cqw; }
+    .w-name { font-size: 9.5cqw; line-height: 1.12; margin-bottom: 1.4cqw; }
+    .w-message { font-size: 5.4cqw; line-height: 1.35; }
+    .w-detail { font-family: 'Lora', serif; font-size: 3.9cqw; line-height: 1.5; }
+    .w-from { font-family: 'Pacifico', cursive; font-size: 4.4cqw; margin-top: 2.4cqw; }
+    .w-note-label { font-family: 'Lora', serif; font-style: italic; font-size: 3.4cqw; margin-bottom: 2cqw; opacity: 0.85; }
+    .age-badge {
+        position: relative; margin: 0.5cqw auto 2cqw;
+        min-width: 15cqw; height: 15cqw; padding: 0 2cqw; border-radius: 999px;
+        display: flex; align-items: center; justify-content: center;
+        font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 4.6cqw; color: #fff;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    }
+    .card-stamp {
+        position: absolute; top: 5%; right: 5%; width: 13%; aspect-ratio: 1; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center; color: #fff;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.25); font-size: 5cqw; pointer-events: none;
+    }
+    .card-lines { position: absolute; bottom: 7%; right: 7%; width: 30%; pointer-events: none; }
+    .card-lines div { height: 2px; background: rgba(0,0,0,0.22); margin-top: 12%; border-radius: 2px; }
+    .card-qr {
+        position: absolute; right: 5%; bottom: 5%; width: 21%; aspect-ratio: 1;
+        background: #fff; border-radius: 6%; padding: 2.2%; display: none;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.22);
+    }
+    .card-qr canvas { width: 100%; height: 100%; display: block; }
+    .card-qr-label {
+        position: absolute; right: 5%; bottom: calc(5% + 22%); width: 21%;
+        text-align: center; font-size: 2.4cqw; font-family: 'Lora', serif; display: none;
+    }
+    .sticker-el { position: absolute; cursor: grab; user-select: none; -webkit-user-select: none; z-index: 5; }
+    .sticker-el svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.25)); }
+    .sticker-el.selected { outline: 2px dashed var(--accent-deep); outline-offset: 3px; border-radius: 6px; }
+    .print-guide {
+        position: absolute; inset: 7%; border: 2px dashed rgba(193,102,107,0.85);
+        border-radius: 0.5rem; pointer-events: none; display: none; z-index: 8;
+    }
+    .ai-label {
+        display: none; margin-top: 0.6rem; font-size: 0.82rem; color: var(--text-secondary); text-align: center;
+    }
+    .preview-caption { font-size: 0.85rem; color: var(--text-secondary); text-align: center; margin-top: 0.55rem; }
+
+    .status-message { margin-top: 0.55rem; padding: 0.7rem 0.85rem; border-radius: 0.55rem; font-size: 0.9rem; line-height: 1.45; animation: fadeIn 0.3s ease; }
+    .status-success { background: rgba(34,197,94,0.12); color: var(--good); border: 1px solid rgba(34,197,94,0.35); }
+    .status-error { background: rgba(239,68,68,0.10); color: var(--bad); border: 1px solid rgba(239,68,68,0.35); }
+    .status-info { background: rgba(59,130,246,0.10); color: #2563eb; border: 1px solid rgba(59,130,246,0.35); }
+    .dark .status-info { color: #93c5fd; }
+
+    .share-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; }
+    .share-btn {
+        padding: 0.8rem 0.4rem; font-size: 0.92rem; font-family: 'Lora', serif; font-weight: 600;
+        border: none; border-radius: 0.75rem; cursor: pointer; color: #fff; transition: all 0.2s ease;
+    }
+    .share-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+    .share-x { background: #14171A; } .share-wa { background: #25D366; color: #075E54; } .share-mail { background: var(--accent-deep); }
+
+    details.more-touches { border: 2px dashed var(--border-color); border-radius: 1.25rem; padding: 1.1rem 1.4rem; margin-bottom: 1.5rem; background: var(--card-bg); }
+    details.more-touches summary {
+        font-family: 'Crimson Text', serif; font-size: 1.3rem; font-weight: 600;
+        color: var(--accent-deep); cursor: pointer; padding: 0.3rem 0;
+    }
+    .touch-section { margin-top: 1.1rem; padding-top: 1rem; border-top: 1px solid var(--border-color); }
+    .touch-section h4 { font-family: 'Crimson Text', serif; font-size: 1.12rem; margin-bottom: 0.55rem; color: var(--text-primary); }
+    .sticker-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 0.45rem; }
+    .sticker-btn {
+        border: 2px solid var(--border-color); background: var(--bg-primary); border-radius: 0.7rem;
+        padding: 0.35rem; cursor: pointer; transition: all 0.15s ease;
+    }
+    .sticker-btn:hover { border-color: var(--accent-coral); transform: translateY(-1px); }
+    .sticker-btn svg { width: 100%; height: auto; display: block; }
+    input[type="range"] { width: 100%; accent-color: var(--accent-deep); }
+    .saved-row { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.5rem; flex-wrap: wrap; }
+    .saved-item {
+        display: flex; gap: 0.4rem; align-items: center; background: var(--bg-primary);
+        border: 2px solid var(--border-color); border-radius: 999px; padding: 0.3rem 0.35rem 0.3rem 0.85rem; font-size: 0.9rem;
+    }
+    .saved-item button {
+        border: none; border-radius: 999px; padding: 0.3rem 0.65rem; cursor: pointer;
+        font-family: 'Lora', serif; font-size: 0.82rem; background: var(--accent-warm); color: #fff;
+    }
+    .saved-item button.del { background: transparent; color: var(--bad); border: 1px solid rgba(179,38,30,0.4); }
+    .inline-check { display: flex; gap: 0.55rem; align-items: flex-start; font-size: 0.94rem; line-height: 1.45; }
+    .inline-check input { margin-top: 0.25rem; width: 1.1rem; height: 1.1rem; accent-color: var(--accent-deep); flex: none; }
+    .file-input { display: none; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @media (max-width: 560px) {
+        .sticker-grid { grid-template-columns: repeat(4, 1fr); }
+        .share-row { grid-template-columns: 1fr; }
+        .two-col { grid-template-columns: 1fr; }
+        .panel { padding: 1.15rem; }
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>Card Studio</h1>
+        <p class="subtitle">Postcards, birthday cards &amp; invitations — made by you, in three gentle steps</p>
+    </header>
+
+    <div class="steps-bar">
+        <span><b>1</b>&nbsp; Pick a card</span>
+        <span><b>2</b>&nbsp; Make the picture</span>
+        <span><b>3</b>&nbsp; Write your words</span>
+    </div>
+
+    <div class="main-grid">
+        <!-- ================= LEFT: CONTROLS ================= -->
+        <div>
+            <!-- STEP 1 -->
+            <div class="panel">
+                <h2 class="panel-title"><span class="step-no">1</span>Pick your card</h2>
+                <div class="type-switcher" id="typeSwitcher">
+                    <button class="type-btn active" data-type="postcard">Postcard<small>Landscape, one side</small></button>
+                    <button class="type-btn" data-type="birthday">Birthday Card<small>Front + inside</small></button>
+                    <button class="type-btn" data-type="invitation">Invitation<small>Front + inside</small></button>
+                </div>
+                <div class="form-group" style="margin-top:1.1rem;" id="sizeGroup">
+                    <label>Card shape</label>
+                    <div class="size-row" id="sizeRow">
+                        <button class="size-btn active" data-size="landscape">Landscape</button>
+                        <button class="size-btn" data-size="portrait">Portrait</button>
+                    </div>
+                    <p class="hint" id="sizeHint">Postcards are landscape, like the ones that come in the mail.</p>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label>Start from an occasion (optional)</label>
+                    <div class="chip-row" id="templateRow"></div>
+                    <p class="hint">A template picks the card, colors, and a writing idea for you. You can change everything after.</p>
+                </div>
+            </div>
+
+            <!-- STEP 2 -->
+            <div class="panel">
+                <h2 class="panel-title"><span class="step-no">2</span>Make the picture</h2>
+
+                <div class="form-group">
+                    <label>Pick a color theme</label>
+                    <div class="theme-grid" id="themeGrid">
+                        <button class="theme-btn active" data-theme="sunset" style="background: linear-gradient(135deg, #FF6B6B 0%, #FFE66D 50%, #4ECDC4 100%)" title="Sunset"></button>
+                        <button class="theme-btn" data-theme="ocean" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)" title="Ocean"></button>
+                        <button class="theme-btn" data-theme="forest" style="background: linear-gradient(135deg, #56ab2f 0%, #a8e063 50%, #8EC5FC 100%)" title="Forest"></button>
+                        <button class="theme-btn" data-theme="vintage" style="background: linear-gradient(135deg, #D4A574 0%, #E8C4A0 50%, #F5E6D3 100%)" title="Vintage"></button>
+                        <button class="theme-btn" data-theme="cosmic" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%)" title="Cosmic"></button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="imagePrompt">…or dream up a picture with AI</label>
+                    <input type="text" id="imagePrompt" placeholder="Describe the picture, e.g. “a garden party at golden hour, watercolor”">
+                    <button class="btn btn-secondary" id="generateImageBtn" style="margin-top:0.55rem;">
+                        <span id="generateImageText">Create my picture</span>
+                    </button>
+                    <p class="hint">Pictures are drawn for you free by Pollinations. Every AI picture is labeled “AI-generated” under the card.</p>
+                </div>
+
+                <div class="form-group" style="margin-bottom:0;">
+                    <label>…or use your own photo</label>
+                    <input type="file" id="imageUpload" class="file-input" accept="image/*">
+                    <button class="btn btn-secondary" id="uploadBtn"><span id="uploadText">Choose a photo</span></button>
+                    <div id="photoTools" style="display:none; margin-top:0.9rem;">
+                        <label for="photoFilter">Photo look</label>
+                        <select id="photoFilter">
+                            <option value="none">As it is</option>
+                            <option value="warm">Warm &amp; sunny</option>
+                            <option value="soft">Soft glow</option>
+                            <option value="vintage">Vintage</option>
+                            <option value="bw">Black &amp; white</option>
+                        </select>
+                        <label for="photoFrame" style="margin-top:0.8rem;">Photo frame</label>
+                        <select id="photoFrame">
+                            <option value="none">No frame</option>
+                            <option value="white">Classic white edge</option>
+                            <option value="gold">Thin gold line</option>
+                            <option value="double">Double line</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 3 -->
+            <div class="panel">
+                <h2 class="panel-title"><span class="step-no">3</span>Write your words</h2>
+
+                <!-- Postcard fields -->
+                <div id="fields-postcard">
+                    <div class="form-group">
+                        <label for="pcMessage">Your message</label>
+                        <textarea id="pcMessage" rows="4" placeholder="Write from the heart…">Wish you were here!</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="pcFrom">From</label>
+                        <input type="text" id="pcFrom" placeholder="Your name (optional)">
+                    </div>
+                </div>
+
+                <!-- Birthday fields -->
+                <div id="fields-birthday" style="display:none;">
+                    <div class="two-col">
+                        <div class="form-group">
+                            <label for="bdName">Birthday star’s name</label>
+                            <input type="text" id="bdName" placeholder="e.g. Grandma Rose">
+                        </div>
+                        <div class="form-group">
+                            <label for="bdAge">Age (optional)</label>
+                            <input type="text" id="bdAge" placeholder="e.g. 70">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="bdMessage">Message inside the card</label>
+                        <textarea id="bdMessage" rows="4" placeholder="The words they’ll read when they open it…"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="bdFrom">From</label>
+                        <input type="text" id="bdFrom" placeholder="Your name (optional)">
+                    </div>
+                </div>
+
+                <!-- Invitation fields -->
+                <div id="fields-invitation" style="display:none;">
+                    <div class="form-group">
+                        <label for="invTitle">Event title</label>
+                        <input type="text" id="invTitle" placeholder="e.g. A Garden Party">
+                    </div>
+                    <div class="form-group">
+                        <label for="invHost">Hosted by</label>
+                        <input type="text" id="invHost" placeholder="e.g. The Lott Family">
+                    </div>
+                    <div class="two-col">
+                        <div class="form-group">
+                            <label for="invDate">Date</label>
+                            <input type="text" id="invDate" placeholder="e.g. Saturday, June 14">
+                        </div>
+                        <div class="form-group">
+                            <label for="invTime">Time</label>
+                            <input type="text" id="invTime" placeholder="e.g. 4 in the afternoon">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="invPlace">Place</label>
+                        <input type="text" id="invPlace" placeholder="e.g. 12 Rose Lane, or “our backyard”">
+                    </div>
+                    <div class="form-group">
+                        <label for="invRsvp">RSVP line</label>
+                        <input type="text" id="invRsvp" placeholder="e.g. Please reply to Ana at 555-013-4472">
+                    </div>
+                    <div class="form-group">
+                        <label for="invNote">A note inside (optional)</label>
+                        <textarea id="invNote" rows="3" placeholder="A warm line for the inside of the card…"></textarea>
+                    </div>
+                </div>
+
+                <!-- Message library -->
+                <div class="form-group" style="margin-top:1.4rem;">
+                    <label for="libraryOccasion">Stuck for words? Borrow one of ours</label>
+                    <select id="libraryOccasion"></select>
+                    <div class="library-list" id="libraryList"></div>
+                    <p class="hint">Tap a message to place it on your card — then make it yours. The library works instantly, no key, no account.</p>
+                </div>
+
+                <!-- ARIA writer (BYOK) -->
+                <div class="form-group" style="margin-bottom:0;">
+                    <label>Write with ARIA — our own writing helper</label>
+                    <p class="hint" style="margin:0 0 0.6rem;">
+                        ARIA is Ting’s own AI helper, built our way: it writes with <b>your own key</b> from an AI
+                        provider you choose. Your key is kept only in this browser, on this device — it is never
+                        sent anywhere except to your provider. No key? The library above is always free.
+                    </p>
+                    <div class="two-col">
+                        <div>
+                            <label for="ariaProvider">Provider</label>
+                            <select id="ariaProvider">
+                                <option value="groq">Groq</option>
+                                <option value="openrouter">OpenRouter</option>
+                                <option value="gemini">Gemini</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="ariaModel">Model</label>
+                            <input type="text" id="ariaModel">
+                        </div>
+                    </div>
+                    <label for="ariaKey" style="margin-top:0.8rem;">Your API key (kept on this device only)</label>
+                    <input type="password" id="ariaKey" placeholder="Paste your key — it never leaves this browser except to your provider" autocomplete="off">
+                    <label for="ariaPrompt" style="margin-top:0.8rem;">Tell ARIA what the card should say</label>
+                    <input type="text" id="ariaPrompt" placeholder="e.g. “a 70th birthday wish for Grandma Rose, gentle and funny”">
+                    <button class="btn btn-secondary" id="ariaWriteBtn" style="margin-top:0.55rem;">
+                        <span id="ariaWriteText">Write it with ARIA</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= RIGHT: PREVIEW + ACTIONS ================= -->
+        <div>
+            <div class="panel" style="padding:1.25rem;">
+                <div class="page-tabs" id="pageTabs" style="display:none;">
+                    <button class="page-tab active" data-page="front">Front of card</button>
+                    <button class="page-tab" data-page="inside">Inside of card</button>
+                </div>
+                <div class="card-stage" id="cardStage">
+                    <div class="card-bg" id="cardBg"></div>
+                    <div class="card-band" id="cardBand"></div>
+                    <div class="card-frame" id="cardFrame"></div>
+                    <div class="card-borderline" id="cardBorderline"></div>
+                    <div class="card-words" id="cardWords"></div>
+                    <div class="card-stamp" id="cardStamp">♥</div>
+                    <div class="card-lines" id="cardLines"><div></div><div></div><div></div></div>
+                    <div class="card-qr-label" id="cardQrLabel">Scan for details</div>
+                    <div class="card-qr" id="cardQr"><canvas id="qrCanvas" width="252" height="252"></canvas></div>
+                    <div class="print-guide" id="printGuide"></div>
+                </div>
+                <p class="ai-label" id="aiLabel">Artwork on this card: AI-generated</p>
+                <p class="preview-caption" id="previewCaption">Tip: you can drag the words on the card to move them.</p>
+                <label class="inline-check" style="margin-top:0.7rem;">
+                    <input type="checkbox" id="guideToggle">
+                    <span>Show the print-safe guide — keep words inside the dashed line so nothing is trimmed when printed.</span>
+                </label>
+            </div>
+
+            <div class="panel">
+                <h3 class="panel-title" style="font-size:1.3rem;">Send your card out into the world</h3>
+                <button class="btn btn-primary" id="downloadBtn">Download this page as a picture (PNG)</button>
+                <button class="btn btn-secondary" id="downloadBothBtn" style="margin-top:0.6rem; display:none;">Download both pages (front + inside)</button>
+                <button class="btn btn-plain" id="copyImageBtn" style="margin-top:0.6rem;">Copy the picture</button>
+                <p class="hint">Downloads are full print resolution, ready for a printer or a card shop.</p>
+
+                <div class="form-group" style="margin-top:1.2rem;">
+                    <label for="recipientEmail">Send the words by email</label>
+                    <input type="text" id="recipientEmail" placeholder="friend@example.com">
+                    <button class="btn btn-secondary" id="sendEmailBtn" style="margin-top:0.55rem;">Open my email app</button>
+                    <p class="hint">This opens <b>your own email app</b> with the words typed in. Email can’t carry the picture from here — download it first and attach it in your app.</p>
+                </div>
+
+                <div class="form-group" style="margin-bottom:0;">
+                    <label>Share your words</label>
+                    <div class="share-row">
+                        <button class="share-btn share-x" data-share="x">Post on X</button>
+                        <button class="share-btn share-wa" data-share="whatsapp">WhatsApp</button>
+                        <button class="share-btn share-mail" data-share="email">Email a friend</button>
+                    </div>
+                    <p class="hint">These share your card’s <b>words only</b>, as text. To share the picture itself, download the PNG and attach it in the app.</p>
+                </div>
+            </div>
+
+            <details class="more-touches" id="moreTouches">
+                <summary>More touches — fonts, stickers &amp; little extras</summary>
+
+                <div class="touch-section">
+                    <h4>Lettering</h4>
+                    <label for="fontSelect">Handwriting &amp; type styles</label>
+                    <select id="fontSelect"></select>
+                    <label for="textScale" style="margin-top:0.8rem;">Words size</label>
+                    <input type="range" id="textScale" min="80" max="130" value="100">
+                    <button class="btn btn-plain btn-small" id="resetWordsBtn" style="margin-top:0.5rem;">Put the words back in the middle</button>
+                </div>
+
+                <div class="touch-section">
+                    <h4>Stickers — drawn by us, tap to add</h4>
+                    <div class="sticker-grid" id="stickerGrid"></div>
+                    <div class="saved-row">
+                        <button class="btn btn-plain btn-small" id="removeStickerBtn">Remove the selected sticker</button>
+                        <span class="hint" style="margin:0;">Drag stickers to place them. Tap one to select it.</span>
+                    </div>
+                </div>
+
+                <div class="touch-section" id="qrSection" style="display:none;">
+                    <h4>Invitation QR code</h4>
+                    <label class="inline-check">
+                        <input type="checkbox" id="qrToggle" checked>
+                        <span>Print a small QR code on the invitation. It holds the event details as plain words — a guest scans it with any phone camera and can save the details. It is made right here on your device; it works with no internet and points nowhere online.</span>
+                    </label>
+                </div>
+
+                <div class="touch-section">
+                    <h4>Your saved designs (kept on this device)</h4>
+                    <div class="saved-row">
+                        <input type="text" id="designName" placeholder="Name this design…" style="flex:1; min-width:170px;">
+                        <button class="btn btn-secondary btn-small" id="saveDesignBtn">Save design</button>
+                    </div>
+                    <div id="savedList"></div>
+                    <p class="hint">Card Studio also quietly remembers the card you’re working on, on this device only.</p>
+                </div>
+            </details>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ============================================================
+   Card Studio — our own code, start to finish.
+   Pictures: Pollinations (free, no key). Writing help: the
+   Message Library (built in) + ARIA, our own bring-your-own-key
+   writing pattern. Everything else happens on this device.
+   ============================================================ */
+
+// ---------- Themes (from Ting's original postcard palette) ----------
+const THEMES = {
+    sunset:  { colors: ['#FF6B6B', '#FFE66D', '#4ECDC4'], css: 'linear-gradient(135deg, #FF6B6B 0%, #FFE66D 50%, #4ECDC4 100%)', stamp: '#FF6B6B', text: '#2C3E50' },
+    ocean:   { colors: ['#667eea', '#764ba2', '#f093fb'], css: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)', stamp: '#667eea', text: '#FFFFFF' },
+    forest:  { colors: ['#56ab2f', '#a8e063', '#8EC5FC'], css: 'linear-gradient(135deg, #56ab2f 0%, #a8e063 50%, #8EC5FC 100%)', stamp: '#56ab2f', text: '#2C3E50' },
+    vintage: { colors: ['#D4A574', '#E8C4A0', '#F5E6D3'], css: 'linear-gradient(135deg, #D4A574 0%, #E8C4A0 50%, #F5E6D3 100%)', stamp: '#8B4513', text: '#4A3C31' },
+    cosmic:  { colors: ['#1e3c72', '#2a5298', '#7e22ce'], css: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%)', stamp: '#FFD700', text: '#FFFFFF' }
+};
+
+// ---------- Fonts ----------
+const FONTS = [
+    { id: 'dancing',    label: 'Handwritten — Dancing Script', family: "'Dancing Script', cursive" },
+    { id: 'greatvibes', label: 'Elegant script — Great Vibes', family: "'Great Vibes', cursive" },
+    { id: 'pacifico',   label: 'Playful — Pacifico',           family: "'Pacifico', cursive" },
+    { id: 'playfair',   label: 'Classic — Playfair Display',   family: "'Playfair Display', serif" },
+    { id: 'lora',       label: 'Warm book serif — Lora',       family: "'Lora', serif" },
+    { id: 'nunito',     label: 'Friendly & round — Nunito',    family: "'Nunito', sans-serif" }
+];
+
+// ---------- Card sizes (export pixels) ----------
+const SIZES = {
+    postcard:   { landscape: { w: 1800, h: 1125, label: 'Landscape' } },
+    birthday:   { portrait:  { w: 1500, h: 2100, label: 'Portrait' },
+                  landscape: { w: 2100, h: 1500, label: 'Landscape' } },
+    invitation: { portrait:  { w: 1500, h: 2100, label: 'Portrait' } }
+};
+const SIZE_HINTS = {
+    postcard: 'Postcards are landscape, like the ones that come in the mail.',
+    birthday: 'Birthday cards can stand tall (portrait) or wide (landscape).',
+    invitation: 'Invitations are portrait — the classic folded-card shape.'
+};
+
+// ---------- Message Library — original starters, written for this studio ----------
+const LIBRARY = {
+    birthday: { label: 'Birthday', messages: [
+        'Happy birthday! Another year of you in the world is a gift to everyone lucky enough to know you. May this year be gentle with your heart and generous with your joy.',
+        'Wishing you a day that feels like you — warm, bright, and full of the people who love you most. Happy birthday, today and all year.',
+        'They say age is just a number. Yours happens to be a lucky one. Happy birthday — here’s to cake, laughter, and one more beautiful lap around the sun.'
+    ]},
+    invitation: { label: 'Invitation wording', messages: [
+        'With full hearts, we invite you to share in our joy. Good food, good music, and the people we love most — it wouldn’t be the same without you there.',
+        'Please join us for an afternoon of laughter and celebration. Come as you are; bring only yourself. We’ll take care of everything else.',
+        'You are warmly invited. Save the date, bring your appetite, and let us save you a seat — your presence is the part we’re most looking forward to.'
+    ]},
+    thankyou: { label: 'Thank-you', messages: [
+        'Thank you — not just for what you did, but for who you are. Your kindness landed exactly when it was needed most, and it won’t be forgotten.',
+        'Some people give things. You gave your time, your care, and your whole heart. Thank you, more than these few words can hold.',
+        'Just a small card carrying a very big thank-you. You made a hard day lighter, and I’m grateful.'
+    ]},
+    thinking: { label: 'Thinking of you', messages: [
+        'You crossed my mind today, the way good people do. No reason, no occasion — just wanted you to know you’re thought of and you matter.',
+        'Sending this across the miles to sit quietly beside you: you are on my mind, and in my prayers, today.',
+        'If today feels heavy, lean on this a little: someone out here is rooting for you with their whole heart.'
+    ]},
+    anniversary: { label: 'Anniversary', messages: [
+        'Happy anniversary to two people who keep choosing each other, year after year. Your love makes everyone around it braver and kinder.',
+        'Another year of us — of laughter in the kitchen and grace in the hard seasons. I’d pick you again in every lifetime. Happy anniversary.',
+        'Love isn’t just a feeling; it’s a thousand small kindnesses. Thank you for every single one. Happy anniversary.'
+    ]},
+    graduation: { label: 'Graduation', messages: [
+        'You did it! Every late night and early morning led here. Walk tall into what’s next — the world has been waiting for exactly who you are.',
+        'Congratulations, graduate. May your next chapter be as brave as the one you just finished. We are so proud of you.',
+        'A diploma is paper; what you built getting it is character. Go light up the world — and come home often.'
+    ]},
+    babyshower: { label: 'Baby shower', messages: [
+        'A tiny guest of honor is on the way! Please join us as we shower a very loved little one — and their wonderful parents — with joy.',
+        'Welcome, little one. You are already so loved. May your life be soft, safe, and surrounded by people who show up.',
+        'Congratulations on your sweet new beginning. Wishing your growing family health, rest, and a thousand happy firsts.'
+    ]},
+    wedding: { label: 'Wedding invitation', messages: [
+        'Together with their families, two hearts invite you to witness the beginning of forever. Dinner, dancing, and happy tears to follow.',
+        'With joy in our hearts, we invite you to celebrate our wedding day. Your presence is the greatest gift; your prayers are the sweetest blessing.',
+        'We’ve found the one our hearts love, and we can’t imagine saying “I do” without you there. Please join us.'
+    ]},
+    getwell: { label: 'Get well', messages: [
+        'Rest is not doing nothing — it’s how healing happens. Take all the time you need. We’ll be here, cheering quietly and bringing soup.',
+        'Thinking of you and wishing you strength for today and softer days ahead. One small step at a time is still moving forward.',
+        'You don’t have to be brave every minute. Just be. We love you, we’re praying for you, and we’re not going anywhere.'
+    ]},
+    sympathy: { label: 'Sympathy (gentle)', messages: [
+        'I was so sorry to hear of your loss. There are no words that make this right — only this: I’m here, and I’m not in a hurry. Lean on me whenever you need.',
+        'Holding you close in my thoughts during this tender time. May the love around you carry what words cannot, and may rest find you in small moments.',
+        'Your loved one mattered, and so does your grief. Take all the time it takes. I’ll remember them with you, for as long as you want to talk about them.'
+    ]},
+    holiday: { label: 'Holiday', messages: [
+        'Wishing you a season of small, bright moments — warm lights, full tables, and the people who feel like home. Happy holidays, with love.',
+        'May your holidays be gentle and your new year kind. Thank you for being one of the good parts of this year.',
+        'From our home to yours: peace that lingers, joy that surprises, and rest that restores. Warmest holiday wishes.'
+    ]},
+    postcard: { label: 'Postcard greetings', messages: [
+        'Wish you were here! The sunsets are showing off and the coffee tastes better with a view — but it would all be sweeter with you in the next chair.',
+        'Greetings from a beautiful corner of the world. Saving you a seat and a story for when I’m home.',
+        'Postcard rule: if I’m thinking of you in a place this lovely, you get proof. Miss you — see you soon.'
+    ]}
+};
+
+// ---------- Occasion templates ----------
+const TEMPLATES = [
+    { id: 't-birthday',  label: 'Birthday',        type: 'birthday',   size: 'portrait',  theme: 'sunset',  font: 'dancing',    library: 'birthday',   prompt: 'a joyful birthday scene with balloons and soft golden light, watercolor illustration, no text' },
+    { id: 't-postcard',  label: 'Postcard',        type: 'postcard',   size: 'landscape', theme: 'ocean',   font: 'dancing',    library: 'postcard',   prompt: 'a dreamy coastal town at sunset, gentle waves, storybook illustration, no text' },
+    { id: 't-party',     label: 'Party invite',  type: 'invitation', size: 'portrait',  theme: 'forest',  font: 'playfair',   library: 'invitation', prompt: 'an elegant garden party with string lights and greenery, soft illustration, no text' },
+    { id: 't-wedding',   label: 'Wedding invite', type: 'invitation', size: 'portrait',  theme: 'vintage', font: 'greatvibes', library: 'wedding',    prompt: 'romantic wedding florals, blush roses and greenery on cream, elegant illustration, no text' },
+    { id: 't-baby',      label: 'Baby shower',    type: 'invitation', size: 'portrait',  theme: 'forest',  font: 'nunito',     library: 'babyshower', prompt: 'a soft nursery scene with a wooden crib and gentle animals, pastel illustration, no text' },
+    { id: 't-thanks',    label: 'Thank-you',      type: 'postcard',   size: 'landscape', theme: 'vintage', font: 'dancing',    library: 'thankyou',   prompt: 'a small bouquet of wildflowers on a wooden table by a sunny window, painterly, no text' },
+    { id: 't-thinking',  label: 'Thinking of you', type: 'postcard',  size: 'landscape', theme: 'ocean',   font: 'dancing',    library: 'thinking',   prompt: 'a quiet lighthouse at dusk with calm seas, warm and hopeful illustration, no text' },
+    { id: 't-anniv',     label: 'Anniversary',    type: 'birthday',   size: 'landscape', theme: 'cosmic',  font: 'greatvibes', library: 'anniversary', prompt: 'two chairs under a starry sky beside a warm cottage window, romantic illustration, no text' },
+    { id: 't-grad',      label: 'Graduation',     type: 'birthday',   size: 'portrait',  theme: 'ocean',   font: 'playfair',   library: 'graduation', prompt: 'a sunrise over an open road with a graduation cap resting on a milestone, hopeful illustration, no text' },
+    { id: 't-getwell',   label: 'Get well',       type: 'postcard',   size: 'landscape', theme: 'forest',  font: 'lora',       library: 'getwell',    prompt: 'a cozy reading nook with a blanket, tea, and soft morning light through leaves, illustration, no text' },
+    { id: 't-sympathy',  label: 'Sympathy',       type: 'postcard',   size: 'landscape', theme: 'vintage', font: 'lora',       library: 'sympathy',   prompt: 'a single white candle glowing softly in a peaceful garden at dawn, gentle illustration, no text' },
+    { id: 't-holiday',   label: 'Holiday',        type: 'postcard',   size: 'landscape', theme: 'cosmic',  font: 'pacifico',   library: 'holiday',    prompt: 'a snowy village with warm golden windows and gentle falling snow at night, illustration, no text' }
+];
+
+// ---------- Stickers — our own little drawings (inline SVG, no outside assets) ----------
+const STICKERS = {
+    heart:    { label: 'Heart',    svg: '<path d="M50 86C22 63 10 47 10 30 10 17 19 8 31 8c8 0 15 4 19 11 4-7 11-11 19-11 12 0 21 9 21 22 0 17-12 33-40 56z" fill="#E2543E"/><ellipse cx="32" cy="26" rx="8" ry="5" fill="#ffffff" opacity="0.35" transform="rotate(-24 32 26)"/>' },
+    star:     { label: 'Star',     svg: '<path d="M50 5l12.5 27 29 3.4-21.6 19.4 6 28.7L50 68.6 24.1 83.5l6-28.7L8.5 35.4l29-3.4z" fill="#F2B33D" stroke="#D9930D" stroke-width="2"/>' },
+    balloon:  { label: 'Balloon',  svg: '<ellipse cx="50" cy="33" rx="25" ry="29" fill="#7C6BD9"/><ellipse cx="41" cy="22" rx="8" ry="12" fill="#ffffff" opacity="0.35" transform="rotate(-18 41 22)"/><path d="M44 60h12l-6 9z" fill="#5A4FB0"/><path d="M50 69c-5 7 5 9 0 17" stroke="#5A4FB0" stroke-width="3" fill="none" stroke-linecap="round"/>' },
+    flower:   { label: 'Flower',   svg: '<g fill="#F28BB4"><ellipse cx="50" cy="27" rx="11" ry="16"/><ellipse cx="50" cy="27" rx="11" ry="16" transform="rotate(72 50 50)"/><ellipse cx="50" cy="27" rx="11" ry="16" transform="rotate(144 50 50)"/><ellipse cx="50" cy="27" rx="11" ry="16" transform="rotate(216 50 50)"/><ellipse cx="50" cy="27" rx="11" ry="16" transform="rotate(288 50 50)"/></g><circle cx="50" cy="50" r="10" fill="#F7C948"/>' },
+    sprig:    { label: 'Leaf sprig', svg: '<path d="M50 94C50 62 50 32 50 8" stroke="#4E9B47" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M50 36C37 34 29 25 28 12c12 1 20 9 22 24z" fill="#6FBF5A"/><path d="M50 36c13-2 21-11 22-24-12 1-20 9-22 24z" fill="#57A84B"/><path d="M50 60c-13-2-21-11-22-24 12 1 20 9 22 24z" fill="#57A84B"/><path d="M50 60c13-2 21-11 22-24-12 1-20 9-22 24z" fill="#6FBF5A"/><path d="M50 82c-11-2-18-9-19-20 10 1 17 8 19 20z" fill="#6FBF5A"/><path d="M50 82c11-2 18-9 19-20-10 1-17 8-19 20z" fill="#57A84B"/>' },
+    note:     { label: 'Music note', svg: '<path d="M40 74V28l36-8v46" fill="none" stroke="#3E7CB1" stroke-width="5"/><path d="M40 28l36-8v12l-36 8z" fill="#3E7CB1"/><ellipse cx="31" cy="76" rx="10" ry="7.5" fill="#3E7CB1"/><ellipse cx="67" cy="68" rx="10" ry="7.5" fill="#3E7CB1"/>' },
+    butterfly:{ label: 'Butterfly', svg: '<ellipse cx="29" cy="35" rx="18" ry="12" fill="#B388EB" transform="rotate(-24 29 35)"/><ellipse cx="71" cy="35" rx="18" ry="12" fill="#B388EB" transform="rotate(24 71 35)"/><ellipse cx="32" cy="63" rx="13" ry="9" fill="#D3B8F5" transform="rotate(20 32 63)"/><ellipse cx="68" cy="63" rx="13" ry="9" fill="#D3B8F5" transform="rotate(-20 68 63)"/><rect x="46" y="24" width="8" height="50" rx="4" fill="#5B4A8A"/><path d="M47 24c-4-7-9-9-13-9M53 24c4-7 9-9 13-9" stroke="#5B4A8A" stroke-width="3" fill="none" stroke-linecap="round"/>' },
+    sun:      { label: 'Sun',      svg: '<g stroke="#F2A93B" stroke-width="6" stroke-linecap="round"><path d="M50 6v10"/><path d="M50 84v10"/><path d="M6 50h10"/><path d="M84 50h10"/><path d="M19 19l7 7"/><path d="M74 74l7 7"/><path d="M81 19l-7 7"/><path d="M26 74l-7 7"/></g><circle cx="50" cy="50" r="19" fill="#F7C948"/>' }
+};
+function stickerSvg(kind, px) {
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="' + px + '" height="' + px + '">' + STICKERS[kind].svg + '</svg>';
+}
+
+// ---------- State ----------
+const DEFAULT_STATE = {
+    type: 'postcard', size: 'landscape', page: 'front',
+    theme: 'sunset', font: 'dancing',
+    bgMode: 'theme',            // 'theme' | 'ai' | 'photo'
+    aiUrl: '', photoUrl: '',
+    photoFilter: 'none', photoFrame: 'none',
+    pc:  { message: 'Wish you were here!', from: '' },
+    bd:  { name: '', age: '', message: '', from: '' },
+    inv: { title: '', host: '', date: '', time: '', place: '', rsvp: '', note: '' },
+    qrOn: true,
+    textScale: 1,
+    offsets: {},                // "type:page" -> {x%, y%}
+    stickers: []                // {kind, x%, y%, scale}
+};
+let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+let selectedSticker = -1;
+
+const PHOTO_FILTERS = {
+    none: 'none',
+    warm: 'sepia(0.32) saturate(1.25) brightness(1.05)',
+    soft: 'brightness(1.08) saturate(1.12) contrast(0.94)',
+    vintage: 'sepia(0.55) contrast(0.92) brightness(1.02) saturate(0.85)',
+    bw: 'grayscale(1) contrast(1.05)'
+};
+
+const el = id => document.getElementById(id);
+const stage = el('cardStage');
+
+function currentSize() { return SIZES[state.type][state.size] || Object.values(SIZES[state.type])[0]; }
+function hasInside() { return state.type === 'birthday' || state.type === 'invitation'; }
+function fontFamily() { const f = FONTS.find(x => x.id === state.font); return f ? f.family : FONTS[0].family; }
+function theme() { return THEMES[state.theme]; }
+function offsetKey() { return state.type + ':' + state.page; }
+function currentOffset() { return state.offsets[offsetKey()] || { x: 0, y: 0 }; }
+
+// Which text field the library + ARIA write into
+function messageTarget() {
+    if (state.type === 'postcard') return ['pcMessage', v => { state.pc.message = v; }];
+    if (state.type === 'birthday') return ['bdMessage', v => { state.bd.message = v; }];
+    return ['invNote', v => { state.inv.note = v; }];
+}
+function setMessageValue(v) {
+    const [id, apply] = messageTarget();
+    el(id).value = v; apply(v); render();
+}
+
+// ---------- Word lines for the current card ----------
+function wordLines() {
+    const t = theme(), s = state;
+    const lines = [];
+    if (s.page === 'inside') {
+        if (s.type === 'birthday') {
+            lines.push({ cls: 'w-note-label', text: 'Inside your card', font: 'lora' });
+            lines.push({ cls: 'w-message', text: s.bd.message || 'Your message will appear here…', font: 'chosen' });
+            if (s.bd.from) lines.push({ cls: 'w-from', text: '— ' + s.bd.from, font: 'pacifico' });
+        } else if (s.type === 'invitation') {
+            lines.push({ cls: 'w-note-label', text: 'A note from your host', font: 'lora' });
+            lines.push({ cls: 'w-message', text: s.inv.note || 'A warm note for the inside of the card…', font: 'chosen' });
+        }
+        return lines;
+    }
+    if (s.type === 'postcard') {
+        lines.push({ cls: 'w-message', text: s.pc.message || 'Your message here…', font: 'chosen' });
+        if (s.pc.from) lines.push({ cls: 'w-from', text: '— ' + s.pc.from, font: 'pacifico' });
+    } else if (s.type === 'birthday') {
+        lines.push({ cls: 'w-headline', text: 'Happy Birthday', font: 'chosen' });
+        lines.push({ cls: 'w-name', text: s.bd.name || 'Someone Wonderful', font: 'chosen' });
+        if (s.bd.age) lines.push({ cls: 'age-badge', text: 'Turning ' + s.bd.age + '!', font: 'badge', badge: true });
+    } else if (s.type === 'invitation') {
+        lines.push({ cls: 'w-kicker', text: 'You are invited', font: 'lora' });
+        lines.push({ cls: 'w-headline', text: s.inv.title || 'A Garden Party', font: 'chosen' });
+        if (s.inv.host) lines.push({ cls: 'w-detail', text: 'Hosted by ' + s.inv.host, font: 'lora' });
+        const when = [s.inv.date, s.inv.time].filter(Boolean).join(' · ');
+        if (when) lines.push({ cls: 'w-detail', text: when, font: 'lora' });
+        if (s.inv.place) lines.push({ cls: 'w-detail', text: s.inv.place, font: 'lora' });
+        if (s.inv.rsvp) lines.push({ cls: 'w-detail', text: s.inv.rsvp, font: 'lora', italic: true });
+    }
+    return lines;
+}
+
+// ---------- Preview rendering ----------
+function render() {
+    const size = currentSize();
+    stage.style.aspectRatio = size.w + ' / ' + size.h;
+    const t = theme();
+    const inside = state.page === 'inside';
+    const bg = el('cardBg'), band = el('cardBand'), frame = el('cardFrame');
+
+    if (inside) {
+        bg.style.background = '#FFFBF3';
+        bg.style.filter = 'none';
+        band.style.display = 'block';
+        band.style.background = t.css;
+        frame.className = 'card-frame';
+        el('cardBorderline').style.borderColor = 'rgba(61,48,41,0.22)';
+    } else {
+        band.style.display = 'none';
+        el('cardBorderline').style.borderColor = 'rgba(255,255,255,0.55)';
+        if (state.bgMode === 'photo' && state.photoUrl) {
+            bg.style.background = 'url(' + JSON.stringify(state.photoUrl) + ') center/cover';
+            bg.style.filter = PHOTO_FILTERS[state.photoFilter] || 'none';
+            frame.className = 'card-frame' + (state.photoFrame !== 'none' ? ' frame-' + state.photoFrame : '');
+        } else if (state.bgMode === 'ai' && state.aiUrl) {
+            bg.style.background = 'url(' + JSON.stringify(state.aiUrl) + ') center/cover';
+            bg.style.filter = 'none';
+            frame.className = 'card-frame';
+        } else {
+            bg.style.background = t.css;
+            bg.style.filter = 'none';
+            frame.className = 'card-frame';
+        }
+    }
+
+    // Words
+    const words = el('cardWords');
+    const off = currentOffset();
+    words.style.transform = 'translate(' + off.x + '%, ' + off.y + '%)';
+    words.innerHTML = '';
+    const scrimNeeded = !inside && state.bgMode !== 'theme';
+    if (scrimNeeded) {
+        const scrim = document.createElement('div');
+        scrim.className = 'scrim';
+        scrim.style.background = (t.text === '#FFFFFF') ? 'rgba(18,14,10,0.30)' : 'rgba(255,250,240,0.42)';
+        words.appendChild(scrim);
+    }
+    const textColor = inside ? '#43302B' : t.text;
+    wordLines().forEach(line => {
+        const d = document.createElement('div');
+        d.className = 'wline ' + line.cls;
+        d.textContent = line.text;
+        d.style.color = textColor;
+        if (line.font === 'chosen') d.style.fontFamily = fontFamily();
+        if (line.font === 'lora') d.style.fontFamily = "'Lora', serif";
+        if (line.font === 'pacifico') d.style.fontFamily = "'Pacifico', cursive";
+        if (line.italic) d.style.fontStyle = 'italic';
+        if (line.badge) d.style.background = t.stamp;
+        if (line.cls !== 'age-badge') {
+            d.style.fontSize = 'calc(' + defaultCqw(line.cls) + 'cqw * ' + state.textScale + ')';
+        }
+        words.appendChild(d);
+    });
+
+    // Postcard furniture
+    el('cardStamp').style.display = (!inside && state.type === 'postcard') ? 'flex' : 'none';
+    el('cardStamp').style.backgroundColor = t.stamp;
+    el('cardLines').style.display = (!inside && state.type === 'postcard') ? 'block' : 'none';
+
+    // Page tabs + download-both
+    el('pageTabs').style.display = hasInside() ? 'flex' : 'none';
+    document.querySelectorAll('.page-tab').forEach(b => b.classList.toggle('active', b.dataset.page === state.page));
+    el('downloadBothBtn').style.display = hasInside() ? 'flex' : 'none';
+
+    // AI label
+    el('aiLabel').style.display = (!inside && state.bgMode === 'ai' && state.aiUrl) ? 'block' : 'none';
+
+    // QR (invitation front)
+    renderQrPreview();
+
+    // Stickers
+    document.querySelectorAll('.sticker-el').forEach(n => n.remove());
+    state.stickers.forEach((st, i) => {
+        const d = document.createElement('div');
+        d.className = 'sticker-el' + (i === selectedSticker ? ' selected' : '');
+        d.dataset.index = i;
+        d.style.left = st.x + '%';
+        d.style.top = st.y + '%';
+        d.style.width = (st.scale * 13) + '%';
+        d.innerHTML = '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">' + STICKERS[st.kind].svg + '</svg>';
+        stage.appendChild(d);
+    });
+
+    el('qrSection').style.display = state.type === 'invitation' ? 'block' : 'none';
+    autosave();
+}
+function defaultCqw(cls) {
+    return { 'w-kicker': 2.6, 'w-headline': 8, 'w-name': 9.5, 'w-message': 5.4, 'w-detail': 3.9, 'w-from': 4.4, 'w-note-label': 3.4 }[cls] || 5;
+}
+
+// ---------- Dragging (words block + stickers) ----------
+function makeDraggable(handle, getPos, setPos) {
+    handle.addEventListener('pointerdown', e => {
+        if (e.button !== undefined && e.button !== 0) return;
+        const rect = stage.getBoundingClientRect();
+        const start = getPos();
+        const sx = e.clientX, sy = e.clientY;
+        handle.setPointerCapture(e.pointerId);
+        function move(ev) {
+            const dx = (ev.clientX - sx) / rect.width * 100;
+            const dy = (ev.clientY - sy) / rect.height * 100;
+            setPos({
+                x: Math.max(-38, Math.min(38, start.x + dx)),
+                y: Math.max(-38, Math.min(38, start.y + dy))
+            });
+            render();
+        }
+        function up() {
+            handle.removeEventListener('pointermove', move);
+            handle.removeEventListener('pointerup', up);
+            handle.removeEventListener('pointercancel', up);
+        }
+        handle.addEventListener('pointermove', move);
+        handle.addEventListener('pointerup', up);
+        handle.addEventListener('pointercancel', up);
+    });
+}
+makeDraggable(el('cardWords'),
+    () => currentOffset(),
+    pos => { state.offsets[offsetKey()] = pos; });
+stage.addEventListener('pointerdown', e => {
+    const stEl = e.target.closest('.sticker-el');
+    document.querySelectorAll('.sticker-el').forEach(n => n.classList.remove('selected'));
+    if (!stEl) { selectedSticker = -1; return; }
+    selectedSticker = parseInt(stEl.dataset.index, 10);
+    stEl.classList.add('selected');
+    const st = state.stickers[selectedSticker];
+    if (!st) return;
+    const rect = stage.getBoundingClientRect();
+    const sx = e.clientX, sy = e.clientY, start = { x: st.x, y: st.y };
+    stEl.setPointerCapture(e.pointerId);
+    function move(ev) {
+        st.x = Math.max(0, Math.min(88, start.x + (ev.clientX - sx) / rect.width * 100));
+        st.y = Math.max(0, Math.min(84, start.y + (ev.clientY - sy) / rect.height * 100));
+        // Move the live element directly — a full render() would rebuild it and break the drag.
+        stEl.style.left = st.x + '%';
+        stEl.style.top = st.y + '%';
+    }
+    function up() {
+        stEl.removeEventListener('pointermove', move);
+        stEl.removeEventListener('pointerup', up);
+        stEl.removeEventListener('pointercancel', up);
+        render();
+    }
+    stEl.addEventListener('pointermove', move);
+    stEl.addEventListener('pointerup', up);
+    stEl.addEventListener('pointercancel', up);
+});
+
+// ---------- Status helper ----------
+function showStatus(anchor, message, type) {
+    const parent = anchor.closest('.form-group') || anchor.parentElement;
+    const old = parent.querySelector(':scope > .status-message');
+    if (old) old.remove();
+    const d = document.createElement('div');
+    d.className = 'status-message status-' + type;
+    d.textContent = message;
+    parent.appendChild(d);
+    setTimeout(() => { if (d.parentElement) d.remove(); }, 6000);
+}
+
+// ---------- Autosave + saved designs (this device only) ----------
+const LS_AUTO = 'cardstudio.autosave.v1';
+const LS_DESIGNS = 'cardstudio.designs.v1';
+const LS_ARIA_KEY = 'cardstudio.aria.key';
+const LS_ARIA_PROVIDER = 'cardstudio.aria.provider';
+function autosave() {
+    try { localStorage.setItem(LS_AUTO, JSON.stringify(state)); } catch (e) { /* photo too large for browser storage — the card still works */ }
+}
+function restoreAutosave() {
+    try {
+        const raw = localStorage.getItem(LS_AUTO);
+        if (!raw) return;
+        const saved = JSON.parse(raw);
+        state = Object.assign(JSON.parse(JSON.stringify(DEFAULT_STATE)), saved);
+        state.pc = Object.assign({}, DEFAULT_STATE.pc, saved.pc || {});
+        state.bd = Object.assign({}, DEFAULT_STATE.bd, saved.bd || {});
+        state.inv = Object.assign({}, DEFAULT_STATE.inv, saved.inv || {});
+    } catch (e) { /* fresh start */ }
+}
+function syncFieldsFromState() {
+    el('pcMessage').value = state.pc.message; el('pcFrom').value = state.pc.from;
+    el('bdName').value = state.bd.name; el('bdAge').value = state.bd.age;
+    el('bdMessage').value = state.bd.message; el('bdFrom').value = state.bd.from;
+    el('invTitle').value = state.inv.title; el('invHost').value = state.inv.host;
+    el('invDate').value = state.inv.date; el('invTime').value = state.inv.time;
+    el('invPlace').value = state.inv.place; el('invRsvp').value = state.inv.rsvp;
+    el('invNote').value = state.inv.note;
+    el('photoFilter').value = state.photoFilter; el('photoFrame').value = state.photoFrame;
+    el('textScale').value = Math.round(state.textScale * 100);
+    el('qrToggle').checked = state.qrOn;
+    el('fontSelect').value = state.font;
+    document.querySelectorAll('.type-btn').forEach(b => b.classList.toggle('active', b.dataset.type === state.type));
+    document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === state.theme));
+    document.querySelectorAll('.page-tab').forEach(b => b.classList.toggle('active', b.dataset.page === state.page));
+    syncSizeRow();
+    el('photoTools').style.display = state.photoUrl ? 'block' : 'none';
+    if (state.photoUrl) el('uploadText').textContent = 'Change photo';
+    loadBgImages();
+}
+function getDesigns() {
+    try { return JSON.parse(localStorage.getItem(LS_DESIGNS) || '{}'); } catch (e) { return {}; }
+}
+function renderSavedList() {
+    const designs = getDesigns();
+    const list = el('savedList');
+    list.innerHTML = '';
+    Object.keys(designs).forEach(name => {
+        const row = document.createElement('div');
+        row.className = 'saved-item';
+        const label = document.createElement('span'); label.textContent = name;
+        const open = document.createElement('button'); open.textContent = 'Open';
+        open.addEventListener('click', () => {
+            state = JSON.parse(JSON.stringify(designs[name]));
+            selectedSticker = -1;
+            syncFieldsFromState(); render();
+            showStatus(el('saveDesignBtn'), 'Opened “' + name + '”.', 'success');
+        });
+        const del = document.createElement('button'); del.textContent = 'Delete'; del.className = 'del';
+        del.addEventListener('click', () => {
+            const d = getDesigns(); delete d[name];
+            try { localStorage.setItem(LS_DESIGNS, JSON.stringify(d)); } catch (e) {}
+            renderSavedList();
+        });
+        row.appendChild(label); row.appendChild(open); row.appendChild(del);
+        list.appendChild(row);
+    });
+}
+el('saveDesignBtn').addEventListener('click', () => {
+    const name = el('designName').value.trim();
+    if (!name) { showStatus(el('saveDesignBtn'), 'Give the design a name first.', 'error'); return; }
+    const designs = getDesigns();
+    const snapshot = JSON.parse(JSON.stringify(state));
+    let note = '';
+    try {
+        designs[name] = snapshot;
+        localStorage.setItem(LS_DESIGNS, JSON.stringify(designs));
+    } catch (e) {
+        // Photo likely too large for browser storage — save without it, and say so.
+        snapshot.photoUrl = ''; snapshot.bgMode = snapshot.bgMode === 'photo' ? 'theme' : snapshot.bgMode;
+        try { designs[name] = snapshot; localStorage.setItem(LS_DESIGNS, JSON.stringify(designs)); note = ' (The photo itself was too large for browser storage, so the design was saved without it.)'; }
+        catch (e2) { showStatus(el('saveDesignBtn'), 'This browser could not save the design.', 'error'); return; }
+    }
+    renderSavedList();
+    showStatus(el('saveDesignBtn'), 'Saved “' + name + '” on this device.' + note, 'success');
+});
+
+// ---------- Step 1 wiring: type, size, templates ----------
+function syncSizeRow() {
+    const allowed = Object.keys(SIZES[state.type]);
+    document.querySelectorAll('.size-btn').forEach(b => {
+        b.style.display = allowed.includes(b.dataset.size) ? '' : 'none';
+        b.classList.toggle('active', b.dataset.size === state.size);
+    });
+    el('sizeHint').textContent = SIZE_HINTS[state.type];
+}
+document.querySelectorAll('.type-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        state.type = btn.dataset.type;
+        if (!SIZES[state.type][state.size]) state.size = Object.keys(SIZES[state.type])[0];
+        state.page = 'front';
+        document.querySelectorAll('.type-btn').forEach(b => b.classList.toggle('active', b === btn));
+        el('fields-postcard').style.display = state.type === 'postcard' ? 'block' : 'none';
+        el('fields-birthday').style.display = state.type === 'birthday' ? 'block' : 'none';
+        el('fields-invitation').style.display = state.type === 'invitation' ? 'block' : 'none';
+        syncSizeRow(); render();
+    });
+});
+document.querySelectorAll('.size-btn').forEach(btn => {
+    btn.addEventListener('click', () => { state.size = btn.dataset.size; syncSizeRow(); render(); });
+});
+document.querySelectorAll('.page-tab').forEach(btn => {
+    btn.addEventListener('click', () => { state.page = btn.dataset.page; render(); });
+});
+const templateRow = el('templateRow');
+TEMPLATES.forEach(tpl => {
+    const b = document.createElement('button');
+    b.className = 'chip'; b.textContent = tpl.label; b.dataset.template = tpl.id;
+    b.addEventListener('click', () => {
+        document.querySelectorAll('#templateRow .chip').forEach(c => c.classList.remove('active'));
+        b.classList.add('active');
+        state.type = tpl.type; state.size = tpl.size; state.theme = tpl.theme; state.font = tpl.font; state.page = 'front';
+        document.querySelectorAll('.type-btn').forEach(x => x.classList.toggle('active', x.dataset.type === state.type));
+        document.querySelectorAll('.theme-btn').forEach(x => x.classList.toggle('active', x.dataset.theme === state.theme));
+        el('fields-postcard').style.display = state.type === 'postcard' ? 'block' : 'none';
+        el('fields-birthday').style.display = state.type === 'birthday' ? 'block' : 'none';
+        el('fields-invitation').style.display = state.type === 'invitation' ? 'block' : 'none';
+        el('fontSelect').value = state.font;
+        el('libraryOccasion').value = tpl.library; renderLibrary();
+        el('imagePrompt').value = tpl.prompt;
+        syncSizeRow(); render();
+        showStatus(b, 'Template ready. Step 2: create the picture (or keep the colors). Step 3: write your words.', 'info');
+    });
+    templateRow.appendChild(b);
+});
+
+// ---------- Step 2 wiring: themes, AI picture, photo ----------
+document.querySelectorAll('.theme-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.theme = btn.dataset.theme;
+        if (state.bgMode !== 'photo' && state.bgMode !== 'ai') state.bgMode = 'theme';
+        if (state.bgMode === 'theme') render(); else render();
+    });
+});
+
+// Pollinations — free picture generation, no key. URL shape is our house standard.
+function buildPollinationsUrl(prompt, w, h, seed) {
+    return 'https://image.pollinations.ai/prompt/' + encodeURIComponent(prompt) +
+        '?width=' + w + '&height=' + h + '&nologo=true&seed=' + seed;
+}
+let aiImgObj = null, photoImgObj = null;
+function loadBgImages() {
+    if (state.aiUrl) { const im = new Image(); im.crossOrigin = 'anonymous'; im.onload = () => { aiImgObj = im; }; im.src = state.aiUrl; }
+    if (state.photoUrl) { const im = new Image(); im.onload = () => { photoImgObj = im; }; im.src = state.photoUrl; }
+}
+el('generateImageBtn').addEventListener('click', () => {
+    const prompt = el('imagePrompt').value.trim();
+    if (!prompt) { showStatus(el('generateImageBtn'), 'Describe the picture first — a few words is plenty.', 'error'); return; }
+    const size = currentSize();
+    const w = 1024, h = Math.round(1024 * size.h / size.w);
+    const url = buildPollinationsUrl(prompt, w, h, Math.floor(Math.random() * 999999));
+    const btn = el('generateImageBtn');
+    btn.classList.add('loading-state'); el('generateImageText').textContent = 'Drawing your picture…';
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+        aiImgObj = img; state.aiUrl = url; state.bgMode = 'ai';
+        btn.classList.remove('loading-state'); el('generateImageText').textContent = 'Create my picture';
+        render();
+        showStatus(btn, 'Your picture is on the card. Not the one? Press the button again for a new drawing.', 'success');
+    };
+    img.onerror = () => {
+        btn.classList.remove('loading-state'); el('generateImageText').textContent = 'Create my picture';
+        showStatus(btn, 'The picture service didn’t answer this time. Your colors and photo options still work — please try again in a moment.', 'error');
+    };
+    img.src = url;
+});
+el('uploadBtn').addEventListener('click', () => el('imageUpload').click());
+el('imageUpload').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+        state.photoUrl = ev.target.result; state.bgMode = 'photo';
+        const im = new Image(); im.onload = () => { photoImgObj = im; }; im.src = state.photoUrl;
+        el('uploadText').textContent = 'Change photo';
+        el('photoTools').style.display = 'block';
+        render();
+    };
+    reader.readAsDataURL(file);
+});
+el('photoFilter').addEventListener('change', e => { state.photoFilter = e.target.value; render(); });
+el('photoFrame').addEventListener('change', e => { state.photoFrame = e.target.value; render(); });
+
+// ---------- Step 3 wiring: fields ----------
+function bindInput(id, apply) {
+    el(id).addEventListener('input', e => { apply(e.target.value); render(); });
+}
+bindInput('pcMessage', v => state.pc.message = v);
+bindInput('pcFrom', v => state.pc.from = v);
+bindInput('bdName', v => state.bd.name = v);
+bindInput('bdAge', v => state.bd.age = v);
+bindInput('bdMessage', v => state.bd.message = v);
+bindInput('bdFrom', v => state.bd.from = v);
+bindInput('invTitle', v => state.inv.title = v);
+bindInput('invHost', v => state.inv.host = v);
+bindInput('invDate', v => state.inv.date = v);
+bindInput('invTime', v => state.inv.time = v);
+bindInput('invPlace', v => state.inv.place = v);
+bindInput('invRsvp', v => state.inv.rsvp = v);
+bindInput('invNote', v => state.inv.note = v);
+
+// ---------- Message library ----------
+const libSelect = el('libraryOccasion');
+Object.entries(LIBRARY).forEach(([key, cat]) => {
+    const o = document.createElement('option'); o.value = key; o.textContent = cat.label;
+    libSelect.appendChild(o);
+});
+function renderLibrary() {
+    const cat = LIBRARY[libSelect.value] || LIBRARY.birthday;
+    const list = el('libraryList');
+    list.innerHTML = '';
+    cat.messages.forEach(msg => {
+        const b = document.createElement('button');
+        b.className = 'library-item'; b.type = 'button';
+        b.innerHTML = '';
+        b.textContent = msg;
+        const small = document.createElement('small'); small.textContent = 'Tap to use this message';
+        b.appendChild(small);
+        b.addEventListener('click', () => {
+            setMessageValue(msg);
+            if (hasInside()) { state.page = 'inside'; render(); }
+            showStatus(b, 'Placed on your card. Make it yours — every word can be edited.', 'success');
+        });
+        list.appendChild(b);
+    });
+}
+libSelect.addEventListener('change', renderLibrary);
+
+// ---------- ARIA writer — our own bring-your-own-key pattern ----------
+const ARIA_PROVIDERS = {
+    groq:       { url: 'https://api.groq.com/openai/v1/chat/completions', model: 'llama-3.3-70b-versatile' },
+    openrouter: { url: 'https://openrouter.ai/api/v1/chat/completions', model: 'meta-llama/llama-3.3-70b-instruct' },
+    gemini:     { url: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', model: 'gemini-2.0-flash' }
+};
+function ariaProviderChanged() {
+    const p = el('ariaProvider').value;
+    el('ariaModel').value = ARIA_PROVIDERS[p].model;
+    try { localStorage.setItem(LS_ARIA_PROVIDER, p); } catch (e) {}
+}
+el('ariaProvider').addEventListener('change', ariaProviderChanged);
+el('ariaKey').addEventListener('change', e => {
+    try {
+        if (e.target.value.trim()) localStorage.setItem(LS_ARIA_KEY, e.target.value.trim());
+        else localStorage.removeItem(LS_ARIA_KEY);
+    } catch (err) {}
+});
+el('ariaWriteBtn').addEventListener('click', async () => {
+    const btn = el('ariaWriteBtn');
+    const key = el('ariaKey').value.trim();
+    if (!key) {
+        showStatus(btn, 'ARIA writes with your own key. Paste one above — or use the Message Library: those messages are ready right now, no key needed.', 'info');
+        return;
+    }
+    const ask = el('ariaPrompt').value.trim();
+    if (!ask) { showStatus(btn, 'Tell ARIA what the card should say first.', 'error'); return; }
+    const provider = ARIA_PROVIDERS[el('ariaProvider').value];
+    const model = el('ariaModel').value.trim() || provider.model;
+    btn.classList.add('loading-state'); el('ariaWriteText').textContent = 'ARIA is writing…';
+    try {
+        const res = await fetch(provider.url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+            body: JSON.stringify({
+                model: model,
+                messages: [
+                    { role: 'system', content: 'You write short, warm greeting-card messages in a kind, gentle voice. Reply with only the message text — no quotation marks, no introduction, no explanation. Keep it under 60 words.' },
+                    { role: 'user', content: 'Write a card message: ' + ask }
+                ],
+                temperature: 0.8, max_tokens: 220
+            })
+        });
+        if (!res.ok) throw new Error('provider answered ' + res.status);
+        const data = await res.json();
+        const text = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content || '').trim().replace(/^["“]|["”]$/g, '');
+        if (!text) throw new Error('empty reply');
+        setMessageValue(text);
+        if (hasInside()) { state.page = 'inside'; render(); }
+        showStatus(btn, 'ARIA wrote a draft on your card. Read it, warm it up, make it yours.', 'success');
+    } catch (err) {
+        showStatus(btn, 'ARIA couldn’t write just now (' + err.message + '). Check the key and model, or use the Message Library — it always works.', 'error');
+    } finally {
+        btn.classList.remove('loading-state'); el('ariaWriteText').textContent = 'Write it with ARIA';
+    }
+});
+
+// ---------- More touches wiring ----------
+const fontSelect = el('fontSelect');
+FONTS.forEach(f => { const o = document.createElement('option'); o.value = f.id; o.textContent = f.label; fontSelect.appendChild(o); });
+fontSelect.addEventListener('change', e => { state.font = e.target.value; render(); });
+el('textScale').addEventListener('input', e => { state.textScale = parseInt(e.target.value, 10) / 100; render(); });
+el('resetWordsBtn').addEventListener('click', () => { state.offsets[offsetKey()] = { x: 0, y: 0 }; render(); });
+el('guideToggle').addEventListener('change', e => { el('printGuide').style.display = e.target.checked ? 'block' : 'none'; });
+el('qrToggle').addEventListener('change', e => { state.qrOn = e.target.checked; render(); });
+const stickerGrid = el('stickerGrid');
+Object.entries(STICKERS).forEach(([kind, st]) => {
+    const b = document.createElement('button');
+    b.className = 'sticker-btn'; b.type = 'button'; b.title = st.label;
+    b.innerHTML = '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">' + st.svg + '</svg>';
+    b.addEventListener('click', () => {
+        if (state.stickers.length >= 12) { showStatus(b, 'That’s plenty of stickers for one card.', 'info'); return; }
+        const spots = [{ x: 4, y: 6 }, { x: 84, y: 6 }, { x: 4, y: 78 }, { x: 84, y: 78 }, { x: 44, y: 4 }, { x: 44, y: 84 }];
+        const spot = spots[state.stickers.length % spots.length];
+        state.stickers.push({ kind: kind, x: spot.x, y: spot.y, scale: 1 });
+        selectedSticker = state.stickers.length - 1;
+        render();
+    });
+    stickerGrid.appendChild(b);
+});
+el('removeStickerBtn').addEventListener('click', () => {
+    if (selectedSticker >= 0 && state.stickers[selectedSticker]) {
+        state.stickers.splice(selectedSticker, 1);
+        selectedSticker = -1; render();
+    } else if (state.stickers.length) {
+        state.stickers.pop(); render();
+    }
+});
+
+// ============================================================
+// QR codes — made on this device, offline.
+// Compact generator written from the QR Code specification's
+// standard algorithms (byte mode, error-correction level M,
+// versions 1-16): Reed-Solomon over GF(256), function patterns,
+// zigzag placement, masked candidates scored by the standard
+// penalty rules. Build-verified against the reference
+// implementation (Nayuki qrcodegen, MIT) — see BUILD-REPORT.md.
+// ============================================================
+const QR_ECC_PER_BLOCK_M = [-1, 10, 16, 26, 18, 24, 16, 18, 22, 22, 26, 30, 22, 22, 24, 24, 28];
+const QR_NUM_BLOCKS_M    = [-1,  1,  1,  1,  2,  2,  4,  4,  4,  5,  5,  5,  8,  9,  9, 10, 10];
+function qrGetBit(x, i) { return ((x >>> i) & 1) !== 0; }
+function qrNumRawModules(ver) {
+    let result = (16 * ver + 128) * ver + 64;
+    if (ver >= 2) {
+        const numAlign = Math.floor(ver / 7) + 2;
+        result -= (25 * numAlign - 10) * numAlign - 55;
+        if (ver >= 7) result -= 36;
+    }
+    return result;
+}
+function qrNumDataCodewords(ver) {
+    return Math.floor(qrNumRawModules(ver) / 8) - QR_ECC_PER_BLOCK_M[ver] * QR_NUM_BLOCKS_M[ver];
+}
+function qrRsMultiply(x, y) {
+    let z = 0;
+    for (let i = 7; i >= 0; i--) {
+        z = (z << 1) ^ ((z >>> 7) * 0x11D);
+        if (((y >>> i) & 1) !== 0) z ^= x;
+    }
+    return z;
+}
+function qrRsDivisor(degree) {
+    const result = new Array(degree).fill(0);
+    result[degree - 1] = 1;
+    let root = 1;
+    for (let i = 0; i < degree; i++) {
+        for (let j = 0; j < result.length; j++) {
+            result[j] = qrRsMultiply(result[j], root);
+            if (j + 1 < result.length) result[j] ^= result[j + 1];
+        }
+        root = qrRsMultiply(root, 0x02);
+    }
+    return result;
+}
+function qrRsRemainder(data, divisor) {
+    const result = new Array(divisor.length).fill(0);
+    data.forEach(b => {
+        const factor = b ^ result.shift();
+        result.push(0);
+        divisor.forEach((coef, i) => { result[i] ^= qrRsMultiply(coef, factor); });
+    });
+    return result;
+}
+function qrAddEccAndInterleave(data, ver) {
+    const numBlocks = QR_NUM_BLOCKS_M[ver], blockEccLen = QR_ECC_PER_BLOCK_M[ver];
+    const rawCodewords = Math.floor(qrNumRawModules(ver) / 8);
+    const numShortBlocks = numBlocks - (rawCodewords % numBlocks);
+    const shortBlockLen = Math.floor(rawCodewords / numBlocks);
+    const divisor = qrRsDivisor(blockEccLen);
+    const blocks = [];
+    let k = 0;
+    for (let i = 0; i < numBlocks; i++) {
+        const datLen = shortBlockLen - blockEccLen + (i < numShortBlocks ? 0 : 1);
+        const dat = data.slice(k, k + datLen); k += datLen;
+        const ecc = qrRsRemainder(dat, divisor);
+        const block = dat.slice();
+        if (i < numShortBlocks) block.push(0); // dummy byte, skipped at interleave
+        blocks.push(block.concat(ecc));
+    }
+    const result = [];
+    for (let i = 0; i < blocks[0].length; i++) {
+        for (let j = 0; j < blocks.length; j++) {
+            if (i !== shortBlockLen - blockEccLen || j >= numShortBlocks) result.push(blocks[j][i]);
+        }
+    }
+    return result;
+}
+function qrAlignmentPositions(ver, size) {
+    if (ver === 1) return [];
+    const numAlign = Math.floor(ver / 7) + 2;
+    const step = Math.floor((ver * 4 + numAlign * 2 + 1) / (numAlign * 2 - 2)) * 2;
+    const result = [];
+    for (let i = 0; i < numAlign - 1; i++) result.push(size - 7 - i * step);
+    result.push(6);
+    return result.reverse();
+}
+const QR_MASKS = [
+    (x, y) => (x + y) % 2 === 0,
+    (x, y) => y % 2 === 0,
+    (x, y) => x % 3 === 0,
+    (x, y) => (x + y) % 3 === 0,
+    (x, y) => (Math.floor(x / 3) + Math.floor(y / 2)) % 2 === 0,
+    (x, y) => (x * y) % 2 + (x * y) % 3 === 0,
+    (x, y) => ((x * y) % 2 + (x * y) % 3) % 2 === 0,
+    (x, y) => ((x + y) % 2 + (x * y) % 3) % 2 === 0
+];
+function qrDrawFormatBits(m, isFunc, size, mask) {
+    const data = mask; // error level M has format bits 0: data = 0 << 3 | mask
+    let rem = data;
+    for (let i = 0; i < 10; i++) rem = (rem << 1) ^ ((rem >>> 9) * 0x537);
+    const bits = ((data << 10) | rem) ^ 0x5412;
+    const setF = (x, y, v) => { m[y][x] = v; isFunc[y][x] = true; };
+    for (let i = 0; i <= 5; i++) setF(8, i, qrGetBit(bits, i));
+    setF(8, 7, qrGetBit(bits, 6));
+    setF(8, 8, qrGetBit(bits, 7));
+    setF(7, 8, qrGetBit(bits, 8));
+    for (let i = 9; i < 15; i++) setF(14 - i, 8, qrGetBit(bits, i));
+    for (let i = 0; i < 8; i++) setF(size - 1 - i, 8, qrGetBit(bits, i));
+    for (let i = 8; i < 15; i++) setF(8, size - 15 + i, qrGetBit(bits, i));
+    setF(8, size - 8, true);
+}
+function qrPenalty(m) {
+    const size = m.length;
+    let score = 0;
+    const lines = [];
+    for (let y = 0; y < size; y++) lines.push(m[y]);
+    for (let x = 0; x < size; x++) { const col = []; for (let y = 0; y < size; y++) col.push(m[y][x]); lines.push(col); }
+    lines.forEach(line => {
+        let run = 1;
+        for (let i = 1; i <= line.length; i++) {
+            if (i < line.length && line[i] === line[i - 1]) run++;
+            else { if (run >= 5) score += 3 + (run - 5); run = 1; }
+        }
+        const padded = [false, false, false, false].concat(line, [false, false, false, false]);
+        for (let i = 0; i + 7 <= padded.length; i++) {
+            if (padded[i] && !padded[i + 1] && padded[i + 2] && padded[i + 3] && padded[i + 4] && !padded[i + 5] && padded[i + 6]) {
+                const before = !padded[i - 1] && !padded[i - 2] && !padded[i - 3] && !padded[i - 4];
+                const after = !padded[i + 7] && !padded[i + 8] && !padded[i + 9] && !padded[i + 10];
+                if (before || after) score += 40;
+            }
+        }
+    });
+    for (let y = 0; y + 1 < size; y++) for (let x = 0; x + 1 < size; x++) {
+        if (m[y][x] === m[y][x + 1] && m[y][x] === m[y + 1][x] && m[y][x] === m[y + 1][x + 1]) score += 3;
+    }
+    let dark = 0;
+    m.forEach(row => row.forEach(v => { if (v) dark++; }));
+    const total = size * size;
+    const k = Math.ceil(Math.abs(dark * 20 - total * 10) / total) - 1;
+    if (k > 0) score += k * 10;
+    return score;
+}
+function qrBuildMatrix(text, forceMask) {
+    const bytes = Array.from(new TextEncoder().encode(text));
+    let ver = -1;
+    for (let v = 1; v <= 16; v++) {
+        const used = 4 + (v <= 9 ? 8 : 16) + bytes.length * 8;
+        if (used <= qrNumDataCodewords(v) * 8) { ver = v; break; }
+    }
+    if (ver < 0) return null;
+    // Assemble data bit stream
+    const bb = [];
+    const append = (val, len) => { for (let i = len - 1; i >= 0; i--) bb.push((val >>> i) & 1); };
+    append(0x4, 4); // byte mode
+    append(bytes.length, ver <= 9 ? 8 : 16);
+    bytes.forEach(b => append(b, 8));
+    const capBits = qrNumDataCodewords(ver) * 8;
+    append(0, Math.min(4, capBits - bb.length));
+    while (bb.length % 8 !== 0) bb.push(0);
+    for (let pad = 0xEC; bb.length < capBits; pad ^= 0xEC ^ 0x11) append(pad, 8);
+    const dataBytes = [];
+    for (let i = 0; i < bb.length; i += 8) { let b = 0; for (let j = 0; j < 8; j++) b = (b << 1) | bb[i + j]; dataBytes.push(b); }
+    const codewords = qrAddEccAndInterleave(dataBytes, ver);
+    const dataBits = [];
+    codewords.forEach(b => { for (let i = 7; i >= 0; i--) dataBits.push((b >>> i) & 1); });
+
+    const size = ver * 4 + 17;
+    function baseModules() {
+        const m = Array.from({ length: size }, () => new Array(size).fill(false));
+        const isFunc = Array.from({ length: size }, () => new Array(size).fill(false));
+        const setF = (x, y, v) => { m[y][x] = v; isFunc[y][x] = true; };
+        for (let i = 0; i < size; i++) { setF(i, 6, i % 2 === 0); setF(6, i, i % 2 === 0); }
+        const finder = (cx, cy) => {
+            for (let dy = -4; dy <= 4; dy++) for (let dx = -4; dx <= 4; dx++) {
+                const xx = cx + dx, yy = cy + dy, dist = Math.max(Math.abs(dx), Math.abs(dy));
+                if (0 <= xx && xx < size && 0 <= yy && yy < size) setF(xx, yy, dist !== 2 && dist !== 4);
+            }
+        };
+        finder(3, 3); finder(size - 4, 3); finder(3, size - 4);
+        const pos = qrAlignmentPositions(ver, size);
+        for (let i = 0; i < pos.length; i++) for (let j = 0; j < pos.length; j++) {
+            if ((i === 0 && j === 0) || (i === 0 && j === pos.length - 1) || (i === pos.length - 1 && j === 0)) continue;
+            for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
+                setF(pos[j] + dx, pos[i] + dy, Math.max(Math.abs(dx), Math.abs(dy)) !== 1);
+            }
+        }
+        if (ver >= 7) {
+            let rem = ver;
+            for (let i = 0; i < 12; i++) rem = (rem << 1) ^ ((rem >>> 11) * 0x1F25);
+            const bits = (ver << 12) | rem;
+            for (let i = 0; i < 18; i++) {
+                const bit = qrGetBit(bits, i);
+                setF(size - 11 + (i % 3), Math.floor(i / 3), bit);
+                setF(Math.floor(i / 3), size - 11 + (i % 3), bit);
+            }
+        }
+        qrDrawFormatBits(m, isFunc, size, 0);
+        // Place data
+        let idx = 0;
+        for (let right = size - 1; right >= 1; right -= 2) {
+            if (right === 6) right = 5;
+            for (let vert = 0; vert < size; vert++) {
+                for (let j = 0; j < 2; j++) {
+                    const x = right - j;
+                    const upward = ((right + 1) & 2) === 0;
+                    const y = upward ? size - 1 - vert : vert;
+                    if (!isFunc[y][x]) {
+                        m[y][x] = idx < dataBits.length ? dataBits[idx] === 1 : false;
+                        idx++;
+                    }
+                }
+            }
+        }
+        return { m, isFunc };
+    }
+    let best = null;
+    const masksToTry = (typeof forceMask === 'number' && forceMask >= 0) ? [forceMask] : [0, 1, 2, 3, 4, 5, 6, 7];
+    masksToTry.forEach(mask => {
+        const { m, isFunc } = baseModules();
+        for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+            if (!isFunc[y][x] && QR_MASKS[mask](x, y)) m[y][x] = !m[y][x];
+        }
+        qrDrawFormatBits(m, isFunc, size, mask);
+        const score = qrPenalty(m);
+        if (!best || score < best.score) best = { size: size, version: ver, mask: mask, modules: m, score: score };
+    });
+    return best;
+}
+function qrPayload() {
+    const inv = state.inv;
+    const parts = [];
+    if (inv.title) parts.push(inv.title);
+    const when = [inv.date, inv.time].filter(Boolean).join(' at ');
+    if (when) parts.push(when);
+    if (inv.place) parts.push(inv.place);
+    if (inv.host) parts.push('Hosted by ' + inv.host);
+    if (inv.rsvp) parts.push(inv.rsvp);
+    return parts.length ? parts.join('\n') : 'You are invited!';
+}
+function drawQr(ctx, qr, x, y, box) {
+    const n = qr.size, cells = n + 8, cell = box / cells;
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(x, y, box, box);
+    ctx.fillStyle = '#1c1713';
+    for (let my = 0; my < n; my++) for (let mx = 0; mx < n; mx++) {
+        if (qr.modules[my][mx]) {
+            ctx.fillRect(x + (mx + 4) * cell, y + (my + 4) * cell, cell + 0.6, cell + 0.6);
+        }
+    }
+}
+function renderQrPreview() {
+    const box = el('cardQr'), label = el('cardQrLabel');
+    const show = state.type === 'invitation' && state.page === 'front' && state.qrOn;
+    if (!show) { box.style.display = 'none'; label.style.display = 'none'; return; }
+    const qr = qrBuildMatrix(qrPayload());
+    if (!qr) {
+        box.style.display = 'none'; label.style.display = 'block';
+        label.textContent = 'Too much text for a QR code — shorten a line or two.';
+        label.style.color = '#b3261e';
+        return;
+    }
+    label.style.color = '';
+    box.style.display = 'block'; label.style.display = 'block';
+    label.textContent = 'Scan for details';
+    const canvas = el('qrCanvas');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawQr(ctx, qr, 0, 0, canvas.width);
+}
+
+// ============================================================
+// Canvas export — draws exactly what the preview shows,
+// at full print resolution.
+// ============================================================
+const stickerImgCache = {};
+function stickerImage(kind) {
+    if (stickerImgCache[kind]) return Promise.resolve(stickerImgCache[kind]);
+    return new Promise(resolve => {
+        const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="200" height="200">' + STICKERS[kind].svg + '</svg>';
+        const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+        const img = new Image();
+        img.onload = () => { stickerImgCache[kind] = img; resolve(img); };
+        img.onerror = () => resolve(null);
+        img.src = url;
+    });
+}
+function loadImageFrom(src, crossOrigin) {
+    return new Promise(resolve => {
+        const img = new Image();
+        if (crossOrigin) img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = () => resolve(null);
+        img.src = src;
+    });
+}
+function drawCover(ctx, img, W, H) {
+    const scale = Math.max(W / img.naturalWidth, H / img.naturalHeight);
+    const w = img.naturalWidth * scale, h = img.naturalHeight * scale;
+    ctx.drawImage(img, (W - w) / 2, (H - h) / 2, w, h);
+}
+function roundRectPath(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+}
+function drawFrameCanvas(ctx, W, H, frame) {
+    if (frame === 'white') {
+        ctx.strokeStyle = 'rgba(255,255,255,0.92)'; ctx.lineWidth = W * 0.016;
+        ctx.strokeRect(W * 0.008, H * 0.008, W * 0.984, H * 0.984);
+    } else if (frame === 'gold') {
+        ctx.strokeStyle = 'rgba(212,175,55,0.95)'; ctx.lineWidth = Math.max(3, W * 0.0035);
+        ctx.strokeRect(W * 0.012, H * 0.012, W * 0.976, H * 0.976);
+    } else if (frame === 'double') {
+        ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = Math.max(2, W * 0.0024);
+        ctx.strokeRect(W * 0.01, H * 0.01, W * 0.98, H * 0.98);
+        ctx.strokeRect(W * 0.026, H * 0.026, W * 0.948, H * 0.948);
+    }
+}
+function blockSpecs(page) {
+    const s = state, specs = [];
+    const L = (text, sizeF, font, extra) => Object.assign({ text: text, sizeF: sizeF, font: font, lhF: 1.35, gapBefore: 0, gapAfter: 0 }, extra || {});
+    if (page === 'inside') {
+        if (s.type === 'birthday') {
+            specs.push(L('Inside your card', 0.034, 'lora', { lhF: 1.3, gapAfter: 0.020 }));
+            specs.push(L(s.bd.message || 'Your message will appear here…', 0.054, 'chosen'));
+            if (s.bd.from) specs.push(L('— ' + s.bd.from, 0.044, 'pacifico', { gapBefore: 0.024 }));
+        } else if (s.type === 'invitation') {
+            specs.push(L('A note from your host', 0.034, 'lora', { lhF: 1.3, gapAfter: 0.020 }));
+            specs.push(L(s.inv.note || 'A warm note for the inside of the card…', 0.054, 'chosen'));
+        }
+        return specs;
+    }
+    if (s.type === 'postcard') {
+        specs.push(L(s.pc.message || 'Your message here…', 0.054, 'chosen'));
+        if (s.pc.from) specs.push(L('— ' + s.pc.from, 0.044, 'pacifico', { gapBefore: 0.024 }));
+    } else if (s.type === 'birthday') {
+        specs.push(L('Happy Birthday', 0.080, 'chosen', { lhF: 1.15, gapAfter: 0.016 }));
+        specs.push(L(s.bd.name || 'Someone Wonderful', 0.095, 'chosen', { lhF: 1.12, gapAfter: 0.014 }));
+        if (s.bd.age) specs.push({ badge: true, text: 'Turning ' + s.bd.age + '!', gapBefore: 0.006, gapAfter: 0.020 });
+    } else if (s.type === 'invitation') {
+        specs.push(L('You are invited', 0.026, 'lora', { lhF: 1.3, gapAfter: 0.022, weight: 600, caps: true }));
+        specs.push(L(s.inv.title || 'A Garden Party', 0.080, 'chosen', { lhF: 1.15, gapAfter: 0.016 }));
+        if (s.inv.host) specs.push(L('Hosted by ' + s.inv.host, 0.039, 'lora', { lhF: 1.5, gapAfter: 0.004 }));
+        const when = [s.inv.date, s.inv.time].filter(Boolean).join(' · ');
+        if (when) specs.push(L(when, 0.039, 'lora', { lhF: 1.5, gapAfter: 0.004 }));
+        if (s.inv.place) specs.push(L(s.inv.place, 0.039, 'lora', { lhF: 1.5, gapAfter: 0.004 }));
+        if (s.inv.rsvp) specs.push(L(s.inv.rsvp, 0.039, 'lora', { lhF: 1.5, italic: true }));
+    }
+    return specs;
+}
+function specFont(spec, W) {
+    const px = spec.sizeF * W * state.textScale;
+    const fam = spec.font === 'chosen' ? fontFamily() : spec.font === 'pacifico' ? "'Pacifico', cursive" : "'Lora', serif";
+    return (spec.italic ? 'italic ' : '') + (spec.weight ? spec.weight + ' ' : '') + px + 'px ' + fam;
+}
+function wrapCanvasText(ctx, text, maxWidth) {
+    const out = [];
+    String(text).split('\n').forEach(par => {
+        const words = par.split(/\s+/).filter(Boolean);
+        if (!words.length) { out.push(''); return; }
+        let line = words[0];
+        for (let i = 1; i < words.length; i++) {
+            const test = line + ' ' + words[i];
+            if (ctx.measureText(test).width <= maxWidth) line = test;
+            else { out.push(line); line = words[i]; }
+        }
+        out.push(line);
+    });
+    return out;
+}
+async function drawCard(ctx, W, H, page) {
+    const t = theme();
+    const inside = page === 'inside';
+    // --- background ---
+    if (inside) {
+        ctx.fillStyle = '#FFFBF3'; ctx.fillRect(0, 0, W, H);
+        const g = ctx.createLinearGradient(0, 0, W, 0);
+        t.colors.forEach((c, i) => g.addColorStop(t.colors.length === 1 ? 0 : i / (t.colors.length - 1), c));
+        ctx.fillStyle = g; ctx.fillRect(0, 0, W, H * 0.06);
+    } else if (state.bgMode === 'photo' && state.photoUrl) {
+        const img = photoImgObj || await loadImageFrom(state.photoUrl, false);
+        if (img) {
+            ctx.save();
+            ctx.filter = PHOTO_FILTERS[state.photoFilter] || 'none';
+            drawCover(ctx, img, W, H);
+            ctx.restore();
+        } else { ctx.fillStyle = '#ddd'; ctx.fillRect(0, 0, W, H); }
+        drawFrameCanvas(ctx, W, H, state.photoFrame);
+    } else if (state.bgMode === 'ai' && state.aiUrl) {
+        const img = aiImgObj || await loadImageFrom(state.aiUrl, true);
+        if (img) drawCover(ctx, img, W, H);
+        else { ctx.fillStyle = '#ddd'; ctx.fillRect(0, 0, W, H); }
+    } else {
+        const g = ctx.createLinearGradient(0, 0, W, H);
+        t.colors.forEach((c, i) => g.addColorStop(t.colors.length === 1 ? 0 : i / (t.colors.length - 1), c));
+        ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    }
+    // --- inner border line ---
+    ctx.strokeStyle = inside ? 'rgba(61,48,41,0.22)' : 'rgba(255,255,255,0.55)';
+    ctx.lineWidth = Math.max(3, W * 0.0022);
+    roundRectPath(ctx, W * 0.045, H * 0.045, W * 0.91, H * 0.91, W * 0.012);
+    ctx.stroke();
+    // --- measure words ---
+    const specs = blockSpecs(page);
+    const laid = [];
+    let totalH = 0;
+    specs.forEach(sp => {
+        const gapB = (sp.gapBefore || 0) * W, gapA = (sp.gapAfter || 0) * W;
+        if (sp.badge) {
+            const bh = 0.115 * W;
+            laid.push({ sp: sp, badge: true, bh: bh, h: gapB + bh + gapA, gapB: gapB, gapA: gapA });
+            totalH += gapB + bh + gapA;
+            return;
+        }
+        ctx.font = specFont(sp, W);
+        const lines = wrapCanvasText(ctx, sp.caps ? sp.text.toUpperCase() : sp.text, W * 0.8);
+        const lh = sp.sizeF * W * state.textScale * sp.lhF;
+        const h = gapB + lines.length * lh + gapA;
+        laid.push({ sp: sp, lines: lines, lh: lh, h: h, gapB: gapB, gapA: gapA });
+        totalH += h;
+    });
+    const off = state.offsets[state.type + ':' + page] || { x: 0, y: 0 };
+    const cx = W / 2 + (off.x / 100) * W;
+    let cy = H / 2 - totalH / 2 + (off.y / 100) * H;
+    // --- scrim behind words when the background is a picture ---
+    if (!inside && state.bgMode !== 'theme' && totalH > 0) {
+        ctx.fillStyle = t.text === '#FFFFFF' ? 'rgba(18,14,10,0.30)' : 'rgba(255,250,240,0.42)';
+        roundRectPath(ctx, cx - W * 0.45, cy - H * 0.02, W * 0.9, totalH + H * 0.04, W * 0.02);
+        ctx.fill();
+    }
+    // --- draw words ---
+    const textColor = inside ? '#43302B' : t.text;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    laid.forEach(item => {
+        cy += item.gapB;
+        if (item.badge) {
+            const bh = item.bh;
+            ctx.font = '700 ' + (0.046 * W * state.textScale) + 'px ' + "'Nunito', sans-serif";
+            const tw = ctx.measureText(item.sp.text).width;
+            const bw = Math.max(0.15 * W, tw + 0.05 * W);
+            ctx.fillStyle = t.stamp;
+            roundRectPath(ctx, cx - bw / 2, cy, bw, bh, bh / 2);
+            ctx.fill();
+            ctx.fillStyle = '#FFFFFF';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(item.sp.text, cx, cy + bh / 2 + 2);
+            ctx.textBaseline = 'top';
+            cy += bh;
+        } else {
+            ctx.font = specFont(item.sp, W);
+            ctx.fillStyle = textColor;
+            const sizePx = item.sp.sizeF * W * state.textScale;
+            item.lines.forEach((ln, i) => ctx.fillText(ln, cx, cy + i * item.lh + sizePx * 0.1));
+            cy += item.lines.length * item.lh;
+        }
+        cy += item.gapA;
+    });
+    // --- postcard furniture ---
+    if (!inside && state.type === 'postcard') {
+        const r = 0.065 * W, scx = W * 0.95 - r, scy = H * 0.05 + r;
+        ctx.fillStyle = t.stamp;
+        ctx.beginPath(); ctx.arc(scx, scy, r, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = (0.05 * W) + 'px Arial';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('♥', scx, scy + W * 0.004);
+        ctx.textBaseline = 'top';
+        ctx.strokeStyle = 'rgba(0,0,0,0.22)';
+        ctx.lineWidth = Math.max(2, W * 0.0016);
+        [0.815, 0.855, 0.895].forEach(f => {
+            ctx.beginPath(); ctx.moveTo(W * 0.63, H * f); ctx.lineTo(W * 0.93, H * f); ctx.stroke();
+        });
+    }
+    // --- QR on invitations ---
+    if (!inside && state.type === 'invitation' && state.qrOn) {
+        const qr = qrBuildMatrix(qrPayload());
+        if (qr) {
+            const box = 0.21 * W;
+            drawQr(ctx, qr, W * 0.95 - box, H * 0.95 - box, box);
+        }
+    }
+    // --- stickers ---
+    for (const st of state.stickers) {
+        const img = await stickerImage(st.kind);
+        if (img) {
+            const sw = st.scale * 0.13 * W;
+            ctx.drawImage(img, (st.x / 100) * W, (st.y / 100) * H, sw, sw);
+        }
+    }
+    // --- honest little credit when the artwork is AI-made ---
+    if (!inside && state.bgMode === 'ai') {
+        ctx.font = (0.016 * W) + "px 'Lora', serif";
+        ctx.fillStyle = 'rgba(255,255,255,0.8)';
+        ctx.textAlign = 'left';
+        ctx.fillText('Artwork: AI-generated', W * 0.05, H * 0.955);
+        ctx.textAlign = 'center';
+    }
+}
+async function renderCardCanvas(page) {
+    const size = currentSize();
+    const canvas = document.createElement('canvas');
+    canvas.width = size.w; canvas.height = size.h;
+    const ctx = canvas.getContext('2d');
+    await document.fonts.ready;
+    await drawCard(ctx, size.w, size.h, page);
+    return canvas;
+}
+async function exportPNG(page) {
+    const canvas = await renderCardCanvas(page);
+    const url = canvas.toDataURL('image/png');
+    window.__lastExport = { page: page, url: url, width: canvas.width, height: canvas.height };
+    const a = document.createElement('a');
+    a.download = 'card-studio-' + state.type + '-' + page + '.png';
+    a.href = url;
+    a.click();
+    return url;
+}
+el('downloadBtn').addEventListener('click', async () => {
+    const btn = el('downloadBtn');
+    btn.classList.add('loading-state');
+    try { await exportPNG(state.page); showStatus(btn, 'Downloaded at full print resolution. Happy sending!', 'success'); }
+    catch (e) { showStatus(btn, 'The download didn’t work this time (' + e.message + '). If the card uses an AI picture, try downloading after it fully loads.', 'error'); }
+    btn.classList.remove('loading-state');
+});
+el('downloadBothBtn').addEventListener('click', async () => {
+    const btn = el('downloadBothBtn');
+    btn.classList.add('loading-state');
+    try {
+        await exportPNG('front');
+        setTimeout(() => exportPNG('inside'), 450);
+        showStatus(btn, 'Both pages are downloading — front first, then inside.', 'success');
+    } catch (e) { showStatus(btn, 'Something interrupted the downloads (' + e.message + ').', 'error'); }
+    btn.classList.remove('loading-state');
+});
+el('copyImageBtn').addEventListener('click', async () => {
+    const btn = el('copyImageBtn');
+    if (!navigator.clipboard || !window.ClipboardItem || !navigator.clipboard.write) {
+        showStatus(btn, 'Copying pictures isn’t supported in this browser — the Download button works everywhere.', 'info');
+        return;
+    }
+    try {
+        const canvas = await renderCardCanvas(state.page);
+        const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        showStatus(btn, 'Picture copied — paste it wherever you like.', 'success');
+    } catch (e) {
+        showStatus(btn, 'Copying didn’t work in this browser — Download is the reliable way.', 'error');
+    }
+});
+
+// ---------- Share the words + email ----------
+function cardTextSummary() {
+    const s = state;
+    if (s.type === 'postcard') return (s.pc.message || '') + (s.pc.from ? '\n— ' + s.pc.from : '');
+    if (s.type === 'birthday') {
+        return 'Happy Birthday, ' + (s.bd.name || 'Someone Wonderful') + (s.bd.age ? ' — turning ' + s.bd.age + '!' : '!') +
+            (s.bd.message ? '\n' + s.bd.message : '') + (s.bd.from ? '\n— ' + s.bd.from : '');
+    }
+    const inv = s.inv;
+    const head = ['You are invited: ' + (inv.title || 'A Garden Party'),
+        [inv.date, inv.time].filter(Boolean).join(' · '),
+        inv.place,
+        inv.host ? 'Hosted by ' + inv.host : '',
+        inv.rsvp].filter(Boolean).join('\n');
+    return head + (inv.note ? '\n' + inv.note : '');
+}
+function emailSubject() {
+    return state.type === 'postcard' ? 'You’ve received a postcard!' :
+           state.type === 'birthday' ? 'A birthday card for you!' : 'You’re invited!';
+}
+el('sendEmailBtn').addEventListener('click', () => {
+    const email = el('recipientEmail').value.trim();
+    if (!email) { showStatus(el('sendEmailBtn'), 'Type the recipient’s email address first.', 'error'); return; }
+    const body = cardTextSummary() + '\n\n(Made with Card Studio — the picture is attached separately.)';
+    window.open('mailto:' + encodeURIComponent(email) + '?subject=' + encodeURIComponent(emailSubject()) + '&body=' + encodeURIComponent(body), '_blank');
+    showStatus(el('sendEmailBtn'), 'Opening your email app with the words typed in. Remember to attach the downloaded picture.', 'success');
+});
+document.querySelectorAll('[data-share]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const text = cardTextSummary();
+        const enc = encodeURIComponent(text);
+        if (btn.dataset.share === 'x') window.open('https://twitter.com/intent/tweet?text=' + enc, '_blank', 'width=600,height=460');
+        else if (btn.dataset.share === 'whatsapp') window.open('https://wa.me/?text=' + enc, '_blank');
+        else if (btn.dataset.share === 'email') window.open('mailto:?subject=' + encodeURIComponent(emailSubject()) + '&body=' + enc, '_blank');
+    });
+});
+
+// ---------- Init ----------
+(function init() {
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.classList.add('dark');
+    if (window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+        document.documentElement.classList.toggle('dark', e.matches);
+    });
+    restoreAutosave();
+    // Reflect restored state in the controls
+    el('fields-postcard').style.display = state.type === 'postcard' ? 'block' : 'none';
+    el('fields-birthday').style.display = state.type === 'birthday' ? 'block' : 'none';
+    el('fields-invitation').style.display = state.type === 'invitation' ? 'block' : 'none';
+    try {
+        const savedProvider = localStorage.getItem(LS_ARIA_PROVIDER);
+        if (savedProvider && ARIA_PROVIDERS[savedProvider]) el('ariaProvider').value = savedProvider;
+        const savedKey = localStorage.getItem(LS_ARIA_KEY);
+        if (savedKey) el('ariaKey').value = savedKey;
+    } catch (e) {}
+    el('ariaModel').value = ARIA_PROVIDERS[el('ariaProvider').value].model;
+    syncFieldsFromState();
+    renderLibrary();
+    renderSavedList();
+    render();
+})();
+</script>
+</body>
+</html>
