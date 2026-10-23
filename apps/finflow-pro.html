@@ -102,6 +102,26 @@ tfoot td{font-weight:800;border-top:2px solid var(--line);border-bottom:none}
 .order-list b{color:var(--soft)}
 .warnbox{background:rgba(251,113,133,.10);border:1px solid var(--bad);border-radius:var(--radius);padding:1rem 1.1rem;font-size:.93rem}
 
+/* ---------- wellness & growth ---------- */
+.score-big{font-size:3rem;font-weight:900;line-height:1;color:var(--gold)}
+.bar-track{background:#0d1330;border:1px solid var(--line);border-radius:50px;height:14px;overflow:hidden}
+.bar-fill{height:100%;border-radius:50px;background:var(--gold)}
+.comp-row{display:grid;grid-template-columns:170px 1fr 110px;gap:.8rem;align-items:center;padding:.55rem 0;border-bottom:1px solid rgba(154,163,192,.10);font-size:.92rem}
+.comp-row:last-child{border-bottom:none}
+.comp-row .cv{text-align:right;font-variant-numeric:tabular-nums;color:var(--mut)}
+.method{background:var(--card2);border:1px solid var(--line);border-radius:var(--radius);padding:1rem 1.15rem;font-size:.9rem;color:var(--mut)}
+.method b{color:var(--soft)}
+.habit-row{display:grid;grid-template-columns:1fr auto auto;gap:.8rem;align-items:center;padding:.7rem 0;border-bottom:1px solid rgba(154,163,192,.10)}
+.habit-row:last-child{border-bottom:none}
+.days{display:flex;gap:.3rem}
+.day-cell{width:34px;height:42px;border-radius:9px;border:1px solid var(--line);background:#0d1330;color:var(--mut);font-size:.66rem;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1.05;padding:0}
+.day-cell .dn{font-size:.85rem;color:var(--soft)}
+.day-cell.on{background:var(--gold);border-color:var(--gold);color:#0a0e1a}
+.day-cell.on .dn{color:#0a0e1a}
+.day-cell.today{outline:2px solid var(--sky);outline-offset:1px}
+.streak{font-size:.8rem;font-weight:700;color:var(--gold);white-space:nowrap;margin-top:.15rem}
+@media(max-width:860px){.comp-row{grid-template-columns:1fr 100px}.comp-row .bar-track{display:none}.habit-row{grid-template-columns:1fr}}
+
 /* ---------- misc ---------- */
 footer{border-top:1px solid var(--line);margin-top:2rem;padding-top:1.2rem;color:var(--mut);font-size:.85rem}
 .view{display:none}
@@ -129,6 +149,8 @@ body.blur-on .amt{filter:blur(8px);-webkit-filter:blur(8px)}
     <button class="nav-item" data-view="assets">🏦 Assets</button>
     <button class="nav-item" data-view="debts">💳 Debts &amp; Payoff Plan</button>
     <button class="nav-item" data-view="insights">💡 Insights</button>
+    <button class="nav-item" data-view="wellness">💚 Wellness &amp; Habits</button>
+    <button class="nav-item" data-view="growth">📈 Growth &amp; Projections</button>
     <button class="nav-item" data-view="settings">⚙️ Your Data &amp; Settings</button>
     <div class="side-foot">No bank connections. No accounts to sign up for. Data is stored only in this browser, on this device.</div>
   </aside>
@@ -267,7 +289,7 @@ body.blur-on .amt{filter:blur(8px);-webkit-filter:blur(8px)}
             <div class="stat"><div class="k">Total interest paid</div><div class="v bad amt" id="plan-interest">—</div><div class="n">Over the whole payoff</div></div>
             <div class="stat"><div class="k">Total paid</div><div class="v amt" id="plan-total">—</div><div class="n">Balances + interest</div></div>
           </div>
-          <p style="font-size:.95rem"><b>Payoff order</b> (highest APR first):</p>
+          <p style="font-size:.95rem"><b>Payoff order</b> (the order your balances are cleared — extra payments always aim at the highest APR first):</p>
           <ol class="order-list" id="plan-order"></ol>
           <p class="hint" style="margin-top:.9rem">A projection, not a promise: it assumes balances, APRs, and payments stay exactly as entered, with no new charges. This is a budgeting tool — not financial advice.</p>
         </div>
@@ -282,6 +304,88 @@ body.blur-on .amt{filter:blur(8px);-webkit-filter:blur(8px)}
         <p class="hint">These are simple, automatic calculations run on the numbers you entered — savings-rate benchmarks, debt load, your highest-cost debt, your biggest spending category. There is no AI advisor here and nobody is watching your data; the math happens in your browser. This is a budgeting tool — not financial advice.</p>
         <div id="insights-empty" class="empty"><strong>Nothing to calculate yet.</strong> Add income, expenses, assets, or debts and automatic insights will appear here.</div>
         <div id="insights-list"></div>
+      </div>
+    </section>
+
+    <!-- ======== VIEW: WELLNESS ======== -->
+    <section class="view" id="view-wellness">
+      <div class="panel">
+        <h2>Financial Wellness Score <span class="tag">A FRIENDLY GUIDE — NOT A GRADE</span></h2>
+        <p class="hint">One gentle number that sums up four parts of money health: your emergency cushion, your savings rate, your debt load, and how steadily you keep your money habits. It is calculated openly, from the numbers below — no judgment, and no one sees it but you. Think of it as a compass, not a report card.</p>
+        <div id="well-empty" class="empty"><strong>Not enough numbers yet.</strong> Add income, expenses, assets, or debts elsewhere in FinFlow Pro — or type your own numbers in the form below — and your score appears here.</div>
+        <div id="well-main" style="display:none">
+          <div style="display:flex;gap:1.4rem;align-items:center;flex-wrap:wrap">
+            <div><div class="score-big" id="well-score">—</div><div style="color:var(--mut);font-size:.85rem">out of 100</div></div>
+            <div><div id="well-label" style="font-size:1.25rem;font-weight:800"></div><div id="well-parts-note" style="color:var(--mut);font-size:.88rem;max-width:430px"></div></div>
+          </div>
+          <div id="well-comps" style="margin-top:1rem"></div>
+        </div>
+        <div class="method" style="margin-top:1.1rem">
+          <b>How this is calculated.</b> Each part is scored 0–100, then combined: emergency cushion 30%, savings rate 25%, debt load 25%, money habits 20%. A part with no data is left out and the rest are re-weighted, so the score only ever rests on real numbers.
+          <ul style="margin:.6rem 0 0 1.2rem">
+            <li><b>Emergency cushion:</b> the months of spending your cash &amp; savings could cover. Six months or more earns the full 100; the score grows evenly up to six months.</li>
+            <li><b>Savings rate:</b> the share of this month's income you kept. Keeping 20% or more earns the full 100.</li>
+            <li><b>Debt load:</b> your monthly debt payments as a share of income. No payments due earns 100; payments at half your income or more earn 0, evenly in between.</li>
+            <li><b>Money habits:</b> how many of the last 7 days you checked off, across all the habits you track below.</li>
+          </ul>
+          <p style="margin-top:.6rem">This is a simple guide built from common rules of thumb — not a medical score, not a credit score, and not financial advice.</p>
+        </div>
+        <form class="form-grid" id="well-form" style="margin-top:1.1rem">
+          <div><label for="well-fund">My emergency cushion (months)</label><input id="well-fund" type="number" min="0" step="0.1" placeholder="Blank = use my entries"></div>
+          <div><label for="well-savings">My savings rate (%)</label><input id="well-savings" type="number" step="0.1" placeholder="Blank = use my entries"></div>
+          <div><label for="well-dti">My debt payments (% of income)</label><input id="well-dti" type="number" min="0" step="0.1" placeholder="Blank = use my entries"></div>
+          <div class="actions"><button class="btn ghost" type="button" id="well-clear">Clear typed numbers</button></div>
+        </form>
+        <p class="hint">Optional: type your own number for any part and the score uses yours for that part; leave a part blank and it is figured from your FinFlow entries.</p>
+      </div>
+
+      <div class="panel">
+        <h2>Money Habits <span class="tag">SMALL STEPS, KEPT GENTLY</span></h2>
+        <p class="hint">Little daily money habits, checked off one day at a time. Missed a day? No shame here — just begin again today. Your last 7 days feed the habits part of your Wellness Score.</p>
+        <form class="form-grid" id="habit-form" style="max-width:560px">
+          <div><label for="habit-name">New habit</label><input id="habit-name" maxlength="60" placeholder="e.g. Made coffee at home"></div>
+          <div class="actions"><button class="btn" type="submit">Add habit</button></div>
+        </form>
+        <div id="habit-empty" class="empty"><strong>No habits yet.</strong> Add your own above — or start with a few gentle ones.<br><button class="btn small" type="button" id="btn-starters" style="margin-top:.7rem">Add starter habits</button></div>
+        <div id="habit-list"></div>
+        <p class="hint" style="margin-top:.7rem">Tap a day square to check it off (tap again to undo). The squares are the last 7 days; the outlined one is today.</p>
+      </div>
+    </section>
+
+    <!-- ======== VIEW: GROWTH ======== -->
+    <section class="view" id="view-growth">
+      <div class="panel">
+        <h2>Yield-on-Cost Calculator <span class="tag">DIVIDEND GROWTH, ILLUSTRATED</span></h2>
+        <p class="hint">Yield on cost asks: compared with what you originally invested, what percentage does the investment pay you each year? When dividends grow, that percentage grows too. Type your own numbers — the table and chart update as you go.</p>
+        <form class="form-grid" id="yoc-form">
+          <div><label for="yoc-amount">Amount invested ($)</label><input id="yoc-amount" type="number" min="0" step="0.01"></div>
+          <div><label for="yoc-yield">Starting yield (%)</label><input id="yoc-yield" type="number" min="0" step="0.01"></div>
+          <div><label for="yoc-growth">Dividend growth (%/yr)</label><input id="yoc-growth" type="number" min="0" step="0.01"></div>
+          <div><label for="yoc-years">Years</label><input id="yoc-years" type="number" min="1" max="40" step="1"></div>
+        </form>
+        <div id="yoc-chart" role="img" aria-label="Line chart of projected yield on cost by year"></div>
+        <table style="margin-top:.9rem"><thead><tr><th>Year</th><th class="num">Yield on cost</th><th class="num">Est. income per year</th></tr></thead><tbody id="yoc-rows"></tbody></table>
+        <p class="hint" style="margin-top:.8rem">Assumes the dividend grows at the same rate every year and is not reinvested — a simple illustration of the idea, not a prediction or a promise. This is a budgeting tool — not financial advice.</p>
+      </div>
+
+      <div class="panel">
+        <h2>Monte Carlo Projection <span class="tag">A SIMULATION — NOT A PREDICTION</span></h2>
+        <p class="hint">Markets don't move in straight lines. This runs your plan hundreds of times; each run lets monthly returns wobble randomly around your expected return (the size of the wobble is "volatility"), then shows the middle result and the likely range. It is a way to picture possibilities — never a promise of what will happen.</p>
+        <form class="form-grid" id="mc-form">
+          <div><label for="mc-start">Current savings ($)</label><input id="mc-start" type="number" min="0" step="0.01"></div>
+          <div><label for="mc-monthly">Monthly contribution ($)</label><input id="mc-monthly" type="number" min="0" step="0.01"></div>
+          <div><label for="mc-years">Years</label><input id="mc-years" type="number" min="1" max="40" step="1"></div>
+          <div><label for="mc-return">Expected return (%/yr)</label><input id="mc-return" type="number" step="0.1"></div>
+          <div><label for="mc-vol">Volatility (%/yr)</label><input id="mc-vol" type="number" min="0" step="0.1"></div>
+          <div class="actions"><button class="btn ghost" type="button" id="mc-rerun">🎲 Run a fresh shuffle</button></div>
+        </form>
+        <div class="plan-big">
+          <div class="stat"><div class="k">Middle result (median)</div><div class="v gold amt" id="mc-median">—</div><div class="n">Half the runs ended above this, half below</div></div>
+          <div class="stat"><div class="k">Likely range</div><div class="v amt" id="mc-range" style="font-size:1.12rem">—</div><div class="n">8 out of 10 runs landed between these</div></div>
+          <div class="stat"><div class="k">Runs simulated</div><div class="v" id="mc-runs">—</div><div class="n" id="mc-seed-note"></div></div>
+        </div>
+        <div id="mc-chart" role="img" aria-label="Band chart of simulated savings by year"></div>
+        <p class="hint" style="margin-top:.8rem">The shaded band covers the middle 8 of every 10 runs for each year; the gold line is the median path. Real markets can do better or worse than any simulation. This is a budgeting tool — not financial advice.</p>
       </div>
     </section>
 
@@ -334,7 +438,10 @@ function monthName(offset){ const t = new Date(); const d = new Date(t.getFullYe
 let _uid = 0;
 function uid(){ return "e" + Date.now().toString(36) + (++_uid).toString(36); }
 
-function freshState(){ return {income:[], expenses:[], assets:[], debts:[], extra:0, sample:false, blur:false}; }
+function freshState(){ return {income:[], expenses:[], assets:[], debts:[], extra:0, sample:false, blur:false,
+  habits:[], well:{fundMonths:"", savingsPct:"", dtiPct:""},
+  calc:{ yoc:{amount:10000, yield:3.5, growth:7, years:10},
+         mc:{start:5000, monthly:200, years:20, ret:6, vol:12, seed:20261022, shuffles:0} } }; }
 function load(){ try { const raw = localStorage.getItem(KEY); if(!raw) return freshState(); const s = JSON.parse(raw); const f = freshState(); for (const k of Object.keys(f)) if (s[k] === undefined) s[k] = f[k]; return s; } catch(e){ return freshState(); } }
 function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }
 let S = load();
@@ -575,8 +682,9 @@ function renderPlanner(){
   $("plan-date").textContent = sim.months === 0 ? "—" : monthName(Math.max(0, sim.months - 1));
   $("plan-interest").textContent = fmt(sim.totalInterest);
   $("plan-total").textContent = fmt(sim.totalPaid);
-  $("plan-order").innerHTML = sim.payoffOrder.map((o,i) =>
-    "<li><b>" + esc(o.name) + "</b> — cleared in month " + o.month + (i === 0 ? " (extra payments aim here first while it's the highest rate)" : "") + "</li>").join("");
+  const topDebt = S.debts.filter(d => (+d.balance||0) > 0).sort((a,b) => (+b.apr||0) - (+a.apr||0))[0];
+  $("plan-order").innerHTML = sim.payoffOrder.map(o =>
+    "<li><b>" + esc(o.name) + "</b> — cleared in month " + o.month + (topDebt && o.name === topDebt.name ? " (extra payments aim here first — it's your highest rate)" : "") + "</li>").join("");
 }
 
 /* ---------------- insights (rule-based) ---------------- */
@@ -617,7 +725,7 @@ function renderInsights(){
       else ins.push({ic:"📌", html:"<b>Your highest-rate debt is \"" + esc(top.name) + "\" at " + fmtPct(+top.apr||0) + " APR.</b> The planner's avalanche aims extra payments at it first, which is the order that costs the least interest overall.", why:"Highest APR among your debts."});
     }
     const sim = simulateDebts(S.debts, S.extra);
-    if (sim.feasible && sim.months !== null) ins.push({ic:"📅", html:"<b>Debt-free projection: " + sim.months + " months.</b> At " + fmt(sim.budget) + " a month (minimums" + (S.extra > 0 ? " + your " + fmt(S.extra) + " extra" : "") + "), the planner's month-by-month math clears every balance by about " + monthName(Math.max(0, sim.months - 1)) + ", with " + fmt(sim.totalInterest) + " paid in interest along the way.", why:"From the Debts & Payoff Plan calculation."});
+    if (sim.feasible && sim.months > 0) ins.push({ic:"📅", html:"<b>Debt-free projection: " + sim.months + " months.</b> At " + fmt(sim.budget) + " a month (minimums" + (S.extra > 0 ? " + your " + fmt(S.extra) + " extra" : "") + "), the planner's month-by-month math clears every balance by about " + monthName(Math.max(0, sim.months - 1)) + ", with " + fmt(sim.totalInterest) + " paid in interest along the way.", why:"From the Debts & Payoff Plan calculation."});
     if (!sim.feasible) ins.push({ic:"⛔", html:"<b>At current payments, the projection doesn't reach zero.</b> The monthly interest roughly eats the payments. See the planner for the numbers — a modest extra payment is usually what changes the picture.", why:"From the Debts & Payoff Plan calculation."});
   }
   const cats = categoryTotals();
@@ -629,6 +737,210 @@ function renderInsights(){
   $("insights-empty").style.display = ins.length ? "none" : "";
   $("insights-list").innerHTML = ins.map(x =>
     '<div class="insight"><div class="ic">' + x.ic + '</div><div><p>' + x.html + '</p><p class="why">' + esc(x.why) + "</p></div></div>").join("");
+}
+
+/* ---------------- wellness, habits & growth (v2) ----------------
+   Everything below is computed on-device from the visitor's own
+   entries and typed numbers. No external calls, no API keys, and
+   no built-in example wealth figures anywhere — the calculators'
+   starting values are visible inputs the visitor can change. */
+function isoAddDays(iso, n){ const p = iso.split("-"); const d = new Date(+p[0], (+p[1]||1)-1, (+p[2]||1)+n); return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
+function lastNDays(n){ const out = []; const t = todayISO(); for (let i = n-1; i >= 0; i--) out.push(isoAddDays(t, -i)); return out; }
+function typedNum(v){ if (v === "" || v === null || v === undefined) return null; const n = parseFloat(v); return isNaN(n) ? null : n; }
+
+/* --- habits --- */
+const STARTER_HABITS = ["Checked my account balance","Cooked a meal instead of ordering out","Moved a little money to savings","Had a no-spend day","Looked over one bill or statement"];
+function habitStreak(h){
+  const set = new Set(h.checks || []);
+  let cur = todayISO();
+  if (!set.has(cur)) cur = isoAddDays(cur, -1);
+  let streak = 0;
+  while (set.has(cur)) { streak++; cur = isoAddDays(cur, -1); }
+  return streak;
+}
+function habitWeekShare(){
+  if (!S.habits.length) return null;
+  const days = lastNDays(7); let done = 0;
+  for (const h of S.habits) { const set = new Set(h.checks || []); for (const d of days) if (set.has(d)) done++; }
+  return done / (S.habits.length * 7) * 100;
+}
+function toggleHabitDay(id, day){
+  const h = S.habits.find(x => x.id === id); if (!h) return;
+  const set = new Set(h.checks || []);
+  if (set.has(day)) set.delete(day); else set.add(day);
+  h.checks = [...set].sort();
+  save(); renderWellness(); renderSettings();
+}
+function renderHabits(){
+  const days = lastNDays(7), today = todayISO();
+  $("habit-empty").style.display = S.habits.length ? "none" : "";
+  $("habit-list").innerHTML = S.habits.map(h => {
+    const set = new Set(h.checks || []);
+    const cells = days.map(d => {
+      const dt = new Date(+d.slice(0,4), +d.slice(5,7)-1, +d.slice(8,10));
+      const letter = "SMTWTFS"[dt.getDay()];
+      return '<button type="button" class="day-cell' + (set.has(d) ? " on" : "") + (d === today ? " today" : "") + '" data-habit="' + h.id + '" data-day="' + d + '" title="' + esc(niceDate(d)) + '"><span>' + letter + '</span><span class="dn">' + dt.getDate() + "</span></button>";
+    }).join("");
+    const st = habitStreak(h);
+    return '<div class="habit-row"><div><b>' + esc(h.name) + '</b><div class="streak">' + (st > 0 ? "🔥 " + st + "-day streak" : "Start today — one tap") + '</div></div><div class="days">' + cells + '</div><div><button class="mini del" data-habit-del="' + h.id + '">Delete</button></div></div>';
+  }).join("");
+}
+
+/* --- wellness score ---
+   Parts (each 0–100) and weights: emergency cushion 30 (months of
+   spending covered by cash+savings; 6+ months = 100), savings rate
+   25 (this month; 20%+ = 100), debt load 25 (minimum payments as a
+   share of income; 0% = 100, 50%+ = 0), habits 20 (share of the
+   last 7 days checked off). Parts without data are left out and
+   the rest re-weighted. Typed numbers in the Wellness form win
+   over numbers figured from entries. */
+function monthlySpendingPace(){
+  const t = totals();
+  if (t.expMonth > 0) return t.expMonth;
+  if (!S.expenses.length) return 0;
+  const months = new Set(S.expenses.map(e => (e.date || "").slice(0,7)).filter(x => x.length === 7));
+  return months.size ? round2(t.expAll / months.size) : 0;
+}
+function wellness(){
+  const t = totals(); const comps = [];
+  let fund = typedNum(S.well.fundMonths), fundSrc = "your typed number";
+  if (fund === null) {
+    const cashLike = round2(S.assets.filter(a => a.type === "Cash" || a.type === "Savings").reduce((s,a)=>s+(+a.value||0),0));
+    const pace = monthlySpendingPace();
+    if (cashLike > 0 && pace > 0) { fund = cashLike / pace; fundSrc = "from your entries"; }
+  }
+  if (fund !== null) comps.push({key:"fund", name:"Emergency cushion", weight:30,
+    score: Math.max(0, Math.min(100, Math.round(fund / 6 * 100))),
+    detail: (Math.round(fund * 10) / 10).toLocaleString("en-US") + " months of cushion (" + fundSrc + ")"});
+  let sav = typedNum(S.well.savingsPct), savSrc = "your typed number";
+  if (sav === null && t.savingsRate !== null) { sav = t.savingsRate; savSrc = "from your entries"; }
+  if (sav !== null) comps.push({key:"savings", name:"Savings rate", weight:25,
+    score: Math.max(0, Math.min(100, Math.round(sav / 20 * 100))),
+    detail: fmtPct(sav) + " of income kept (" + savSrc + ")"});
+  let dti = typedNum(S.well.dtiPct), dtiSrc = "your typed number";
+  if (dti === null && t.dti !== null) { dti = t.dti; dtiSrc = "from your entries"; }
+  if (dti !== null) comps.push({key:"debt", name:"Debt load", weight:25,
+    score: Math.max(0, Math.min(100, Math.round(100 - dti * 2))),
+    detail: "payments are " + fmtPct(dti) + " of income (" + dtiSrc + ")"});
+  const share = habitWeekShare();
+  if (share !== null) comps.push({key:"habits", name:"Money habits", weight:20,
+    score: Math.round(share),
+    detail: fmtPct(share) + " of habit-days kept, last 7 days"});
+  if (!comps.length) return {score:null, comps};
+  const wsum = comps.reduce((s,c) => s + c.weight, 0);
+  const score = Math.round(comps.reduce((s,c) => s + c.score * c.weight, 0) / wsum);
+  return {score, comps};
+}
+function wellnessLabel(score){
+  if (score >= 80) return "🌳 Strong — steady roots, growing well";
+  if (score >= 60) return "🌿 Steady — a healthy rhythm is forming";
+  if (score >= 40) return "🧱 Building — the foundation is going in";
+  return "🌱 Getting started — every small step counts";
+}
+function renderWellness(){
+  const w = wellness();
+  $("well-empty").style.display = w.score === null ? "" : "none";
+  $("well-main").style.display = w.score === null ? "none" : "";
+  if (w.score !== null) {
+    $("well-score").textContent = w.score;
+    $("well-label").textContent = wellnessLabel(w.score);
+    const missing = 4 - w.comps.length;
+    $("well-parts-note").textContent = "Built from " + w.comps.length + " of the 4 parts" + (missing ? " — as you add the missing pieces elsewhere in FinFlow Pro, they will join in automatically." : " — all four parts are in.");
+    $("well-comps").innerHTML = w.comps.map(c =>
+      '<div class="comp-row"><div><b>' + esc(c.name) + '</b></div><div class="bar-track"><div class="bar-fill" style="width:' + c.score + '%"></div></div><div class="cv">' + c.score + ' / 100<br><span style="font-size:.78rem">' + esc(c.detail) + "</span></div></div>").join("");
+  }
+  for (const [id, k] of [["well-fund","fundMonths"],["well-savings","savingsPct"],["well-dti","dtiPct"]]) {
+    const el = $(id);
+    if (document.activeElement !== el) el.value = S.well[k] ?? "";
+  }
+  renderHabits();
+}
+
+/* --- yield on cost --- */
+function yieldOnCost(amount, y0, g, years){
+  const rows = [];
+  for (let t = 0; t <= years; t++) {
+    const yoc = y0 * Math.pow(1 + g / 100, t);
+    rows.push({year:t, yoc:yoc, income: amount * yoc / 100});
+  }
+  return rows;
+}
+function lineChartSVG(points, fmtTop){
+  const W = 660, H = 200, PL = 10, PR = 10, PT = 20, PB = 24;
+  const maxY = (Math.max(...points.map(p => p.y)) || 1) * 1.05;
+  const maxX = Math.max(...points.map(p => p.x)) || 1;
+  const X = x => PL + (x / maxX) * (W - PL - PR);
+  const Y = y => H - PB - (y / maxY) * (H - PT - PB);
+  let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="presentation" font-family="inherit">';
+  s += '<text x="' + PL + '" y="13" fill="#9aa3c0" font-size="12">' + esc(fmtTop) + "</text>";
+  s += '<line x1="' + PL + '" y1="' + (H - PB) + '" x2="' + (W - PR) + '" y2="' + (H - PB) + '" stroke="rgba(154,163,192,.35)"></line>';
+  s += '<polyline fill="none" stroke="#f5c451" stroke-width="2.5" points="' + points.map(p => X(p.x).toFixed(1) + "," + Y(p.y).toFixed(1)).join(" ") + '"></polyline>';
+  for (const p of points) s += '<circle cx="' + X(p.x).toFixed(1) + '" cy="' + Y(p.y).toFixed(1) + '" r="3" fill="#f5c451"></circle>';
+  s += '<text x="' + PL + '" y="' + (H - 6) + '" fill="#9aa3c0" font-size="12">Today</text>';
+  s += '<text x="' + (W - PR) + '" y="' + (H - 6) + '" fill="#9aa3c0" font-size="12" text-anchor="end">Year ' + maxX + "</text>";
+  return s + "</svg>";
+}
+
+/* --- Monte Carlo --- */
+function mulberry32(seed){ let a = seed >>> 0; return function(){ a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function randn(rng){ let u = 0, v = 0; while (u === 0) u = rng(); while (v === 0) v = rng(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+function monteCarlo(inp, seed){
+  const months = Math.round(inp.years * 12);
+  const meanM = inp.ret / 100 / 12, sdM = inp.vol / 100 / Math.sqrt(12);
+  const rng = mulberry32(seed);
+  const yearEnds = Array.from({length: inp.years + 1}, () => []);
+  for (let s = 0; s < inp.sims; s++) {
+    let bal = inp.start;
+    yearEnds[0].push(bal);
+    for (let m = 1; m <= months; m++) {
+      bal = bal * (1 + meanM + sdM * randn(rng)) + inp.monthly;
+      if (bal < 0) bal = 0;
+      if (m % 12 === 0) yearEnds[m / 12].push(bal);
+    }
+  }
+  const pct = (arr, p) => { const a = [...arr].sort((x,y) => x - y); return a[Math.min(a.length - 1, Math.max(0, Math.floor(p * a.length)))]; };
+  const bands = yearEnds.map((arr, y) => ({year:y, p10:pct(arr, 0.10), p50:pct(arr, 0.50), p90:pct(arr, 0.90)}));
+  const last = bands[bands.length - 1];
+  return {bands, median:last.p50, p10:last.p10, p90:last.p90, sims:inp.sims};
+}
+function bandChartSVG(bands){
+  const W = 660, H = 220, PL = 10, PR = 10, PT = 20, PB = 24;
+  const maxY = (Math.max(...bands.map(b => b.p90)) || 1) * 1.03;
+  const maxX = bands.length - 1 || 1;
+  const X = x => PL + (x / maxX) * (W - PL - PR);
+  const Y = v => H - PB - (v / maxY) * (H - PT - PB);
+  const top = bands.map(b => X(b.year).toFixed(1) + "," + Y(b.p90).toFixed(1)).join(" ");
+  const bot = [...bands].reverse().map(b => X(b.year).toFixed(1) + "," + Y(b.p10).toFixed(1)).join(" ");
+  let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="presentation" font-family="inherit">';
+  s += '<text x="' + PL + '" y="13" fill="#9aa3c0" font-size="12">Band top reaches ' + esc(fmt(maxY / 1.03)) + "</text>";
+  s += '<line x1="' + PL + '" y1="' + (H - PB) + '" x2="' + (W - PR) + '" y2="' + (H - PB) + '" stroke="rgba(154,163,192,.35)"></line>';
+  s += '<polygon fill="rgba(127,212,255,.22)" points="' + top + " " + bot + '"></polygon>';
+  s += '<polyline fill="none" stroke="#f5c451" stroke-width="2.5" points="' + bands.map(b => X(b.year).toFixed(1) + "," + Y(b.p50).toFixed(1)).join(" ") + '"></polyline>';
+  s += '<text x="' + PL + '" y="' + (H - 6) + '" fill="#9aa3c0" font-size="12">Today</text>';
+  s += '<text x="' + (W - PR) + '" y="' + (H - 6) + '" fill="#9aa3c0" font-size="12" text-anchor="end">Year ' + maxX + "</text>";
+  return s + "</svg>";
+}
+
+function renderGrowth(){
+  const yc = S.calc.yoc;
+  for (const [id, k] of [["yoc-amount","amount"],["yoc-yield","yield"],["yoc-growth","growth"],["yoc-years","years"]]) {
+    const el = $(id); if (document.activeElement !== el) el.value = yc[k];
+  }
+  const rows = yieldOnCost(+yc.amount || 0, +yc.yield || 0, +yc.growth || 0, Math.max(0, Math.round(+yc.years || 0)));
+  $("yoc-rows").innerHTML = rows.map(r =>
+    "<tr><td>" + (r.year === 0 ? "Today (year 0)" : "Year " + r.year) + '</td><td class="num">' + (Math.round(r.yoc * 100) / 100).toLocaleString("en-US",{minimumFractionDigits:2, maximumFractionDigits:2}) + '%</td><td class="num amt">' + fmt(r.income) + "</td></tr>").join("");
+  $("yoc-chart").innerHTML = lineChartSVG(rows.map(r => ({x:r.year, y:r.yoc})), "Yield on cost reaches " + (Math.round(rows[rows.length-1].yoc * 100) / 100).toLocaleString("en-US",{minimumFractionDigits:2}) + "%");
+
+  const mc = S.calc.mc;
+  for (const [id, k] of [["mc-start","start"],["mc-monthly","monthly"],["mc-years","years"],["mc-return","ret"],["mc-vol","vol"]]) {
+    const el = $(id); if (document.activeElement !== el) el.value = mc[k];
+  }
+  const res = monteCarlo({start:+mc.start || 0, monthly:+mc.monthly || 0, years:Math.min(40, Math.max(1, Math.round(+mc.years || 1))), ret:+mc.ret || 0, vol:Math.max(0, +mc.vol || 0), sims:500}, mc.seed);
+  $("mc-median").textContent = fmt(res.median);
+  $("mc-range").textContent = fmt(res.p10) + " – " + fmt(res.p90);
+  $("mc-runs").textContent = res.sims.toLocaleString("en-US");
+  $("mc-seed-note").textContent = mc.shuffles ? "Shuffle #" + mc.shuffles + " — a fresh random run" : "The standard starting run — same numbers every visit, so you can compare";
+  $("mc-chart").innerHTML = bandChartSVG(res.bands);
 }
 
 /* ---------------- sample data ---------------- */
@@ -651,13 +963,17 @@ function sampleData(){
       {id:uid(), name:"Sample Credit Card", balance:2600, apr:24.99, min:65},
       {id:uid(), name:"Sample Car Loan", balance:8400, apr:7.5, min:185}
     ],
+    habits: [
+      {id:uid(), name:"Sample: Checked My Balance", checks:[d, isoAddDays(d,-1), isoAddDays(d,-2), isoAddDays(d,-4)]},
+      {id:uid(), name:"Sample: Cooked Instead of Ordering Out", checks:[d, isoAddDays(d,-1)]}
+    ],
     extra: 50
   };
 }
 function loadSample(){
-  if (totals().hasAny && !S.sample && !confirm("Loading sample data will replace the entries you have now. Continue?")) return;
+  if ((totals().hasAny || S.habits.length) && !S.sample && !confirm("Loading sample data will replace the entries you have now. Continue?")) return;
   const sd = sampleData();
-  S.income = sd.income; S.expenses = sd.expenses; S.assets = sd.assets; S.debts = sd.debts; S.extra = sd.extra; S.sample = true;
+  S.income = sd.income; S.expenses = sd.expenses; S.assets = sd.assets; S.debts = sd.debts; S.extra = sd.extra; S.habits = sd.habits; S.sample = true;
   save(); renderAll(); switchView("dashboard");
 }
 function removeSample(){
@@ -703,13 +1019,13 @@ function applyBlur(){
 function renderSettings(){
   const c = {income:S.income.length, expenses:S.expenses.length, assets:S.assets.length, debts:S.debts.length};
   const total = c.income + c.expenses + c.assets + c.debts;
-  $("data-summary").textContent = total === 0
+  $("data-summary").textContent = total === 0 && !S.habits.length
     ? "You have no entries yet. Everything you add is stored only in this browser, on this device."
-    : "You have " + total + " entries stored in this browser: " + c.income + " income, " + c.expenses + " expenses, " + c.assets + " assets, " + c.debts + " debts." + (S.sample ? " SAMPLE DATA is currently loaded." : "");
+    : "You have " + total + " entries stored in this browser: " + c.income + " income, " + c.expenses + " expenses, " + c.assets + " assets, " + c.debts + " debts." + (S.habits.length ? " You are also tracking " + S.habits.length + " money habit" + (S.habits.length === 1 ? "" : "s") + "." : "") + (S.sample ? " SAMPLE DATA is currently loaded." : "");
 }
 
 /* ---------------- init ---------------- */
-function renderAll(){ renderDashboard(); renderActivity(); renderAssets(); renderDebts(); renderInsights(); renderSettings(); applySampleUI(); applyBlur(); }
+function renderAll(){ renderDashboard(); renderActivity(); renderAssets(); renderDebts(); renderInsights(); renderWellness(); renderGrowth(); renderSettings(); applySampleUI(); applyBlur(); }
 (function init(){
   $("exp-cat").innerHTML = CATEGORIES.map(c => '<option value="' + esc(c) + '">' + esc(c) + "</option>").join("");
   $("ast-type").innerHTML = ASSET_TYPES.map(c => '<option value="' + esc(c) + '">' + esc(c) + "</option>").join("");
@@ -722,11 +1038,47 @@ function renderAll(){ renderDashboard(); renderActivity(); renderAssets(); rende
   $("btn-reset").addEventListener("click", resetAll);
   $("btn-sample").addEventListener("click", loadSample);
   $("btn-sample-remove").addEventListener("click", removeSample);
+  /* wellness & growth wiring */
+  $("well-form").addEventListener("input", () => {
+    S.well.fundMonths = $("well-fund").value; S.well.savingsPct = $("well-savings").value; S.well.dtiPct = $("well-dti").value;
+    save(); renderWellness();
+  });
+  $("well-clear").addEventListener("click", () => { S.well = {fundMonths:"", savingsPct:"", dtiPct:""}; save(); renderWellness(); });
+  $("habit-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const name = $("habit-name").value.trim(); if (!name) return;
+    S.habits.push({id:uid(), name:name, checks:[]});
+    e.target.reset(); save(); renderWellness(); renderSettings();
+  });
+  $("btn-starters").addEventListener("click", () => {
+    for (const name of STARTER_HABITS) if (!S.habits.some(h => h.name === name)) S.habits.push({id:uid(), name:name, checks:[]});
+    save(); renderWellness(); renderSettings();
+  });
+  document.addEventListener("click", e => {
+    const cell = e.target.closest("[data-habit]");
+    if (cell) { toggleHabitDay(cell.dataset.habit, cell.dataset.day); return; }
+    const del = e.target.closest("[data-habit-del]");
+    if (del) {
+      const h = S.habits.find(x => x.id === del.dataset.habitDel); if (!h) return;
+      if (!confirm('Remove the habit "' + h.name + '" and its check-offs?')) return;
+      S.habits = S.habits.filter(x => x.id !== h.id);
+      save(); renderWellness(); renderSettings();
+    }
+  });
+  const readCalc = () => {
+    S.calc.yoc = {amount: parseFloat($("yoc-amount").value) || 0, yield: parseFloat($("yoc-yield").value) || 0, growth: parseFloat($("yoc-growth").value) || 0, years: Math.min(40, Math.max(1, Math.round(parseFloat($("yoc-years").value) || 1)))};
+    S.calc.mc = {start: parseFloat($("mc-start").value) || 0, monthly: parseFloat($("mc-monthly").value) || 0, years: Math.min(40, Math.max(1, Math.round(parseFloat($("mc-years").value) || 1))), ret: parseFloat($("mc-return").value) || 0, vol: Math.max(0, parseFloat($("mc-vol").value) || 0), seed: S.calc.mc.seed, shuffles: S.calc.mc.shuffles};
+    save(); renderGrowth();
+  };
+  $("yoc-form").addEventListener("input", readCalc);
+  $("mc-form").addEventListener("input", readCalc);
+  $("mc-rerun").addEventListener("click", () => { S.calc.mc.seed = (Date.now() % 2147483646) + 1; S.calc.mc.shuffles = (S.calc.mc.shuffles || 0) + 1; save(); renderGrowth(); });
   renderAll();
 })();
 
 /* Exposed for automated verification */
-window.FinFlow = { simulateDebts, totals, categoryTotals, getState: () => S, fmt, round2 };
+window.FinFlow = { simulateDebts, totals, categoryTotals, getState: () => S, fmt, round2,
+  wellness, yieldOnCost, monteCarlo, habitStreak, habitWeekShare, STARTER_HABITS };
 </script>
 </body>
 </html>
