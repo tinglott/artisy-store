@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>Which Bedtime Path Fits Your Child? — Willow Tales Quiz</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #f2effa;
+        --bg-deep: #e7e2f6;
+        --surface: #ffffff;
+        --surface-2: #faf8ff;
+        --ink: #1e1b33;
+        --muted: #5b5474;
+        --line: #ddd6f0;
+        --navy: #151d36;
+        --navy-deep: #0a0e1a;
+        --gold: #f5c451;
+        --gold-deep: #b97f06;
+        --lav: #9aa3c0;
+        --sky: #7fd4ff;
+        --accent: #4c3d99;
+        --accent-soft: #ece8fb;
+        --good: #1e7a4f;
+        --shadow: 0 18px 45px rgba(21, 29, 54, 0.14);
+        --radius: 20px;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0a0e1a;
+          --bg-deep: #070a13;
+          --surface: #151d36;
+          --surface-2: #1a2444;
+          --ink: #eef1f8;
+          --muted: #9aa3c0;
+          --line: #2a3557;
+          --accent: #b7a8ff;
+          --accent-soft: #232c52;
+          --gold-deep: #f5c451;
+          --good: #7fd8ae;
+          --shadow: 0 18px 45px rgba(0, 0, 0, 0.45);
+        }
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        font-family: "Nunito", system-ui, sans-serif;
+        background:
+          radial-gradient(900px 480px at 85% -80px, rgba(245, 196, 81, 0.16), transparent 60%),
+          radial-gradient(800px 500px at -10% 30%, rgba(127, 212, 255, 0.12), transparent 60%),
+          linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 100%);
+        color: var(--ink);
+        min-height: 100vh;
+      }
+      h1, h2, h3, .display { font-family: "Baloo 2", "Nunito", sans-serif; }
+      a { color: var(--accent); }
+      .wrap { max-width: 1060px; margin: 0 auto; padding: 0 18px 64px; }
+
+      /* ---------- Funnel card ---------- */
+      .funnel {
+        max-width: 680px;
+        margin: 26px auto 0;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 26px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+      .funnel-top {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 14px 22px;
+        background: var(--navy);
+        color: #eef1f8;
+      }
+      .brandmark { display: flex; align-items: center; gap: 10px; font-family: "Baloo 2", sans-serif; font-weight: 700; font-size: 1.05rem; letter-spacing: 0.01em; }
+      .brandmark svg { flex: none; }
+      .brandmark small { display: block; font-family: "Nunito", sans-serif; font-weight: 600; font-size: 0.72rem; color: var(--lav); letter-spacing: 0.04em; }
+      .step-count { font-size: 0.82rem; font-weight: 700; color: var(--lav); white-space: nowrap; }
+      .progress { height: 6px; background: var(--accent-soft); }
+      .progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--gold), #ffb03a); border-radius: 0 6px 6px 0; transition: width 0.45s ease; }
+      .screen { padding: 30px 30px 34px; }
+      @media (max-width: 560px) { .screen { padding: 24px 20px 28px; } }
+
+      .screen-enter { animation: rise 0.38s ease both; }
+      @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+      @media (prefers-reduced-motion: reduce) {
+        .screen-enter { animation: none; }
+        html { scroll-behavior: auto; }
+        .progress-bar { transition: none; }
+      }
+
+      .hero-img { width: 100%; height: 240px; object-fit: cover; border-radius: 16px; display: block; }
+      @media (max-width: 560px) { .hero-img { height: 190px; } }
+      .kicker { margin: 22px 0 6px; font-size: 0.8rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold-deep); }
+      h1 { font-size: clamp(1.9rem, 5.4vw, 2.6rem); line-height: 1.08; margin: 0 0 12px; font-weight: 800; }
+      .lede { font-size: 1.08rem; line-height: 1.55; color: var(--muted); margin: 0 0 20px; }
+      .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 24px; padding: 0; list-style: none; }
+      .chips li { display: inline-flex; align-items: center; gap: 7px; background: var(--accent-soft); color: var(--ink); font-weight: 700; font-size: 0.85rem; padding: 7px 12px; border-radius: 999px; }
+      .chips svg { color: var(--gold-deep); flex: none; }
+
+      .btn {
+        display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+        font-family: "Baloo 2", sans-serif; font-weight: 700; font-size: 1.08rem;
+        border: none; cursor: pointer; text-decoration: none;
+        padding: 15px 26px; border-radius: 999px; line-height: 1.15;
+        transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+      }
+      .btn-gold { background: var(--gold); color: #221a05; box-shadow: 0 8px 22px rgba(245, 196, 81, 0.4); width: 100%; }
+      .btn-gold:hover { transform: translateY(-1px); box-shadow: 0 12px 26px rgba(245, 196, 81, 0.5); }
+      .btn-navy { background: var(--navy); color: #eef1f8; width: 100%; }
+      .btn-navy:hover { transform: translateY(-1px); }
+      .btn-ghost { background: transparent; color: var(--accent); border: 2px solid var(--line); width: 100%; }
+      .btn-ghost:hover { border-color: var(--accent); }
+      .fineprint { margin: 14px 0 0; font-size: 0.85rem; color: var(--muted); text-align: center; }
+
+      /* ---------- Questions ---------- */
+      .q-label { font-size: 0.8rem; font-weight: 800; letter-spacing: 0.13em; text-transform: uppercase; color: var(--gold-deep); margin: 0 0 8px; }
+      .q-title { font-size: clamp(1.45rem, 4.4vw, 1.9rem); line-height: 1.15; margin: 0 0 6px; font-weight: 800; }
+      .q-sub { color: var(--muted); margin: 0 0 22px; font-size: 1rem; line-height: 1.5; }
+      .options { display: grid; gap: 11px; }
+      .opt {
+        display: flex; align-items: center; gap: 14px; text-align: left; width: 100%;
+        background: var(--surface-2); border: 2px solid var(--line); border-radius: 16px;
+        padding: 15px 17px; cursor: pointer; font: inherit; color: var(--ink);
+        transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+      }
+      .opt:hover, .opt:focus-visible { border-color: var(--gold); background: var(--surface); transform: translateY(-1px); outline: none; }
+      .opt .ic {
+        flex: none; width: 44px; height: 44px; border-radius: 12px;
+        background: var(--accent-soft); color: var(--accent);
+        display: grid; place-items: center;
+      }
+      @media (prefers-color-scheme: dark) { .opt .ic { color: var(--gold); } }
+      .opt b { display: block; font-size: 1.02rem; line-height: 1.25; }
+      .opt span { display: block; font-size: 0.88rem; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+      .opt .chev { margin-left: auto; flex: none; color: var(--lav); }
+      .backrow { margin-top: 20px; }
+      .backbtn { background: none; border: none; font: inherit; font-weight: 700; color: var(--muted); cursor: pointer; padding: 6px 4px; display: inline-flex; align-items: center; gap: 6px; }
+      .backbtn:hover { color: var(--ink); }
+
+      /* ---------- Result ---------- */
+      .result-img { width: 100%; height: 230px; object-fit: cover; border-radius: 16px; display: block; }
+      .path-name { font-size: clamp(1.8rem, 5.2vw, 2.4rem); line-height: 1.08; margin: 4px 0 10px; font-weight: 800; }
+      .why { font-size: 1.05rem; line-height: 1.6; color: var(--muted); margin: 0 0 20px; }
+      .why b { color: var(--ink); }
+      .tonight {
+        background: var(--navy); color: #eef1f8; border-radius: 16px; padding: 20px 22px; margin: 0 0 18px;
+      }
+      .tonight .t-label { font-size: 0.76rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); margin: 0 0 6px; }
+      .tonight h3 { margin: 0 0 6px; font-size: 1.3rem; line-height: 1.25; }
+      .tonight p { margin: 0; color: var(--lav); line-height: 1.55; font-size: 0.98rem; }
+      .plan { margin: 0 0 22px; padding: 0; list-style: none; display: grid; gap: 10px; }
+      .plan li { display: flex; gap: 12px; align-items: flex-start; background: var(--surface-2); border: 1px solid var(--line); border-radius: 14px; padding: 13px 15px; line-height: 1.45; font-size: 0.97rem; }
+      .plan .night { flex: none; font-family: "Baloo 2", sans-serif; font-weight: 700; background: var(--gold); color: #221a05; border-radius: 8px; padding: 2px 9px; font-size: 0.82rem; margin-top: 1px; }
+      .cta-stack { display: grid; gap: 11px; }
+      .cta-note { text-align: center; font-size: 0.88rem; color: var(--muted); margin: 4px 0 0; line-height: 1.5; }
+      .retake { margin-top: 18px; text-align: center; }
+      .retake button { background: none; border: none; font: inherit; font-weight: 700; color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+
+      /* ---------- Below the funnel ---------- */
+      section.block { max-width: 680px; margin: 44px auto 0; }
+      section.block.wide { max-width: 1060px; }
+      .block h2 { font-size: clamp(1.5rem, 4vw, 1.9rem); margin: 0 0 8px; font-weight: 800; }
+      .block .sub { color: var(--muted); margin: 0 0 20px; line-height: 1.55; max-width: 60ch; }
+      .path-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+      @media (max-width: 900px) { .path-grid { grid-template-columns: repeat(2, 1fr); } }
+      @media (max-width: 520px) { .path-grid { grid-template-columns: 1fr; } }
+      .path-card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; }
+      .path-card img { width: 100%; height: 130px; object-fit: cover; display: block; }
+      .path-card .pc-body { padding: 15px 16px 17px; }
+      .path-card h3 { margin: 0 0 5px; font-size: 1.08rem; }
+      .path-card p { margin: 0; font-size: 0.9rem; color: var(--muted); line-height: 1.5; }
+      .path-card .first { margin-top: 10px; font-size: 0.85rem; font-weight: 700; color: var(--gold-deep); }
+      .books { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 22px; margin: 0; padding: 0; list-style: none; }
+      @media (max-width: 620px) { .books { grid-template-columns: 1fr; } }
+      .books li { display: flex; gap: 11px; align-items: flex-start; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 13px 15px; }
+      .books svg { flex: none; color: var(--gold-deep); margin-top: 2px; }
+      .books b { display: block; font-size: 0.98rem; line-height: 1.3; }
+      .books span { font-size: 0.87rem; color: var(--muted); line-height: 1.45; display: block; margin-top: 2px; }
+      footer { max-width: 680px; margin: 48px auto 0; text-align: center; color: var(--muted); font-size: 0.88rem; line-height: 1.6; }
+      footer .motto { font-family: "Baloo 2", sans-serif; font-weight: 700; color: var(--ink); font-size: 1rem; }
+      .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+
+      <!-- ================= FUNNEL ================= -->
+      <div class="funnel" id="funnel">
+        <div class="funnel-top">
+          <div class="brandmark">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 13.2A8.2 8.2 0 0 1 10.8 4 8.5 8.5 0 1 0 20 13.2Z" fill="#f5c451"/><path d="M17.5 3.5l.6 1.7 1.7.6-1.7.6-.6 1.7-.6-1.7-1.7-.6 1.7-.6.6-1.7Z" fill="#7fd4ff"/></svg>
+            <span>Willow Tales<small>THE BEDTIME LIBRARY FOR THE WHOLE FAMILY</small></span>
+          </div>
+          <div class="step-count" id="stepCount">2-minute quiz</div>
+        </div>
+        <div class="progress" role="progressbar" aria-label="Quiz progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progressWrap">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div id="screen" aria-live="polite"></div>
+      </div>
+
+      <!-- ================= ALL FOUR PATHS ================= -->
+      <section class="block wide" aria-labelledby="paths-h">
+        <h2 id="paths-h">The four bedtime paths</h2>
+        <p class="sub">Every child settles differently. The quiz matches yours to one of these paths — and every path lives inside the same Willow Tales library, so you can wander between them any night you like.</p>
+        <div class="path-grid">
+          <article class="path-card">
+            <img src="assets/read-together.jpg" alt="A mother reading a bedtime story to her young son, who hugs a teddy bear" />
+            <div class="pc-body">
+              <h3>The Cozy Together Path</h3>
+              <p>For lap-snugglers and page-turners. Stories you read side by side in the 3D flipbook, ending the day connected.</p>
+              <p class="first">First story: Whispering Willow</p>
+            </div>
+          </article>
+          <article class="path-card">
+            <img src="assets/listen-drift.webp" alt="Illustration of a child in bed wearing headphones, listening to a story under the stars" />
+            <div class="pc-body">
+              <h3>The Listen &amp; Drift Path</h3>
+              <p>For tired grown-ups and audio lovers. Press play, and warm narration carries your child the whole way to sleep.</p>
+              <p class="first">First story: Franklin of Gluntenburg</p>
+            </div>
+          </article>
+          <article class="path-card">
+            <img src="assets/hero-bedtime.jpg" alt="A father reading a picture book to his toddler by lamplight" />
+            <div class="pc-body">
+              <h3>The Calm-Down Path</h3>
+              <p>For wiggly bodies and racing minds. Short, gentle tales made to slow the evening down, one soft page at a time.</p>
+              <p class="first">First story: The Robot's First Snowfall</p>
+            </div>
+          </article>
+          <article class="path-card">
+            <img src="assets/cozy-reading.jpg" alt="Two children reading together under a blanket fort strung with fairy lights" />
+            <div class="pc-body">
+              <h3>The Story Explorers Path</h3>
+              <p>For "one more chapter!" kids. Big adventures and long journeys that unfold over nights and weeks.</p>
+              <p class="first">First story: FORE! The Legend of Algaga</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ================= INSIDE THE LIBRARY ================= -->
+      <section class="block" aria-labelledby="library-h">
+        <h2 id="library-h">Inside the Willow Tales library</h2>
+        <p class="sub">Seven books plus the 12-tale Willow Tales Bedtime Stories collection, read-aloud narration, a page-turning 3D reader, and Lottie — the friendly companion who tells jokes and stories inside safe, parent-approved walls. Whichever path the quiz picks, all of this is waiting.</p>
+        <ul class="books">
+          <li>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
+            <div><b>Whispering Willow</b><span>The gentle tale the library is named for — a cozy read-together favorite.</span></div>
+          </li>
+          <li>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
+            <div><b>Lilly Transformed</b><span>11 pages with a full 43-minute read-aloud narration.</span></div>
+          </li>
+          <li>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
+            <div><b>From Dragonflies to Distant Stars</b><span>A 20-page journey from the garden pond all the way to the stars.</span></div>
+          </li>
+          <li>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
+            <div><b>FORE! The Legend of Algaga</b><span>A 96-page adventure with the complete 2¼-hour audiobook.</span></div>
+          </li>
+          <li>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
+            <div><b>Grow It, Keep It, Pass It On</b><span>32 pages about growing and sharing, with a 17-minute narration.</span></div>
+          </li>
+          <li>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H2v6h4l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9.4 9.4 0 0 1 0 13"/></svg>
+            <div><b>Franklin of Gluntenburg</b><span>An audio-only story — 22 minutes made for lights-out listening.</span></div>
+          </li>
+          <li>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
+            <div><b>Ordinary Days</b><span>The big storybook the 12 Willow Tales Bedtime Stories were drawn from.</span></div>
+          </li>
+          <li>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+            <div><b>Willow Tales Bedtime Stories</b><span>12 short tales drawn from Ordinary Days — including “The Pizza Delivery Alien” and the closing tale, “The Robot's First Snowfall.”</span></div>
+          </li>
+          <li>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"/></svg>
+            <div><b>Lottie, your bedtime companion</b><span>A friendly in-app bot who tells jokes and short stories — a closed, curated library, never the open internet.</span></div>
+          </li>
+        </ul>
+      </section>
+
+      <footer>
+        <p class="motto">We turn boring into exciting.</p>
+        <p>Willow Tales is part of ARTISY · T. Lott Creative — bedtime stories designed with a nurse's care, made for the whole family. Start free on Whop, or take the whole library home from Gumroad.</p>
+      </footer>
+    </div>
+
+    <script>
+      (function () {
+        "use strict";
+
+        var ICONS = {
+          moon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>',
+          star: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21 7 14.2 2 9.3l6.9-1L12 2Z"/></svg>',
+          heart: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19.8 4.6a5 5 0 0 0-7.1 0l-.7.7-.7-.7a5 5 0 1 0-7.1 7.1l7.8 7.8 7.8-7.8a5 5 0 0 0 0-7.1Z"/></svg>',
+          book: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>',
+          play: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M10 8.5v7l6-3.5-6-3.5Z" fill="currentColor" stroke="none"/></svg>',
+          rocket: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 16.5c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.7-.8.7-2.1-.1-2.9-.8-.8-2.1-.8-2.9.1Z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.9A12.6 12.6 0 0 1 22 2c0 2.7-.8 7.5-6.1 11a22.4 22.4 0 0 1-3.9 2Z"/><path d="M9 12 4.5 10.5C6 8 7.5 5.5 9.5 3.5c1.9 1.6 3.3 3.7 4 6L12 12"/><path d="M12 15l1.5 4.5c2.5-1.5 5-3 7-4.5-1.6-1.9-3.7-3.3-6-4L12 15"/></svg>',
+          leaf: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 20A7 7 0 0 1 4 13c0-4 3-8 9-9 4-.7 7 0 7 0s-.3 3.5-1 7c-1.3 6-5 9-8 9Z"/><path d="M4 21c4-6 8-9 12-11"/></svg>',
+          sun: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+          cloud: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.5 19a4.5 4.5 0 0 0 0-9 6 6 0 0 0-11.5 1.5A4 4 0 0 0 7 19h10.5Z"/></svg>',
+          spark: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"/><path d="M19 15.5l.8 2.2 2.2.8-2.2.8L19 21.5l-.8-2.2-2.2-.8 2.2-.8.8-2.2Z"/></svg>',
+          users: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9"/><path d="M16 3.1a4 4 0 0 1 0 7.8"/></svg>',
+          clock: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>',
+          check: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>',
+          chevR: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>',
+          arrowL: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m11 18-6-6 6-6"/></svg>'
+        };
+
+        var QUESTIONS = [
+          {
+            label: "Question 1 of 5",
+            title: "How old is your little listener?",
+            sub: "Every age has its own kind of bedtime magic.",
+            options: [
+              { icon: "moon",  title: "2 to 4 years old", desc: "Just starting story time", scores: { cozy: 2, calm: 1 } },
+              { icon: "star",  title: "5 to 7 years old", desc: "Right in the story years", scores: { explorer: 2, cozy: 1 } },
+              { icon: "rocket", title: "8 to 10 years old", desc: "Ready for real adventures", scores: { explorer: 3 } },
+              { icon: "users", title: "More than one child", desc: "A whole blanket-fort audience", scores: { listen: 2, cozy: 1 } }
+            ]
+          },
+          {
+            label: "Question 2 of 5",
+            title: "What does bedtime look like at your house right now?",
+            sub: "Be honest — every parent has lived one of these nights.",
+            options: [
+              { icon: "sun",   title: "Wiggly, wound-up, can't settle", desc: "The energy outlasts the daylight", scores: { calm: 2, cozy: 1 } },
+              { icon: "book",  title: "\u201COne more story!\u201D", desc: "Never wants story time to end", scores: { explorer: 2, cozy: 1 } },
+              { icon: "cloud", title: "Tired\u2026 but the mind keeps racing", desc: "Sleepy body, busy thoughts", scores: { calm: 2, listen: 1 } },
+              { icon: "heart", title: "Honestly? I'm the tired one", desc: "You need bedtime to be easy tonight", scores: { listen: 2, calm: 1 } }
+            ]
+          },
+          {
+            label: "Question 3 of 5",
+            title: "How should the perfect bedtime story end?",
+            sub: "Picture the last page. What does it leave behind?",
+            options: [
+              { icon: "moon",  title: "Calm, sleepy, lights-out ready", desc: "A soft landing into sleep", scores: { calm: 2, listen: 1 } },
+              { icon: "heart", title: "Happy and all cuddled up", desc: "Warm hearts, close together", scores: { cozy: 2 } },
+              { icon: "spark", title: "\u201CWhat happens next?!\u201D", desc: "A cliffhanger to dream about", scores: { explorer: 2 } },
+              { icon: "leaf",  title: "With something kind to think about", desc: "A gentle thought to carry into tomorrow", scores: { cozy: 1, calm: 1 } }
+            ]
+          },
+          {
+            label: "Question 4 of 5",
+            title: "Who does the reading at your house?",
+            sub: "There's no wrong answer — Willow Tales does all three.",
+            options: [
+              { icon: "book",  title: "We read together, page by page", desc: "Your voice, their favorite place to be", scores: { cozy: 2, explorer: 1 } },
+              { icon: "play",  title: "Press play — narration carries the night", desc: "Read-aloud on every story", scores: { listen: 3 } },
+              { icon: "users", title: "A mix of both", desc: "Some nights together, some nights listening", scores: { listen: 1, cozy: 1, explorer: 1 } },
+              { icon: "star",  title: "They're starting to read on their own", desc: "A new reader finding their wings", scores: { explorer: 2 } }
+            ]
+          },
+          {
+            label: "Question 5 of 5",
+            title: "Last one — pick a story flavor",
+            sub: "Go with the one that makes your child light up.",
+            options: [
+              { icon: "leaf",  title: "Animals, gardens, and gentle growing things", desc: "Quiet wonders of the natural world", scores: { cozy: 2 } },
+              { icon: "rocket", title: "Journeys to the stars and faraway places", desc: "As far as imagination can fly", scores: { explorer: 2 } },
+              { icon: "spark", title: "Funny surprises and unexpected visitors", desc: "Giggle first, sleep second", scores: { explorer: 1, cozy: 1, calm: 1 } },
+              { icon: "clock", title: "Long, cozy chapters that last for weeks", desc: "One big story to live inside", scores: { explorer: 2, listen: 1 } }
+            ]
+          }
+        ];
+
+        var PATHS = {
+          cozy: {
+            name: "The Cozy Together Path",
+            img: "assets/read-together.jpg",
+            imgAlt: "A mother reading a bedtime story to her young son, who hugs a teddy bear",
+            why: "Your answers say bedtime is <b>connection time</b> first. Your child settles best close to you, turning real pages with a real person — so your path leans into read-together stories in the 3D flipbook reader, where the page turns like a true book and your voice does the rest.",
+            tonightTitle: "Whispering Willow",
+            tonightText: "Open the flipbook, snuggle in, and read the gentle tale the whole library is named for. It's the perfect first night on your path.",
+            plan: [
+              "<b>Whispering Willow</b> — read together in the flipbook, your voices, your pace.",
+              "<b>Grow It, Keep It, Pass It On</b> — 32 pages about growing and sharing; switch on the 17-minute narration if your voice needs a rest.",
+              "<b>A Willow Tales Bedtime Story</b> — start with \u201CThe Pizza Delivery Alien,\u201D then let Lottie tell one joke before lights out."
+            ]
+          },
+          listen: {
+            name: "The Listen & Drift Path",
+            img: "assets/listen-drift.webp",
+            imgAlt: "Illustration of a child in bed wearing headphones, listening to a story under the stars",
+            why: "Your answers say the kindest bedtime is a <b>hands-free</b> one. Every Willow Tales story carries read-aloud narration, so you can press play, tuck the blanket, and let a warm voice carry your child the whole way to sleep — while you rest too.",
+            tonightTitle: "Franklin of Gluntenburg",
+            tonightText: "An audio-only story made for lights-out listening — 22 gentle minutes. Press play, dim the lamp, and just be nearby.",
+            plan: [
+              "<b>Franklin of Gluntenburg</b> — the 22-minute audio story, start to sleepy finish.",
+              "<b>Lilly Transformed</b> — press play on the full 43-minute narration for a long, slow drift.",
+              "<b>Grow It, Keep It, Pass It On</b> — the 17-minute narration, with one Lottie joke as the goodnight cherry on top."
+            ]
+          },
+          calm: {
+            name: "The Calm-Down Path",
+            img: "assets/hero-bedtime.jpg",
+            imgAlt: "A father reading a picture book to his toddler by lamplight",
+            why: "Your answers describe a house where the day runs <b>big and busy</b> — wiggly bodies, racing thoughts. Your path starts short and soft: brief, gentle tales written to slow the evening down, building a wind-down rhythm your child can trust night after night.",
+            tonightTitle: "The Robot's First Snowfall",
+            tonightText: "The closing tale from Willow Tales Bedtime Stories — quiet, wondering, and made to land softly. One short story, lights low, breathing slow.",
+            plan: [
+              "<b>\u201CThe Robot's First Snowfall\u201D</b> — one short bedtime tale to open the wind-down.",
+              "<b>Lilly Transformed</b> — let the 43-minute narration do the settling while you simply sit close.",
+              "<b>Another Bedtime Story + Lottie</b> — a second gentle tale, one small joke, then lights out at the same calm pace."
+            ]
+          },
+          explorer: {
+            name: "The Story Explorers Path",
+            img: "assets/cozy-reading.jpg",
+            imgAlt: "Two children reading together under a blanket fort strung with fairy lights",
+            why: "Your answers describe a child who is <b>hungry for story</b> — \u201Cwhat happens next\u201D is their favorite sentence. Your path goes big: long adventures and faraway journeys that unfold over many nights, with cliffhangers worth dreaming about.",
+            tonightTitle: "FORE! The Legend of Algaga — Chapter One",
+            tonightText: "A 96-page adventure with a complete 2¼-hour audiobook. Read the first chapter together tonight\u2026 and try to stop there. We dare you.",
+            plan: [
+              "<b>FORE! The Legend of Algaga</b> — chapter one together; the audiobook can carry tomorrow night's chapters.",
+              "<b>From Dragonflies to Distant Stars</b> — a 20-page journey from the garden pond to the stars.",
+              "<b>Ordinary Days</b> — open the big storybook the 12 Bedtime Stories were drawn from, and pick tomorrow's tale together."
+            ]
+          }
+        };
+
+        var LINKS = {
+          whop: "https://whop.com/checkout/plan_DXoaTQkYTMzCz",
+          gumroad: "https://tlott12.gumroad.com/l/yxaar",
+          library: "https://brisk-pavo-65xrf6d.vercel.app"
+        };
+
+        var screenEl = document.getElementById("screen");
+        var barEl = document.getElementById("progressBar");
+        var wrapEl = document.getElementById("progressWrap");
+        var countEl = document.getElementById("stepCount");
+        var step = -1; // -1 = start screen, 0..4 = questions, 5 = result
+        var answers = [];
+
+        function setProgress(pct, label) {
+          barEl.style.width = pct + "%";
+          wrapEl.setAttribute("aria-valuenow", String(Math.round(pct)));
+          countEl.textContent = label;
+        }
+
+        function esc(s) {
+          return s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+        }
+
+        function renderStart() {
+          step = -1;
+          setProgress(4, "2-minute quiz");
+          screenEl.innerHTML =
+            '<div class="screen screen-enter">' +
+              '<img class="hero-img" src="assets/hero-bedtime.jpg" alt="A father reading a picture book to his toddler by lamplight" />' +
+              '<p class="kicker">The Willow Tales bedtime quiz</p>' +
+              '<h1>Which bedtime path fits your child?</h1>' +
+              '<p class="lede">Five gentle questions about your child and your evenings — and we\u2019ll match you to the bedtime path, the first story to open tonight, and a three-night plan to get you started.</p>' +
+              '<ul class="chips">' +
+                '<li>' + ICONS.check + ' 7 books in the library</li>' +
+                '<li>' + ICONS.check + ' Read-aloud on every story</li>' +
+                '<li>' + ICONS.check + ' Lottie, the story &amp; joke companion</li>' +
+              '</ul>' +
+              '<button class="btn btn-gold" id="startBtn" type="button">Start the quiz ' + ICONS.chevR + '</button>' +
+              '<p class="fineprint">Free to start on Whop — no card needed. About two minutes, promise.</p>' +
+            '</div>';
+          document.getElementById("startBtn").addEventListener("click", function () { renderQuestion(0); });
+        }
+
+        function renderQuestion(i) {
+          step = i;
+          var q = QUESTIONS[i];
+          setProgress(8 + ((i + 1) / QUESTIONS.length) * 84, "Question " + (i + 1) + " of " + QUESTIONS.length);
+          var opts = q.options.map(function (o, idx) {
+            return '<button class="opt" type="button" data-idx="' + idx + '">' +
+              '<span class="ic">' + ICONS[o.icon] + '</span>' +
+              '<span><b>' + esc(o.title) + '</b><span>' + esc(o.desc) + '</span></span>' +
+              '<span class="chev">' + ICONS.chevR + '</span>' +
+            '</button>';
+          }).join("");
+          screenEl.innerHTML =
+            '<div class="screen screen-enter">' +
+              '<p class="q-label">' + esc(q.label) + '</p>' +
+              '<h2 class="q-title">' + esc(q.title) + '</h2>' +
+              '<p class="q-sub">' + esc(q.sub) + '</p>' +
+              '<div class="options">' + opts + '</div>' +
+              (i > 0 ? '<div class="backrow"><button class="backbtn" id="backBtn" type="button">' + ICONS.arrowL + ' Back</button></div>' : '') +
+            '</div>';
+          var btns = screenEl.querySelectorAll(".opt");
+          for (var b = 0; b < btns.length; b++) {
+            btns[b].addEventListener("click", function () {
+              var idx = parseInt(this.getAttribute("data-idx"), 10);
+              answers[i] = q.options[idx];
+              if (i + 1 < QUESTIONS.length) { renderQuestion(i + 1); }
+              else { renderResult(); }
+            });
+          }
+          var back = document.getElementById("backBtn");
+          if (back) { back.addEventListener("click", function () { renderQuestion(i - 1); }); }
+          var first = screenEl.querySelector(".opt");
+          if (first) { first.focus({ preventScroll: true }); }
+        }
+
+        function computePath() {
+          var totals = { cozy: 0, listen: 0, calm: 0, explorer: 0 };
+          answers.forEach(function (a) {
+            if (!a) return;
+            for (var k in a.scores) { totals[k] += a.scores[k]; }
+          });
+          var order = ["cozy", "listen", "calm", "explorer"];
+          var best = "cozy", bestVal = -1;
+          order.forEach(function (k) { if (totals[k] > bestVal) { bestVal = totals[k]; best = k; } });
+          return PATHS[best];
+        }
+
+        function renderResult() {
+          step = QUESTIONS.length;
+          var p = computePath();
+          var ageRaw = answers[0] ? answers[0].title : "";
+          var ageNote = ageRaw.indexOf("years old") !== -1 ? ' · for ages ' + esc(ageRaw.replace(" years old", "")) : "";
+          setProgress(100, "Your path is ready");
+          var planItems = p.plan.map(function (item, i) {
+            return '<li><span class="night">Night ' + (i + 1) + '</span><span>' + item + '</span></li>';
+          }).join("");
+          screenEl.innerHTML =
+            '<div class="screen screen-enter">' +
+              '<img class="result-img" src="' + p.img + '" alt="' + esc(p.imgAlt) + '" />' +
+              '<p class="kicker">Your child\u2019s bedtime path' + ageNote + '</p>' +
+              '<h2 class="path-name">' + esc(p.name) + '</h2>' +
+              '<p class="why">' + p.why + '</p>' +
+              '<div class="tonight"><p class="t-label">Tonight\u2019s first story</p><h3>' + esc(p.tonightTitle) + '</h3><p>' + p.tonightText + '</p></div>' +
+              '<h3 class="display" style="margin:0 0 10px;font-size:1.15rem;">Your first three nights</h3>' +
+              '<ul class="plan">' + planItems + '</ul>' +
+              '<div class="cta-stack">' +
+                '<a class="btn btn-gold" href="' + LINKS.whop + '" target="_blank" rel="noopener">Start free on Whop ' + ICONS.chevR + '</a>' +
+                '<a class="btn btn-navy" href="' + LINKS.gumroad + '" target="_blank" rel="noopener">Get the Complete Library — $14.99 on Gumroad</a>' +
+                '<a class="btn btn-ghost" href="' + LINKS.library + '" target="_blank" rel="noopener">Peek inside the live library first</a>' +
+              '</div>' +
+              '<p class="cta-note">Starting free on Whop opens the whole library — all 7 books, read-aloud narration, and Lottie. The Gumroad Complete Library is the same library to keep, for $14.99 once.</p>' +
+              '<div class="retake"><button type="button" id="retakeBtn">Retake the quiz</button></div>' +
+            '</div>';
+          document.getElementById("retakeBtn").addEventListener("click", function () {
+            answers = [];
+            renderStart();
+            document.getElementById("funnel").scrollIntoView({ behavior: "smooth", block: "start" });
+          });
+          document.getElementById("funnel").scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+
+        renderStart();
+      })();
+    </script>
+  </body>
+</html>
