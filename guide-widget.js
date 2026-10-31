@@ -20,7 +20,7 @@
 
   var SIGNUP_ENDPOINT =
     'https://script.google.com/macros/s/AKfycbxltPuQYbHPbvBj2UWFgojoHvVEKcJwKHJRkOUxN7YNVRX0JXRTs-ORTigTaVAA2g/exec';
-  var GUIDE_API = '/api/guide';
+  var GUIDE_API = 'https://artisy-guide-api-xi.vercel.app/api/guide';
 
   var WELCOME =
     "Hello, and welcome to ARTISY 🌿 I'm the store guide at Ting's nurse-designed wellness store.\n" +
