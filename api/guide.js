@@ -187,8 +187,8 @@ function sendJson(res, status, obj) {
 function getKey() {
   return (
     process.env.GUIDE_GROQ_KEY ||
-    process.env.GROQ_API_KEY ||
     process.env.aira ||
+    process.env.GROQ_API_KEY ||
     ''
   );
 }
