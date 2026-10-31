@@ -486,11 +486,30 @@
         <div class="magnet-name">Healing Affirmations</div>
       </div>
     </div>
+    <div style="background:rgba(255,255,255,0.08);border:1px solid rgba(201,150,62,0.55);border-radius:16px;padding:1.5rem 1.4rem;margin-bottom:2rem;">
+      <div style="color:var(--gold);font-weight:700;letter-spacing:.06em;font-size:.8rem;text-transform:uppercase;margin-bottom:.6rem;">🧩 Riddle of the Day</div>
+      <p id="riddle-text" style="color:#fff;font-size:1.12rem;line-height:1.55;margin:0 auto .7rem;max-width:520px;"></p>
+      <p style="color:#e8d9c4;font-size:.92rem;margin:0;">Want the answer? Join free below — it appears right here, along with your gifts. No waiting on an inbox.</p>
+      <div id="riddle-answer" style="display:none;margin-top:1rem;background:rgba(201,150,62,0.18);border:1px solid rgba(201,150,62,0.5);border-radius:12px;padding:.9rem 1rem;color:#fff;font-size:1.02rem;">✅ The answer: <strong id="riddle-answer-text"></strong></div>
+    </div>
     <form class="email-form" onsubmit="handleSubmit(event)">
-      <input type="email" placeholder="Your email address..." required id="email-input">
+      <input type="text" placeholder="First name (optional)" id="name-input" autocomplete="given-name">
+      <input type="email" placeholder="Your email address..." required id="email-input" autocomplete="email">
+      <div aria-hidden="true" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;">
+        <label>Website <input type="text" name="website" id="website-input" tabindex="-1" autocomplete="off"></label>
+      </div>
       <button type="submit">Send My Free Pack ✨</button>
     </form>
     <p class="email-form-note" id="form-msg">No spam. Just healing. Unsubscribe any time.</p>
+    <div id="gift-links" style="display:none;margin-top:1.4rem;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.16);border-radius:14px;padding:1.2rem 1.1rem;">
+      <p style="color:#fff;font-weight:700;margin-bottom:.7rem;">🎁 Your free gifts — yours right now:</p>
+      <p style="line-height:2.1;font-size:.98rem;">
+        <a href="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/freebies/coloring-pages/01_sacred_mandala.pdf" target="_blank" rel="noopener" style="color:var(--gold);">🎨 Faith Coloring Page (PDF)</a><br>
+        <a href="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/nap-time-audio/sleep-tight.mp3" target="_blank" rel="noopener" style="color:var(--gold);">🎧 Sleep Audio Sample — "Sleep Tight"</a><br>
+        <a href="https://shop.artistrystore.com/affirmations.html" target="_blank" rel="noopener" style="color:var(--gold);">💌 Healing Affirmations</a>
+      </p>
+      <p style="color:#e8d9c4;font-size:.86rem;margin-top:.6rem;">📖 The 7-Day Calm Planner is still in the workshop — you're on the list to receive it first when it's ready.</p>
+    </div>
   </div>
 </div>
 
@@ -715,22 +734,57 @@ function toggleFaq(el) {
   ans.classList.toggle('visible');
 }
 
-const ARTISY_WEBHOOK = 'WEBHOOK_URL_PLACEHOLDER';
+const ARTISY_SIGNUP_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxltPuQYbHPbvBj2UWFgojoHvVEKcJwKHJRkOUxN7YNVRX0JXRTs-ORTigTaVAA2g/exec';
+
+// Riddle of the Day — same bank as store-traffic/RIDDLE-BANK.md (keep all copies in sync)
+const RIDDLES = [
+  { q: "I speak without a mouth and hear without ears. I have no body, but I come alive with the wind. What am I?", a: "An echo" },
+  { q: "The more of me you take, the more you leave behind. What am I?", a: "Footsteps" },
+  { q: "What has many keys but can't open a single lock?", a: "A piano" },
+  { q: "What gets wetter the more it dries?", a: "A towel" },
+  { q: "I'm tall when I'm young and short when I'm old. What am I?", a: "A candle" },
+  { q: "What has a head and a tail but no body?", a: "A coin" },
+  { q: "What can you catch, but never throw?", a: "A cold" },
+  { q: "What runs but never walks, has a mouth but never talks, and has a bed but never sleeps?", a: "A river" },
+  { q: "What belongs to you, but everyone else uses it more than you do?", a: "Your name" },
+  { q: "What has one eye but can't see?", a: "A needle" },
+  { q: "What has hands but can't clap?", a: "A clock" },
+  { q: "I spent three days inside a great fish, then came out alive to preach to a city. Who am I?", a: "Jonah" },
+  { q: "I built a great ark and brought the animals in two by two before the flood. Who am I?", a: "Noah" },
+  { q: "Jesus said the kingdom of heaven is like me — the smallest of seeds that grows into a tree where the birds come to rest. What am I?", a: "A mustard seed" },
+  { q: "I towered over Israel's whole army, but a shepherd boy brought me down with a sling and a stone. Who am I?", a: "Goliath" },
+  { q: "I was the very first man, formed by God from the dust of the ground. Who am I?", a: "Adam" },
+  { q: "My coat had many colours, and my dreams carried me from a pit to a palace in Egypt. Who am I?", a: "Joseph" }
+];
+const _today = new Date();
+const _dayOfYear = Math.floor((_today - new Date(_today.getFullYear(), 0, 0)) / 86400000);
+const RIDDLE_INDEX = _dayOfYear % RIDDLES.length;
+document.getElementById('riddle-text').textContent = RIDDLES[RIDDLE_INDEX].q;
+
 async function handleSubmit(e) {
   e.preventDefault();
-  const email = document.getElementById('email-input').value;
+  const name = document.getElementById('name-input').value.trim();
+  const email = document.getElementById('email-input').value.trim();
+  const website = document.getElementById('website-input').value;
   const msg = document.getElementById('form-msg');
   msg.textContent = 'Sending your free pack... ✨';
   try {
-    await fetch(ARTISY_WEBHOOK, {
+    const res = await fetch(ARTISY_SIGNUP_ENDPOINT, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, source: 'homepage', name: '' })
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      redirect: 'follow',
+      body: JSON.stringify({ name, email, source: 'homepage', gift: 'healing-starter-pack', website, riddle: RIDDLE_INDEX })
     });
-    msg.textContent = '✅ Check your inbox! Your free pack is on the way. 💌';
+    const data = await res.json();
+    if (!data || data.ok !== true) throw new Error('signup not confirmed');
+    msg.textContent = "✅ You're in! Your gifts are right below — and your riddle answer is revealed above. 💌";
+    document.getElementById('riddle-answer-text').textContent = RIDDLES[RIDDLE_INDEX].a;
+    document.getElementById('riddle-answer').style.display = 'block';
+    document.getElementById('gift-links').style.display = 'block';
     document.getElementById('email-input').value = '';
+    document.getElementById('name-input').value = '';
   } catch(err) {
-    msg.textContent = '✅ You\'re on the list! Check your email shortly.';
+    msg.textContent = "⚠️ Something went wrong and your signup did NOT go through. Please check your connection and try again — we don't want you to miss your gifts.";
   }
 }
 </script>

@@ -152,10 +152,15 @@
   <h2>🎁 Get FREE Bonus Downloads</h2>
   <p>Enter your email to unlock free workbooks, puzzle books & exclusive tracks</p>
   <form class="email-form" id="emailForm">
-    <input type="email" id="emailInput" placeholder="your@email.com" required>
+    <input type="text" id="nameInput" placeholder="First name (optional)" autocomplete="given-name">
+    <input type="email" id="emailInput" placeholder="your@email.com" required autocomplete="email">
+    <div aria-hidden="true" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;">
+      <label>Website <input type="text" name="website" id="websiteInput" tabindex="-1" autocomplete="off"></label>
+    </div>
     <button type="submit">Get Free Gifts 🎁</button>
   </form>
-  <div id="email-success">✅ You're in! Check your email for your free gifts 🎉</div>
+  <div id="email-success">✅ You're in! 🎧 Your free Sleep Audio Sample is ready: <a href="https://huggingface.co/datasets/ziggylott/tlott-digital-products/resolve/main/nap-time-audio/sleep-tight.mp3" target="_blank" rel="noopener" style="color:#a7f3d0;text-decoration:underline;">"Sleep Tight" — listen now</a> 🎉</div>
+  <div id="email-error" style="display:none;color:#fca5a5;font-weight:600;margin-top:10px;">⚠️ Something went wrong and your signup did NOT go through. Please try again.</div>
 </div>
 
 <!-- STICKY PLAYER -->
@@ -835,23 +840,28 @@ function prevSong() {
 function onPlay() { document.getElementById('mainPlayBtn').textContent = '⏸'; }
 function onPause() { document.getElementById('mainPlayBtn').textContent = '▶'; }
 
-// EMAIL
+// EMAIL — signups go to the ARTISY Email Signups Google Sheet endpoint (Supabase retired Oct 31, 2026)
+const ARTISY_SIGNUP_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxltPuQYbHPbvBj2UWFgojoHvVEKcJwKHJRkOUxN7YNVRX0JXRTs-ORTigTaVAA2g/exec';
 document.getElementById('emailForm').addEventListener('submit', async function(e) {
   e.preventDefault();
-  const email = document.getElementById('emailInput').value;
+  const name = document.getElementById('nameInput').value.trim();
+  const email = document.getElementById('emailInput').value.trim();
+  const website = document.getElementById('websiteInput').value;
+  document.getElementById('email-error').style.display = 'none';
   try {
-    await fetch('https://lltlbjmurwhnotjegjrz.supabase.co/rest/v1/subscribers', {
+    const res = await fetch(ARTISY_SIGNUP_ENDPOINT, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxsdGxiam11cndoem90amVnanJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI0MDU4NTMsImV4cCI6MjA0Nzk4MTg1M30.8lOQGLYoJgfqGAQMMSiQhq3e7cR7lKVx2_C2HaVmBlo',
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxsdGxiam11cndoem90amVnanJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI0MDU4NTMsImV4cCI6MjA0Nzk4MTg1M30.8lOQGLYoJgfqGAQMMSiQhq3e7cR7lKVx2_C2HaVmBlo'
-      },
-      body: JSON.stringify({ email, source: 'music_hub', created_at: new Date().toISOString() })
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      redirect: 'follow',
+      body: JSON.stringify({ name, email, source: 'music_hub', gift: 'sleep-audio-sample', website })
     });
-  } catch(err) {}
-  document.getElementById('email-success').style.display = 'block';
-  document.getElementById('emailForm').style.display = 'none';
+    const data = await res.json();
+    if (!data || data.ok !== true) throw new Error('signup not confirmed');
+    document.getElementById('email-success').style.display = 'block';
+    document.getElementById('emailForm').style.display = 'none';
+  } catch(err) {
+    document.getElementById('email-error').style.display = 'block';
+  }
 });
 
 buildUI();
