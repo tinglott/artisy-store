@@ -26,6 +26,14 @@ const MAX_HISTORY_TURNS = 8;
 const MAX_MESSAGE_CHARS = 1000;
 const MAX_BODY_BYTES = 16384;
 const BRAIN_TIMEOUT_MS = 15000;
+// Bounded retry for transient brain failures (HTTP 429 / 5xx only): the
+// free-tier brain rate-limits under rapid back-to-back questions, and one
+// dropped call used to mean a dead-end fallback for the visitor. Retry up to
+// 2 more times, honoring Retry-After when the provider sends it, inside a
+// total added-wait budget; anything else fails soft exactly as before.
+const BRAIN_MAX_ATTEMPTS = 3; // 1 initial try + up to 2 retries
+const BRAIN_BACKOFF_MS = [2000, 5000]; // wait before retry 1, then retry 2
+const BRAIN_RETRY_BUDGET_MS = 20000; // cap on total added wait across retries
 
 // Per-IP abuse budget (in-memory, per function instance — a basic speed bump,
 // not a distributed limiter).
@@ -244,7 +252,30 @@ function cleanHistory(history) {
     .map((m) => ({ role: m.role, content: m.content.slice(0, MAX_MESSAGE_CHARS) }));
 }
 
-async function callBrain(key, message, history) {
+function parseRetryAfterMs(resp) {
+  try {
+    if (!resp || !resp.headers || typeof resp.headers.get !== 'function') {
+      return null;
+    }
+    const raw = resp.headers.get('retry-after');
+    if (!raw) return null;
+    const secs = Number(raw);
+    if (Number.isFinite(secs)) return Math.max(0, Math.round(secs * 1000));
+    const at = Date.parse(raw);
+    if (!Number.isNaN(at)) return Math.max(0, at - Date.now());
+  } catch {
+    /* unparsable header — caller falls back to the backoff schedule */
+  }
+  return null;
+}
+
+function sleepMs(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// One brain attempt. Returns { reply } on success, otherwise
+// { reply: null, retryable, retryAfterMs } describing the failure.
+async function callBrainOnce(key, message, history) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), BRAIN_TIMEOUT_MS);
   try {
@@ -266,7 +297,15 @@ async function callBrain(key, message, history) {
         ],
       }),
     });
-    if (!resp || !resp.ok) return null;
+    if (!resp || !resp.ok) {
+      const status = resp && typeof resp.status === 'number' ? resp.status : 0;
+      const retryable = status === 429 || (status >= 500 && status < 600);
+      return {
+        reply: null,
+        retryable,
+        retryAfterMs: retryable ? parseRetryAfterMs(resp) : null,
+      };
+    }
     const data = await resp.json();
     const reply =
       data &&
@@ -274,13 +313,35 @@ async function callBrain(key, message, history) {
       data.choices[0] &&
       data.choices[0].message &&
       data.choices[0].message.content;
-    if (typeof reply !== 'string' || !reply.trim()) return null;
-    return reply.trim();
+    if (typeof reply !== 'string' || !reply.trim()) {
+      return { reply: null, retryable: false, retryAfterMs: null };
+    }
+    return { reply: reply.trim(), retryable: false, retryAfterMs: null };
   } catch {
-    return null;
+    return { reply: null, retryable: false, retryAfterMs: null };
   } finally {
     clearTimeout(timer);
   }
+}
+
+// Brain call with the bounded retry described at BRAIN_MAX_ATTEMPTS: only
+// HTTP 429 and transient 5xx are retried; the wait before each retry is the
+// provider's Retry-After when present, else the backoff schedule, and the
+// total added wait never exceeds BRAIN_RETRY_BUDGET_MS. Any other failure —
+// or a spent budget — returns null and the handler fails soft as before.
+async function callBrain(key, message, history) {
+  let waitedMs = 0;
+  for (let attempt = 0; attempt < BRAIN_MAX_ATTEMPTS; attempt += 1) {
+    const out = await callBrainOnce(key, message, history);
+    if (out.reply) return out.reply;
+    if (!out.retryable || attempt === BRAIN_MAX_ATTEMPTS - 1) return null;
+    const plannedMs =
+      out.retryAfterMs != null ? out.retryAfterMs : BRAIN_BACKOFF_MS[attempt];
+    if (waitedMs + plannedMs > BRAIN_RETRY_BUDGET_MS) return null;
+    if (plannedMs > 0) await sleepMs(plannedMs);
+    waitedMs += plannedMs;
+  }
+  return null;
 }
 
 /* ------------------------------------------------------------------ */
