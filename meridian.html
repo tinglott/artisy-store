@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meridian — AI Visibility Studio</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;700&display=swap');
+  :root{
+    --navy:#14213D; --navy-deep:#0C1730; --navy-soft:#28365A;
+    --gold:#C6A15B; --gold-soft:#E4D3A6; --cream:#FAF6EC;
+    --ink:#241F18; --ink-soft:#5B5445; --success:#3F6E52; --success-bg:#E9F1EA;
+    --warn:#A3492F; --warn-bg:#F6E7E1; --line:#E4DAC4;
+  }
+  *{ box-sizing:border-box; font-family:'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif; }
+  body{ margin:0; background:var(--cream); color:var(--ink); }
+  .serif{ font-family:'Cormorant Garamond', Georgia, serif; }
+  header{ background:var(--navy); border-bottom:1px solid var(--line); }
+  .wrap{ max-width:64rem; margin:0 auto; padding:0 1.25rem; }
+  .header-inner{ display:flex; align-items:center; gap:.75rem; padding:1.5rem 0; }
+  .header-inner h1{ margin:0; color:var(--cream); font-size:1.6rem; font-weight:600; }
+  .header-inner p{ margin:0; color:var(--gold-soft); font-size:.75rem; }
+  .header-right{ margin-left:auto; display:flex; align-items:center; gap:.75rem; }
+  .key-status{ font-size:.72rem; color:var(--gold-soft); opacity:.85; }
+  button{ cursor:pointer; font:inherit; }
+  .btn{ display:inline-flex; align-items:center; gap:.45rem; border-radius:.5rem; padding:.5rem 1rem; font-size:.875rem; font-weight:500; border:1px solid transparent; }
+  .btn:disabled{ opacity:.45; cursor:default; }
+  .btn-navy{ background:var(--navy); color:var(--cream); }
+  .btn-gold{ background:var(--gold); color:var(--navy-deep); }
+  .btn-ghost{ background:transparent; border-color:var(--line); color:var(--navy); }
+  .btn-small{ padding:.3rem .6rem; font-size:.75rem; }
+  nav.tabs{ background:#fff; border-bottom:1px solid var(--line); }
+  nav.tabs .wrap{ display:flex; gap:.25rem; }
+  nav.tabs button{ background:none; border:none; border-bottom:2px solid transparent; margin-bottom:-1px; padding:.8rem 1rem; font-size:.875rem; font-weight:500; color:var(--ink-soft); }
+  nav.tabs button.active{ border-bottom-color:var(--gold); color:var(--navy); }
+  main{ padding:2rem 0; }
+  .grid3{ display:grid; gap:1rem; grid-template-columns:1fr; }
+  @media (min-width:640px){ .grid3{ grid-template-columns:repeat(3,1fr); } }
+  @media (min-width:1024px){ .split{ display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; } .split2{ display:grid; grid-template-columns:1fr 1fr; gap:1rem; } }
+  label.flabel{ display:block; font-size:.72rem; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-soft); }
+  input.finput, textarea.finput, select.finput{ margin-top:.25rem; width:100%; border:1px solid var(--line); border-radius:.5rem; padding:.5rem .75rem; font-size:.875rem; color:var(--ink); background:#fff; outline:none; }
+  textarea.finput{ resize:vertical; }
+  .card{ background:#fff; border:1px solid var(--line); border-radius:.75rem; padding:1rem; }
+  .alert{ display:flex; gap:.5rem; align-items:flex-start; border-radius:.5rem; padding:.55rem .75rem; font-size:.875rem; background:var(--warn-bg); color:var(--warn); }
+  .notice{ border-radius:.5rem; padding:.55rem .75rem; font-size:.875rem; background:var(--gold-soft); color:var(--navy-deep); }
+  .hidden{ display:none !important; }
+  .pill{ font-size:.75rem; padding:.35rem .8rem; border-radius:999px; border:1px solid var(--line); background:transparent; color:var(--ink-soft); }
+  .pill.active{ background:var(--gold); border-color:var(--gold); color:var(--navy-deep); }
+  .badge{ display:inline-flex; align-items:center; gap:.3rem; font-size:.72rem; padding:.25rem .55rem; border-radius:999px; white-space:nowrap; }
+  .badge-ok{ background:var(--success-bg); color:var(--success); }
+  .badge-no{ background:var(--warn-bg); color:var(--warn); }
+  .chip{ font-size:.72rem; padding:.15rem .55rem; border-radius:999px; background:var(--cream); color:var(--ink-soft); border:1px solid var(--line); }
+  .meter{ position:relative; width:100%; height:.5rem; border-radius:999px; background:var(--line); }
+  .meter-fill{ position:absolute; top:0; left:0; height:.5rem; border-radius:999px; transition:width .7s; }
+  .meter-dot{ position:absolute; top:-.25rem; width:1rem; height:1rem; border-radius:999px; border:2px solid; background:var(--cream); transition:left .7s; }
+  .score-panel{ background:var(--navy); color:var(--cream); border-radius:.75rem; padding:1.25rem; }
+  .score-big{ font-size:2.4rem; font-weight:600; line-height:1; }
+  .bar{ height:.375rem; border-radius:999px; background:rgba(255,255,255,.2); }
+  .bar > div{ height:.375rem; border-radius:999px; background:var(--gold); }
+  pre.jsonout{ background:var(--navy-deep); color:var(--gold-soft); border-radius:.75rem; padding:1rem; font-size:.75rem; overflow:auto; max-height:520px; margin:0; white-space:pre-wrap; word-break:break-word; }
+  .rawbox{ background:var(--cream); color:var(--ink); border-radius:.5rem; padding:.75rem; font-size:.75rem; white-space:pre-wrap; }
+  .field-grid{ display:grid; gap:.75rem; grid-template-columns:1fr; }
+  @media (min-width:640px){ .field-grid{ grid-template-columns:1fr 1fr; } }
+  .muted{ color:var(--ink-soft); font-size:.75rem; }
+  .spin{ display:inline-block; width:14px; height:14px; border:2px solid currentColor; border-top-color:transparent; border-radius:50%; animation:sp 0.8s linear infinite; vertical-align:-2px; }
+  @keyframes sp{ to{ transform:rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce){ .spin{ animation:none; } .meter-fill,.meter-dot{ transition:none; } }
+  footer{ padding:1rem 0 2.5rem; }
+  .settings-panel{ background:#fff; border-bottom:1px solid var(--line); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap header-inner">
+    <svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true">
+      <circle cx="20" cy="20" r="18" fill="none" stroke="#C6A15B" stroke-width="1.5" opacity="0.5"/>
+      <line x1="20" y1="4" x2="20" y2="36" stroke="#C6A15B" stroke-width="1" opacity="0.4"/>
+      <circle cx="20" cy="20" r="3.5" fill="#C6A15B"/>
+    </svg>
+    <div>
+      <h1 class="serif">Meridian</h1>
+      <p>AI Visibility Studio — real citation checks, real schema, real analysis</p>
+    </div>
+    <div class="header-right">
+      <span class="key-status" id="keyStatus"></span>
+      <button class="btn btn-gold btn-small" id="settingsToggle">⚙ Settings</button>
+    </div>
+  </div>
+</header>
+
+<div class="settings-panel hidden" id="settingsPanel">
+  <div class="wrap" style="padding-top:1rem; padding-bottom:1rem;">
+    <div class="split2" style="display:grid; gap:1rem;">
+      <div>
+        <label class="flabel" for="apiKeyInput">Anthropic API key</label>
+        <input class="finput" type="password" id="apiKeyInput" placeholder="sk-ant-…" autocomplete="off">
+        <p class="muted">Stored only in this browser's localStorage — never sent anywhere except api.anthropic.com. Get a key at console.anthropic.com. Requests carry the browser-access header; if calls fail with a CORS/network error, open the file from a local web server (or your hosting) instead of file:// and confirm the key is active in the Anthropic Console.</p>
+      </div>
+      <div>
+        <label class="flabel" for="modelInput">Model</label>
+        <input class="finput" type="text" id="modelInput">
+        <p class="muted">Default: claude-sonnet-4-6. Change it here — no rebuild needed.</p>
+        <div style="margin-top:.75rem; display:flex; gap:.5rem; flex-wrap:wrap;">
+          <button class="btn btn-navy btn-small" id="saveSettings">Save settings</button>
+          <button class="btn btn-ghost btn-small" id="clearData">Clear saved data</button>
+        </div>
+        <p class="muted" id="settingsMsg"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<nav class="tabs">
+  <div class="wrap">
+    <button data-tab="check" class="active">🔍 Visibility check</button>
+    <button data-tab="schema">⌥ Schema generator</button>
+    <button data-tab="content">📄 Content analysis</button>
+  </div>
+</nav>
+
+<main class="wrap">
+
+  <!-- ============ TAB: VISIBILITY CHECK ============ -->
+  <section id="tab-check">
+    <div class="notice hidden" id="noKeyNoticeCheck" style="margin-bottom:1rem;">
+      Add your Anthropic API key in <strong>Settings</strong> to run live checks. Until then, no request is made — the Schema generator works without a key.
+    </div>
+    <div class="grid3">
+      <div>
+        <label class="flabel" for="brandInput">Brand name *</label>
+        <input class="finput" id="brandInput" placeholder="e.g. Artistry Store">
+      </div>
+      <div>
+        <label class="flabel" for="nicheInput">Niche / industry *</label>
+        <input class="finput" id="nicheInput" placeholder="e.g. printable wall art">
+      </div>
+      <div>
+        <label class="flabel" for="locationInput">Location (optional)</label>
+        <input class="finput" id="locationInput" placeholder="e.g. online / a city">
+      </div>
+    </div>
+
+    <div style="display:flex; gap:.75rem; flex-wrap:wrap; margin-top:1rem;">
+      <button class="btn btn-navy" id="genQueriesBtn">✦ Generate query set</button>
+      <button class="btn btn-gold" id="runCheckBtn">🔍 Run visibility check</button>
+    </div>
+
+    <div class="alert hidden" id="checkError" style="margin-top:1rem;"></div>
+
+    <div class="card hidden" id="queryCard" style="margin-top:1.25rem;">
+      <div class="flabel" style="margin-bottom:.5rem;">Query set (<span id="queryCount">0</span>)</div>
+      <ul id="queryList" style="list-style:none; margin:0; padding:0;"></ul>
+      <div style="display:flex; gap:.5rem; margin-top:.75rem;">
+        <input class="finput" id="newQueryInput" placeholder="Add a custom query…" style="margin-top:0;">
+        <button class="btn btn-ghost btn-small" id="addQueryBtn">＋ Add</button>
+      </div>
+    </div>
+
+    <div class="score-panel hidden" id="scorePanel" style="margin-top:1.25rem;">
+      <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:.5rem; align-items:baseline;">
+        <div>
+          <div style="font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; opacity:.7;">Visibility score</div>
+          <div class="score-big serif"><span id="scoreOverall">0</span><span style="font-size:1.1rem; opacity:.6;">/100</span></div>
+        </div>
+        <div class="muted" style="color:var(--gold-soft); max-width:18rem; text-align:right;" id="scoreFormula"></div>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-top:1rem; font-size:.72rem;">
+        <div><div style="opacity:.7; margin-bottom:.25rem;">Mention rate</div><div class="bar"><div id="barMention"></div></div><div id="valMention" style="margin-top:.25rem;"></div></div>
+        <div><div style="opacity:.7; margin-bottom:.25rem;">Position</div><div class="bar"><div id="barPosition"></div></div><div id="valPosition" style="margin-top:.25rem;"></div></div>
+        <div><div style="opacity:.7; margin-bottom:.25rem;">Sentiment</div><div class="bar"><div id="barSentiment"></div></div><div id="valSentiment" style="margin-top:.25rem;"></div></div>
+      </div>
+    </div>
+
+    <div id="resultsList" style="margin-top:1.25rem; display:grid; gap:.75rem;"></div>
+  </section>
+
+  <!-- ============ TAB: SCHEMA GENERATOR ============ -->
+  <section id="tab-schema" class="hidden">
+    <div class="split">
+      <div style="display:grid; gap:1rem; align-content:start;">
+        <div>
+          <span class="flabel">Schema type</span>
+          <div id="typePills" style="display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.35rem;"></div>
+        </div>
+        <div id="subtypeRow" class="hidden">
+          <label class="flabel" for="subtypeSelect">Business subtype (use the most specific TRUE type)</label>
+          <select class="finput" id="subtypeSelect"></select>
+        </div>
+        <div class="field-grid" id="schemaFields"></div>
+        <div id="hoursNote" class="muted hidden">Opening hours: one line per day or day-range, e.g. <em>Mo-Fr 09:00-17:00</em> or <em>Saturday 10:00-14:00</em>. Days you are closed are simply left out.</div>
+        <div id="faqEditor" class="hidden" style="display:grid; gap:.75rem;"></div>
+        <div id="faqAddRow" class="hidden">
+          <button class="btn btn-ghost btn-small" id="addFaqBtn">＋ Add question</button>
+        </div>
+      </div>
+      <div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:.5rem;">
+          <span class="flabel">Generated JSON-LD</span>
+          <span style="display:flex; gap:.5rem;">
+            <button class="btn btn-ghost btn-small" id="copySchemaBtn">⧉ Copy</button>
+            <button class="btn btn-ghost btn-small" id="downloadSchemaBtn">↓ Download</button>
+          </span>
+        </div>
+        <pre class="jsonout" id="schemaOut"></pre>
+        <p class="muted" id="schemaHint">Fill in fields to generate schema…</p>
+        <p class="muted">Paste the JSON inside a <code>&lt;script type="application/ld+json"&gt;</code> tag in your page's <code>&lt;head&gt;</code>. Only include facts that are true of your business — a deleted line is honest; a guessed line is not.</p>
+        <p class="muted"><strong>No ratings field, on purpose:</strong> Meridian never emits <code>aggregateRating</code>. Star ratings must come from real review platforms (Google, Trustpilot, Yelp) — never self-declared in your own schema.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TAB: CONTENT ANALYSIS ============ -->
+  <section id="tab-content" class="hidden">
+    <div class="notice hidden" id="noKeyNoticeContent" style="margin-bottom:1rem;">
+      Add your Anthropic API key in <strong>Settings</strong> to run a live analysis. Until then, no request is made.
+    </div>
+    <div style="max-width:22rem;">
+      <label class="flabel" for="contentNicheInput">Niche (optional)</label>
+      <input class="finput" id="contentNicheInput" placeholder="e.g. spiritual poetry">
+    </div>
+    <div style="margin-top:1rem;">
+      <label class="flabel" for="contentInput">Page copy to analyze *</label>
+      <textarea class="finput" id="contentInput" rows="8" placeholder="Paste your about page, product description, or landing page copy…"></textarea>
+    </div>
+    <button class="btn btn-navy" id="analyzeBtn" style="margin-top:1rem;">📄 Analyze content</button>
+    <div class="alert hidden" id="contentError" style="margin-top:1rem;"></div>
+    <div class="rawbox hidden" id="contentRaw" style="margin-top:1rem;"></div>
+    <div id="contentResults" style="margin-top:1rem;"></div>
+  </section>
+
+</main>
+
+<footer class="wrap">
+  <p class="muted" style="border-top:1px solid var(--line); padding-top:1rem;">
+    Visibility checks query Claude directly (with live web search) and report exactly what it says — there's no simulated data. Other AI engines (ChatGPT, Gemini, Perplexity) aren't queried, since no API access to them is available here.
+  </p>
+</footer>
+
+<script id="meridian-core">
+'use strict';
+/*
+ * Meridian — AI Visibility Studio · pure logic core.
+ * No DOM, no network in this file: extraction, prompts, scoring,
+ * and JSON-LD schema builders. This exact text is injected verbatim
+ * into meridian.html by build.cjs, and the tests run against BOTH
+ * this source and the shipped file's own script block.
+ */
+(function (global) {
+  var ANALYSIS_MARKER = '---ANALYSIS---';
+  var DEFAULT_MODEL = 'claude-sonnet-4-6';
+  var SETTINGS_KEY = 'meridian:settings';
+  var SETUP_KEY = 'meridian:setup';
+  var MAX_POSITION = 6;
+
+  // ---------- model reply extraction ----------
+
+  function extractText(data) {
+    if (!data || !Array.isArray(data.content)) return '';
+    return data.content
+      .filter(function (b) { return b && b.type === 'text'; })
+      .map(function (b) { return b.text; })
+      .join('\n');
+  }
+
+  function extractJSON(raw) {
+    if (!raw) return null;
+    var s = String(raw).trim();
+    var fence = s.match(/```(?:json)?\s*([\s\S]*?)```/i);
+    if (fence) s = fence[1].trim();
+    var start = s.indexOf('{');
+    var arrStart = s.indexOf('[');
+    var from = -1;
+    if (start !== -1 && (arrStart === -1 || start < arrStart)) from = start;
+    else if (arrStart !== -1) from = arrStart;
+    if (from === -1) return null;
+    var openChar = s[from];
+    var closeChar = openChar === '{' ? '}' : ']';
+    var lastClose = s.lastIndexOf(closeChar);
+    if (lastClose === -1 || lastClose < from) return null;
+    var candidate = s.slice(from, lastClose + 1);
+    try {
+      return JSON.parse(candidate);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // ---------- prompts (shapes carried from the original design) ----------
+
+  function buildGenerateQueriesPrompt(opts) {
+    var niche = String(opts.niche || '').trim();
+    var locBit = String(opts.location || '').trim() ? ' in ' + String(opts.location).trim() : '';
+    return 'Generate 6 realistic buyer-intent questions a real customer would type into an AI assistant (like Claude or ChatGPT) when looking for a "' + niche + '" business or product' + locBit + '. These should be the kinds of questions where an AI might recommend specific named businesses or products — not generic how-to questions. Return ONLY a JSON array of 6 strings, nothing else, no markdown fences.';
+  }
+
+  function buildVisibilityPrompt(opts) {
+    var brand = String(opts.brand || '').trim();
+    var q = String(opts.query || '');
+    return 'Answer this question naturally and helpfully, the way you\'d answer a real user, recommending specific real, current businesses or products by name where relevant. Use web search to ground your answer in current information.\n\nQuestion: "' + q + '"\n\nAfter your full answer, add a new line that says exactly ---ANALYSIS--- and then, after that line, output ONLY a JSON object (no markdown fences, no extra commentary) with these keys:\n- mentioned: boolean — does "' + brand + '" appear anywhere in your answer above (case-insensitive, close variants count)?\n- position: integer or null — if mentioned, what rank/order was it mentioned in relative to other named brands (1 = first named), else null\n- sentiment: one of "positive", "neutral", "negative", or null if not mentioned\n- competitors: array of up to 5 other real brand/business names you mentioned, excluding "' + brand + '"';
+  }
+
+  function buildContentPrompt(opts) {
+    var nicheBit = String(opts.niche || '').trim() ? ' in the "' + String(opts.niche).trim() + '" niche' : '';
+    var content = String(opts.content || '').trim();
+    return 'You are a GEO (generative engine optimization) analyst. Analyze the following page copy' + nicheBit + ' for how likely it is to be cited or recommended by AI assistants (like Claude, ChatGPT, Gemini) when they answer buyer questions. Be specific and honest — base every point on the actual text given, don\'t give generic advice.\n\nPAGE COPY:\n"""\n' + content + '\n"""\n\nOutput ONLY a JSON object (no markdown fences, no commentary outside it) with keys:\n- strengths: array of up to 4 strings, each citing something concrete already in the text\n- gaps: array of up to 5 strings, each a specific missing signal (e.g. missing pricing clarity, no clear entity/author, no structured Q&A, vague claims, no comparison context)\n- rewrites: array of up to 3 objects each with "before" (a short verbatim-ish snippet or paraphrase of a weak part of the actual text) and "after" (a concrete improved rewrite of that same part)';
+  }
+
+  // ---------- visibility result parsing + scoring ----------
+
+  function parseVisibilityResult(raw) {
+    var text = raw == null ? '' : String(raw);
+    var idx = text.indexOf(ANALYSIS_MARKER);
+    var answerText = idx !== -1 ? text.slice(0, idx).trim() : text.trim();
+    var jsonPart = idx !== -1 ? text.slice(idx + ANALYSIS_MARKER.length) : text;
+    var analysis = extractJSON(jsonPart) || {};
+    var parseFailed = !analysis || Object.keys(analysis).length === 0;
+    return {
+      answerText: answerText,
+      mentioned: !!analysis.mentioned,
+      position: typeof analysis.position === 'number' ? analysis.position : null,
+      sentiment: analysis.sentiment || null,
+      competitors: Array.isArray(analysis.competitors) ? analysis.competitors.slice(0, 5).map(String) : [],
+      parseFailed: parseFailed
+    };
+  }
+
+  function positionScore(position) {
+    var p = position || MAX_POSITION;
+    return Math.max(0, (MAX_POSITION - Math.min(p, MAX_POSITION) + 1) / MAX_POSITION);
+  }
+
+  var SENTIMENT_SCORES = { positive: 1, neutral: 0.5, negative: 0 };
+
+  function sentimentScore(sentiment) {
+    var v = SENTIMENT_SCORES[sentiment];
+    return typeof v === 'number' ? v : 0.5;
+  }
+
+  // results: array of rows; rows with .error are excluded (as in the design).
+  function computeVisibilityScore(results) {
+    var rows = Array.isArray(results) ? results : [];
+    var valid = rows.filter(function (r) { return r && !r.error; });
+    if (!valid.length) return null;
+    var mentioned = valid.filter(function (r) { return r.mentioned; });
+    var mentionRate = mentioned.length / valid.length;
+    var avgPositionScore = mentioned.length
+      ? mentioned.reduce(function (acc, r) { return acc + positionScore(r.position); }, 0) / mentioned.length
+      : 0;
+    var avgSentimentScore = mentioned.length
+      ? mentioned.reduce(function (acc, r) { return acc + sentimentScore(r.sentiment); }, 0) / mentioned.length
+      : 0;
+    var overall = Math.round((mentionRate * 0.5 + avgPositionScore * 0.3 + avgSentimentScore * 0.2) * 100);
+    return {
+      validCount: valid.length,
+      mentionedCount: mentioned.length,
+      mentionRate: mentionRate,
+      avgPositionScore: avgPositionScore,
+      avgSentimentScore: avgSentimentScore,
+      overall: overall
+    };
+  }
+
+  // The signature meridian meter: needle position as a percentage of track width.
+  function meridianMeterPct(mentioned, position, maxPosition) {
+    var max = maxPosition || MAX_POSITION;
+    if (!mentioned) return 3;
+    var p = Math.min(position || max, max);
+    return Math.max(6, Math.min(96, ((max - p + 1) / max) * 100));
+  }
+
+  function parseContentAnalysis(raw) {
+    var parsed = extractJSON(raw);
+    if (parsed && (parsed.strengths || parsed.gaps || parsed.rewrites)) return parsed;
+    return null;
+  }
+
+  // ---------- JSON-LD schema builders ----------
+
+  function isBlank(v) {
+    return v === undefined || v === null || (typeof v === 'string' && v.trim() === '');
+  }
+
+  function omitEmpty(obj) {
+    var out = {};
+    Object.keys(obj).forEach(function (k) {
+      var v = obj[k];
+      if (k === '@context' || k === '@type') { out[k] = v; return; }
+      if (isBlank(v)) return;
+      if (Array.isArray(v)) {
+        var items = v.filter(function (i) { return !isBlank(i); });
+        if (items.length) out[k] = items;
+        return;
+      }
+      if (typeof v === 'object') {
+        var sub = omitEmpty(v);
+        var meaningful = Object.keys(sub).filter(function (sk) { return sk !== '@type'; });
+        if (meaningful.length) out[k] = sub;
+        return;
+      }
+      out[k] = v;
+    });
+    return out;
+  }
+
+  function splitList(value) {
+    if (Array.isArray(value)) return value.map(function (s) { return String(s).trim(); }).filter(Boolean);
+    if (isBlank(value)) return [];
+    return String(value).split(/[\n,]+/).map(function (s) { return s.trim(); }).filter(Boolean);
+  }
+
+  var DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  var DAY_LOOKUP = {
+    mo: 0, mon: 0, monday: 0,
+    tu: 1, tue: 1, tues: 1, tuesday: 1,
+    we: 2, wed: 2, wednesday: 2,
+    th: 3, thu: 3, thur: 3, thurs: 3, thursday: 3,
+    fr: 4, fri: 4, friday: 4,
+    sa: 5, sat: 5, saturday: 5,
+    su: 6, sun: 6, sunday: 6
+  };
+
+  function parseDayToken(tok) {
+    var key = String(tok || '').trim().toLowerCase().replace(/\.$/, '');
+    return Object.prototype.hasOwnProperty.call(DAY_LOOKUP, key) ? DAY_LOOKUP[key] : -1;
+  }
+
+  function expandDayPart(part) {
+    var days = [];
+    String(part).split(',').forEach(function (piece) {
+      var bits = piece.split(/\s*[-–—]\s*/).map(function (b) { return b.trim(); }).filter(Boolean);
+      if (bits.length === 1) {
+        var d = parseDayToken(bits[0]);
+        if (d !== -1) days.push(d);
+      } else if (bits.length === 2) {
+        var a = parseDayToken(bits[0]);
+        var b = parseDayToken(bits[1]);
+        if (a !== -1 && b !== -1) {
+          var i = a;
+          for (;;) { days.push(i); if (i === b) break; i = (i + 1) % 7; }
+        }
+      }
+    });
+    return days;
+  }
+
+  // Lines like "Mo-Fr 09:00-17:00" or "Saturday 10:00-14:00".
+  // Returns { specs: [...OpeningHoursSpecification], ignored: [unparsed lines] }.
+  function parseOpeningHours(text) {
+    var specs = [];
+    var ignored = [];
+    splitLines(text).forEach(function (line) {
+      var m = line.match(/^(.+?)\s+(\d{1,2}:\d{2})\s*[-–—]\s*(\d{1,2}:\d{2})$/);
+      if (!m) { ignored.push(line); return; }
+      var idxs = expandDayPart(m[1]);
+      if (!idxs.length) { ignored.push(line); return; }
+      var names = idxs.map(function (i) { return DAY_NAMES[i]; });
+      specs.push({
+        '@type': 'OpeningHoursSpecification',
+        dayOfWeek: names.length === 1 ? names[0] : names,
+        opens: m[2],
+        closes: m[3]
+      });
+    });
+    return { specs: specs, ignored: ignored };
+  }
+
+  function splitLines(text) {
+    if (isBlank(text)) return [];
+    return String(text).split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
+  }
+
+  function buildOrganization(f) {
+    return omitEmpty({
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: f.name,
+      url: f.url,
+      logo: f.logo,
+      description: f.description,
+      email: f.email,
+      sameAs: splitList(f.sameAs)
+    });
+  }
+
+  var LOCAL_SUBTYPES = ['LocalBusiness', 'Store', 'Restaurant', 'Dentist', 'Plumber', 'HairSalon', 'ProfessionalService', 'MedicalClinic', 'RealEstateAgent', 'AutoRepair', 'CafeOrCoffeeShop', 'Bakery', 'Gym', 'Lawyer', 'Electrician', 'Locksmith'];
+
+  function buildLocalBusiness(f) {
+    var subtype = LOCAL_SUBTYPES.indexOf(f.subtype) !== -1 ? f.subtype : 'LocalBusiness';
+    var address = omitEmpty({
+      '@type': 'PostalAddress',
+      streetAddress: f.street,
+      addressLocality: f.city,
+      addressRegion: f.state,
+      postalCode: f.zip,
+      addressCountry: f.country
+    });
+    var lat = parseFloat(f.latitude);
+    var lng = parseFloat(f.longitude);
+    var geo = (!isNaN(lat) && !isNaN(lng))
+      ? { '@type': 'GeoCoordinates', latitude: lat, longitude: lng }
+      : undefined;
+    var hours = parseOpeningHours(f.openingHours).specs;
+    return omitEmpty({
+      '@context': 'https://schema.org',
+      '@type': subtype,
+      name: f.name,
+      url: f.url,
+      description: f.description,
+      telephone: f.telephone,
+      email: f.email,
+      priceRange: f.priceRange,
+      image: f.image,
+      address: Object.keys(address).length > 1 ? address : undefined,
+      geo: geo,
+      openingHoursSpecification: hours.length ? hours : undefined,
+      areaServed: f.areaServed,
+      sameAs: splitList(f.sameAs)
+    });
+  }
+
+  function buildProduct(f) {
+    var offers = omitEmpty({
+      '@type': 'Offer',
+      price: f.price,
+      // Only default the currency when there is a price for it to describe —
+      // an Offer carrying nothing but "USD" is noise, not schema.
+      priceCurrency: isBlank(f.currency) ? (isBlank(f.price) ? undefined : 'USD') : f.currency,
+      url: f.url,
+      availability: isBlank(f.availability) ? undefined : f.availability
+    });
+    return omitEmpty({
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: f.name,
+      description: f.description,
+      image: f.image,
+      brand: isBlank(f.brand) ? undefined : { '@type': 'Brand', name: f.brand },
+      offers: Object.keys(offers).length > 1 ? offers : undefined
+    });
+  }
+
+  function buildBook(f) {
+    return omitEmpty({
+      '@context': 'https://schema.org',
+      '@type': 'Book',
+      name: f.name,
+      author: isBlank(f.author) ? undefined : { '@type': 'Person', name: f.author },
+      description: f.description,
+      isbn: f.isbn,
+      image: f.image,
+      url: f.url
+    });
+  }
+
+  function buildArticle(f) {
+    return omitEmpty({
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      headline: f.headline,
+      description: f.description,
+      author: isBlank(f.author) ? undefined : { '@type': 'Person', name: f.author },
+      datePublished: f.datePublished,
+      image: f.image,
+      url: f.url
+    });
+  }
+
+  function buildFAQ(items) {
+    var clean = (Array.isArray(items) ? items : []).filter(function (i) {
+      return i && !isBlank(i.q) && !isBlank(i.a);
+    });
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: clean.map(function (i) {
+        return {
+          '@type': 'Question',
+          name: String(i.q).trim(),
+          acceptedAnswer: { '@type': 'Answer', text: String(i.a).trim() }
+        };
+      })
+    };
+  }
+
+  function buildSchema(type, f, faqItems) {
+    f = f || {};
+    switch (type) {
+      case 'Organization': return buildOrganization(f);
+      case 'LocalBusiness': return buildLocalBusiness(f);
+      case 'Product': return buildProduct(f);
+      case 'Book': return buildBook(f);
+      case 'Article': return buildArticle(f);
+      case 'FAQPage': return buildFAQ(faqItems);
+      default: return {};
+    }
+  }
+
+  function schemaIsEmpty(schema) {
+    if (!schema) return true;
+    // "@context"/"@type" alone is an empty shell; an empty array
+    // (e.g. a FAQPage with no complete Q&A pairs) is too.
+    return Object.keys(schema).every(function (k) {
+      if (k === '@context' || k === '@type') return true;
+      var v = schema[k];
+      return Array.isArray(v) && v.length === 0;
+    });
+  }
+
+  var api = {
+    ANALYSIS_MARKER: ANALYSIS_MARKER,
+    DEFAULT_MODEL: DEFAULT_MODEL,
+    SETTINGS_KEY: SETTINGS_KEY,
+    SETUP_KEY: SETUP_KEY,
+    MAX_POSITION: MAX_POSITION,
+    LOCAL_SUBTYPES: LOCAL_SUBTYPES,
+    extractText: extractText,
+    extractJSON: extractJSON,
+    buildGenerateQueriesPrompt: buildGenerateQueriesPrompt,
+    buildVisibilityPrompt: buildVisibilityPrompt,
+    buildContentPrompt: buildContentPrompt,
+    parseVisibilityResult: parseVisibilityResult,
+    positionScore: positionScore,
+    sentimentScore: sentimentScore,
+    computeVisibilityScore: computeVisibilityScore,
+    meridianMeterPct: meridianMeterPct,
+    parseContentAnalysis: parseContentAnalysis,
+    omitEmpty: omitEmpty,
+    splitList: splitList,
+    parseOpeningHours: parseOpeningHours,
+    buildOrganization: buildOrganization,
+    buildLocalBusiness: buildLocalBusiness,
+    buildProduct: buildProduct,
+    buildBook: buildBook,
+    buildArticle: buildArticle,
+    buildFAQ: buildFAQ,
+    buildSchema: buildSchema,
+    schemaIsEmpty: schemaIsEmpty
+  };
+
+  global.MeridianCore = api;
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var Core = window.MeridianCore;
+  var WEB_SEARCH_TOOL = { type: 'web_search_20250305', name: 'web_search' };
+
+  function $(id) { return document.getElementById(id); }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  // ---------- settings + persistence (localStorage only) ----------
+  function loadJSON(key) {
+    try { var v = localStorage.getItem(key); return v ? JSON.parse(v) : null; } catch (e) { return null; }
+  }
+  function saveJSON(key, val) {
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) { /* non-fatal */ }
+  }
+  var settings = loadJSON(Core.SETTINGS_KEY) || {};
+  if (!settings.model) settings.model = Core.DEFAULT_MODEL;
+  var setup = loadJSON(Core.SETUP_KEY) || {};
+
+  var state = {
+    tab: 'check',
+    queries: Array.isArray(setup.queries) ? setup.queries.slice() : [],
+    results: [],
+    running: false,
+    genLoading: false,
+    schemaType: 'Organization',
+    schemaFields: {},
+    faq: [{ q: '', a: '' }],
+    analyzing: false
+  };
+
+  function hasKey() { return !!(settings.apiKey && String(settings.apiKey).trim()); }
+
+  function refreshKeyUI() {
+    $('keyStatus').textContent = hasKey() ? 'API key saved in this browser' : 'No API key set';
+    $('noKeyNoticeCheck').classList.toggle('hidden', hasKey());
+    $('noKeyNoticeContent').classList.toggle('hidden', hasKey());
+    $('runCheckBtn').disabled = state.running || !state.queries.length;
+  }
+
+  function persistSetup() {
+    saveJSON(Core.SETUP_KEY, {
+      brand: $('brandInput').value,
+      niche: $('nicheInput').value,
+      location: $('locationInput').value,
+      queries: state.queries
+    });
+  }
+
+  // ---------- API ----------
+  function friendlyError(err) {
+    if (err && err.isNetwork) {
+      return 'The request never reached Anthropic (network/CORS block). This app already sends the browser-access header — if this persists, serve this file over http(s) instead of file://, and check in the Anthropic Console (console.anthropic.com) that your API key is active and has credit.';
+    }
+    if (err && err.status === 401) return 'Anthropic rejected the API key (401). Check the key in Settings — it may be mistyped, revoked, or from a different workspace.';
+    if (err && err.status === 429) return 'Rate limited by Anthropic (429). Wait a moment and run again.';
+    if (err && err.status) return 'API error ' + err.status + (err.detail ? ': ' + err.detail : '');
+    return (err && err.message) || 'Something went wrong.';
+  }
+
+  async function callClaude(opts) {
+    if (!hasKey()) {
+      var e0 = new Error('Add your Anthropic API key in Settings first — no request was made.');
+      e0.noKey = true;
+      throw e0;
+    }
+    var body = {
+      model: settings.model || Core.DEFAULT_MODEL,
+      max_tokens: 1000,
+      messages: [{ role: 'user', content: opts.prompt }]
+    };
+    if (opts.tools) body.tools = opts.tools;
+    var res;
+    try {
+      res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': String(settings.apiKey).trim(),
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify(body)
+      });
+    } catch (netErr) {
+      var e1 = new Error('Network/CORS failure');
+      e1.isNetwork = true;
+      throw e1;
+    }
+    if (!res.ok) {
+      var t = '';
+      try { t = await res.text(); } catch (e) { /* ignore */ }
+      var e2 = new Error('API error ' + res.status);
+      e2.status = res.status;
+      e2.detail = t.slice(0, 200);
+      throw e2;
+    }
+    return res.json();
+  }
+
+  function showAlert(el, msg) {
+    if (!msg) { el.classList.add('hidden'); el.textContent = ''; return; }
+    el.textContent = '⚠ ' + msg;
+    el.classList.remove('hidden');
+  }
+
+  // ---------- tabs ----------
+  document.querySelectorAll('nav.tabs button').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      state.tab = btn.getAttribute('data-tab');
+      document.querySelectorAll('nav.tabs button').forEach(function (b) {
+        b.classList.toggle('active', b === btn);
+      });
+      ['check', 'schema', 'content'].forEach(function (t) {
+        $('tab-' + t).classList.toggle('hidden', t !== state.tab);
+      });
+    });
+  });
+
+  // ---------- settings panel ----------
+  $('settingsToggle').addEventListener('click', function () {
+    $('settingsPanel').classList.toggle('hidden');
+  });
+  $('apiKeyInput').value = settings.apiKey || '';
+  $('modelInput').value = settings.model || Core.DEFAULT_MODEL;
+  $('saveSettings').addEventListener('click', function () {
+    settings.apiKey = $('apiKeyInput').value.trim();
+    settings.model = $('modelInput').value.trim() || Core.DEFAULT_MODEL;
+    saveJSON(Core.SETTINGS_KEY, settings);
+    $('settingsMsg').textContent = 'Saved. The key never leaves this browser except to call Anthropic.';
+    refreshKeyUI();
+  });
+  $('clearData').addEventListener('click', function () {
+    try { localStorage.removeItem(Core.SETTINGS_KEY); localStorage.removeItem(Core.SETUP_KEY); } catch (e) { /* ignore */ }
+    settings = { model: Core.DEFAULT_MODEL };
+    $('apiKeyInput').value = '';
+    $('modelInput').value = Core.DEFAULT_MODEL;
+    $('settingsMsg').textContent = 'Saved data cleared (settings + visibility setup).';
+    refreshKeyUI();
+  });
+
+  // ---------- visibility check ----------
+  $('brandInput').value = setup.brand || '';
+  $('nicheInput').value = setup.niche || '';
+  $('locationInput').value = setup.location || '';
+  ['brandInput', 'nicheInput', 'locationInput'].forEach(function (id) {
+    $(id).addEventListener('change', persistSetup);
+    $(id).addEventListener('blur', persistSetup);
+  });
+
+  function renderQueries() {
+    $('queryCount').textContent = state.queries.length;
+    $('queryCard').classList.toggle('hidden', state.queries.length === 0);
+    $('queryList').innerHTML = state.queries.map(function (q, i) {
+      return '<li style="display:flex; align-items:center; gap:.5rem; font-size:.875rem; padding:.25rem 0;">' +
+        '<span style="flex:1;">' + esc(q) + '</span>' +
+        '<button data-remove="' + i + '" style="background:none;border:none;opacity:.5;" title="Remove">🗑</button></li>';
+    }).join('');
+    $('queryList').querySelectorAll('[data-remove]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        state.queries.splice(parseInt(b.getAttribute('data-remove'), 10), 1);
+        persistSetup();
+        renderQueries();
+        refreshKeyUI();
+      });
+    });
+    refreshKeyUI();
+  }
+
+  function addQueryFromInput() {
+    var v = $('newQueryInput').value.trim();
+    if (!v) return;
+    state.queries.push(v);
+    $('newQueryInput').value = '';
+    persistSetup();
+    renderQueries();
+  }
+  $('addQueryBtn').addEventListener('click', addQueryFromInput);
+  $('newQueryInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') addQueryFromInput(); });
+
+  $('genQueriesBtn').addEventListener('click', async function () {
+    showAlert($('checkError'), '');
+    var brand = $('brandInput').value.trim();
+    var niche = $('nicheInput').value.trim();
+    if (!brand || !niche) { showAlert($('checkError'), 'Enter a brand name and a niche/industry first.'); return; }
+    if (!hasKey()) { showAlert($('checkError'), 'Add your Anthropic API key in Settings first — no request was made.'); return; }
+    state.genLoading = true;
+    this.innerHTML = '<span class="spin"></span> Generating…';
+    try {
+      var data = await callClaude({ prompt: Core.buildGenerateQueriesPrompt({ niche: niche, location: $('locationInput').value }) });
+      var parsed = Core.extractJSON(Core.extractText(data));
+      if (Array.isArray(parsed) && parsed.length) {
+        state.queries = parsed.map(String);
+        persistSetup();
+        renderQueries();
+      } else {
+        showAlert($('checkError'), "Couldn't parse a query list from the model. Try again or add queries manually.");
+      }
+    } catch (e) {
+      showAlert($('checkError'), friendlyError(e));
+    } finally {
+      state.genLoading = false;
+      this.innerHTML = '✦ Generate query set';
+    }
+  });
+
+  function meterHTML(row) {
+    var pct = Core.meridianMeterPct(row.mentioned, row.position);
+    var color = row.mentioned ? 'var(--gold)' : 'var(--warn)';
+    return '<div class="meter"><div class="meter-fill" style="width:' + pct + '%; background:' + color + ';"></div>' +
+      '<div class="meter-dot" style="left:calc(' + pct + '% - 8px); border-color:' + color + ';"></div></div>';
+  }
+
+  function renderResults() {
+    $('resultsList').innerHTML = state.results.map(function (r, i) {
+      if (r.error) {
+        return '<div class="card" style="color:var(--warn); font-size:.875rem;">✖ ' + esc(r.query) + ' — ' + esc(r.error) + '</div>';
+      }
+      var badge = r.mentioned
+        ? '<span class="badge badge-ok">✔ Mentioned' + (r.position ? ' · #' + r.position : '') + '</span>'
+        : '<span class="badge badge-no">✖ Not mentioned</span>';
+      var chips = (r.competitors || []).map(function (c) { return '<span class="chip">' + esc(c) + '</span>'; }).join(' ');
+      return '<div class="card">' +
+        '<div style="display:flex; justify-content:space-between; gap:.75rem; align-items:flex-start;">' +
+          '<div style="font-size:.875rem; font-weight:500;">' + esc(r.query) + '</div>' + badge + '</div>' +
+        '<div style="margin-top:.75rem;">' + meterHTML(r) + '</div>' +
+        (chips ? '<div style="margin-top:.75rem; display:flex; flex-wrap:wrap; gap:.35rem;">' + chips + '</div>' : '') +
+        (r.parseFailed ? '<div style="margin-top:.5rem; font-size:.75rem; color:var(--warn);">Couldn\'t auto-parse structured analysis — showing raw answer below.</div>' : '') +
+        '<button class="btn btn-ghost btn-small" data-expand="' + i + '" style="margin-top:.75rem;">Show full AI answer</button>' +
+        '<div class="rawbox hidden" id="answer-' + i + '" style="margin-top:.5rem;">' + esc(r.answerText) + '</div>' +
+      '</div>';
+    }).join('');
+    $('resultsList').querySelectorAll('[data-expand]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var i = b.getAttribute('data-expand');
+        var box = $('answer-' + i);
+        var open = box.classList.toggle('hidden') === false;
+        b.textContent = open ? 'Hide full AI answer' : 'Show full AI answer';
+      });
+    });
+    var score = Core.computeVisibilityScore(state.results);
+    if (score && !state.running) {
+      $('scorePanel').classList.remove('hidden');
+      $('scoreOverall').textContent = score.overall;
+      $('scoreFormula').textContent = '50% mention rate + 30% position + 20% sentiment, across ' + score.validCount + (score.validCount === 1 ? ' query' : ' queries');
+      $('barMention').style.width = (score.mentionRate * 100) + '%';
+      $('barPosition').style.width = (score.avgPositionScore * 100) + '%';
+      $('barSentiment').style.width = (score.avgSentimentScore * 100) + '%';
+      $('valMention').textContent = Math.round(score.mentionRate * 100) + '%';
+      $('valPosition').textContent = Math.round(score.avgPositionScore * 100) + '%';
+      $('valSentiment').textContent = Math.round(score.avgSentimentScore * 100) + '%';
+    } else if (!score) {
+      $('scorePanel').classList.add('hidden');
+    }
+  }
+
+  $('runCheckBtn').addEventListener('click', async function () {
+    showAlert($('checkError'), '');
+    var brand = $('brandInput').value.trim();
+    if (!brand) { showAlert($('checkError'), 'Enter a brand name first.'); return; }
+    if (!state.queries.length) { showAlert($('checkError'), 'Generate or add at least one query first.'); return; }
+    if (!hasKey()) { showAlert($('checkError'), 'Add your Anthropic API key in Settings first — no request was made.'); return; }
+    persistSetup();
+    state.running = true;
+    state.results = [];
+    renderResults();
+    var btn = this;
+    for (var i = 0; i < state.queries.length; i++) {
+      btn.innerHTML = '<span class="spin"></span> Checking ' + (i + 1) + '/' + state.queries.length + '…';
+      var q = state.queries[i];
+      try {
+        var data = await callClaude({ prompt: Core.buildVisibilityPrompt({ brand: brand, query: q }), tools: [WEB_SEARCH_TOOL] });
+        var parsed = Core.parseVisibilityResult(Core.extractText(data));
+        parsed.query = q;
+        state.results.push(parsed);
+      } catch (e) {
+        state.results.push({ query: q, error: friendlyError(e), mentioned: false, competitors: [] });
+      }
+      renderResults();
+    }
+    state.running = false;
+    btn.innerHTML = '🔍 Run visibility check';
+    renderResults();
+    refreshKeyUI();
+  });
+
+  // ---------- schema generator ----------
+  var SCHEMA_TYPES = ['Organization', 'LocalBusiness', 'Product', 'Book', 'Article', 'FAQPage'];
+  var FIELD_DEFS = {
+    Organization: [
+      ['name', 'Name', 'Business name'], ['url', 'URL', 'https://…'], ['description', 'Description', '', true],
+      ['logo', 'Logo URL', ''], ['email', 'Email', ''], ['sameAs', 'Same-as profiles (comma separated)', 'https://instagram.com/…, https://facebook.com/…', true]
+    ],
+    LocalBusiness: [
+      ['name', 'Name', 'Business name'], ['url', 'URL', 'https://…'], ['description', 'Description', '', true],
+      ['telephone', 'Telephone', ''], ['email', 'Email', ''], ['priceRange', 'Price range', '$$'],
+      ['image', 'Image URL', ''], ['street', 'Street address', ''], ['city', 'City', ''],
+      ['state', 'State/region', ''], ['zip', 'Postal code', ''], ['country', 'Country', 'US'],
+      ['latitude', 'Latitude', 'e.g. 30.8327'], ['longitude', 'Longitude', 'e.g. -83.2785'],
+      ['openingHours', 'Opening hours (one per line)', 'Mo-Fr 09:00-17:00', true],
+      ['areaServed', 'Area served', 'e.g. Hahira and Valdosta, Georgia'],
+      ['sameAs', 'Same-as profiles (Google Maps link, socials — comma separated)', 'https://maps.google.com/…, https://instagram.com/…', true]
+    ],
+    Product: [
+      ['name', 'Name', ''], ['brand', 'Brand', ''], ['description', 'Description', '', true],
+      ['image', 'Image URL', ''], ['price', 'Price', '19.99'], ['currency', 'Currency', 'USD'], ['url', 'URL', '']
+    ],
+    Book: [
+      ['name', 'Title', ''], ['author', 'Author', ''], ['description', 'Description', '', true],
+      ['isbn', 'ISBN', ''], ['image', 'Cover image URL', ''], ['url', 'URL', '']
+    ],
+    Article: [
+      ['headline', 'Headline', ''], ['author', 'Author', ''], ['description', 'Description', '', true],
+      ['datePublished', 'Date published', '2026-07-25'], ['image', 'Image URL', ''], ['url', 'URL', '']
+    ]
+  };
+
+  function currentSchema() {
+    return Core.buildSchema(state.schemaType, state.schemaFields, state.faq);
+  }
+
+  function renderSchemaOut() {
+    var schema = currentSchema();
+    var json = JSON.stringify(schema, null, 2);
+    var empty = Core.schemaIsEmpty(schema);
+    $('schemaOut').textContent = empty ? 'Fill in fields to generate schema…' : json;
+    $('schemaHint').textContent = empty ? '' : 'Ready — copy or download the JSON-LD.';
+    $('copySchemaBtn').disabled = empty;
+    $('downloadSchemaBtn').disabled = empty;
+    var ignored = state.schemaType === 'LocalBusiness'
+      ? Core.parseOpeningHours(state.schemaFields.openingHours).ignored : [];
+    if (ignored.length) {
+      $('hoursNote').textContent = '⚠ These hour lines couldn\'t be read and were left out: ' + ignored.join(' · ') + ' — use the form "Mo-Fr 09:00-17:00".';
+      $('hoursNote').classList.remove('hidden');
+    } else if (state.schemaType === 'LocalBusiness') {
+      $('hoursNote').textContent = 'Opening hours: one line per day or day-range, e.g. Mo-Fr 09:00-17:00 or Saturday 10:00-14:00. Days you are closed are simply left out.';
+      $('hoursNote').classList.remove('hidden');
+    } else {
+      $('hoursNote').classList.add('hidden');
+    }
+    return json;
+  }
+
+  function renderSchemaFields() {
+    var type = state.schemaType;
+    $('typePills').innerHTML = SCHEMA_TYPES.map(function (t) {
+      return '<button class="pill' + (t === type ? ' active' : '') + '" data-type="' + t + '">' + t + (t === 'LocalBusiness' ? ' (GBP)' : '') + '</button>';
+    }).join('');
+    $('typePills').querySelectorAll('[data-type]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        state.schemaType = b.getAttribute('data-type');
+        renderSchemaFields();
+      });
+    });
+    $('subtypeRow').classList.toggle('hidden', type !== 'LocalBusiness');
+    var isFaq = type === 'FAQPage';
+    $('faqEditor').classList.toggle('hidden', !isFaq);
+    $('faqAddRow').classList.toggle('hidden', !isFaq);
+    if (isFaq) { renderFaqEditor(); $('schemaFields').innerHTML = ''; renderSchemaOut(); return; }
+    $('schemaFields').innerHTML = FIELD_DEFS[type].map(function (def) {
+      var key = def[0], label = def[1], ph = def[2] || '', area = def[3];
+      var val = esc(state.schemaFields[key] || '');
+      var input = area
+        ? '<textarea class="finput" data-field="' + key + '" rows="3" placeholder="' + esc(ph) + '">' + val + '</textarea>'
+        : '<input class="finput" data-field="' + key + '" placeholder="' + esc(ph) + '" value="' + val + '">';
+      return '<div><label class="flabel">' + label + '</label>' + input + '</div>';
+    }).join('');
+    $('schemaFields').querySelectorAll('[data-field]').forEach(function (inp) {
+      inp.addEventListener('input', function () {
+        state.schemaFields[inp.getAttribute('data-field')] = inp.value;
+        renderSchemaOut();
+      });
+    });
+    renderSchemaOut();
+  }
+
+  var subtypeSel = $('subtypeSelect');
+  subtypeSel.innerHTML = Core.LOCAL_SUBTYPES.map(function (t) { return '<option value="' + t + '">' + t + '</option>'; }).join('');
+  subtypeSel.addEventListener('change', function () {
+    state.schemaFields.subtype = subtypeSel.value;
+    renderSchemaOut();
+  });
+  state.schemaFields.subtype = 'LocalBusiness';
+
+  function renderFaqEditor() {
+    $('faqEditor').innerHTML = state.faq.map(function (item, i) {
+      return '<div class="card" style="display:grid; gap:.5rem;">' +
+        '<div style="display:flex; justify-content:space-between; align-items:center;">' +
+          '<span class="flabel">Question ' + (i + 1) + '</span>' +
+          (state.faq.length > 1 ? '<button data-faq-remove="' + i + '" style="background:none;border:none;color:var(--warn);">🗑</button>' : '') +
+        '</div>' +
+        '<input class="finput" data-faq-q="' + i + '" placeholder="Question" value="' + esc(item.q) + '" style="margin-top:0;">' +
+        '<textarea class="finput" data-faq-a="' + i + '" rows="2" placeholder="Answer" style="margin-top:0;">' + esc(item.a) + '</textarea>' +
+      '</div>';
+    }).join('');
+    $('faqEditor').querySelectorAll('[data-faq-q]').forEach(function (inp) {
+      inp.addEventListener('input', function () { state.faq[+inp.getAttribute('data-faq-q')].q = inp.value; renderSchemaOut(); });
+    });
+    $('faqEditor').querySelectorAll('[data-faq-a]').forEach(function (inp) {
+      inp.addEventListener('input', function () { state.faq[+inp.getAttribute('data-faq-a')].a = inp.value; renderSchemaOut(); });
+    });
+    $('faqEditor').querySelectorAll('[data-faq-remove]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        state.faq.splice(+b.getAttribute('data-faq-remove'), 1);
+        renderFaqEditor();
+        renderSchemaOut();
+      });
+    });
+  }
+  $('addFaqBtn').addEventListener('click', function () {
+    state.faq.push({ q: '', a: '' });
+    renderFaqEditor();
+  });
+
+  $('copySchemaBtn').addEventListener('click', async function () {
+    var json = $('schemaOut').textContent;
+    try {
+      await navigator.clipboard.writeText(json);
+      this.textContent = '✓ Copied';
+      var btn = this;
+      setTimeout(function () { btn.textContent = '⧉ Copy'; }, 1500);
+    } catch (e) { /* clipboard unavailable; user can select manually */ }
+  });
+  $('downloadSchemaBtn').addEventListener('click', function () {
+    var json = renderSchemaOut();
+    var blob = new Blob([json], { type: 'application/ld+json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    var name = (state.schemaFields.name || state.schemaType).toLowerCase().replace(/\s+/g, '-');
+    a.download = name + '-schema.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  // ---------- content analysis ----------
+  $('analyzeBtn').addEventListener('click', async function () {
+    showAlert($('contentError'), '');
+    $('contentRaw').classList.add('hidden');
+    $('contentResults').innerHTML = '';
+    var content = $('contentInput').value;
+    if (!content.trim()) { showAlert($('contentError'), 'Paste some page copy first.'); return; }
+    if (!hasKey()) { showAlert($('contentError'), 'Add your Anthropic API key in Settings first — no request was made.'); return; }
+    state.analyzing = true;
+    this.innerHTML = '<span class="spin"></span> Analyzing…';
+    try {
+      var data = await callClaude({
+        prompt: Core.buildContentPrompt({ niche: $('contentNicheInput').value, content: content }),
+        tools: [WEB_SEARCH_TOOL]
+      });
+      var raw = Core.extractText(data);
+      var parsed = Core.parseContentAnalysis(raw);
+      if (parsed) {
+        renderContentResults(parsed);
+      } else {
+        var box = $('contentRaw');
+        box.innerHTML = 'Couldn\'t auto-parse a structured result — here\'s the raw analysis:<div style="margin-top:.5rem;">' + esc(raw) + '</div>';
+        box.classList.remove('hidden');
+      }
+    } catch (e) {
+      showAlert($('contentError'), friendlyError(e));
+    } finally {
+      state.analyzing = false;
+      this.innerHTML = '📄 Analyze content';
+    }
+  });
+
+  function listHTML(items) {
+    return (items || []).map(function (s) { return '<li style="margin:.25rem 0;">• ' + esc(s) + '</li>'; }).join('');
+  }
+  function renderContentResults(result) {
+    var rewrites = (result.rewrites || []).map(function (rw) {
+      return '<div class="split2" style="display:grid; gap:.75rem;">' +
+        '<div style="background:var(--warn-bg); color:var(--warn); border-radius:.5rem; padding:.75rem; font-size:.75rem;"><div style="font-weight:700; margin-bottom:.25rem;">Before</div>' + esc(rw.before) + '</div>' +
+        '<div style="background:var(--success-bg); color:var(--success); border-radius:.5rem; padding:.75rem; font-size:.75rem;"><div style="font-weight:700; margin-bottom:.25rem;">After</div>' + esc(rw.after) + '</div></div>';
+    }).join('');
+    $('contentResults').innerHTML =
+      '<div class="split2" style="display:grid; gap:1rem;">' +
+        '<div class="card"><div style="font-weight:700; color:var(--success); margin-bottom:.5rem;">✔ Strengths</div><ul style="list-style:none; margin:0; padding:0; font-size:.875rem;">' + listHTML(result.strengths) + '</ul></div>' +
+        '<div class="card"><div style="font-weight:700; color:var(--warn); margin-bottom:.5rem;">− Gaps to close</div><ul style="list-style:none; margin:0; padding:0; font-size:.875rem;">' + listHTML(result.gaps) + '</ul></div>' +
+      '</div>' +
+      (rewrites ? '<div class="card" style="margin-top:1rem; display:grid; gap:1rem;"><div style="font-weight:700; color:var(--navy);">Suggested rewrites</div>' + rewrites + '</div>' : '');
+  }
+
+  // ---------- init ----------
+  renderQueries();
+  renderSchemaFields();
+  refreshKeyUI();
+})();
+</script>
+
+</body>
+</html>
