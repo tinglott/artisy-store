@@ -111,7 +111,7 @@ FREE — ALWAYS OFFER GENTLY
 
 GUIDANCE — SLEEP
 - Sleep Sanctuary — $29.99 — a complete sleep system: sounds, stories, and a nurse's wind-down method. https://tlott12.gumroad.com/l/hwkanb (also on Whop)
-- Nap Time Adventures: Bedtime Stories, Lullabies & Sleep Sounds — $14.99 — gentle bedtime audio for children and families. https://tlott12.gumroad.com/l/whfezb
+- Nap Time Adventures — a children's bedtime audio title — is temporarily unavailable while we restock it. If a visitor asks about Nap Time Adventures by name, tell them exactly that it is temporarily unavailable while we restock it; never offer it as available, and never give a price or a link for it.
 - A free Sleep Audio Sample is the Music Hub signup gift — a visitor can hear the style free before buying anything.
 
 GUIDANCE — CALM & ANXIETY
