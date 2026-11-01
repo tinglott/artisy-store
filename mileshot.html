@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f7a5a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="MileShot">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="mileshot.webmanifest">
+<link rel="apple-touch-icon" href="mileshot-icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="mileshot-icon-192.png">
+<title>MileShot – Mileage Log from Odometer Screenshots</title>
+<style>
+:root{--bg:#f6f7f4;--card:#fff;--ink:#1d2a24;--mute:#66736c;--line:#e0e5e0;--acc:#1f7a5a;--acc2:#e8f4ee;--warn:#b4531a;--bad:#b3261e;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121815;--card:#1b241f;--ink:#e8efe9;--mute:#98a79e;--line:#2c3a32;--acc:#4fc99a;--acc2:#1e3328;--warn:#f0a164;--bad:#ff8a80;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#121815;--card:#1b241f;--ink:#e8efe9;--mute:#98a79e;--line:#2c3a32;--acc:#4fc99a;--acc2:#1e3328;--warn:#f0a164;--bad:#ff8a80;color-scheme:dark}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:720px;margin:0 auto;padding:16px}
+h1{font-size:1.5rem;margin:8px 0 2px}h2{font-size:1.05rem;margin:0 0 10px}
+.sub{color:var(--mute);margin:0 0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.tabs{display:flex;gap:6px;margin-bottom:14px}
+.tabs button{flex:1;padding:14px 10px;min-height:52px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;font:inherit;font-size:1.02rem;cursor:pointer}
+.tabs button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+button.pri{background:var(--acc);color:#fff;border:0;border-radius:10px;padding:14px 16px;min-height:54px;font:inherit;font-size:1.05rem;font-weight:600;cursor:pointer;width:100%}
+button.sec{background:var(--acc2);color:var(--acc);border:0;border-radius:10px;padding:12px 16px;min-height:48px;font:inherit;cursor:pointer}
+button:disabled{opacity:.5;cursor:default}
+label{display:block;font-size:.85rem;color:var(--mute);margin:10px 0 4px}
+input,select{width:100%;padding:12px 10px;min-height:48px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit;font-size:16px}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.drop{display:block;border:2px dashed var(--line);border-radius:12px;padding:30px 18px;text-align:center;color:var(--mute);cursor:pointer}
+.drop b{display:block;color:var(--ink);font-size:1.15rem;margin-bottom:4px}
+.drop input{display:none}
+.prev{max-width:100%;max-height:220px;border-radius:10px;display:block;margin:10px auto}
+.note{font-size:.85rem;color:var(--mute)}.warn{color:var(--warn)}.bad{color:var(--bad)}
+.big{font-size:2rem;font-weight:700;color:var(--acc)}
+.pill{display:inline-block;padding:2px 9px;border-radius:99px;background:var(--acc2);color:var(--acc);font-size:.78rem;font-weight:600}
+.trip{border-top:1px solid var(--line);padding:12px 0}.trip:first-child{border-top:0}
+.trip .top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.92rem}
+th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+td.n,th.n{text-align:right}
+.hid{display:none}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 2px}
+.chip{border:1px solid var(--line);background:var(--acc2);color:var(--acc);border-radius:99px;padding:10px 14px;min-height:44px;font:inherit;font-size:.92rem;cursor:pointer}
+.stack button{width:100%}.stack button+button{margin-top:10px}
+#printview{display:none}
+@media print{
+  main{display:none!important}
+  body{background:#fff;color:#000}
+  #printview{display:block!important;font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#000;padding:8px}
+  #printview h1{font-size:1.3rem;margin:0 0 4px}
+  #printview h2{font-size:1rem;margin:16px 0 6px}
+  #printview table{font-size:.85rem}
+  #printview th,#printview td{border-bottom:1px solid #bbb;white-space:normal}
+}
+</style>
+</head>
+<body>
+<main>
+<h1>🚗 MileShot</h1>
+<p class="sub">Snap your odometer at the start and end of a trip, or batch-import a month of photos. MileShot reads the numbers and keeps your IRS-style log.</p>
+
+<div class="tabs" role="tablist">
+  <button class="on" data-t="trip">Trip</button>
+  <button data-t="log">Log</button>
+  <button data-t="sum">Summary</button>
+  <button data-t="set">Settings</button>
+</div>
+
+<section id="p-trip">
+  <div class="card" id="cap"></div>
+</section>
+
+<section id="p-log" class="hid"><div class="card" id="logbox"></div></section>
+
+<section id="p-sum" class="hid">
+  <div class="card">
+    <label for="yr" style="margin-top:0">Year</label><select id="yr"></select>
+    <div id="sumbox" style="margin-top:12px"></div>
+  </div>
+  <div class="card stack">
+    <button class="pri" id="exp">Export log as CSV</button>
+    <button class="sec" id="prn">Print / save PDF</button>
+    <button class="sec" id="eml">Email my log</button>
+    <p class="note">Email opens your mail app with the log filled in — you tap Send. Long logs may be trimmed by your mail app; CSV/print carry everything.</p>
+    <p class="note">Your trips live in this browser only. Export a CSV regularly as your backup and for tax time.</p>
+  </div>
+</section>
+
+<section id="p-set" class="hid">
+  <div class="card">
+    <h2>Rates used for dates after June 2026</h2>
+    <p class="note">2026 is built in: business 72.5¢ (Jan–Jun) then 76¢ (from Jul 1); medical 20.5¢ then 23.5¢; charity 14¢. Update these when the IRS publishes new rates.</p>
+    <div class="row"><div><label>Business $/mi</label><input id="rb" type="number" step="0.001"></div><div><label>Medical $/mi</label><input id="rm" type="number" step="0.001"></div></div>
+    <label>Distance unit on your odometer</label>
+    <select id="unit"><option value="mi">Miles</option><option value="km">Kilometers (converted to miles)</option></select>
+    <p class="note">This is a record-keeping aid, not tax advice. Check IRS Publication 463 or your tax pro for what you may deduct.</p>
+  </div>
+  <div class="card">
+    <h2>Photo reading (optional)</h2>
+    <label>Reading service</label>
+    <select id="prov"><option value="groq">Groq</option><option value="anthropic">Anthropic</option><option value="none">Off — OCR / type it myself</option></select>
+    <div id="groqBox">
+      <label>Groq API key</label><input id="gkey" type="password" autocomplete="off" placeholder="gsk_…">
+      <label>Groq vision model</label><input id="gmodel" type="text" autocomplete="off">
+    </div>
+    <div id="anthBox">
+      <label>Anthropic API key</label><input id="akey" type="password" autocomplete="off" placeholder="sk-ant-…">
+      <label>Anthropic model</label><input id="amodel" type="text" autocomplete="off">
+    </div>
+    <p class="note">Bring your own key — it is stored only in this browser, never anywhere else. When a key is set, your odometer photo is sent to that provider so it can read the number. You always confirm the reading before anything is saved. With no key, MileShot tries on-device OCR, and typing the number always works.</p>
+  </div>
+  <div class="card">
+    <h2>Email</h2>
+    <label>Email my log to</label><input id="emaddr" type="email" autocomplete="email">
+    <p class="note">Where the “Email my log” button on the Summary tab addresses your log. The email itself opens in your own mail app — MileShot cannot send mail by itself.</p>
+  </div>
+  <div class="card"><h2>Vehicles</h2><div id="vlist" class="note"></div><div class="row" style="margin-top:8px"><input id="vnew" placeholder="e.g. Honda CR-V"><button class="sec" id="vadd" style="flex:0 0 auto">Add</button></div></div>
+  <div class="card"><button class="sec" id="wipe">Delete all trips</button></div>
+</section>
+</main>
+<div id="printview" aria-hidden="true"></div>
+
+<script>'use strict';
+/*
+ * MileShot — pure logic core.
+ * No DOM and no direct network in this file: rates, validation, batch
+ * pairing, CSV/print/summary/mail composition, AI request building and
+ * reply parsing, and the photo-read pipeline (network + OCR injected).
+ * This exact text is injected verbatim into mileshot.html by build.cjs,
+ * and the tests run against BOTH this source and the shipped file.
+ *
+ * Behavior carried from the original MileShot artifact, unchanged:
+ *  - 2026 IRS rates built in: business 72.5¢ Jan–Jun 2026, then 76¢ from
+ *    Jul 1; medical 20.5¢ then 23.5¢; charity 14¢ in every year; personal 0.
+ *    Any other year uses the editable Settings fallback rates.
+ *  - A photo reading is a SUGGESTION only. Nothing in this file — and
+ *    nothing in the app — saves a reading without the confirm screen.
+ */
+(function (global) {
+  var STORAGE_KEY = 'mileshot-v1';
+  var CATS = { business: 'Business', medical: 'Medical', charity: 'Charity', personal: 'Personal' };
+  var PURPOSE_CHIPS = ['Valdosta office', 'Thomasville office', 'Tifton office', 'Client home visit', 'Supervision visit', 'Training', 'Supplies / errand'];
+  var DEFAULT_EMAIL = 'tinglott@gmail.com';
+  var GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+  var ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
+  var DEFAULT_GROQ_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
+  var DEFAULT_ANTHROPIC_MODEL = 'claude-sonnet-4-6';
+  var ODO_PROMPT = 'The attached image is a photo or screenshot of a vehicle dashboard or car app. Find the ODOMETER (total lifetime distance). Ignore trip meters (TRIP A/B), speed, range, fuel, temperature and clock. Reply with ONLY JSON: {"reading": <number or null>, "unit": "mi"|"km"|null, "confidence": "high"|"medium"|"low", "note": "<one short sentence>"}. Use null for reading if no odometer is visible.';
+
+  function defaultState() {
+    return {
+      trips: [], biz: 0.76, med: 0.235, unit: 'mi', vehicles: ['My car'],
+      email: DEFAULT_EMAIL,
+      provider: 'groq', groqKey: '', groqModel: DEFAULT_GROQ_MODEL,
+      anthKey: '', anthModel: DEFAULT_ANTHROPIC_MODEL
+    };
+  }
+  // Merge a saved state over defaults (forward/backward compatible).
+  function mergeState(saved) {
+    var S = defaultState();
+    if (saved && Array.isArray(saved.trips)) {
+      var keys = Object.keys(S);
+      for (var i = 0; i < keys.length; i++) {
+        if (saved[keys[i]] !== undefined) S[keys[i]] = saved[keys[i]];
+      }
+    }
+    return S;
+  }
+  function serializeState(S) { return JSON.stringify(S); }
+  function openTrip(S) {
+    return S.trips.find(function (t) { return !t.end; }) || null;
+  }
+  function doneTrips(S) {
+    return S.trips.filter(function (t) { return t.end; })
+      .sort(function (a, b) { return b.end.ts - a.end.ts; });
+  }
+
+  // ---------- formatting (identical to the original) ----------
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+  function fmt(n) { return (Math.round(n * 10) / 10).toLocaleString(); }
+  function money(n) { return '$' + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function dt(ts) { return new Date(ts).toLocaleString([], { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }); }
+  function localInput(ts) { var d = new Date(ts - new Date(ts).getTimezoneOffset() * 60000); return d.toISOString().slice(0, 16); }
+
+  // ---------- rates & units (identical to the original) ----------
+  function rate(cat, ts, fb) {
+    if (cat === 'personal') return 0;
+    if (cat === 'charity') return 0.14;
+    var d = new Date(ts);
+    if (d.getFullYear() === 2026 && d.getMonth() < 6) return cat === 'medical' ? 0.205 : 0.725;
+    if (d.getFullYear() === 2026) return cat === 'medical' ? 0.235 : 0.76;
+    return cat === 'medical' ? fb.med : fb.biz;
+  }
+  function toMi(v, unit) { return unit === 'km' ? v * 0.621371 : v; }
+
+  // ---------- validation (messages identical to the original) ----------
+  function readingError(v) {
+    if (!isFinite(v) || v < 0) return 'Enter a valid odometer reading.';
+    return null;
+  }
+  function timeError(ts) {
+    if (!isFinite(ts)) return 'Enter a valid date and time.';
+    return null;
+  }
+  function endError(start, end) {
+    var e = readingError(end.odo) || timeError(end.ts);
+    if (e) return e;
+    if (end.odo < start.odo) return 'Ending reading must be at least the starting reading (' + fmt(start.odo) + ').';
+    if (end.ts < start.ts) return 'End time is before the start time.';
+    return null;
+  }
+
+  // ---------- batch pairing ----------
+  // Sort a copy of raw batch items ({ts, reading}) by photo time.
+  function sortBatchItems(items) {
+    return items.slice().sort(function (a, b) { return a.ts - b.ts; });
+  }
+  // items are in display order (already sorted); cat/why ride on the
+  // odd (end) item of each pair. Returns {trips, bad, odd} — invalid
+  // pairs are counted in `bad` and skipped, never saved.
+  function buildBatchTrips(items, veh, unit) {
+    var trips = [], bad = 0;
+    for (var i = 0; i + 1 < items.length; i += 2) {
+      var a = items[i], z = items[i + 1];
+      var err = (!isFinite(a.reading) || !isFinite(z.reading) || !isFinite(a.ts) || !isFinite(z.ts))
+        ? 'invalid'
+        : endError({ odo: a.reading, ts: a.ts }, { odo: z.reading, ts: z.ts });
+      if (err) { bad++; continue; }
+      trips.push({
+        veh: veh,
+        start: { odo: a.reading, ts: a.ts },
+        end: { odo: z.reading, ts: z.ts },
+        cat: z.cat || 'business',
+        why: (z.why || '').trim(),
+        miles: toMi(z.reading - a.reading, unit)
+      });
+    }
+    return { trips: trips, bad: bad, odd: items.length % 2 === 1 };
+  }
+
+  // ---------- summary (math identical to the original renderSum) ----------
+  function summarize(trips, year, fb) {
+    var T = { business: [0, 0], medical: [0, 0], charity: [0, 0], personal: [0, 0] }, M = {};
+    trips.forEach(function (t) {
+      if (!t.end) return;
+      var dd = new Date(t.start.ts);
+      if (dd.getFullYear() !== year) return;
+      var ded = t.miles * rate(t.cat, t.start.ts, fb);
+      T[t.cat][0] += t.miles; T[t.cat][1] += ded;
+      var k = dd.getMonth();
+      M[k] = M[k] || [0, 0]; M[k][0] += t.miles; M[k][1] += ded;
+    });
+    var tot = 0;
+    ['business', 'medical', 'charity'].forEach(function (k) { tot += T[k][1]; });
+    return { byCat: T, byMonth: M, total: tot };
+  }
+  function yearTrips(trips, year) {
+    return trips.filter(function (t) {
+      return t.end && new Date(t.start.ts).getFullYear() === year;
+    }).sort(function (a, b) { return a.start.ts - b.start.ts; });
+  }
+
+  // ---------- CSV (columns & quoting identical to the original) ----------
+  var CSV_HEADER = ['Start date', 'End date', 'Start odometer', 'End odometer', 'Miles', 'Category', 'Purpose', 'Vehicle', 'Rate $/mi', 'Deduction'];
+  function csvRows(trips, fb) {
+    // `trips` = completed trips newest-first (doneTrips order); the
+    // original exported them reversed, i.e. oldest first.
+    var rows = [CSV_HEADER.slice()];
+    trips.slice().reverse().forEach(function (t) {
+      var r = rate(t.cat, t.start.ts, fb);
+      rows.push([new Date(t.start.ts).toISOString(), new Date(t.end.ts).toISOString(), t.start.odo, t.end.odo, t.miles.toFixed(1), CATS[t.cat], t.why || '', t.veh || '', r, (t.miles * r).toFixed(2)]);
+    });
+    return rows;
+  }
+  function rowsToCsv(rows) {
+    return rows.map(function (r) {
+      return r.map(function (c) {
+        c = String(c);
+        return /[",\n]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c;
+      }).join(',');
+    }).join('\n');
+  }
+  function buildCsv(trips, fb) { return rowsToCsv(csvRows(trips, fb)); }
+
+  // ---------- email body (plain text; a page cannot attach files) ----------
+  function tripLine(t, unit) {
+    var d = new Date(t.start.ts).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+    return d + ' · ' + fmt(t.start.odo) + ' → ' + fmt(t.end.odo) + ' ' + unit + ' · ' + fmt(t.miles) + ' mi · ' + CATS[t.cat] + (t.why ? ' · ' + t.why : '');
+  }
+  function buildEmail(year, trips, fb, unit) {
+    var yt = yearTrips(trips, year);
+    var sum = summarize(trips, year, fb);
+    var lines = [];
+    lines.push('Mileage log — ' + year);
+    lines.push('');
+    lines.push('Totals');
+    Object.keys(CATS).forEach(function (k) {
+      lines.push(CATS[k] + ': ' + fmt(sum.byCat[k][0]) + ' mi' + (k === 'personal' ? ' (not deductible)' : ' — ' + money(sum.byCat[k][1])));
+    });
+    lines.push('Estimated total deduction: ' + money(sum.total));
+    lines.push('');
+    lines.push('By month');
+    Object.keys(sum.byMonth).sort(function (a, b) { return a - b; }).forEach(function (k) {
+      lines.push(new Date(year, +k, 1).toLocaleString([], { month: 'long' }) + ': ' + fmt(sum.byMonth[k][0]) + ' mi — ' + money(sum.byMonth[k][1]));
+    });
+    if (yt.length && yt.length <= 40) {
+      lines.push('');
+      lines.push('Trips');
+      yt.forEach(function (t) { lines.push(tripLine(t, unit)); });
+    }
+    lines.push('');
+    lines.push('Recorded with MileShot. This is a record-keeping aid, not tax advice.');
+    return { subject: 'Mileage log — ' + year, body: lines.join('\n'), tripCount: yt.length, includesTrips: yt.length > 0 && yt.length <= 40 };
+  }
+  function buildMailto(addr, year, trips, fb, unit) {
+    var em = buildEmail(year, trips, fb, unit);
+    return {
+      subject: em.subject, body: em.body, tripCount: em.tripCount, includesTrips: em.includesTrips,
+      href: 'mailto:' + (addr || '') + '?subject=' + encodeURIComponent(em.subject) + '&body=' + encodeURIComponent(em.body)
+    };
+  }
+
+  // ---------- AI reply parsing ----------
+  function extractJSON(raw) {
+    if (!raw) return null;
+    var s = String(raw).trim();
+    var fence = s.match(/```(?:json)?\s*([\s\S]*?)```/i);
+    if (fence) s = fence[1].trim();
+    try { return JSON.parse(s); } catch (e) { /* fall through to brace hunt */ }
+    var a = s.indexOf('{'), b = s.lastIndexOf('}');
+    if (a >= 0 && b > a) { try { return JSON.parse(s.slice(a, b + 1)); } catch (e) { return null; } }
+    return null;
+  }
+  function normalizeReading(o) {
+    if (!o || typeof o !== 'object') return null;
+    var r = (o.reading === null || o.reading === undefined || o.reading === '') ? null : Number(o.reading);
+    if (r !== null && !isFinite(r)) return null;
+    return { reading: r, unit: o.unit || null, confidence: o.confidence || null, note: o.note || '' };
+  }
+  function parseReadingText(text) { return normalizeReading(extractJSON(text)); }
+  function groqText(json) {
+    try { return json.choices[0].message.content; } catch (e) { return null; }
+  }
+  function anthropicText(json) {
+    if (!json || !Array.isArray(json.content)) return null;
+    return json.content.filter(function (b) { return b && b.type === 'text'; })
+      .map(function (b) { return b.text; }).join('\n') || null;
+  }
+
+  // ---------- AI request builders (keys ride in headers only) ----------
+  function groqRequest(S, dataUrl) {
+    return {
+      url: GROQ_URL,
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + S.groqKey },
+      body: {
+        model: S.groqModel || DEFAULT_GROQ_MODEL,
+        messages: [{ role: 'user', content: [
+          { type: 'text', text: ODO_PROMPT },
+          { type: 'image_url', image_url: { url: dataUrl } }
+        ] }],
+        response_format: { type: 'json_object' },
+        temperature: 0,
+        max_completion_tokens: 300
+      }
+    };
+  }
+  function anthropicRequest(S, mediaType, base64) {
+    return {
+      url: ANTHROPIC_URL,
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': S.anthKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: {
+        model: S.anthModel || DEFAULT_ANTHROPIC_MODEL,
+        max_tokens: 300,
+        temperature: 0,
+        messages: [{ role: 'user', content: [
+          { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
+          { type: 'text', text: ODO_PROMPT }
+        ] }]
+      }
+    };
+  }
+
+  // ---------- the read pipeline ----------
+  // deps: { settings, fetchFn, ocrFn, toDataUrl }
+  // Order: (1) AI read when a provider key is set; (2) OCR on any AI
+  // failure or when no key is set; (3) {err:'unavailable'} → the app
+  // asks for manual entry. An AI "no odometer visible" (reading:null)
+  // is a completed read, NOT a failure — it does not fall to OCR.
+  // Whatever comes back lands on the confirm screen; this function
+  // never saves anything.
+  async function aiReadVia(deps, blob) {
+    var S = deps.settings;
+    var dataUrl = await deps.toDataUrl(blob);
+    var req, parse;
+    if (S.provider === 'anthropic') {
+      var m = /^data:([^;]+);base64,([\s\S]*)$/.exec(dataUrl || '');
+      if (!m) throw new Error('bad data url');
+      req = anthropicRequest(S, m[1], m[2]); parse = anthropicText;
+    } else {
+      req = groqRequest(S, dataUrl); parse = groqText;
+    }
+    var res = await deps.fetchFn(req.url, { method: 'POST', headers: req.headers, body: JSON.stringify(req.body) });
+    if (!res || !res.ok) throw new Error('http ' + (res && res.status));
+    var json = await res.json();
+    var out = parseReadingText(parse(json));
+    if (!out) throw new Error('unparseable reply');
+    return out;
+  }
+  function providerKey(S) {
+    if (S.provider === 'anthropic') return S.anthKey;
+    if (S.provider === 'groq') return S.groqKey;
+    return '';
+  }
+  async function readOdometer(deps, blob) {
+    var S = deps.settings;
+    if (providerKey(S)) {
+      try {
+        var r = await aiReadVia(deps, blob);
+        r.source = 'ai';
+        return r;
+      } catch (e) { /* fall through to OCR */ }
+    }
+    if (deps.ocrFn) {
+      try {
+        var o = await deps.ocrFn(blob);
+        if (o && !o.err) { o.source = 'ocr'; return o; }
+      } catch (e) { /* fall through */ }
+    }
+    return { err: 'unavailable' };
+  }
+
+  var Core = {
+    STORAGE_KEY: STORAGE_KEY, CATS: CATS, PURPOSE_CHIPS: PURPOSE_CHIPS,
+    DEFAULT_EMAIL: DEFAULT_EMAIL, ODO_PROMPT: ODO_PROMPT,
+    GROQ_URL: GROQ_URL, ANTHROPIC_URL: ANTHROPIC_URL,
+    DEFAULT_GROQ_MODEL: DEFAULT_GROQ_MODEL, DEFAULT_ANTHROPIC_MODEL: DEFAULT_ANTHROPIC_MODEL,
+    defaultState: defaultState, mergeState: mergeState, serializeState: serializeState,
+    openTrip: openTrip, doneTrips: doneTrips,
+    esc: esc, fmt: fmt, money: money, dt: dt, localInput: localInput,
+    rate: rate, toMi: toMi,
+    readingError: readingError, timeError: timeError, endError: endError,
+    sortBatchItems: sortBatchItems, buildBatchTrips: buildBatchTrips,
+    summarize: summarize, yearTrips: yearTrips,
+    CSV_HEADER: CSV_HEADER, csvRows: csvRows, rowsToCsv: rowsToCsv, buildCsv: buildCsv,
+    tripLine: tripLine, buildEmail: buildEmail, buildMailto: buildMailto,
+    extractJSON: extractJSON, normalizeReading: normalizeReading, parseReadingText: parseReadingText,
+    groqRequest: groqRequest, anthropicRequest: anthropicRequest,
+    aiReadVia: aiReadVia, providerKey: providerKey, readOdometer: readOdometer
+  };
+  if (typeof module !== 'undefined' && module.exports) module.exports = Core;
+  global.MileShotCore = Core;
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+<script>
+(function(){
+"use strict";
+var Core=window.MileShotCore;
+var S=Core.defaultState();
+function load(){try{var r=localStorage.getItem(Core.STORAGE_KEY);if(r)S=Core.mergeState(JSON.parse(r))}catch(e){}}
+function save(){try{localStorage.setItem(Core.STORAGE_KEY,Core.serializeState(S))}catch(e){}}
+function $(id){return document.getElementById(id)}
+var esc=Core.esc,fmt=Core.fmt,money=Core.money,dt=Core.dt,localInput=Core.localInput,CATS=Core.CATS;
+function rate(cat,ts){return Core.rate(cat,ts,S)}
+function toMi(v){return Core.toMi(v,S.unit)}
+
+/* ---------- image reading: AI (BYOK) -> OCR -> manual ---------- */
+function shrink(file){return new Promise(function(res,rej){
+  var u=URL.createObjectURL(file),im=new Image();
+  im.onload=function(){
+    var m=1400,s=Math.min(1,m/Math.max(im.width,im.height)),c=document.createElement("canvas");
+    c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);
+    c.getContext("2d").drawImage(im,0,0,c.width,c.height);
+    c.toBlob(function(b){b?res({blob:b,url:u}):rej(new Error("img"))},"image/jpeg",0.88);
+  };
+  im.onerror=function(){rej(new Error("img"))};im.src=u;
+})}
+function loadTess(){return new Promise(function(res,rej){if(window.Tesseract)return res();var t=document.createElement("script");t.src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.1/tesseract.min.js";t.onload=res;t.onerror=rej;document.head.appendChild(t)})}
+async function ocrRead(blob){
+  try{
+    await loadTess();
+    var w=await Tesseract.createWorker("eng");
+    await w.setParameters({tessedit_char_whitelist:"0123456789",tessedit_pageseg_mode:"6"});
+    var r=await Promise.race([w.recognize(blob),new Promise(function(_,j){setTimeout(function(){j(new Error("t"))},25000)})]);
+    try{await w.terminate()}catch(e){}
+    var m=(r.data.text||"").match(/\d{4,7}/g);
+    if(!m)return {err:"unavailable"};
+    m.sort(function(a,b){return b.length-a.length});
+    return {reading:Number(m[0]),unit:null,confidence:"low",note:"OCR"};
+  }catch(e){return {err:"unavailable"}}
+}
+function blobToDataUrl(b){return new Promise(function(res,rej){var fr=new FileReader();fr.onload=function(){res(fr.result)};fr.onerror=function(){rej(new Error("read"))};fr.readAsDataURL(b)})}
+async function aiRead(blob){
+  return Core.readOdometer({settings:S,fetchFn:function(u,o){return fetch(u,o)},ocrFn:ocrRead,toDataUrl:blobToDataUrl},blob);
+}
+var batch=null;
+async function startBatch(files){
+  batch={busy:true,items:[],n:files.length,done:0};renderCap();
+  for(var i=0;i<files.length;i++){
+    var f=files[i],it={ts:f.lastModified||Date.now(),reading:null};
+    try{var sh=await shrink(f);var r=await aiRead(sh.blob);if(!r.err&&r.reading!=null)it.reading=Number(r.reading)}catch(e){}
+    batch.items.push(it);batch.done=i+1;renderCap();
+  }
+  batch.items=Core.sortBatchItems(batch.items);batch.busy=false;renderCap();
+}
+function vopts(){return S.vehicles.map(function(v){return "<option>"+esc(v)+"</option>"}).join("")}
+function chipsHtml(forIdx){
+  return '<div class="chips">'+Core.PURPOSE_CHIPS.map(function(c){return '<button type="button" class="chip" data-chip="'+esc(c)+'"'+(forIdx!=null?' data-chipfor="'+forIdx+'"':"")+">"+esc(c)+"</button>"}).join("")+"</div>";
+}
+function wireChips(root){
+  [].forEach.call(root.querySelectorAll("[data-chip]"),function(b){b.onclick=function(){
+    var target=b.hasAttribute("data-chipfor")?root.querySelector('[data-y="'+b.getAttribute("data-chipfor")+'"]'):$("why");
+    if(target){target.value=b.getAttribute("data-chip");target.focus()}
+  }});
+}
+function renderBatch(){
+  var b=batch,h="<h2>Batch import</h2>";
+  if(b.busy){$("cap").innerHTML=h+'<p class="note">Reading photo '+b.done+" of "+b.n+"…</p>";return}
+  var co=Object.keys(CATS).map(function(k){return '<option value="'+k+'">'+CATS[k]+"</option>"}).join("");
+  h+='<p class="note">Photos are sorted by time and paired: 1st→2nd is one trip, 3rd→4th the next. Fix any wrong numbers or times before saving.</p><label>Vehicle</label><select id="bveh">'+vopts()+"</select>";
+  b.items.forEach(function(it,i){
+    if(i%2===0)h+='<div class="trip"><b>Trip '+(i/2+1)+"</b>";
+    h+='<div class="row" style="margin-top:6px"><input data-r="'+i+'" type="number" step="0.1" value="'+(it.reading==null?"":it.reading)+'" placeholder="'+(i%2?"End":"Start")+' reading"><input data-w="'+i+'" type="datetime-local" value="'+localInput(it.ts)+'"></div>';
+    if(i%2===1)h+='<div class="row" style="margin-top:6px"><select data-c="'+i+'">'+co+'</select><input data-y="'+i+'" placeholder="Purpose"></div>'+chipsHtml(i);
+    if(i%2===1||i===b.items.length-1)h+="</div>";
+  });
+  if(b.items.length%2)h+='<p class="note warn">The last photo has no partner and will be skipped.</p>';
+  h+='<p id="berr" class="bad note"></p><div class="row"><button class="sec" id="bcancel">Cancel</button><button class="pri" id="bsave">Save trips</button></div>';
+  $("cap").innerHTML=h;
+  wireChips($("cap"));
+  $("bcancel").onclick=function(){batch=null;renderCap()};
+  $("bsave").onclick=function(){
+    var q=function(a,i){return $("cap").querySelector("["+a+'="'+i+'"]')};
+    var items=b.items.map(function(_,i){
+      var it={reading:parseFloat(q("data-r",i).value),ts:new Date(q("data-w",i).value).getTime()};
+      var c=q("data-c",i),y=q("data-y",i);
+      if(c)it.cat=c.value; if(y)it.why=y.value;
+      return it;
+    });
+    var res=Core.buildBatchTrips(items,$("bveh").value,S.unit);
+    res.trips.forEach(function(t,j){t.id=Date.now().toString(36)+"b"+j;S.trips.push(t)});
+    var n=res.trips.length,bad=res.bad;
+    if(bad){$("berr").textContent=bad+" trip(s) have a missing or invalid reading/time (end must be ≥ start). Fix them and save again.";if(!n)return}
+    batch=null;save();renderAll();
+  };
+}
+
+/* ---------- capture card ---------- */
+var pending=null; // {kind:'start'|'end', url, blob, reading, ts, note}
+function open(){return Core.openTrip(S)}
+function renderCap(){
+  if(batch){renderBatch();return}
+  var o=open(),box=$("cap"),kind=o?"end":"start";
+  var h="<h2>"+(o?"End trip":"Start a trip")+"</h2>";
+  if(o&&o.veh)h+='<p class="note">Vehicle: '+esc(o.veh)+'</p>';
+  if(o)h+='<p class="note">Started at <b>'+fmt(o.start.odo)+" "+S.unit+"</b> · "+esc(dt(o.start.ts))+"</p>";
+  if(!pending){
+    h+='<label class="drop"><b>📸 '+(o?"Add ending odometer photo":"Add starting odometer photo")+'</b>Take a photo or pick a screenshot<input id="file" type="file" accept="image/*"></label>';
+    h+='<p class="note" style="margin-top:10px">Or <a href="#" id="manual">type the reading instead</a>. Have a month of photos? <a href="#" id="batchLink">Batch import</a>.</p>';
+    if(o)h+='<p class="note"><a href="#" id="cancelTrip" class="bad">Discard this open trip</a></p>';
+  }else{
+    var p=pending;
+    if(p.url)h+='<img class="prev" src="'+p.url+'" alt="Odometer photo">';
+    if(p.busy)h+='<p class="note">Reading odometer…</p>';
+    else{
+      if(p.msg)h+='<p class="note '+(p.warn?"warn":"")+'">'+esc(p.msg)+"</p>";
+      if(kind==="start")h+='<label>Vehicle</label><select id="veh">'+vopts()+"</select>";
+      h+='<label>Odometer reading ('+S.unit+')</label><input id="rd" type="number" inputmode="decimal" step="0.1" value="'+(p.reading==null?"":p.reading)+'" placeholder="e.g. 48213">';
+      h+='<label>Date &amp; time</label><input id="when" type="datetime-local" value="'+localInput(p.ts)+'">';
+      if(kind==="end"){
+        h+='<div class="row"><div><label>Category</label><select id="cat">'+Object.keys(CATS).map(function(k){return '<option value="'+k+'">'+CATS[k]+"</option>"}).join("")+'</select></div><div><label>Purpose / destination</label><input id="why" placeholder="Client visit, delivery…"></div></div>'+chipsHtml(null);
+      }
+      h+='<p id="err" class="bad note"></p><div class="row" style="margin-top:6px"><button class="sec" id="back">Cancel</button><button class="pri" id="ok">'+(kind==="end"?"Save trip":"Start trip")+"</button></div>";
+    }
+  }
+  box.innerHTML=h;
+  var f=$("file");if(f)f.onchange=function(){if(f.files[0])handleFile(f.files[0],kind)};
+  var m=$("manual");if(m)m.onclick=function(e){e.preventDefault();pending={kind:kind,ts:Date.now(),reading:null,msg:"Enter the odometer reading."};renderCap()};
+  var bl=$("batchLink");if(bl)bl.onclick=function(e){e.preventDefault();var inp=document.createElement("input");inp.type="file";inp.accept="image/*";inp.multiple=true;inp.onchange=function(){if(inp.files.length)startBatch([].slice.call(inp.files))};inp.click()};
+  var c=$("cancelTrip");if(c)c.onclick=function(e){e.preventDefault();if(confirm("Discard the open trip?")){S.trips=S.trips.filter(function(t){return t.end});save();renderAll()}};
+  var b=$("back");if(b)b.onclick=function(){pending=null;renderCap()};
+  var ok=$("ok");if(ok)ok.onclick=confirmReading;
+  wireChips(box);
+}
+async function handleFile(file,kind){
+  pending={kind:kind,busy:true,ts:file.lastModified||Date.now(),reading:null};
+  renderCap();
+  try{
+    var s=await shrink(file);pending.url=s.url;
+    var r=await aiRead(s.blob);
+    pending.busy=false;
+    if(r.err){pending.msg=r.err==="unavailable"?"Automatic reading isn’t available here, so please type the number from your photo.":"Couldn’t read that photo ("+r.err+"). Please type the number.";pending.warn=true}
+    else if(r.reading==null){pending.msg="No odometer found. "+(r.note||"Try a closer shot of the total-distance number.");pending.warn=true}
+    else{
+      pending.reading=Number(r.reading);
+      if(r.unit&&r.unit!==S.unit){pending.msg="Photo shows "+r.unit+" but your setting is "+S.unit+" — check Settings.";pending.warn=true}
+      else{pending.msg="Read "+fmt(pending.reading)+" ("+(r.confidence||"?")+" confidence). Please confirm it matches your photo.";pending.warn=r.confidence!=="high"}
+    }
+  }catch(e){pending.busy=false;pending.msg="Couldn’t open that image. Type the reading instead.";pending.warn=true}
+  renderCap();
+}
+function confirmReading(){
+  var v=parseFloat($("rd").value),ts=new Date($("when").value).getTime(),err=$("err");
+  if(!isFinite(v)||v<0){err.textContent="Enter a valid odometer reading.";return}
+  if(!isFinite(ts)){err.textContent="Enter a valid date and time.";return}
+  var o=open();
+  if(pending.kind==="start"){
+    S.trips.push({id:Date.now().toString(36),veh:$("veh")?$("veh").value:"",start:{odo:v,ts:ts},end:null});
+  }else{
+    var e=Core.endError(o.start,{odo:v,ts:ts});
+    if(e){err.textContent=e;return}
+    o.end={odo:v,ts:ts};o.cat=$("cat").value;o.why=$("why").value.trim();
+    o.miles=toMi(v-o.start.odo);
+  }
+  pending=null;save();renderAll();
+}
+
+/* ---------- log ---------- */
+function done(){return Core.doneTrips(S)}
+function renderLog(){
+  var d=done(),h="<h2>Trip log</h2>";
+  if(!d.length)h+='<p class="note">No completed trips yet. Start one on the Trip tab.</p>';
+  d.forEach(function(t){
+    var r=rate(t.cat,t.start.ts),ded=t.miles*r;
+    h+='<div class="trip"><div class="top"><b>'+fmt(t.miles)+' mi</b><span class="pill">'+CATS[t.cat]+'</span></div>'
+     +'<div class="note">'+esc(dt(t.start.ts))+" · "+fmt(t.start.odo)+" → "+fmt(t.end.odo)+" "+S.unit+(t.veh?" · "+esc(t.veh):"")+"</div>"
+     +(t.why?"<div>"+esc(t.why)+"</div>":"")
+     +'<div class="note">'+(r?money(ded)+" at "+(r*100).toFixed(1)+"¢/mi":"Not deductible")+' · <a href="#" data-del="'+t.id+'" class="bad">delete</a></div></div>';
+  });
+  $("logbox").innerHTML=h;
+  [].forEach.call($("logbox").querySelectorAll("[data-del]"),function(a){a.onclick=function(e){e.preventDefault();if(confirm("Delete this trip?")){S.trips=S.trips.filter(function(t){return t.id!==a.dataset.del});save();renderAll()}}});
+}
+
+/* ---------- summary, print, email, export ---------- */
+function renderSum(){
+  var d=done(),ys={};d.forEach(function(t){ys[new Date(t.start.ts).getFullYear()]=1});
+  var yy=Object.keys(ys).sort().reverse();if(!yy.length)yy=[String(new Date().getFullYear())];
+  var sel=$("yr"),cur=sel.value||yy[0];
+  sel.innerHTML=yy.map(function(y){return '<option'+(y===cur?" selected":"")+">"+y+"</option>"}).join("");
+  var Y=+sel.value,sum=Core.summarize(S.trips,Y,S),T=sum.byCat,M=sum.byMonth;
+  var h='<div class="big">'+money(sum.total)+'</div><p class="note" style="margin-top:0">Estimated deduction using standard mileage rates, '+Y+"</p>";
+  h+='<div class="scroll"><table><tr><th>Category</th><th class="n">Miles</th><th class="n">Deduction</th></tr>';
+  Object.keys(T).forEach(function(k){h+="<tr><td>"+CATS[k]+'</td><td class="n">'+fmt(T[k][0])+'</td><td class="n">'+(k==="personal"?"—":money(T[k][1]))+"</td></tr>"});
+  h+="</table></div><h2 style=\"margin-top:16px\">By month</h2><div class=\"scroll\"><table><tr><th>Month</th><th class=\"n\">Miles</th><th class=\"n\">Deduction</th></tr>";
+  Object.keys(M).sort(function(a,b){return a-b}).forEach(function(k){h+="<tr><td>"+new Date(Y,k,1).toLocaleString([],{month:"long"})+'</td><td class="n">'+fmt(M[k][0])+'</td><td class="n">'+money(M[k][1])+"</td></tr>"});
+  h+="</table></div>";
+  $("sumbox").innerHTML=h;
+}
+$("yr").onchange=renderSum;
+function renderPrint(){
+  var Y=+($("yr").value||new Date().getFullYear()),sum=Core.summarize(S.trips,Y,S),yt=Core.yearTrips(S.trips,Y);
+  var h="<h1>Mileage log — "+Y+'</h1><p>Estimated deduction: <b>'+money(sum.total)+'</b> · Record-keeping aid, not tax advice.</p>';
+  h+='<h2>Totals by category</h2><table><tr><th>Category</th><th class="n">Miles</th><th class="n">Deduction</th></tr>';
+  Object.keys(sum.byCat).forEach(function(k){h+="<tr><td>"+CATS[k]+'</td><td class="n">'+fmt(sum.byCat[k][0])+'</td><td class="n">'+(k==="personal"?"—":money(sum.byCat[k][1]))+"</td></tr>"});
+  h+='</table><h2>All trips, '+Y+'</h2><table><tr><th>Date</th><th>Start</th><th>End</th><th class="n">Miles</th><th>Category</th><th>Purpose</th><th>Vehicle</th><th class="n">Rate $/mi</th><th class="n">Deduction</th></tr>';
+  yt.forEach(function(t){var r=rate(t.cat,t.start.ts);h+="<tr><td>"+esc(new Date(t.start.ts).toLocaleDateString([],{month:"short",day:"numeric",year:"numeric"}))+'</td><td>'+fmt(t.start.odo)+'</td><td>'+fmt(t.end.odo)+'</td><td class="n">'+fmt(t.miles)+"</td><td>"+CATS[t.cat]+"</td><td>"+esc(t.why||"")+"</td><td>"+esc(t.veh||"")+'</td><td class="n">'+r+'</td><td class="n">'+money(t.miles*r)+"</td></tr>"});
+  h+="</table>";
+  $("printview").innerHTML=h;
+}
+$("prn").onclick=function(){renderPrint();window.print()};
+$("eml").onclick=function(){
+  var Y=+($("yr").value||new Date().getFullYear());
+  var m=Core.buildMailto(S.email,Y,S.trips,S,S.unit);
+  window.location.href=m.href;
+};
+$("exp").onclick=function(){
+  var csv=Core.buildCsv(done(),S);
+  var blob=new Blob([csv],{type:"text/csv"});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement("a");
+  a.href=url;a.download="mileage-log.csv";
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(function(){URL.revokeObjectURL(url)},4000);
+};
+
+/* ---------- settings & tabs ---------- */
+function renderSet(){
+  $("vlist").textContent=S.vehicles.join(" · ");$("rb").value=S.biz;$("rm").value=S.med;$("unit").value=S.unit;
+  $("emaddr").value=S.email;$("prov").value=S.provider;
+  $("gkey").value=S.groqKey;$("gmodel").value=S.groqModel;$("akey").value=S.anthKey;$("amodel").value=S.anthModel;
+  $("groqBox").classList.toggle("hid",S.provider!=="groq");
+  $("anthBox").classList.toggle("hid",S.provider!=="anthropic");
+}
+$("rb").onchange=function(){var v=parseFloat(this.value);if(v>0){S.biz=v;save();renderAll()}};
+$("rm").onchange=function(){var v=parseFloat(this.value);if(v>0){S.med=v;save();renderAll()}};
+$("emaddr").onchange=function(){S.email=this.value.trim();save()};
+$("prov").onchange=function(){S.provider=this.value;save();renderSet()};
+$("gkey").onchange=function(){S.groqKey=this.value.trim();save()};
+$("gmodel").onchange=function(){S.groqModel=this.value.trim()||Core.DEFAULT_GROQ_MODEL;save();renderSet()};
+$("akey").onchange=function(){S.anthKey=this.value.trim();save()};
+$("amodel").onchange=function(){S.anthModel=this.value.trim()||Core.DEFAULT_ANTHROPIC_MODEL;save();renderSet()};
+$("vadd").onclick=function(){var v=$("vnew").value.trim();if(v&&S.vehicles.indexOf(v)<0){S.vehicles.push(v);$("vnew").value="";save();renderAll()}};
+$("unit").onchange=function(){S.unit=this.value;save();renderAll()};
+$("wipe").onclick=function(){if(confirm("Delete ALL trips from this browser? Export a CSV first if you need a copy.")){S.trips=[];save();pending=null;renderAll()}};
+[].forEach.call(document.querySelectorAll(".tabs button"),function(b){b.onclick=function(){
+  [].forEach.call(document.querySelectorAll(".tabs button"),function(x){x.classList.toggle("on",x===b)});
+  ["trip","log","sum","set"].forEach(function(t){$("p-"+t).classList.toggle("hid",t!==b.dataset.t)});
+}});
+function renderAll(){renderCap();renderLog();renderSum();renderSet()}
+load();renderAll();
+})();
+</script>
+<script>
+/* PWA: register the service worker only on http(s). On file:// (or any
+   other scheme) the app runs exactly as before, with no registration. */
+if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('mileshot-sw.js').catch(function(){});
+  });
+}
+</script>
+</body>
+</html>
