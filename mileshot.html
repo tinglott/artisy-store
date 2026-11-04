@@ -48,6 +48,19 @@ td.n,th.n{text-align:right}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 2px}
 .chip{border:1px solid var(--line);background:var(--acc2);color:var(--acc);border-radius:99px;padding:10px 14px;min-height:44px;font:inherit;font-size:.92rem;cursor:pointer}
 .stack button{width:100%}.stack button+button{margin-top:10px}
+.calhead{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.calhead .caltitle{flex:1;text-align:center}
+.calhead .caltitle h2{margin:0}
+.calnav{min-width:48px;font-size:1.25rem;line-height:1}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal .dow{text-align:center;font-size:.78rem;color:var(--mute);padding:4px 0;font-weight:600}
+.cal .cell{border:1px solid var(--line);border-radius:10px;min-height:58px;padding:5px 6px;background:var(--bg);color:var(--ink);font:inherit;text-align:left;cursor:pointer;width:100%}
+.cal .cell.out{opacity:.35;cursor:default;background:transparent;border-color:transparent}
+.cal .cell.today{border-color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc)}
+.cal .cell.sel{background:var(--acc2);border-color:var(--acc)}
+.cal .cdn{font-size:.85rem;font-weight:600}
+.cal .cmi{color:var(--acc);font-weight:700;font-size:.92rem;line-height:1.25}
+.cal .cct{color:var(--mute);font-size:.72rem}
 #printview{display:none}
 @media print{
   main{display:none!important}
@@ -68,6 +81,7 @@ td.n,th.n{text-align:right}
 <div class="tabs" role="tablist">
   <button class="on" data-t="trip">Trip</button>
   <button data-t="log">Log</button>
+  <button data-t="cal">Calendar</button>
   <button data-t="sum">Summary</button>
   <button data-t="set">Settings</button>
 </div>
@@ -77,6 +91,8 @@ td.n,th.n{text-align:right}
 </section>
 
 <section id="p-log" class="hid"><div class="card" id="logbox"></div></section>
+
+<section id="p-cal" class="hid"><div class="card" id="calbox"></div><div class="card" id="calday"></div></section>
 
 <section id="p-sum" class="hid">
   <div class="card">
@@ -645,6 +661,65 @@ function renderLog(){
   [].forEach.call($("logbox").querySelectorAll("[data-del]"),function(a){a.onclick=function(e){e.preventDefault();if(confirm("Delete this trip?")){S.trips=S.trips.filter(function(t){return t.id!==a.dataset.del});save();renderAll()}}});
 }
 
+/* ---------- calendar ---------- */
+var calY=null,calM=null,calSel=null; // viewed month + selected day key
+function calKey(y,m,d){return y+"-"+m+"-"+d}
+function renderCal(){
+  var now=new Date();
+  if(calY===null){calY=now.getFullYear();calM=now.getMonth()}
+  var todayKey=calKey(now.getFullYear(),now.getMonth(),now.getDate());
+  if(calSel===null&&calY===now.getFullYear()&&calM===now.getMonth())calSel=todayKey;
+  var B={};
+  done().forEach(function(t){
+    var d=new Date(t.start.ts),k=calKey(d.getFullYear(),d.getMonth(),d.getDate());
+    if(!B[k])B[k]={miles:0,n:0,trips:[]};
+    B[k].miles+=t.miles;B[k].n++;B[k].trips.push(t);
+  });
+  var sum=Core.summarize(S.trips,calY,S),mm=sum.byMonth[calM]||[0,0];
+  var h='<div class="calhead"><button class="sec calnav" id="calPrev" aria-label="Previous month">&#8249;</button>'
+    +'<div class="caltitle"><h2>'+new Date(calY,calM,1).toLocaleString([],{month:"long",year:"numeric"})+'</h2>'
+    +'<div class="note">'+fmt(mm[0])+' mi \u00b7 est. deduction '+money(mm[1])+'</div></div>'
+    +'<button class="sec calnav" id="calNext" aria-label="Next month">&#8250;</button></div>'
+    +'<div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button class="sec" id="calToday" style="min-height:44px;padding:8px 16px">Today</button></div>'
+    +'<div class="cal">';
+  ["Su","Mo","Tu","We","Th","Fr","Sa"].forEach(function(d){h+='<div class="dow">'+d+"</div>"});
+  var firstDow=new Date(calY,calM,1).getDay(),dim=new Date(calY,calM+1,0).getDate(),dpm=new Date(calY,calM,0).getDate();
+  var cells=Math.ceil((firstDow+dim)/7)*7;
+  for(var i=0;i<cells;i++){
+    var dn=i-firstDow+1;
+    if(dn<1){h+='<div class="cell out"><div class="cdn">'+(dpm+dn)+"</div></div>";continue}
+    if(dn>dim){h+='<div class="cell out"><div class="cdn">'+(dn-dim)+"</div></div>";continue}
+    var k=calKey(calY,calM,dn),b=B[k];
+    h+='<button type="button" class="cell'+(k===todayKey?" today":"")+(k===calSel?" sel":"")+'" data-d="'+k+'"><div class="cdn">'+dn+"</div>"
+      +(b?'<div class="cmi">'+fmt(b.miles)+'</div><div class="cct">'+b.n+(b.n===1?" trip":" trips")+"</div>":"")
+      +"</button>";
+  }
+  h+="</div>";
+  $("calbox").innerHTML=h;
+  $("calPrev").onclick=function(){calM--;if(calM<0){calM=11;calY--}renderCal()};
+  $("calNext").onclick=function(){calM++;if(calM>11){calM=0;calY++}renderCal()};
+  $("calToday").onclick=function(){var n2=new Date();calY=n2.getFullYear();calM=n2.getMonth();calSel=calKey(calY,calM,n2.getDate());renderCal()};
+  [].forEach.call($("calbox").querySelectorAll("[data-d]"),function(c){c.onclick=function(){calSel=c.getAttribute("data-d");renderCal()}});
+  renderCalDay(B);
+}
+function renderCalDay(B){
+  var box=$("calday");
+  if(!calSel){box.innerHTML='<p class="note">Tap a day to see its trips.</p>';return}
+  var p=calSel.split("-"),sy=+p[0],sm=+p[1],sd=+p[2];
+  if(sy!==calY||sm!==calM){box.innerHTML='<p class="note">Tap a day in this month to see its trips.</p>';return}
+  var b=B[calSel],h="<h2>"+new Date(sy,sm,sd).toLocaleDateString([],{weekday:"long",month:"long",day:"numeric",year:"numeric"})+"</h2>";
+  if(!b||!b.trips.length){box.innerHTML=h+'<p class="note">No trips this day.</p>';return}
+  b.trips.slice().sort(function(a,z){return a.start.ts-z.start.ts}).forEach(function(t){
+    var r=rate(t.cat,t.start.ts),ded=t.miles*r;
+    h+='<div class="trip"><div class="top"><b>'+fmt(t.miles)+' mi</b><span class="pill">'+CATS[t.cat]+'</span></div>'
+     +'<div class="note">'+esc(dt(t.start.ts))+" \u00b7 "+fmt(t.start.odo)+" \u2192 "+fmt(t.end.odo)+" "+S.unit+(t.veh?" \u00b7 "+esc(t.veh):"")+"</div>"
+     +(t.why?"<div>"+esc(t.why)+"</div>":"")
+     +'<div class="note">'+(r?money(ded)+" at "+(r*100).toFixed(1)+"\u00a2/mi":"Not deductible")+' \u00b7 <a href="#" data-del="'+t.id+'" class="bad">delete</a></div></div>';
+  });
+  box.innerHTML=h;
+  [].forEach.call(box.querySelectorAll("[data-del]"),function(a){a.onclick=function(e){e.preventDefault();if(confirm("Delete this trip?")){S.trips=S.trips.filter(function(t){return t.id!==a.dataset.del});save();renderAll()}}});
+}
+
 /* ---------- summary, print, email, export ---------- */
 function renderSum(){
   var d=done(),ys={};d.forEach(function(t){ys[new Date(t.start.ts).getFullYear()]=1});
@@ -708,9 +783,10 @@ $("unit").onchange=function(){S.unit=this.value;save();renderAll()};
 $("wipe").onclick=function(){if(confirm("Delete ALL trips from this browser? Export a CSV first if you need a copy.")){S.trips=[];save();pending=null;renderAll()}};
 [].forEach.call(document.querySelectorAll(".tabs button"),function(b){b.onclick=function(){
   [].forEach.call(document.querySelectorAll(".tabs button"),function(x){x.classList.toggle("on",x===b)});
-  ["trip","log","sum","set"].forEach(function(t){$("p-"+t).classList.toggle("hid",t!==b.dataset.t)});
+  ["trip","log","cal","sum","set"].forEach(function(t){$("p-"+t).classList.toggle("hid",t!==b.dataset.t)});
+  if(b.dataset.t==="cal")renderCal();
 }});
-function renderAll(){renderCap();renderLog();renderSum();renderSet()}
+function renderAll(){renderCap();renderLog();renderCal();renderSum();renderSet()}
 load();renderAll();
 })();
 </script>

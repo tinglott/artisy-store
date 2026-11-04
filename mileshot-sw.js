@@ -7,7 +7,7 @@
  * existed. */
 'use strict';
 
-var CACHE = 'mileshot-shell-v1';
+var CACHE = 'mileshot-shell-v2-20261104';
 var SHELL = [
   '/mileshot.html',
   '/mileshot.webmanifest',
