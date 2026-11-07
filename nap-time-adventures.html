@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nap Time Adventures</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.0/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3/tailwind.min.css" rel="stylesheet" type="text/css" />
+    <style>
+        * { user-select: none; -webkit-user-select: none; }
+        button { user-select: none; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 min-h-screen">
+    <div id="root"></div>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script>
+        const { useState, useEffect, useRef } = React;
+        const SOUNDS = [
+            { key: 'ocean', name: 'Ocean Waves', url: 'https://huggingface.co/datasets/ziggylott/nap-time-sounds/resolve/main/ocean-waves.mp3' },
+            { key: 'rain', name: 'Gentle Rain', url: 'https://huggingface.co/datasets/ziggylott/nap-time-sounds/resolve/main/gentle-rain.mp3' },
+            { key: 'forest', name: 'Forest Sounds', url: 'https://huggingface.co/datasets/ziggylott/nap-time-sounds/resolve/main/forest-sounds.mp3' },
+            { key: 'stream', name: 'Babbling Stream', url: 'https://huggingface.co/datasets/ziggylott/nap-time-sounds/resolve/main/babbling-stream.mp3' },
+            { key: 'white', name: 'White Noise', url: 'https://huggingface.co/datasets/ziggylott/nap-time-sounds/resolve/main/white-noise.mp3' },
+            { key: 'twinkle', name: 'Twinkle Twinkle', url: 'https://huggingface.co/datasets/ziggylott/nap-time-sounds/resolve/main/twinkle-twinkle.mp3' },
+            { key: 'satie', name: "Satie's Lullaby", url: 'https://huggingface.co/datasets/ziggylott/nap-time-sounds/resolve/main/saties-lullaby.mp3' },
+            { key: 'sleep', name: 'Sleep Tight', url: 'https://huggingface.co/datasets/ziggylott/nap-time-sounds/resolve/main/sleep-tight.mp3' },
+            { key: 'summer', name: 'Summer Lullaby', url: 'https://huggingface.co/datasets/ziggylott/nap-time-sounds/resolve/main/summer-lullaby.mp3' },
+            { key: 'sweet', name: 'Sweet Lullaby', url: 'https://huggingface.co/datasets/ziggylott/nap-time-sounds/resolve/main/sweet-lullaby.mp3' },
+        ];
+        function App() {
+            const [isPlaying, setIsPlaying] = useState(false);
+            const [currentSound, setCurrentSound] = useState(null);
+            const [timeLeft, setTimeLeft] = useState(0);
+            const [timerDuration, setTimerDuration] = useState(15);
+            const audioRef = useRef(null);
+            useEffect(() => {
+                if (timeLeft <= 0 || !isPlaying) return;
+                const timer = setInterval(() => setTimeLeft(t => t > 0 ? t - 1 : 0), 1000);
+                return () => clearInterval(timer);
+            }, [timeLeft, isPlaying]);
+            const handlePlay = (sound) => {
+                setCurrentSound(sound);
+                if (audioRef.current) {
+                    audioRef.current.src = sound.url;
+                    audioRef.current.play().catch(e => console.log('Play error:', e));
+                }
+                setIsPlaying(true);
+                setTimeLeft(timerDuration * 60);
+            };
+            const handleStop = () => {
+                if (audioRef.current) audioRef.current.pause();
+                setIsPlaying(false);
+                setTimeLeft(0);
+            };
+            const mins = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            return (
+                React.createElement('div', { className: 'min-h-screen p-4 flex flex-col items-center justify-center' },
+                    React.createElement('div', { className: 'max-w-2xl w-full' },
+                        React.createElement('h1', { className: 'text-4xl font-bold text-white mb-8 text-center' }, '🌙 Nap Time Adventures'),
+                        currentSound && isPlaying && React.createElement('div', { className: 'bg-white/20 backdrop-blur p-6 rounded-2xl mb-8 text-white text-center' },
+                            React.createElement('p', { className: 'text-xl font-semibold mb-2' }, '🎵 Now Playing: ' + currentSound.name),
+                            React.createElement('p', { className: 'text-4xl font-bold font-mono' }, String(mins).padStart(2,'0') + ':' + String(secs).padStart(2,'0'))
+                        ),
+                        React.createElement('div', { className: 'grid grid-cols-2 gap-3 mb-8' },
+                            SOUNDS.map(sound => React.createElement('button', { key: sound.key, onClick: () => handlePlay(sound), className: 'btn btn-lg btn-primary text-white h-24 flex flex-col items-center justify-center' }, React.createElement('span', { className: 'text-sm' }, sound.name)))
+                        ),
+                        isPlaying && React.createElement('div', { className: 'text-center mb-8' }, React.createElement('button', { onClick: handleStop, className: 'btn btn-error btn-lg' }, 'Stop')),
+                        !isPlaying && React.createElement('div', { className: 'bg-white/10 p-6 rounded-xl text-white text-center' },
+                            React.createElement('p', { className: 'text-sm mb-4' }, 'Timer Duration:'),
+                            React.createElement('div', { className: 'flex gap-2 justify-center mb-4' },
+                                [15, 20, 30, 45, 60].map(t => React.createElement('button', { key: t, onClick: () => setTimerDuration(t), className: 'btn ' + (timerDuration === t ? 'btn-primary' : 'btn-ghost') }, t + 'm'))
+                            )
+                        )
+                    ),
+                    React.createElement('audio', { ref: audioRef })
+                )
+            );
+        }
+        ReactDOM.render(React.createElement(App), document.getElementById('root'));
+    </script>
+</body>
+</html>
