@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voice Forge — Staging</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif}body{margin:0;background:#100d24;color:#f8fafc}main{max-width:900px;margin:auto;padding:28px}header,section{background:#1b1638;border:1px solid #463b79;border-radius:16px;padding:20px;margin-bottom:16px}h1{margin:0 0 6px;color:#d8b4fe}.badge{display:inline-block;background:#854d0e;color:#fde68a;border-radius:999px;padding:5px 10px;font-size:.8rem;font-weight:700}.notice{border-left:4px solid #f59e0b;padding:10px 14px;background:#292044;color:#fde68a}label{display:block;font-weight:700;margin:14px 0 6px}input,select,button{font:inherit}input,select{width:100%;box-sizing:border-box;padding:11px;border-radius:10px;border:1px solid #695aa8;background:#100d24;color:#fff}button{margin-top:14px;padding:10px 16px;border:0;border-radius:999px;background:#a855f7;color:#fff;font-weight:700;cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:650px){.row{grid-template-columns:1fr}}#queue{display:grid;gap:10px}.item{padding:12px;border:1px solid #463b79;border-radius:10px;background:#15112d}.muted{color:#c4b5fd;font-size:.9rem}ul{line-height:1.7}
+</style>
+</head>
+<body><main>
+<header><span class="badge">STAGING • NOT PRODUCTION</span><h1>🎙️ Voice Forge</h1><p class="muted">A safe browser workspace for manuscript intake and audiobook job planning.</p></header>
+<section><div class="notice"><strong>Honest status:</strong> this staging build does not generate or upload audio. It never treats a preview as a completed audiobook. TTS, private storage, verification, and resumable jobs require a secured backend.</div>
+<label for="manuscript">Select a local manuscript</label><input id="manuscript" type="file" accept=".docx,.pdf,.txt">
+<div class="row"><div><label for="voice">Narrator</label><select id="voice"><option>Andrew — steady</option><option>Christopher — warm</option><option>Female — calm</option></select></div><div><label for="job">Job label</label><input id="job" placeholder="e.g. The Language of Blessing"></div></div><button id="add">Add to staging queue</button></section>
+<section><h2>Staging queue</h2><div id="queue"><p class="muted">No local manuscript selected.</p></div></section>
+<section><h2>Release gates</h2><ul><li>Canonical source confirmed</li><li>Duplicate narration check passed</li><li>Storage and active-process check passed</li><li>Full audio coverage and playability verified</li><li>ZIP tested and privately backed up</li></ul></section>
+</main><script>
+const file=document.querySelector('#manuscript'),job=document.querySelector('#job'),voice=document.querySelector('#voice'),add=document.querySelector('#add'),queue=document.querySelector('#queue');let items=[];
+file.addEventListener('change',()=>{add.disabled=!file.files?.length});add.disabled=true;
+add.addEventListener('click',()=>{const f=file.files[0];items.push({name:f.name,label:job.value.trim()||f.name,voice:voice.value,size:f.size});queue.innerHTML=items.map((x,i)=>`<div class="item"><strong>${x.label}</strong><br><span class="muted">${x.name} • ${x.voice} • ${(x.size/1024).toFixed(1)} KB • Awaiting secured backend</span></div>`).join('');file.value='';job.value='';add.disabled=true});
+</script></body></html>
