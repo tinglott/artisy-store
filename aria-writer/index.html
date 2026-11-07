@@ -271,17 +271,17 @@
       <div>
         <label>API Keys (stored only in your browser)</label>
         <input type="password" id="geminiKey" placeholder="Google Gemini key (optional)" />
-        <div class="llm-status">Gemini 2.5 Flash (primary) - Get free: https://aistudio.google.com</div>
+        <div class="llm-status">Gemini 2.5 Flash (primary) - Get free: <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a></div>
       </div>
 
       <div>
         <input type="password" id="mistralKey" placeholder="Mistral key (optional)" />
-        <div class="llm-status">Mistral (fallback 1) - Get free: https://console.mistral.ai</div>
+        <div class="llm-status">Mistral (fallback 1) - Get free: <a href="https://console.mistral.ai" target="_blank">console.mistral.ai</a></div>
       </div>
 
       <div>
         <input type="password" id="groqKey" placeholder="Groq key (optional)" />
-        <div class="llm-status">Groq (fallback 2) - Get free: https://console.groq.com</div>
+        <div class="llm-status">Groq (fallback 2) - Get free: <a href="https://console.groq.com" target="_blank">console.groq.com</a></div>
       </div>
 
       <button class="primary" onclick="saveSettings()" style="grid-column: 1/-1;">Save Keys</button>
@@ -348,24 +348,19 @@ Example: Me and him went to the store yesterday and we buyed some stuff that was
     const $ = id => document.getElementById(id);
     const statusEl = $('status');
 
-    // Config tokens — split to avoid pattern matching, joined at runtime
-    function _cfg() {
-      const q = ['AQ.Ab8RN6Ifg','fpMKiC6p6_ix','iSUSS9x0ra0D','IhDpWP0VtHXt','zXxKw'];
-      const r = ['xF6hnBZnte','YnEja0qVVg','k9BbNp8wUp3d'];
-      const s = ['gsk_1D37UFvE','XrD405CfNot','UWGdyb3FYIfc','MbvcFVBX72Z3','yIxHL3MW7'];
-      return { writeai_gemini: q.join(''), writeai_mistral: r.join(''), writeai_groq: s.join('') };
+
+    // No house keys are seeded — visitors use their own free keys (Gemini, Mistral,
+    // Groq). A pasted key is stored only in the visitor's own browser (localStorage).
+    function showNoKeyHint() {
+      showStatus('Add a free API key to start writing — paste your own key in the boxes above. Get one free: <a href="https://aistudio.google.com" target="_blank">Gemini</a> • <a href="https://console.mistral.ai" target="_blank">Mistral</a> • <a href="https://console.groq.com" target="_blank">Groq</a>. Keys are stored only in your browser.', 'info');
     }
 
     function loadSettings() {
       localStorage.removeItem('writeai_grok'); // retired engine (Oct 2026) — forget any stored key
-      // Seed defaults into localStorage on first visit only
-      const cfg = _cfg();
-      Object.entries(cfg).forEach(([k, v]) => {
-        if (!localStorage.getItem(k)) localStorage.setItem(k, v);
-      });
       $('geminiKey').value  = localStorage.getItem('writeai_gemini')  || '';
       $('mistralKey').value = localStorage.getItem('writeai_mistral') || '';
       $('groqKey').value    = localStorage.getItem('writeai_groq')    || '';
+      if (!$('geminiKey').value && !$('mistralKey').value && !$('groqKey').value) showNoKeyHint();
     }
 
     function saveSettings() {
@@ -430,7 +425,7 @@ Example: Me and him went to the store yesterday and we buyed some stuff that was
       }
 
       if (providers.length === 0) {
-        throw new Error('Please add at least one API key (Gemini, Mistral, or Groq)');
+        throw new Error('NO_API_KEY');
       }
 
       const failures = [];
@@ -662,7 +657,11 @@ Return ONLY the formatted code.`
         showStatus(`Done — processed by ${servedBy}. Review the improved version.`, 'success');
       } catch (err) {
         console.error(err);
-        showStatus('Error: ' + err.message, 'error');
+        if (err.message === 'NO_API_KEY') {
+          showNoKeyHint();
+        } else {
+          showStatus('Error: ' + err.message, 'error');
+        }
       }
     }
 
