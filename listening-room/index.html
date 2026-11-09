@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sacred Cycle Live — The Listening Room</title>
+<meta name="description" content="Sacred Cycle Live — a gentle live listening room hosted by Luna. Music, comedy, and short messages, with replays on Spotify. Come as you are.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <p class="eyebrow">Sacred Cycle Live</p>
+  <h1>The Listening Room</h1>
+  <p class="welcome">Welcome — come as you are. A quiet place to listen, laugh a little, and rest a while. Your host is Luna, and there is always a seat saved for you.</p>
+  <p class="verse">&ldquo;Come unto me, all ye that labour and are heavy laden, and I will give you rest.&rdquo; &mdash; Matthew 11:28 (KJV)</p>
+</header>
+
+<main>
+
+  <!-- 1. LIVE ROOM -->
+  <section id="live-room" aria-labelledby="live-room-heading">
+    <h2 id="live-room-heading">The Live Room</h2>
+    <p>Once a week, for one gentle hour, we gather live. Luna hosts — tlott12 music, a little comedy, and short messages between the songs. No app to install; you join from your browser.</p>
+    <p class="room-date"><strong>First live room: coming soon</strong> — join the email list below and we&rsquo;ll tell you first.</p>
+    <p class="audio-slot">🎧 Hear Luna welcome you to the room — <audio controls preload="metadata" src="audio/luna-room-intro.mp3"></audio></p>
+
+    <!-- LIVEKIT-JOIN-WIDGET: mounted Nov 9, 2026 (CONFIG empty = honest "not open yet" state) -->
+<!-- ============================================================================
+  Sacred Cycle Live — LiveKit join widget
+  ============================================================================
+  WHAT THIS IS
+  A self-contained join widget for the Sacred Cycle Live listening room.
+  Listeners join the LiveKit room in their browser (WebRTC, audio only),
+  hear Luna host, and can raise a hand to speak. No account, no download.
+
+  HOW TO EMBED IT (hub page)
+  The hub page already has the mount point waiting:
+      <div id="livekit-room"></div>
+  1. Copy THIS whole file's contents into the hub page at that mount point,
+     OR serve this file and include it with an <iframe> — either works.
+  2. After the LiveKit signup + token-server deploy (owner steps in
+     README.md), fill in the two CONFIG values below:
+         TOKEN_URL   — your token server, e.g.
+                       https://tinglott.pythonanywhere.com/livekit/token
+         LIVEKIT_URL — your LiveKit Cloud project URL, e.g.
+                       wss://sacred-cycle-xxxxxx.livekit.cloud
+  3. Until those two values are set, the widget shows an HONEST
+     "not open yet" state — never a dead button, never a fake join.
+
+  DO NOT put LIVEKIT_API_KEY or LIVEKIT_API_SECRET anywhere in this file.
+  The browser only ever sees a short-lived token minted by token_server.py.
+  ========================================================================== -->
+<div id="scl-livekit-widget" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif;max-width:560px;margin:0 auto;padding:20px;border:1px solid #e5ddd3;border-radius:16px;background:#fffaf4;color:#2b2118;">
+  <h2 style="margin:0 0 4px;font-size:1.35rem;">🎧 Sacred Cycle Live — Listening Room</h2>
+  <p style="margin:0 0 14px;color:#6b5d4f;">A live listening room hosted by Luna — music, comedy, and the punchline, live.</p>
+
+  <!-- Room schedule. Day/time are NOT settled yet — update these two lines
+       when Ting picks the weekly slot. Do not invent a day/time. -->
+  <div id="scl-schedule" style="background:#f3ead9;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:.95rem;">
+    <strong>📅 Weekly live room:</strong> day &amp; time to be announced<br>
+    <span style="color:#6b5d4f;">Announced in the free Sacred Cycle community — about 1 hour, once a week.</span><br>
+    <span style="color:#6b5d4f;">Replays land on Spotify after each room.</span>
+  </div>
+
+  <!-- State 1: not configured yet (TOKEN_URL / LIVEKIT_URL empty). -->
+  <div id="scl-not-open">
+    <p style="margin:0 0 10px;">🕯️ <strong>Room opens with the first live call — the join link appears here.</strong></p>
+    <p style="margin:0;color:#6b5d4f;">We&rsquo;re setting up the live room now. When the first weekly call is scheduled, this box becomes the Join button — same place, no new link to hunt for.</p>
+  </div>
+
+  <!-- State 2: configured. Hidden until CONFIG is filled in. -->
+  <div id="scl-join-panel" hidden>
+    <p id="scl-status" style="margin:0 0 10px;">Ready when you are.</p>
+    <button id="scl-join-btn" type="button"
+      style="padding:12px 22px;font-size:1rem;border:0;border-radius:999px;background:#7a5c2e;color:#fff;cursor:pointer;">Join the live room</button>
+    <button id="scl-hand-btn" type="button" hidden
+      style="padding:12px 18px;font-size:1rem;border:1px solid #7a5c2e;border-radius:999px;background:#fff;color:#7a5c2e;cursor:pointer;">✋ Raise hand to speak</button>
+    <button id="scl-leave-btn" type="button" hidden
+      style="padding:12px 18px;font-size:1rem;border:1px solid #b0a08c;border-radius:999px;background:#fff;color:#6b5d4f;cursor:pointer;">Leave</button>
+    <p id="scl-participants" style="margin:12px 0 0;font-size:.92rem;color:#6b5d4f;"></p>
+    <div id="scl-audio"></div>
+  </div>
+
+  <p style="margin:14px 0 0;font-size:.82rem;color:#8a7d6d;">Listen-only by default — your mic stays off unless you raise your hand. Be kind: this room is for listening together.</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/livekit-client@2.23.0/dist/livekit-client.umd.min.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  /* ================= CONFIG — fill in after the LiveKit signup =================
+     Leave BOTH empty until the token server is deployed. Empty = the honest
+     "not open yet" state above. A half-filled config is worse than none. */
+  var CONFIG = {
+    TOKEN_URL: '',    // e.g. 'https://tinglott.pythonanywhere.com/livekit/token'
+    LIVEKIT_URL: '',  // e.g. 'wss://sacred-cycle-xxxxxx.livekit.cloud'
+    ROOM_NAME: 'sacred-cycle-live'
+  };
+  /* ============================================================================= */
+
+  var $ = function (id) { return document.getElementById(id); };
+  var notOpen = $('scl-not-open');
+  var joinPanel = $('scl-join-panel');
+  var statusEl = $('scl-status');
+  var joinBtn = $('scl-join-btn');
+  var handBtn = $('scl-hand-btn');
+  var leaveBtn = $('scl-leave-btn');
+  var participantsEl = $('scl-participants');
+  var audioEl = $('scl-audio');
+
+  var configured = Boolean(CONFIG.TOKEN_URL && CONFIG.LIVEKIT_URL);
+  if (configured) {
+    notOpen.hidden = true;
+    joinPanel.hidden = false;
+  } else {
+    return; // Not configured: stay on the honest "not open yet" state.
+  }
+
+  var room = null;
+  var micTrack = null;
+  var handRaised = false;
+
+  function setStatus(text) { statusEl.textContent = text; }
+
+  function renderParticipants() {
+    if (!room) { participantsEl.textContent = ''; return; }
+    var names = [];
+    room.remoteParticipants.forEach(function (p) {
+      names.push(p.name || p.identity);
+    });
+    var lunaHere = names.some(function (n) { return /luna/i.test(n); });
+    participantsEl.textContent = names.length
+      ? 'In the room now (' + room.remoteParticipants.size + '): ' + names.join(', ')
+        + (lunaHere ? ' — Luna is hosting 🎙️' : ' — Luna joins when the live call starts.')
+      : 'You are in the room. Luna joins when the live call starts.';
+  }
+
+  function attachTrack(track, participant) {
+    if (track.kind !== 'audio') return;
+    var el = track.attach();
+    el.setAttribute('data-participant', participant.identity);
+    audioEl.appendChild(el);
+  }
+
+  joinBtn.addEventListener('click', function () {
+    joinBtn.disabled = true;
+    setStatus('Getting your seat…');
+    var displayName = 'listener-' + Math.random().toString(36).slice(2, 8);
+    fetch(CONFIG.TOKEN_URL + '?identity=' + encodeURIComponent(displayName)
+        + '&name=' + encodeURIComponent(displayName))
+      .then(function (res) {
+        if (!res.ok) throw new Error('token server answered ' + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        if (!data.token) throw new Error('token server gave no token');
+        room = new LivekitClient.Room({ adaptiveStream: true, dynacast: true });
+        room.on(LivekitClient.RoomEvent.TrackSubscribed, function (track, _pub, participant) {
+          attachTrack(track, participant);
+          renderParticipants();
+        });
+        room.on(LivekitClient.RoomEvent.TrackUnsubscribed, function (track) { track.detach(); });
+        room.on(LivekitClient.RoomEvent.ParticipantConnected, renderParticipants);
+        room.on(LivekitClient.RoomEvent.ParticipantDisconnected, renderParticipants);
+        room.on(LivekitClient.RoomEvent.Disconnected, onLeave);
+        return room.connect(CONFIG.LIVEKIT_URL, data.token);
+      })
+      .then(function () {
+        setStatus('You are in the room — listening. 🎧');
+        joinBtn.hidden = true;
+        handBtn.hidden = false;
+        leaveBtn.hidden = false;
+        renderParticipants();
+      })
+      .catch(function (err) {
+        setStatus('Could not join just now (' + err.message + '). Please try again in a minute — if it keeps failing, the room may not be live yet.');
+        joinBtn.disabled = false;
+      });
+  });
+
+  handBtn.addEventListener('click', function () {
+    if (!room) return;
+    if (!handRaised) {
+      handBtn.disabled = true;
+      setStatus('Turning your mic on…');
+      LivekitClient.createLocalAudioTrack()
+        .then(function (track) {
+          micTrack = track;
+          return room.localParticipant.publishTrack(track);
+        })
+        .then(function () {
+          handRaised = true;
+          handBtn.textContent = '🎙️ Mic on — tap to mute';
+          handBtn.disabled = false;
+          setStatus('Your mic is live — Luna can hear you. Tap again to mute.');
+        })
+        .catch(function (err) {
+          handBtn.disabled = false;
+          setStatus('Mic could not start (' + err.message + '). You can keep listening.');
+        });
+    } else if (micTrack) {
+      room.localParticipant.unpublishTrack(micTrack);
+      micTrack.stop();
+      micTrack = null;
+      handRaised = false;
+      handBtn.textContent = '✋ Raise hand to speak';
+      setStatus('Mic off — back to listening. 🎧');
+    }
+  });
+
+  function onLeave() {
+    if (room) { room.disconnect(); room = null; }
+    if (micTrack) { micTrack.stop(); micTrack = null; }
+    handRaised = false;
+    audioEl.innerHTML = '';
+    joinBtn.hidden = false;
+    joinBtn.disabled = false;
+    handBtn.hidden = true;
+    handBtn.textContent = '✋ Raise hand to speak';
+    leaveBtn.hidden = true;
+    setStatus('You left the room. Come back any time it is live.');
+    renderParticipants();
+  }
+  leaveBtn.addEventListener('click', onLeave);
+})();
+</script>
+
+
+    <p class="fine-print">The room runs on LiveKit (free) — no app to install, join from your browser.</p>
+    <p class="fine-print">Weekly rooms, one hour each. We keep it weekly on purpose, so the room stays unhurried and the listening stays good.</p>
+  </section>
+
+  <!-- 2. REPLAYS -->
+  <section id="replays" aria-labelledby="replays-heading">
+    <h2 id="replays-heading">Replays — Listen on Spotify</h2>
+    <p>Missed a room? Every live room becomes a replay here, published as a Sacred Cycle Renewal episode on Spotify.</p>
+
+    <div class="episode-list">
+      <article class="episode-card">
+        <h3>Season 2, Episode 1 — &ldquo;The Liberal Soul&rdquo;</h3>
+        <p>Length: 2:32 &middot; Live November 3, 2026</p>
+        <p><a href="https://open.spotify.com/show/7dk19w8fZBYNo3fHauaqXB">Listen on Spotify</a></p>
+      </article>
+
+      <article class="episode-card">
+        <h3>Season 2, Episode 2 — &ldquo;A Psalm for the Generous&rdquo;</h3>
+        <p>Length: 4:27 &middot; Live November 5, 2026</p>
+        <p><a href="https://open.spotify.com/show/7dk19w8fZBYNo3fHauaqXB">Listen on Spotify</a></p>
+      </article>
+
+      <article class="episode-card">
+        <h3>Season 2, Episode 3 — &ldquo;The Watered Garden&rdquo;</h3>
+        <p>Length: 3:42 &middot; Live November 7, 2026</p>
+        <p><a href="https://open.spotify.com/show/7dk19w8fZBYNo3fHauaqXB">Listen on Spotify</a></p>
+      </article>
+    </div>
+
+    <div class="spotify-player">
+      <iframe src="https://open.spotify.com/embed/show/7dk19w8fZBYNo3fHauaqXB?utm_source=generator"
+              width="100%" height="352" style="border:0;" allowfullscreen
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+              loading="lazy"
+              title="Sacred Cycle Renewal on Spotify"></iframe>
+    </div>
+  </section>
+
+  <!-- 3. SPOTIFY GROWTH FUNNEL -->
+  <section id="follow" aria-labelledby="follow-heading">
+    <h2 id="follow-heading">Follow the Show &amp; Get New-Episode Alerts</h2>
+    <p>One tap follows the show inside Spotify, so new episodes find you. If you&rsquo;d rather hear about new episodes by email, leave your address below.</p>
+    <p><a class="button" href="https://open.spotify.com/show/7dk19w8fZBYNo3fHauaqXB">Follow on Spotify</a></p>
+
+    <form id="episode-alerts-form" class="signup-form" action="#" method="post">
+      <label for="alerts-email">Email for new-episode alerts</label>
+      <input type="email" id="alerts-email" name="email" placeholder="you@example.com" required autocomplete="email">
+      <button type="submit">Tell me when a new episode lands</button>
+      <p class="form-status" id="alerts-status" role="status"></p>
+      <!-- HELD: no public Kit form URL was found in the workspace (the earlier Kit/ConvertKit email-capture plan was retired in the freebie playbook). This form does not submit anywhere yet. Owner step: create a Kit form and paste its URL here. -->
+      <p class="placeholder-note">Coming soon: email signup is being connected. Your address is not collected or stored by this page today.</p>
+    </form>
+  </section>
+
+  <!-- 4. JOKE FUNNEL -->
+  <section id="jokes" aria-labelledby="jokes-heading">
+    <h2 id="jokes-heading">Come Listen to Finish the Joke</h2>
+    <p>Here is how the jokes work. A short setup clip goes out on TikTok and Facebook — just the beginning of a joke from <em>Laugh Lines</em> or <em>Jokes with Mr. Ting</em>. The punchline is not in the clip. To hear how it ends, come to the live room and listen with us.</p>
+    <p>Setup here, punchline live. That is the whole invitation.</p>
+
+    <div class="placeholder-box">
+      <p><strong>First joke setup lands here.</strong></p>
+      <p>The first setup clips are still being made. When they are ready, they will appear right here — and the punchline will be heard live in the room.</p>
+      <p>🎧 Hear Luna&rsquo;s invitation to the room — <audio controls preload="metadata" src="audio/luna-joke-setup.mp3"></audio></p>
+      <!-- HELD: ~/workspace/laugh-lines-facebook/ does not exist yet; no setup-clip video files were present at build time. Owner step: finish the setup clips in the video pipeline and drop the files here. -->
+    </div>
+  </section>
+
+  <!-- 5. AD MESSAGES -->
+  <section id="messages" aria-labelledby="messages-heading">
+    <h2 id="messages-heading">Short Messages from Luna</h2>
+    <p>Between the music and the jokes, Luna shares short messages — about twenty seconds each — about the tools that keep this work going. Gentle invitations, never pressure. Everything lives at <a href="https://shop.artistrystore.com">shop.artistrystore.com</a>.</p>
+
+    <div class="video-wrap">
+      <video controls preload="metadata" src="assets/dont-buy-these-5.mp4">
+        Your browser does not support this video. You can find the same five products at <a href="https://shop.artistrystore.com">shop.artistrystore.com</a>.
+      </video>
+      <p class="fine-print">&ldquo;Don&rsquo;t Buy These 5&rdquo; — the short video that started these messages.</p>
+    </div>
+
+    <ul class="product-messages">
+      <li>
+        <h3><a href="https://shop.artistrystore.com">AI Command Center</a></h3>
+        <p>One simple command center, so AI handles the repeat work and you stay in charge of every decision.</p>
+        <p class="audio-slot">🎧 Luna&rsquo;s message for AI Command Center — <audio controls preload="metadata" src="audio/luna-aicc.mp3"></audio></p>
+      </li>
+      <li>
+        <h3><a href="https://shop.artistrystore.com">Golden Years Companion</a></h3>
+        <p>A gentle companion of faith, rest, and encouragement for life&rsquo;s later chapters, made by a nurse who&rsquo;s spent 17 years sitting with people in their hardest seasons.</p>
+        <p class="audio-slot">🎧 Luna&rsquo;s message for Golden Years Companion — <audio controls preload="metadata" src="audio/luna-golden-years.mp3"></audio></p>
+      </li>
+      <li>
+        <h3><a href="https://shop.artistrystore.com">RN Command Pro</a></h3>
+        <p>The note templates, calculators, rapid references, and private transcription you wish your facility gave you, in one tool that lives in your own browser.</p>
+        <p class="audio-slot">🎧 Luna&rsquo;s message for RN Command Pro — <audio controls preload="metadata" src="audio/luna-rn-command-pro.mp3"></audio></p>
+      </li>
+      <li>
+        <h3><a href="https://shop.artistrystore.com">ParentWise</a></h3>
+        <p>A calm, practical toolkit for the moments that undo you, with a 60-second reset for when you&rsquo;re about to lose it.</p>
+        <p class="audio-slot">🎧 Luna&rsquo;s message for ParentWise — <audio controls preload="metadata" src="audio/luna-parentwise.mp3"></audio></p>
+      </li>
+      <li>
+        <h3><a href="https://shop.artistrystore.com">Sacred Cycles Renewal</a></h3>
+        <p>Thirty gentle lessons in breathing, rest, reflection, and renewal, one week at a time.</p>
+        <p class="audio-slot">🎧 Luna&rsquo;s message for Sacred Cycles Renewal — <audio controls preload="metadata" src="audio/luna-sacred-cycles.mp3"></audio></p>
+      </li>
+    </ul>
+    <!-- Luna audio wired Nov 9, 2026: five product messages + room intro + joke-setup invite, all in Luna's voice (Groq Orpheus hannah). -->
+  </section>
+
+  <!-- 6. EARNINGS CALCULATOR -->
+  <section id="calculator" aria-labelledby="calculator-heading">
+    <h2 id="calculator-heading">Affiliate Earnings Calculator</h2>
+    <p>Curious what sharing these tools could earn? Pick a product and a number of sales, and see the commission add up. The figures below are the real per-sale commissions.</p>
+
+    <form id="earnings-form" class="calculator-form">
+      <label for="calc-product">Product</label>
+      <select id="calc-product" name="product">
+        <option value="98.50">AI Command Center — $98.50 per sale</option>
+        <option value="53.50">Golden Years Companion — $53.50 per sale</option>
+        <option value="48.50">RN Command Pro — $48.50 per sale</option>
+        <option value="48.50">ParentWise — $48.50 per sale</option>
+        <option value="48.50">Sacred Cycles Renewal — $48.50 per sale</option>
+        <option value="35.00">Complete Habit System — $35.00 per sale</option>
+      </select>
+
+      <label for="calc-sales">Number of sales</label>
+      <input type="number" id="calc-sales" name="sales" min="0" step="1" value="10">
+
+      <button type="submit">Work it out</button>
+    </form>
+
+    <p class="calc-result" id="calc-result" role="status">Example: 10 AI Command Center sales = $985.00 in commission.</p>
+    <p class="fine-print"><strong>Illustration, not a guarantee — actual earnings may be $0.</strong> These numbers show what the commission would be <em>if</em> sales happened. They are not typical results, and no result is promised.</p>
+  </section>
+
+  <!-- 7. COMMUNITY HOME -->
+  <section id="community" aria-labelledby="community-heading">
+    <h2 id="community-heading">Our Community Home</h2>
+    <p>The conversation continues between rooms in our free community — daily devotionals, every podcast episode, the T. Lott Music Hub, prayer requests, and honest conversation in the forums and chat. Free forever. Come as you are — there&rsquo;s a seat saved for you.</p>
+    <p><a class="button" href="https://whop.com/tlott12">Join the free Sacred Cycle Renewal community on Whop</a></p>
+    <p class="fine-print">You&rsquo;ll find it on the TLOTT12 store page as &ldquo;Sacred Cycle Renewal — Community&rdquo; (free, $0). Look for &ldquo;Start Here — Welcome &amp; Free Gifts&rdquo; when you arrive.</p>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <p>Sacred Cycle Live — a gentle listening room, hosted by Luna. Music by tlott12. Kind, calm, and caring, always.</p>
+  <p><a href="https://shop.artistrystore.com">shop.artistrystore.com</a> &middot; <a href="https://open.spotify.com/show/7dk19w8fZBYNo3fHauaqXB">Sacred Cycle Renewal on Spotify</a> &middot; <a href="https://whop.com/tlott12">Free community on Whop</a></p>
+  <p class="fine-print">Preview site — not yet launched. Nothing here takes payment, makes promises about earnings, or plays audio taken from TikTok.</p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
