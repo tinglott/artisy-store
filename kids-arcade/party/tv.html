@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<!-- =====================================================================
+TV PARTY MODE - derived copy of kids-phone-arcade-13-games.html
+Copied: 2026-11-10. Source file is NOT modified.
+What changed in this copy (game code byte-identical):
+  * This provenance comment.
+  * A party-mode shim block appended just before the closing body tag
+    (below): shows a 6-letter room code + QR + connection status on the
+    menu screen, hides the on-screen touch controls (dance pads / motion
+    buttons), and maps incoming phone-controller messages onto the game's
+    existing input seams (aim, fire(), danceHit(dir), onOri(e), startRun()).
+  * Vendored libs loaded from this folder: peerjs.min.js (MIT, PeerJS
+    v1.5.5) and qrcode.js (MIT, qrcode-generator 1.4.4). See ATTRIBUTION.md.
+  * Supabase Realtime Broadcast fallback code is present in the shim but
+    NOT configured (no anon key - see the PT_SUPABASE block in the shim).
+  * ?selftest=1 also runs a party self-test (see #party-selftest).
+===================================================================== -->
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kids Phone Arcade: 13 Games — Seasons 1 &amp; 2 + Dance Party</title>
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--ink:#16202e;--mut:#5a6778;--acc:#1b6ef3;--line:#d9e1ec;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1420;--card:#172033;--ink:#eaf0fa;--mut:#9fb0c7;--acc:#5b9bff;--line:#2a3652;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1420;--card:#172033;--ink:#eaf0fa;--mut:#9fb0c7;--acc:#5b9bff;--line:#2a3652;color-scheme:dark}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.w{max-width:900px;margin:0 auto;padding:16px}
+h1{font-size:1.5rem;margin:.2em 0}h2{font-size:1.2rem;margin:1.2em 0 .4em}p{margin:.4em 0}
+.tabs{display:flex;gap:8px;margin:12px 0}
+button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:10px 14px;border-radius:12px;cursor:pointer;min-height:44px}
+button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0;align-items:center}
+canvas{width:100%;aspect-ratio:16/9;border-radius:16px;border:1px solid var(--line);display:block;touch-action:none;background:#9fd3ff}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:10px 0}
+.card h3{margin:0 0 4px;font-size:1rem}.mut{color:var(--mut);font-size:.92rem}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:520px}td,th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top;font-size:.92rem}
+.hide{display:none}
+.safe{font-weight:700;color:#0a7a3d}
+.medal{font-size:1.05rem}
+label.sens{font-size:.92rem;color:var(--mut)}
+input[type=range]{accent-color:var(--acc)}
+#breakov.hide,#warnov.hide{display:none}
+#dancepads button{flex:1;font-size:1.3rem;padding:14px 8px}
+#songs button{padding:8px 10px}
+.clipslot{border:2px dashed var(--line);border-radius:12px;padding:10px 12px;margin:10px 0;text-align:center}
+.clipslot video{width:100%;max-height:220px;border-radius:10px;background:#111}
+#breakov{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:50}
+#breakov .box{background:var(--card);color:var(--ink);border-radius:16px;padding:24px;max-width:420px;text-align:center}
+#warnov{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:50}
+#warnov .box{background:var(--card);color:var(--ink);border-radius:16px;padding:24px;max-width:440px;text-align:center}
+</style></head><body><div class="w">
+<h1>Kids Phone Arcade</h1>
+<p class="mut">Hold your phone like a fishing rod, boxing glove or bubble blaster. Mirror the screen to a TV to play big.</p>
+<p class="safe">No ads, no purchases, no accounts, no chat — works offline.</p>
+<div class="tabs"><button class="on" data-t="play">Play</button><button data-t="res">Research</button><button data-t="plan">Series plan</button></div>
+
+<section id="play">
+<div class="row" id="modes"><button class="on" data-m="0">Catch &amp; Release</button><button data-m="1">Pad Boxing</button><button data-m="2">Bubble Blaster</button><button data-m="3">Ninja Slice</button><button data-m="4">Archery</button><button data-m="5">Hurdle Sprint</button><button data-m="6">Safari Photo Hunt</button><button data-m="7">Target Splash Range</button><button data-m="8">Rhythm Gloves</button><button data-m="9">Paper Plane Javelin</button><button data-m="10">Table Tennis Rally</button><button data-m="11">Shuriken Dodge</button><button data-m="12">Kids Games (4 events)</button><button data-m="13">Dance Party</button></div>
+<canvas id="c" width="960" height="540"></canvas>
+<div class="row hide" id="dancepads"><button data-dir="0">◀ Left</button><button data-dir="1">▼ Down</button><button data-dir="2">▲ Up</button><button data-dir="3">Right ▶</button></div>
+<div class="row"><button id="go">▶ Start (45s)</button><button id="mo">📱 Enable motion</button><button id="cal">🎯 Calibrate</button><button id="mute">🔊 Sound on</button><button id="th">🌓 Theme</button>
+<label class="sens">Tilt sensitivity <input id="sens" type="range" min="0.5" max="2" step="0.1" value="1"> <span id="sensv">1.0×</span></label></div>
+<div class="card hide" id="dance"><h3>Dance Party — pick a song</h3>
+<p class="mut">30-second rounds, 3 hearts. Tap the arrows on the beat — or use arrow keys / WASD on a computer. Make space and stay safe: clear the floor before you dance!</p>
+<div class="row" id="songs"></div>
+<div class="row"><button data-diff="0" class="on">Easy</button><button data-diff="1">Medium</button><button data-diff="2">Hard</button></div>
+<p id="danceinfo" class="mut"></p>
+<p id="dancelyric" class="mut"></p>
+<div class="clipslot"><p><b>TalkingPhotos dance clip plays here</b> — add the MP4 later</p>
+<!-- TalkingPhotos clip slot: when Ting picks the dancer, drop the clip in here as a video element pointing at dance-clip.mp4 (controls, loop, playsinline). No code changes needed. -->
+<video id="danceClipSlot" controls preload="none"></video></div>
+<p class="mut">Hear the full songs at the Music Hub — shop.artistrystore.com/music_hub.html</p></div>
+<div class="card" id="challenge"><h3>Today's Challenge</h3><p id="chtext" class="mut">Loading…</p></div>
+<div class="card"><h3>Medal board — saved on this device only</h3>
+<p class="mut">Bronze at 40 points, Silver at 80, Gold at 150 in one 45-second round (Dance Party rounds are 30 seconds). Kids Games (4 events back to back): Bronze 120, Silver 240, Gold 400 combined. Family bests live here — no online board, no accounts.</p>
+<div id="medals"></div></div>
+<div class="card"><h3>Kids Games — four events, one combined score</h3>
+<p class="mut">Pick <b>Kids Games (4 events)</b> above, then press Start. You play four different events back to back (a different four every day, same for everyone), 30 seconds each, and your scores add up into one combined score with its own medal: Bronze 120, Silver 240, Gold 400. Three hearts per event, and you can restart instantly any time. Dance Party can be one of the four events.</p></div>
+<div class="card"><h3>How to play</h3>
+<p class="mut"><b>Phone:</b> tap Enable motion, tilt to aim, flick your wrist to act. <b>Computer:</b> move the mouse to aim, click or press Space to act. <b>TV:</b> use AirPlay screen mirroring (iPhone) or Cast screen (Android/Chromecast), then play with the phone in your hands.</p>
+<p class="mut"><b>Fishing:</b> line up the boat, flick to drop the hook, fish are always released. <b>Pad boxing:</b> aim at the glowing pad (left, middle, right) and punch it, no contact with anyone. <b>Bubble blaster:</b> splash bubbles with a water burst.</p>
+<p class="mut"><b>Ninja slice:</b> flick to slash fruit, skip the rocks. <b>Archery:</b> aim at the moving target, flick to release (closer to the middle scores more). <b>Hurdle sprint:</b> flick or click to jump each hurdle, a clean jump scores 10.</p>
+<p class="mut"><b>Safari Photo Hunt:</b> animals wander the savanna — line up the viewfinder and tap to snap a photo. No shooting, just photos. <b>Target Splash Range:</b> tap the moving ducks and ring buoys to splash them. <b>Rhythm Gloves:</b> punch the glowing pad ON the beat — the music is made by the game itself, a simple original drum-and-bass pattern, never a known song. <b>Paper Plane Javelin:</b> aim and tap to throw — higher aim flies further, and the wind pushes the plane. <b>Table Tennis Rally:</b> slide the paddle with your mouse or tilt and keep the rally going. <b>Shuriken Dodge:</b> tap the foam toy stars to deflect them, or tilt out of their path.</p>
+<p class="mut"><b>Dance Party:</b> pick a song and a difficulty, press Start, then tap the arrow pads (or arrow keys / WASD) when the falling arrows hit the line — Perfect within 150 ms, Great 220 ms, Good 300 ms. Make space and stay safe before you dance. Your TalkingPhotos dance clip plays on the song screen once Ting picks the dancer.</p>
+<p class="mut"><b>Kids Games:</b> four events back to back (a different four every day), 30 seconds each — scores add up into one combined score, with its own medal (Bronze 120 / Silver 240 / Gold 400).</p>
+<p class="mut"><b>Hearts:</b> you get 3 hearts each round. A mistake costs one — when they run out the round ends, and you can restart instantly with one tap. No waiting, no payment, ever.</p>
+<p class="mut"><b>Combos &amp; power-ups:</b> hits in a row build a combo multiplier (up to ×5). Five hits in a row with no miss unlocks that game's power-up for a short time — earned by skill only, never random, never bought. <b>Levels:</b> every game has 3 levels inside the round — score 40 for Level 2, 100 for Level 3. Faster play, more points.</p></div>
+</section>
+
+<section id="res" class="hide">
+<h2>What is popular right now</h2>
+<div class="card"><h3>VR boxing</h3><p>The Thrill of the Fight 2 (realistic simulator, Quest 3 and PC early access), Creed: Rise to Glory Championship Edition (cinematic, Quest, PC, PSVR2), and FitXR (rhythm fitness) lead 2026 lists. Creed has a training mode and the Thrill of the Fight original is still a top Quest seller.</p>
+<p class="mut">Mike Tyson note: I did not find a current Mike Tyson VR title. His name is tied to Nintendo’s classic Punch-Out, which is owned and licensed, so it can’t be copied or used in a kids product. This series uses original characters instead.</p></div>
+<div class="card"><h3>VR fishing</h3><p>Real VR Fishing is the default pick: over one million sales (Jan 2026), cross-play on Quest, Steam, Pico and Galaxy XR, up to four anglers, and a seventh-anniversary event in Sept 2026. Bait! is a free, cartoonish first VR game; Fishing in VR is a calm seated boat experience.</p></div>
+<div class="card"><h3>VR hunting and shooting</h3><p>Virtual Hunter (Korpi Games, May 27 2026, $24.99, Quest and PSVR2) is the newest serious hunting sim. Others include Green Hell VR and Legendary Hunter VR. Super Hot VR and Blade &amp; Sorcery: Nomad sit in the Quest top sellers. These are realistic or violent, so for kids the series swaps them for water and bubble blasters.</p></div>
+<h2>Ninja and Olympic-style games</h2>
+<div class="card"><h3>Ninja and slicing</h3><p>Fruit Ninja VR 2 (Halfbrick, Quest and PC VR) adds blades, bows and mini-games to the classic slicer, and has a no-bomb Zen mode. Ninja Blade: Sword Master (early access June 2026, Quest) has you deflect incoming shurikens. Fruit Ninja VR: Ghostbusters (May 2026) and Sword Master VR are similar. Kid-safe takeaway: slice fruit, deflect, dodge. No blood, no people targets.</p></div>
+<div class="card"><h3>Olympic and sports variety</h3><p>Sports Scramble mixes tennis, baseball, bowling and archery with silly twists (a racket can turn into a golf club). Eleven Table Tennis is the realistic ping pong leader, Walkabout Mini Golf the mini golf pick, and Summer Games VR offers archery and javelin. QuiVr is a fantasy archery game. Variety ideas: archery, hurdles, javelin, table tennis, mini golf, bowling, long jump.</p></div>
+<h2>Phone plus TV: proven pattern</h2>
+<div class="card"><p>Rolocule’s Motion Tennis and Motion Tennis Cast already turned a phone into a Wii-style racket using AirPlay, Chromecast or Miracast mirroring. Open source examples: <b>Significant-Hobbies/motion</b> (body-pose controller mirrored to TV) and <b>Open Game System</b> (phone as controller, Cast Kit to TV). AirConsole runs phone-as-controller games on any TV browser.</p></div>
+<h2>Old game code: what is safe to reuse</h2>
+<div class="tw"><table><tr><th>Source</th><th>Use?</th></tr>
+<tr><td>Old arcade or console “abandonware” archives</td><td>Still copyrighted. Do not reuse code, art or names.</td></tr>
+<tr><td>Godot demo games (e.g. heroiclabs Fish Game, Apache 2.0)</td><td>Yes, keep license notices. Its art and music are CC BY-NC, so non-commercial only; replace them for sales.</td></tr>
+<tr><td>Godot Simple FPS Weapon System (shooting range)</td><td>Check the repo license first (MIT or GPLv3 listed). GPL means your game must be GPL too.</td></tr>
+<tr><td>Godot Engine itself</td><td>MIT. Fine for commercial kids apps.</td></tr>
+<tr><td>This page’s code</td><td>Original. Yours to extend.</td></tr></table></div>
+<h2>What parents actually want (research, Nov 9 2026)</h2>
+<div class="card"><p>Parents filter first on: no ads, no purchases, no accounts, no data collection, no chat, works offline. Short rounds with natural stopping points, instant restarts, visible progress (high scores, levels, medals), variety every session, fair difficulty that scales, and calm sound. Full notes: <span class="mut">RESEARCH.md in the rebuild folder.</span></p>
+<p class="mut">Three things the research changed in this rebuild: (1) lives are in-round retries only — a lost round restarts instantly, never a wait timer or payment; (2) the daily challenge has no streak, no penalty for missing a day, no notifications — it is one shared puzzle per date; (3) power-ups are earned by skill only (a perfect streak), never random, never bought, no virtual currency, no slot-machine visuals.</p></div>
+<div class="card"><h3>Season 2 — same rules, six more games (Nov 10, 2026)</h3><p>Season 2 adds Safari Photo Hunt, Target Splash Range, Rhythm Gloves, Paper Plane Javelin, Table Tennis Rally and Shuriken Dodge, plus the four-event Kids Games mode. Every new game follows the same parent-trusted rules above: no ads, no purchases, no accounts, no chat, works offline, skill-earned power-ups only, 3 hearts with instant restart, no streaks, no missed-day penalties. Rhythm Gloves' music is generated by the game itself (an original drum-and-bass pattern) — no licensed music and no known songs. The toy stars in Shuriken Dodge are foam stars, deflected playfully — no violence, no people targets.</p></div>
+<div class="card"><h3>Dance Party — DDR-style dancing (built Nov 10, 2026)</h3><p>Mode 13: a canvas-drawn dancer reacts to your play — she cheers on Perfect, wobbles on a Miss, and strikes a pose on a full combo. Four arrows scroll to the line; tap the big on-screen pads or use arrow keys / WASD. Timing is kid-friendly on purpose: Perfect within 150 ms, Great 220 ms, Good 300 ms — about 4.5 times kinder than arcade DDR. Fifteen of Ting's own original songs, each with a measured BPM and three difficulties (Easy — arrows on the beat, Medium — off-beats, Hard — doubles and jumps). The music is made by the game itself — an original WebAudio beat in each song's style at its measured tempo, never a known song. No camera, ever — the game judges arrow taps, not bodies. TalkingPhotos dance clips play on the song-select screen and as a celebration reward once Ting picks the dancer character; the clips are placeholders until then.</p></div>
+</section>
+
+<section id="plan" class="hide">
+<h2>Kids series roadmap</h2>
+<div class="card"><h3>Season 1 (built here: games 1 to 6)</h3>
+<p>1) Catch &amp; Release Fishing. 2) Pad Boxing with “Champ Cub”, a non-contact fitness game. 3) Bubble Blaster, the safe shooting game. 4) Ninja Slice, a fruit-slicing flick game. 5) Archery, an Olympic precision game. 6) Hurdle Sprint, an Olympic track game.</p>
+<p class="mut">Rebuild notes: all six games now have drawn vector characters (no emoji sprites), 3 levels each, combos up to ×5, skill-earned power-ups, 3 hearts per round with instant restart, high scores and a medal board saved on the device, WebAudio sound effects with a mute button, a daily challenge with no streak, and a 10-minute break reminder.</p></div>
+<div class="card"><h3>Season 2 (built — Nov 10, 2026)</h3>
+<p>7) Safari Photo Hunt: aim and tap to snap animal photos, no shooting. 8) Target Splash Range with moving water targets. 9) Rhythm Gloves: pad boxing to an original beat made by the game itself (WebAudio drums + bass — no licensed music, no known songs). 10) Paper Plane Javelin: aim, throw, watch the wind, distance scoring. 11) Table Tennis Rally: keep the rally going with tilt or touch. 12) Shuriken Dodge: tilt to deflect foam toy stars — playful, no violence.</p>
+<p class="mut">All six have the same house rules as Season 1: original vector art, 3 levels, combos up to ×5, skill-earned power-ups (5-hit streak, 8 seconds), 3 hearts with instant restart, high scores and medals saved on the device. The four-event “Kids Games” mode is built too — a different four events each day, 30 seconds each, combined score with its own medal (Bronze 120 / Silver 240 / Gold 400).</p></div>
+<div class="card"><h3>Season 3 — Dance Party (built — Nov 10, 2026)</h3>
+<p>13) Dance Party: DDR-style arrow game with a reactive canvas dancer, a dance-stage background, 15 of Ting's own songs (measured BPMs, Easy / Medium / Hard charts), original WebAudio beats in each song's style, per-song bests, and TalkingPhotos clip slots on the song-select and song-clear screens (clips land later once Ting picks the dancer). Dance Party also joins the Kids Games rotation and the daily challenge.</p>
+<p class="mut">Same house rules as Seasons 1 and 2: original vector art, 3 hearts with instant restart, combos up to ×5, skill-earned power-up (Dance Fever 2× points on a 5-hit streak, 8 seconds), high scores and medals saved on the device, WebAudio sound with a mute button, daily challenge with no streak, and a 10-minute break reminder.</p></div>
+<div class="card"><h3>Production path</h3>
+<p>Prototype in the browser (this page), then port to Godot 4 with phone sensors over WebRTC or WebSocket to a TV browser page. Ship through Payhip or ARTISY as a web link, then Google Play and App Store. Add parent-lock, no ads, no chat, a break reminder every 10 minutes, and a clear-space warning before motion play.</p></div>
+<div class="card"><h3>Kid safety</h3><p>Wrist strap, clear play area, adult nearby, short sessions. No realistic weapons, no animal harm, no real boxer likeness. No ads, no purchases, no accounts, no chat, no data collection — everything is saved on the device only.</p></div>
+</section>
+</div>
+<div id="breakov" class="hide"><div class="box"><h2>Time for a stretch!</h2><p>You have been playing for 10 minutes. Stand up, drink some water, wiggle your arms — then come back for more.</p><button id="breakok">Back to the game</button></div></div>
+<div id="warnov" class="hide"><div class="box"><h2>Clear some space first</h2><p>Motion play means waving your phone around. Make sure you have clear space around you, nothing breakable nearby, and an adult close by. A wrist strap helps!</p><button id="warnok">Got it — enable motion</button></div></div>
+<script>
+"use strict";
+const $=s=>document.querySelector(s),cv=$("#c"),g=cv.getContext("2d"),W=960,H=540;
+const NAMES=["Catch & Release","Pad Boxing","Bubble Blaster","Ninja Slice","Archery","Hurdle Sprint","Safari Photo Hunt","Target Splash Range","Rhythm Gloves","Paper Plane Javelin","Table Tennis Rally","Shuriken Dodge","Kids Games","Dance Party"];
+const POWER_NAME=["Golden Fish (2x points!)","Big Glove (wider pad!)","Slow-Mo Bubbles!","Slow Fruit!","Steady Aim!","Double Jump!","Zoom Lens (2x points!)","Big Splash (wider splash!)","Super Beat (2x points!)","Tailwind (longer flight!)","Big Paddle (wider paddle!)","Slow Stars!","Dance Fever (2x points!)"];
+const MEDAL_T={bronze:40,silver:80,gold:150};
+let mode=0,run=false,paused=false,score=0,left=45,aim={x:.5,y:.5},off={g:0,b:0},raw={g:0,b:0},last=0,fx=[],parts=[];
+let hearts=3,combo=0,mult=1,streak=0,power=null,powerT=0,level=1;
+let sens=1,muted=false,playSecs=0,breakAt=600,shake=0,confettiN=0;
+let best=[0,0,0,0,0,0,0,0,0,0,0,0,0,0],endMsg="",newBest=false;
+const R=Math.random,cl=(v,a,b)=>Math.max(a,Math.min(b,v)),D=(a,b,c,d)=>Math.hypot((a-c)*16/9,b-d);
+let nj=[],ar=[],tt=0,jmp=0,dblUsed=false,hd=[],stun=0,fish=[],hook=null,boat=.5,pad=null,pw=0,bub=[],sp=0;
+let an=[],tg=[],plane=null,wind=0,ball=null,stars=[],kgEvents=[6,7,8,9],kgIdx=0,kgMode=false,kgPending=false,sel=0,beatIdx=-1;
+const RHYTHM_PAT=[0,1,2,1,0,2,1,2],RHYTHM_BASS=[65.41,65.41,77.78,98,65.41,82.41,77.78,98]; // original rhythm pattern: 8-beat pad order + bass notes
+
+// ---------- Dance Party (mode 13): 15 of Ting's own songs, BPMs measured Nov 10 2026 ----------
+// BPMs measured from Ting's uploaded MP3 masters with a numpy/scipy onset-autocorrelation
+// estimator (spectral flux + energy-difference cross-check, per-window + inter-onset checks).
+// ALL 15 are MEASURED (none estimated). Least-certain: Florida Orange (broad peak 99-103,
+// charted at 100) and Panama City Dreams (broad peak 99-112, charted at 103) — confirm by ear.
+// Per-song bests: localStorage kpa_best_13_0 ... kpa_best_13_14. Mode best: kpa_best_13.
+// The original recommended 6 (Colors of Love 108, Move To The Rhythm 129, It Is Well 136,
+// Steam Cup Groove 70, Arcade Heartbeat + PUMP UP THE SOUND unmeasured) are alternates only.
+const DIFF_NAMES=["Easy","Medium","Hard"];
+const LANE_COLORS=["#ff5a5a","#ffd23f","#3ddc84","#2a7de1"]; // Left, Down, Up, Right
+const DANCE_SONGS=[
+ {name:"Electric Groove",bpm:123,kick:[1,0,1,0],bass:[55,55,65.41,82.41,55,65.41,73.42,82.41],lyric:""},
+ {name:"Steam Cup Groove",bpm:70,kick:[1,0,0,0],bass:[49,49,58.27,65.41,49,58.27,65.41,73.42],lyric:""},
+ {name:"Rhythm Spell",bpm:129,kick:[1,1,1,1],bass:[65.41,82.41,98,82.41,65.41,82.41,98,110],lyric:"Ladies and gentlemen, welcome to Rhythm Spell \u2014 take one step forward and one step back, down to the left and tip to the right"},
+ {name:"Cosmic Rhythm Spell",bpm:112,kick:[1,0,1,0],bass:[73.42,87.31,98,110,73.42,87.31,110,130.81],lyric:"Cosmic Rhythm Spell... five, four, three, two, one"},
+ {name:"Rhythm Revolution",bpm:118,kick:[1,1,1,0],bass:[55,55,82.41,98,55,82.41,98,110],lyric:"With the revolution, feeling in your soul... Boom boom boom"},
+ {name:"Rhythm Flow",bpm:129,kick:[1,0,1,0],bass:[65.41,77.78,87.31,98,82.41,87.31,98,110],lyric:""},
+ {name:"I Get Around (Beach Party)",bpm:112,kick:[1,0,1,0],bass:[65.41,65.41,82.41,98,65.41,82.41,98,98],lyric:"I get around... Beach party Saturday night, everything\u2019s gonna be alright"},
+ {name:"solarflex summer beach party",bpm:78,kick:[1,0,1,0],bass:[58.27,65.41,73.42,82.41,65.41,73.42,82.41,98],lyric:""},
+ {name:"Florida Dreamin\u2019 (Remastered)",bpm:112,kick:[1,0,1,0],bass:[65.41,77.78,82.41,98,65.41,77.78,98,110],lyric:"Florida dreamin\u2019 on a perfect summer day... palm trees swaying in the gentle wind"},
+ {name:"Florida Orange",bpm:100,kick:[1,0,1,0],bass:[55,65.41,73.42,82.41,55,65.41,82.41,98],lyric:""},
+ {name:"Miami Beach Magic",bpm:112,kick:[1,1,1,1],bass:[65.41,65.41,98,82.41,65.41,98,82.41,110],lyric:"Miami Beach, Miami Beach, where the ocean meets the street... Miami magic every night"},
+ {name:"Panama City Dreams",bpm:103,kick:[1,0,1,0],bass:[58.27,58.27,73.42,87.31,65.41,73.42,87.31,98],lyric:"Twenty seven miles of white sand calling... Panama City where dreams come alive"},
+ {name:"All Across the Globe",bpm:123,kick:[1,1,1,1],bass:[65.41,82.41,98,110,82.41,98,110,130.81],lyric:"All across the globe, my love travels far, reaching every shore"},
+ {name:"Never Grow Old (Peter Pan Love)",bpm:70,kick:[1,0,0,0],bass:[49,58.27,65.41,73.42,58.27,65.41,73.42,82.41],lyric:"I love you like Peter Pan, you\u2019re wild and true... second star to the right and straight on till morning"},
+ {name:"Across the Universe (Finding Love)",bpm:92,kick:[1,0,1,0],bass:[55,65.41,82.41,98,55,65.41,82.41,87.31],lyric:"Somewhere across the galaxy, sky\u2019s an ocean wide... love will see us through"}
+];
+let danceSong=0,danceDiff=0,danceChart=[],danceT=0,danceNextBeat=.8,danceBeatIdx=0,danceMisses=0,danceMood="idle",danceMoodT=0;
+let danceBest=[];for(let i=0;i<DANCE_SONGS.length;i++)danceBest[i]=lsGet("kpa_best_13_"+i,0)|0;
+function buildDanceChart(){ // beat-grid auto-chart + hand-tuned pass (see comments)
+ const s=DANCE_SONGS[danceSong],beat=60/s.bpm,diff=danceDiff,chart=[];
+ let seed=(danceSong+1)*131+diff*17+7;
+ const rnd=()=>{seed=(seed*1103515245+12345)&0x7fffffff;return seed/0x7fffffff};
+ let prev=-1;const dirFor=()=>{let d=Math.floor(rnd()*4);if(d===prev)d=(d+1)%4;prev=d;return d};
+ const t0=.8,t1=29;
+ // hand-tuned opening: first four arrows teach the lanes L-D-U-R
+ [0,1,2,3].forEach((d,k)=>chart.push({t:t0+k*beat,dir:d,hit:false,missed:false}));
+ prev=3;
+ for(let t=t0+4*beat;t<=t1;t+=beat){
+  const k=Math.round((t-t0)/beat);
+  chart.push({t,dir:dirFor(),hit:false,missed:false});
+  if(diff>=1&&k%2===0&&t+beat/2<=t1)chart.push({t:t+beat/2,dir:dirFor(),hit:false,missed:false}); // Medium: off-beats on every other beat
+  if(diff===2&&k%2===1&&t+beat/2<=t1)chart.push({t:t+beat/2,dir:dirFor(),hit:false,missed:false}); // Hard: every off-beat
+ }
+ // hand-tuned chorus doubles: two arrows at once on the big moments (~8s, ~16s, ~24s)
+ if(diff>=1)[8,16,24].forEach(ct=>{const c=chart.reduce((a,b)=>Math.abs(b.t-ct)<Math.abs(a.t-ct)?b:a,chart[0]);
+  chart.push({t:c.t,dir:(c.dir+2)%4,hit:false,missed:false})});
+ // hand-tuned finale (Hard): last four on-beat arrows run L-D-U-R
+ if(diff===2){const on=chart.filter(a=>Math.abs((a.t-t0)/beat-Math.round((a.t-t0)/beat))<.001).slice(-4);
+  on.forEach((a,i)=>{a.dir=i})}
+ chart.sort((a,b)=>a.t-b.t);danceChart=chart}
+function danceBeatSound(si,n){ // original WebAudio beat in the song's style (kick pattern + bass notes)
+ if(!AC||muted)return;const s=DANCE_SONGS[si],bar=n%4;
+ if(s.kick[bar])tone(150,.18,"sine",.12,50); // kick on the song's pattern
+ if(n%2===1)tone(5200,.05,"square",.035,3200); // hat on the off-beats
+ tone(s.bass[n%8],.3,"triangle",.09)} // bass line, original notes in the song's style
+function danceHit(dir){ // kid timing: Perfect +/-150ms, Great +/-220ms, Good +/-300ms
+ if(!run||paused||mode!==13)return;
+ const now=danceT;let bestA=null,bestD=1e9;
+ danceChart.forEach(a=>{if(a.dir===dir&&!a.hit&&!a.missed){const d=Math.abs(a.t-now);if(d<bestD){bestD=d;bestA=a}}});
+ if(!bestA||bestD>.3){registerMiss(.2+dir*.2,.78,"miss");danceMisses++;danceMood="wobble";danceMoodT=.6;loseHeart();return}
+ bestA.hit=true;const x=.2+dir*.2;
+ if(bestD<=.15){registerHit(10,x,.7,"Perfect!");danceMood="cheer";danceMoodT=.8}
+ else if(bestD<=.22){registerHit(7,x,.7,"Great!");danceMood="cheer";danceMoodT=.5}
+ else registerHit(4,x,.7,"Good!");
+ if(danceMisses===0&&combo>=10){danceMood="pose";danceMoodT=1.2} // full combo (no misses yet): strike a pose
+ burst(x,.7,"#ffd23f",8)}
+function renderDanceCard(){const s=DANCE_SONGS[danceSong];
+ document.querySelectorAll("#songs button").forEach(b=>b.classList.toggle("on",+b.dataset.song===danceSong));
+ document.querySelectorAll("#dance [data-diff]").forEach(b=>b.classList.toggle("on",+b.dataset.diff===danceDiff));
+ $("#danceinfo").textContent="Song: "+s.name+"  \u2022  "+s.bpm+" BPM (measured)  \u2022  "+DIFF_NAMES[danceDiff]+"  \u2022  Song best "+danceBest[danceSong]+"  \u2022  Mode best "+best[13];
+ $("#dancelyric").textContent=s.lyric?("\u201c"+s.lyric+"\u201d"):""}
+DANCE_SONGS.forEach((s,i)=>{const b=document.createElement("button");b.textContent=s.name;b.dataset.song=i;
+ b.onclick=()=>{danceSong=i;buildDanceChart();renderDanceCard()};$("#songs").appendChild(b)});
+document.querySelectorAll("#dance [data-diff]").forEach(b=>b.onclick=()=>{danceDiff=+b.dataset.diff;buildDanceChart();renderDanceCard()});
+document.querySelectorAll("#dancepads button").forEach(b=>b.onclick=()=>danceHit(+b.dataset.dir));
+renderDanceCard();
+// ---------- storage (device only) ----------
+function lsGet(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+for(let i=0;i<14;i++)best[i]=lsGet("kpa_best_"+i,0)|0;
+muted=lsGet("kpa_muted",false)===true;
+function medalFor(s,idx){const t=idx===12?{bronze:120,silver:240,gold:400}:MEDAL_T;return s>=t.gold?"gold":s>=t.silver?"silver":s>=t.bronze?"bronze":"—"}
+function bestIdx(){return kgMode?12:mode}
+function pickKg(){let h=0;const s=todayStr();for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;
+ const pool=[0,1,2,3,4,5,6,7,8,9,10,11,13],r=h%13,out=[];for(let i=0;i<4;i++)out.push(pool[(r+i)%13]);return out}
+function medalEmoji(m){return m==="gold"?"🥇":m==="silver"?"🥈":m==="bronze"?"🥉":"—"}
+function saveBest(){const i=bestIdx();lsSet("kpa_best_"+i,best[i])}
+// ---------- daily challenge (deterministic per date, no streak) ----------
+function todayStr(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function dailyChallenge(){let h=0;const s=todayStr();for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;const pool=[0,1,2,3,4,5,6,7,8,9,10,11,13];return{date:s,game:pool[h%13],target:[50,75,100][Math.floor(h/13)%3]}}
+const CH=dailyChallenge();
+function challengeDone(){return lsGet("kpa_star_"+CH.date,false)===true}
+function renderChallenge(){const el=$("#chtext");const done=challengeDone();
+ el.textContent=done?("Today's Challenge complete! "+NAMES[CH.game]+" — "+CH.target+" points. Star earned on the medal board. Come back tomorrow for a new one."):("Today: play "+NAMES[CH.game]+" and score "+CH.target+" points to earn a star. Same challenge for everyone today — no streak, no penalty if you miss a day.")}
+function renderMedals(){const el=$("#medals");let h="<table><tr><th>Game</th><th>Best</th><th>Medal</th></tr>";
+ for(let i=0;i<14;i++){const m=medalFor(best[i],i);h+="<tr><td>"+NAMES[i]+"</td><td>"+best[i]+"</td><td class='medal'>"+medalEmoji(m)+" "+m+"</td></tr>"}
+ h+="</table><p class='mut'>Today's Challenge star: "+(challengeDone()?"⭐ earned today ("+CH.date+")":"not yet — see above")+"</p>";el.innerHTML=h}
+// ---------- sound (WebAudio oscillator blips, calm tones) ----------
+let AC=null;
+function tone(f,d,type,v,slide){if(muted)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume();
+ const o=AC.createOscillator(),gn=AC.createGain();o.type=type||"sine";o.frequency.setValueAtTime(f,AC.currentTime);
+ if(slide)o.frequency.exponentialRampToValueAtTime(slide,AC.currentTime+d);
+ gn.gain.setValueAtTime(v||0.12,AC.currentTime);gn.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+d);
+ o.connect(gn);gn.connect(AC.destination);o.start();o.stop(AC.currentTime+d);}catch(e){}}
+function sfx(n){if(n==="pop")tone(620,.09,"triangle",.14,900);else if(n==="ding")tone(880,.16,"sine",.14,1320);
+ else if(n==="whoosh")tone(300,.18,"sine",.10,90);else if(n==="bad")tone(220,.2,"sawtooth",.06,140);
+ else if(n==="jump")tone(420,.12,"sine",.12,760);else if(n==="fanfare"){tone(523,.14,"sine",.14);setTimeout(()=>tone(659,.14,"sine",.14),130);setTimeout(()=>tone(784,.24,"sine",.14),260);}
+ else if(n==="power")tone(660,.12,"triangle",.14,1320)}
+// ---------- original beat (Rhythm Gloves): WebAudio drums + bass, made by the game ----------
+function beatSound(n){if(!AC||muted)return;const b=n%8;
+ tone(150,.18,"sine",.12,50); // kick
+ if(b%2===1)tone(5200,.05,"square",.035,3200); // hat on the off-beats
+ tone(RHYTHM_BASS[b],.3,"triangle",.09)} // bass line, original notes
+// ---------- particles / fx ----------
+function pop(t,x,y){fx.push({t,x,y,l:1})}
+function burst(x,y,color,n,shape){for(let i=0;i<(n||10);i++){const a=R()*Math.PI*2,sp=.1+R()*.3;parts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-.08,l:1,color,shape:shape||"star",sz:4+R()*6,rot:R()*6,vr:(R()-.5)*.2})}}
+function confetti(){for(let i=0;i<80;i++)parts.push({x:R(),y:-.05-R()*.1,vx:(R()-.5)*.1,vy:.15+R()*.25,l:1,color:["#ff5a5a","#ffd23f","#2a7de1","#3ddc84","#ff8fd0"][i%5],shape:"confetti",sz:5+R()*6,rot:R()*6,vr:(R()-.5)*.3})}
+function updateLevel(){level=score>=100?3:score>=40?2:1}
+function registerHit(base,x,y,label){combo++;streak++;mult=Math.min(5,1+Math.floor(combo/3));updateLevel();
+ let pts=base*mult;if(power==="golden"||power==="zoom"||power==="superbeat"||power==="dancefever")pts*=2;
+ score+=pts;pop(label||("+"+pts),x,y);burst(x,y,"#ffd23f",mult>=3?12:6);
+ if(mult>=3)burst(x,y,"#ff8fd0",6);
+ if(streak>=5&&!power){power=["golden","bigglove","slowmo","slowfruit","steady","doublejump","zoom","bigsplash","superbeat","tailwind","bigpaddle","slowstars","dancefever"][mode];powerT=8;streak=0;
+  pop(POWER_NAME[mode]+"!",.5,.3);sfx("power");burst(.5,.3,"#ffd23f",20)}
+ sfx(mult>=3?"ding":"pop");return pts}
+function registerMiss(x,y,label){combo=0;mult=1;streak=0;pop(label||"miss",x,y);sfx("bad")}
+function loseHeart(){hearts--;shake=Math.max(shake,10);if(hearts<=0)endRound("Out of hearts!")}
+
+// ---------- game flow ----------
+function resetEvent(){fish=[];hook=null;pad=null;pw=.5;combo=0;mult=1;streak=0;power=null;powerT=0;
+ hearts=3;level=1;bub=[];sp=0;fx=[];parts=[];nj=[];ar=[];jmp=0;dblUsed=false;hd=[];stun=0;
+ an=[];tg=[];plane=null;wind=0;ball=null;stars=[];beatIdx=-1;endMsg="";newBest=false;
+ danceT=0;danceChart=[];danceNextBeat=.8;danceBeatIdx=0;danceMisses=0;danceMood="idle";danceMoodT=0;if(mode===13)buildDanceChart()}
+function reset(){score=0;left=45;resetEvent()}
+function startRun(){if(sel===12){kgMode=true;kgPending=false;kgIdx=0;mode=kgEvents[0];reset();left=30;run=true;paused=false;endMsg="";renderChallenge();return}
+ kgMode=false;reset();if(sel===13)left=30;run=true;paused=false;endMsg="";renderChallenge()}
+function endRound(reason){if(!run&&left>0&&reason!=="Out of hearts!")return;
+ if(kgMode&&kgIdx<kgEvents.length-1){kgIdx++;mode=kgEvents[kgIdx];resetEvent();run=true;left=30;endMsg="";
+  pop("Event "+(kgIdx+1)+" of 4: "+NAMES[mode]+"!",.5,.3);sfx("ding");return}
+ run=false;endMsg=reason||"Time!";
+ const bi=bestIdx();
+ if(score>best[bi]){best[bi]=score;saveBest();newBest=true;confetti();sfx("fanfare")}
+ else if(score>0)sfx("ding");
+ if(!kgMode&&mode===13&&score>danceBest[danceSong]){danceBest[danceSong]=score;lsSet("kpa_best_13_"+danceSong,score)}
+ if(!kgMode&&mode===CH.game&&score>=CH.target&&!challengeDone()){lsSet("kpa_star_"+CH.date,true);pop("Challenge star!",.5,.25)}
+ kgMode=false;renderMedals();renderChallenge()}
+const tx=()=>.5+.22*Math.sin(tt*1.1*(power==="steady"?0.4:1));
+function fire(){if(!run||paused)return;
+ if(mode===0&&!hook){hook={x:aim.x,t:0};sfx("whoosh")}
+ if(mode===1){const ln=aim.x<.34?0:aim.x<.67?1:2;
+  if(pad&&(pad.l===ln||(power==="bigglove"&&Math.abs(pad.l-ln)===1))){registerHit(10+combo*2,.2+ln*.3,.4,"POW!");pad=null;pw=.35}
+  else{registerMiss(aim.x,.5,"miss");loseHeart()}}
+ if(mode===2){let n=0;bub=bub.filter(b=>{if(D(aim.x,aim.y,b.x,b.y)<b.r+.07){n++;burst(b.x,b.y,"#7dd8ff",8,"bubble");return false}return true});
+  if(n>0)registerHit(5*n,aim.x,aim.y);else registerMiss(aim.x,aim.y,"splash");
+  parts.push({x:aim.x,y:aim.y,vx:0,vy:0,l:1,color:"#1e78ff",shape:"ring",sz:10,rot:0,vr:0})}
+ if(mode===3){parts.push({x:aim.x,y:aim.y,vx:0,vy:0,l:1,color:"#fff",shape:"ring",sz:10,rot:0,vr:0});
+  let hit=false;nj=nj.filter(o=>{if(D(aim.x,aim.y,o.x,o.y)<.11){hit=true;
+   if(o.r){registerMiss(o.x,o.y,"rock! -1 heart");loseHeart()}
+   else{registerHit(10,o.x,o.y);burst(o.x,o.y,"#ff8a5c",10)}return false}return true});
+  if(!hit)registerMiss(aim.x,aim.y,"swish")}
+ if(mode===4){const d=D(aim.x,aim.y,tx(),.45),w=power==="steady"?1.5:1;
+  const p=d<.04*w?10:d<.08*w?7:d<.13*w?4:1;registerHit(p,aim.x,aim.y);ar.push({x:aim.x,y:aim.y});if(ar.length>8)ar.shift()}
+ if(mode===5){if(jmp<=0&&stun<=0){jmp=.7;sfx("jump")}
+  else if(power==="doublejump"&&!dblUsed&&jmp>0){jmp=.7;dblUsed=true;sfx("jump");pop("Double jump!",.2,.3)}}
+ if(mode===6){parts.push({x:aim.x,y:aim.y,vx:0,vy:0,l:1,color:"#fff",shape:"ring",sz:14,rot:0,vr:0});
+  let hit=false;an=an.filter(a=>{if(!hit&&D(aim.x,aim.y,a.x,a.y)<.12){hit=true;registerHit(10,a.x,a.y,"Snap! "+a.kind);burst(a.x,a.y,"#fff",10);return false}return true});
+  if(!hit)registerMiss(aim.x,aim.y,"no animal there");sfx("pop")}
+ if(mode===7){const r=power==="bigsplash"?.14:.07;let n=0;
+  tg=tg.filter(t=>{if(D(aim.x,aim.y,t.x,t.y)<r+.05){n++;burst(t.x,t.y,"#4db2ff",12,"bubble");return false}return true});
+  if(n>0)registerHit(10*n,aim.x,aim.y,"Splash!");else registerMiss(aim.x,aim.y,"splash");
+  parts.push({x:aim.x,y:aim.y,vx:0,vy:0,l:1,color:"#4db2ff",shape:"ring",sz:12,rot:0,vr:0})}
+ if(mode===8){const ln=aim.x<.34?0:aim.x<.67?1:2;
+  if(pad&&pad.l===ln){registerHit(10+combo*2,.2+ln*.3,.4,"On the beat!");pad=null}
+  else{registerMiss(aim.x,.5,"off beat");loseHeart()}}
+ if(mode===9){if(!plane){plane={x:.06,y:.6,vx:.35+aim.x*.4,vy:-(.3+(1-aim.y)*.5)};wind=(R()-.5)*.4+(power==="tailwind"?.35:0);sfx("whoosh")}}
+ if(mode===10){/* rally is paddle-only: slide with mouse or tilt, no tap needed */}
+ if(mode===11){parts.push({x:aim.x,y:aim.y,vx:0,vy:0,l:1,color:"#fff",shape:"ring",sz:12,rot:0,vr:0});
+  let hit=false;stars=stars.filter(s2=>{if(!hit&&D(aim.x,aim.y,s2.x,s2.y)<.12){hit=true;registerHit(10,s2.x,s2.y,"Deflected!");burst(s2.x,s2.y,"#ff8fd0",10);return false}return true});
+  if(!hit)registerMiss(aim.x,aim.y,"whiff")}
+ if(mode===13){const ln=aim.x<.25?0:aim.x<.5?1:aim.x<.75?2:3;danceHit(ln)}}
+function upd(dt){tt+=dt;
+ if(mode===13&&run){danceT+=dt;
+  const beat=60/DANCE_SONGS[danceSong].bpm;
+  while(danceT>=danceNextBeat&&danceNextBeat<=30){danceBeatSound(danceSong,danceBeatIdx);danceBeatIdx++;danceNextBeat+=beat}
+  danceChart.forEach(a=>{if(!a.hit&&!a.missed&&danceT>a.t+.3){a.missed=true;combo=0;mult=1;streak=0;pop("missed!",.5,.3);danceMood="wobble";danceMoodT=.6;sfx("bad")}});
+  if(danceMoodT>0){danceMoodT-=dt;if(danceMoodT<=0)danceMood="idle"}}
+ if(power){powerT-=dt;if(powerT<=0)power=null}
+ if(mode===0){sp-=dt;const iv=.8/level;if(sp<=0){sp=iv*(0.8+R()*.4);const d=R()<.5?1:-1;
+   fish.push({x:d>0?-.05:1.05,y:.5+R()*.4,v:d*(.08+R()*.1)*(1+.25*(level-1)),golden:false})}
+  fish.forEach(f=>f.x+=f.v*dt);fish=fish.filter(f=>f.x>-.1&&f.x<1.1&&!f.c);
+  if(hook){hook.t+=dt/1.1;const y=.22+.68*Math.sin(Math.PI*cl(hook.t,0,1));hook.y=y;
+   fish.forEach(f=>{if(!f.c&&D(hook.x,y,f.x,f.y)<.07){f.c=1;registerHit(10,f.x,f.y,"Caught & released!")}});
+   if(hook.t>=1)hook=null}
+  else boat+=(aim.x-boat)*Math.min(1,dt*6)}
+ if(mode===1){if(!pad){pw-=dt;if(pw<=0)pad={l:R()*3|0,t:(power==="bigglove"?3.2:1.6)}}else{pad.t-=dt;if(pad.t<=0){pad=null;combo=0;mult=1;streak=0;pop("too slow!",.5,.4);loseHeart();pw=.3}}}
+ if(mode===2){sp-=dt;if(sp<=0){sp=(.5/level)*(0.8+R()*.4);bub.push({x:.08+R()*.84,y:1.05,r:.04+R()*.04,v:(.08+R()*.1)*(power==="slowmo"?.5:1)*(1+.25*(level-1)),h:R()*360})}
+  bub.forEach(b=>b.y-=b.v*dt);bub=bub.filter(b=>b.y>-.1)}
+ if(mode===3){sp-=dt;if(sp<=0){sp=(.6/level)*(0.8+R()*.4);
+   nj.push({x:.1+R()*.8,y:1.05,vx:(R()-.5)*.2,vy:-(1.5+R()*.3),kind:["apple","orange","melon","pine"][R()*4|0],r:R()<.2})}
+  nj.forEach(o=>{o.vy+=(power==="slowfruit"?.8:1.6)*dt;o.x+=o.vx*dt;o.y+=o.vy*dt});nj=nj.filter(o=>o.y<1.1)}
+ if(mode===5){stun-=dt;if(jmp>0){jmp-=dt;if(jmp<=0)dblUsed=false}
+  sp-=dt;if(sp<=0){sp=(1+R()*.8)/level;hd.push({x:1.05})}
+  const v=stun>0?.15:.5*(1+.2*(level-1));
+  hd.forEach(h=>{h.x-=v*dt;if(!h.d&&h.x<.22){h.d=1;const jh=jmp>0?Math.sin(Math.PI*(1-jmp/.7)):0;
+   if(jh>.5){registerHit(10,.2,.45,"Clear!")}else{stun=.6;registerMiss(.2,.45,"bonk!");loseHeart()}}});
+  hd=hd.filter(h=>h.x>-.1)}
+ if(mode===6){sp-=dt;const iv=1.1/level;if(sp<=0){sp=iv*(0.8+R()*.5);const d=R()<.5?1:-1;
+   an.push({x:d>0?-.08:1.08,y:.48+R()*.32,v:d*(.06+R()*.08)*(1+.25*(level-1)),kind:["lion","elephant","giraffe","zebra","monkey","hippo"][R()*6|0]})}
+  an.forEach(a=>a.x+=a.v*dt);an=an.filter(a=>a.x>-.12&&a.x<1.12)}
+ if(mode===7){sp-=dt;if(sp<=0){sp=(.7/level)*(0.8+R()*.5);const d=R()<.5?1:-1;
+   tg.push({x:d>0?-.08:1.08,y:.35+R()*.4,v:d*(.1+R()*.14)*(1+.25*(level-1)),kind:R()<.5?"duck":"ring"})}
+  tg.forEach(t=>t.x+=t.v*dt);tg=tg.filter(t=>t.x>-.12&&t.x<1.12)}
+ if(mode===8){const nb=Math.floor(tt/.6);
+  if(nb!==beatIdx){beatIdx=nb;pad={l:RHYTHM_PAT[nb%8],t:.5};beatSound(nb)}
+  if(pad){pad.t-=dt;if(pad.t<=0){pad=null;combo=0;mult=1;streak=0;pop("missed the beat!",.5,.4)}}}
+ if(mode===9){if(plane){plane.vy+=.85*dt;plane.x+=(plane.vx+wind*.25)*dt;plane.y+=plane.vy*dt;
+   if(plane.y>=.78){const dist=Math.round(plane.x*100),pts=Math.max(5,Math.round(dist/6));
+    registerHit(pts,cl(plane.x,0,1),.7,dist+"m!");plane=null}}}
+ if(mode===10){if(!ball){sp-=dt;if(sp<=0){sp=.8;ball={x:.5,y:.35,vx:(R()-.5)*.3,vy:.22*(1+.2*(level-1))}}}
+  else{ball.x+=ball.vx*dt;ball.y+=ball.vy*dt;
+   if(ball.x<.03||ball.x>.97){ball.vx*=-1;ball.x=cl(ball.x,.03,.97)}
+   if(ball.y<.08){ball.vy=Math.abs(ball.vy);ball.y=.08}
+   if(ball.y>=.86){const half=power==="bigpaddle"?.16:.09;
+    if(Math.abs(ball.x-aim.x)<half){ball.vy=-Math.abs(ball.vy)*1.06;ball.vx+=(ball.x-aim.x)*1.2;ball.y=.86;registerHit(10,ball.x,.8,"Rally!")}
+    else{ball=null;sp=.8;registerMiss(aim.x,.9,"missed it");loseHeart()}}}}
+ if(mode===11){sp-=dt;if(sp<=0){sp=(.8/level)*(0.8+R()*.5);
+   stars.push({x:1.06,y:.15+R()*.75,v:-(.22+R()*.12)*(1+.25*(level-1))*(power==="slowstars"?.5:1),ph:R()*6})}
+  const ky=aim.y;
+  stars.forEach(s2=>{s2.x+=s2.v*dt;s2.y+=Math.sin(tt*3+s2.ph)*.02*dt});
+  stars=stars.filter(s2=>{if(s2.x<.16&&Math.abs(s2.y-ky)<.09){registerMiss(s2.x,s2.y,"bonk!");loseHeart();return false}return s2.x>-.08})}
+ fx.forEach(f=>f.l-=dt*1.4);fx=fx.filter(f=>f.l>0);
+ parts.forEach(p=>{p.l-=dt*1.2;p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.shape==="confetti")p.vy+=.3*dt;else p.vy+=.25*dt;p.rot+=p.vr});
+ parts=parts.filter(p=>p.l>0);shake=Math.max(0,shake-dt*30)}
+
+// ---------- drawing helpers (all vector paths, no emoji sprites) ----------
+const OUT="#2b2b3a"; // chunky dark outline
+function T(s,x,y,sz,col){g.font="bold "+sz+"px system-ui,sans-serif";g.fillStyle=col||"#fff";g.textAlign="center";g.textBaseline="middle";g.fillText(s,x*W,y*H)}
+function circ(x,y,r,fill,stroke,lw){g.beginPath();g.arc(x,y,r,0,7);g.fillStyle=fill;g.fill();if(stroke){g.lineWidth=lw||3;g.strokeStyle=stroke;g.stroke()}}
+function ell(x,y,rx,ry,fill,stroke,lw){g.beginPath();g.ellipse(x,y,rx,ry,0,0,7);g.fillStyle=fill;g.fill();if(stroke){g.lineWidth=lw||3;g.strokeStyle=stroke;g.stroke()}}
+function rr(x,y,w,h,r,fill,stroke,lw){g.beginPath();g.roundRect(x,y,w,h,r);g.fillStyle=fill;g.fill();if(stroke){g.lineWidth=lw||3;g.strokeStyle=stroke;g.stroke()}}
+function shadow(x,y,rx){ell(x,y,rx,rx*.28,"rgba(0,0,0,.25)")}
+function heartPath(x,y,s,fill){g.beginPath();g.moveTo(x,y+s*.9);g.bezierCurveTo(x-s*1.2,y+s*.1,x-s*.7,y-s*.9,x,y-s*.25);g.bezierCurveTo(x+s*.7,y-s*.9,x+s*1.2,y+s*.1,x,y+s*.9);g.fillStyle=fill;g.fill();g.lineWidth=2;g.strokeStyle=OUT;g.stroke()}
+function drawFace(x,y,r,happy,surprised){ // expressive face: happy eyes on score, surprised on miss
+ if(happy){g.lineWidth=3;g.strokeStyle=OUT;g.beginPath();g.arc(x-r*.35,y-r*.1,r*.22,Math.PI,0);g.stroke();g.beginPath();g.arc(x+r*.35,y-r*.1,r*.22,Math.PI,0);g.stroke()}
+ else if(surprised){circ(x-r*.35,y-r*.1,r*.09,OUT);circ(x+r*.35,y-r*.1,r*.09,OUT)}
+ else{circ(x-r*.35,y-r*.1,r*.09,OUT);circ(x+r*.35,y-r*.1,r*.09,OUT)}
+ g.lineWidth=3;g.strokeStyle=OUT;g.beginPath();
+ if(happy)g.arc(x,y+r*.15,r*.45,.15*Math.PI,.85*Math.PI);
+ else if(surprised){g.fillStyle=OUT;g.beginPath();g.ellipse(x,y+r*.3,r*.14,r*.2,0,0,7);g.fill()}
+ else g.arc(x,y+r*.2,r*.3,.2*Math.PI,.8*Math.PI);g.stroke()}
+function drawKid(x,y,s,o){ // x,y px (feet), s = head radius px, o: skin,shirt,pants,hair,hat,pose,squash,face
+ o=o||{};const skin=o.skin||"#f2c29b",shirt=o.shirt||"#2a7de1",pants=o.pants||"#3a3a5c",hair=o.hair||"#3a2a1a";
+ const sq=o.squash||1,hr=s,by=y-hr*3.1*sq;
+ shadow(x,y,hr*1.5);
+ // legs
+ g.lineWidth=hr*.5;g.strokeStyle=pants;g.beginPath();g.moveTo(x-hr*.3,by+hr*1.5);g.lineTo(x-hr*.35,y);g.moveTo(x+hr*.3,by+hr*1.5);g.lineTo(x+hr*.35,y);g.stroke();
+ // body
+ rr(x-hr*.75,by,hr*1.5,hr*1.7,hr*.5,shirt,OUT,3);
+ // arms (pose)
+ g.lineWidth=hr*.42;g.strokeStyle=shirt;g.lineCap="round";
+ const armY=by+hr*.5;
+ if(o.pose==="punch"){g.beginPath();g.moveTo(x-hr*.6,armY);g.lineTo(x-hr*1.1,armY-hr*.3);g.moveTo(x+hr*.6,armY);g.lineTo(x+hr*1.3,armY-hr*.6);g.stroke();circ(x+hr*1.35,armY-hr*.65,hr*.42,"#e53935",OUT,3)}
+ else if(o.pose==="aim"){g.beginPath();g.moveTo(x-hr*.6,armY);g.lineTo(x-hr*1.1,armY+hr*.4);g.moveTo(x+hr*.6,armY);g.lineTo(x+hr*1.5,armY-hr*.5);g.stroke()}
+ else if(o.pose==="jump"){g.beginPath();g.moveTo(x-hr*.6,armY);g.lineTo(x-hr*1.2,armY-hr*.8);g.moveTo(x+hr*.6,armY);g.lineTo(x+hr*1.2,armY-hr*.8);g.stroke()}
+ else{g.beginPath();g.moveTo(x-hr*.6,armY);g.lineTo(x-hr*.9,armY+hr*.7);g.moveTo(x+hr*.6,armY);g.lineTo(x+hr*.9,armY+hr*.7);g.stroke()}
+ // head
+ circ(x,by-hr*.9,hr,skin,OUT,3);
+ // hair
+ g.fillStyle=hair;g.beginPath();g.arc(x,by-hr*1.05,hr*.95,Math.PI,0);g.fill();
+ if(o.hat==="cap"){g.fillStyle="#e53935";g.beginPath();g.arc(x,by-hr*1.0,hr*.95,Math.PI,0);g.fill();rr(x-hr*.9,by-hr*1.15,hr*1.8,hr*.35,hr*.15,"#e53935",OUT,2);rr(x+hr*.5,by-hr*.95,hr*.9,hr*.25,hr*.1,"#e53935",OUT,2)}
+ if(o.hat==="headband"){g.fillStyle="#e53935";g.fillRect(x-hr*.95,by-hr*1.55,hr*1.9,hr*.35);g.fillStyle="#ffd23f";g.fillRect(x+hr*.7,by-hr*1.7,hr*.5,hr*.7)}
+ if(o.hat==="hood"){g.fillStyle="#4a3a8a";g.beginPath();g.arc(x,by-hr*.9,hr*1.15,Math.PI*.95,Math.PI*2.05);g.fill()}
+ drawFace(x,by-hr*.85,hr,o.face==="happy",o.face==="surprised")}
+function drawCub(x,y,s,happy){ // Champ Cub, the boxing cub
+ const sq=happy?1.08:1;shadow(x,y,s*1.6);
+ rr(x-s*.8,y-s*3.0*sq,s*1.6,s*1.7,s*.5,"#d94f2a",OUT,3); // body (red shirt)
+ g.lineWidth=s*.4;g.strokeStyle="#8a5a2b";g.lineCap="round";
+ g.beginPath();g.moveTo(x-s*.6,y-s*2.6);g.lineTo(x-s*1.2,y-s*2.2);g.moveTo(x+s*.6,y-s*2.6);g.lineTo(x+s*1.3,y-s*1.9);g.stroke();
+ circ(x+s*1.35,y-s*1.85,s*.5,"#e53935",OUT,3); // glove
+ circ(x-s*1.25,y-s*2.15,s*.5,"#e53935",OUT,3);
+ circ(x,y-s*4.1*sq,s*1.15,"#c98a4b",OUT,3); // head
+ circ(x-s*.95,y-s*5.0,s*.45,"#c98a4b",OUT,3);circ(x+s*.95,y-s*5.0,s*.45,"#c98a4b",OUT,3); // ears
+ circ(x-s*.95,y-s*5.0,s*.2,"#8a5a2b");circ(x+s*.95,y-s*5.0,s*.2,"#8a5a2b");
+ ell(x,y-s*3.75,s*.55,s*.4,"#f2d3a0",OUT,2); // muzzle
+ circ(x,y-s*3.85,s*.16,OUT);drawFace(x,y-s*4.25,s,happy,false)}
+function drawFish(x,y,s,color,flip){g.save();g.translate(x,y);if(flip)g.scale(-1,1);
+ ell(0,0,s,s*.6,color,OUT,3);
+ g.fillStyle=color;g.beginPath();g.moveTo(-s*.8,0);g.lineTo(-s*1.5,-s*.6);g.lineTo(-s*1.5,s*.6);g.closePath();g.fill();g.lineWidth=3;g.strokeStyle=OUT;g.stroke();
+ g.beginPath();g.moveTo(0,-s*.55);g.quadraticCurveTo(s*.3,-s*1.1,s*.6,-s*.5);g.closePath();g.fillStyle="#ffffff88";g.fill();
+ circ(s*.45,-s*.1,s*.14,"#fff",OUT,2);circ(s*.5,-s*.1,s*.06,OUT);
+ g.restore()}
+function drawFruit(x,y,s,kind){if(kind==="apple"){circ(x,y,s,"#e53935",OUT,3);g.strokeStyle="#3ddc84";g.lineWidth=4;g.beginPath();g.moveTo(x,y-s);g.quadraticCurveTo(x+s*.3,y-s*1.5,x+s*.6,y-s*1.2);g.stroke()}
+ else if(kind==="orange"){circ(x,y,s,"#ff8a2a",OUT,3);circ(x-s*.3,y-s*.3,s*.2,"#ffd23f")}
+ else if(kind==="melon"){g.beginPath();g.arc(x,y,s,0,Math.PI);g.fillStyle="#2fae4e";g.fill();g.lineWidth=3;g.strokeStyle=OUT;g.stroke();g.beginPath();g.arc(x,y,s*.75,0,Math.PI);g.fillStyle="#ff5a5a";g.fill();g.fillStyle=OUT;circ(x-s*.3,y+s*.35,3);circ(x+s*.25,y+s*.4,3)}
+ else{ell(x,y,s*.8,s*1.1,"#ffd23f",OUT,3);g.strokeStyle="#3ddc84";g.lineWidth=4;for(let i=-1;i<=1;i++){g.beginPath();g.moveTo(x+i*s*.4,y-s*1.1);g.lineTo(x+i*s*.55,y-s*1.5);g.stroke()}}}
+function drawRock(x,y,s){g.fillStyle="#8a8f9a";g.beginPath();g.moveTo(x-s,y+s*.4);g.lineTo(x-s*.6,y-s*.8);g.lineTo(x+s*.5,y-s*.7);g.lineTo(x+s,y+s*.3);g.closePath();g.fill();g.lineWidth=3;g.strokeStyle=OUT;g.stroke();circ(x-s*.2,y-s*.2,s*.12,"#6a6f7a")}
+function drawTarget(x,y,r){const rings=[["#fff",1],["#222",.78],["#2a7de1",.56],["#e53935",.34],["#ffd23f",.15]];
+ for(const c of rings)circ(x,y,r*c[1],c[0],OUT,2)}
+function drawHurdle(x,y,s){g.lineWidth=6;g.strokeStyle="#fff";g.beginPath();g.moveTo(x-s,y);g.lineTo(x-s,y-s*1.1);g.moveTo(x+s,y);g.lineTo(x+s,y-s*1.1);g.stroke();
+ rr(x-s*1.2,y-s*1.35,s*2.4,s*.35,s*.1,"#ff8a2a",OUT,3);rr(x-s*1.2,y-s*1.35,s*.8,s*.35,s*.1,"#fff")}
+function drawPad(x,y,s,glow){if(glow){circ(x,y,s*1.5,"rgba(255,210,63,.25)")}rr(x-s,y-s*.7,s*2,s*1.4,s*.3,"#ffd23f",OUT,4);circ(x,y,s*.55,"#e53935",OUT,3);circ(x,y,s*.25,"#fff")}
+function drawBubbleB(x,y,r,hue){g.beginPath();g.arc(x,y,r,0,7);g.fillStyle="hsla("+hue+",90%,75%,.4)";g.fill();g.lineWidth=3;g.strokeStyle="hsl("+hue+",80%,50%)";g.stroke();circ(x-r*.35,y-r*.35,r*.22,"rgba(255,255,255,.85)")}
+function drawBoat(x,y,s){ // hull + mast + sail + fisherman kid
+ g.fillStyle="#8a5a2b";g.beginPath();g.moveTo(x-s*1.6,y);g.lineTo(x+s*1.6,y);g.lineTo(x+s*1.2,y+s*.5);g.lineTo(x-s*1.2,y+s*.5);g.closePath();g.fill();g.lineWidth=3;g.strokeStyle=OUT;g.stroke();
+ g.strokeStyle="#5a3a1a";g.lineWidth=5;g.beginPath();g.moveTo(x,y);g.lineTo(x,y-s*2.2);g.stroke();
+ g.fillStyle="#fff";g.beginPath();g.moveTo(x,y-s*2.1);g.lineTo(x+s*1.1,y-s*.3);g.lineTo(x,y-s*.3);g.closePath();g.fill();g.lineWidth=3;g.strokeStyle=OUT;g.stroke();
+ drawKid(x-s*.3,y-s*.1,s*.55,{shirt:"#3ddc84",hat:"cap",face:hook?"surprised":"happy"})}
+// ---------- Season 2 draw helpers (all original vector art, no emoji sprites) ----------
+function drawAnimal(x,y,s,kind,flip){g.save();g.translate(x,y);if(flip)g.scale(-1,1);const k=s/30;
+ const leg=(lx)=>{g.lineWidth=7*k;g.strokeStyle="#00000022";g.beginPath();g.moveTo(lx,10*k);g.lineTo(lx,24*k);g.stroke()};
+ if(kind==="lion"){ell(0,4*k,34*k,20*k,"#e8a34a",OUT,3);leg(-18*k);leg(14*k);
+  g.strokeStyle="#e8a34a";g.lineWidth=6*k;g.beginPath();g.moveTo(-32*k,0);g.quadraticCurveTo(-48*k,-6*k,-44*k,-18*k);g.stroke();circ(-44*k,-18*k,5*k,"#b45f06");
+  circ(26*k,-8*k,20*k,"#b45f06",OUT,3);circ(30*k,-8*k,13*k,"#e8a34a",OUT,3);
+  circ(24*k,-16*k,4*k,"#b45f06");circ(36*k,-16*k,4*k,"#b45f06");circ(30*k,-8*k,2.5*k,OUT);drawFace(30*k,-8*k,13*k,false,false)}
+ else if(kind==="elephant"){ell(0,2*k,36*k,24*k,"#8a97a8",OUT,3);leg(-18*k);leg(10*k);
+  circ(24*k,-10*k,17*k,"#7a8798",OUT,3);circ(26*k,-6*k,15*k,"#8a97a8",OUT,3);
+  circ(14*k,-12*k,9*k,"#7a8798",OUT,2);
+  g.strokeStyle="#8a97a8";g.lineWidth=9*k;g.lineCap="round";g.beginPath();g.moveTo(38*k,0);g.quadraticCurveTo(46*k,14*k,40*k,26*k);g.stroke();
+  g.strokeStyle="#fff";g.lineWidth=4*k;g.beginPath();g.moveTo(34*k,8*k);g.quadraticCurveTo(40*k,14*k,38*k,18*k);g.stroke();
+  circ(28*k,-10*k,2.5*k,OUT)}
+ else if(kind==="giraffe"){ell(0,8*k,30*k,18*k,"#e8c37a",OUT,3);leg(-14*k);leg(12*k);
+  g.strokeStyle="#e8c37a";g.lineWidth=12*k;g.lineCap="round";g.beginPath();g.moveTo(18*k,2*k);g.lineTo(34*k,-32*k);g.stroke();
+  ell(38*k,-36*k,13*k,9*k,"#e8c37a",OUT,3);
+  g.strokeStyle="#b45f06";g.lineWidth=3*k;g.beginPath();g.moveTo(34*k,-44*k);g.lineTo(32*k,-50*k);g.moveTo(42*k,-44*k);g.lineTo(42*k,-50*k);g.stroke();
+  g.fillStyle="#b45f06";circ(-8*k,4*k,3*k);circ(4*k,10*k,3*k);circ(-16*k,10*k,2.5*k);circ(46*k,-36*k,2*k,OUT)}
+ else if(kind==="zebra"){ell(0,4*k,32*k,19*k,"#fff",OUT,3);
+  g.strokeStyle=OUT;g.lineWidth=4*k;for(const sx of [-14,0,14]){g.beginPath();g.moveTo(sx*k,-12*k);g.lineTo(sx*k-4*k,18*k);g.stroke()}
+  leg(-16*k);leg(12*k);ell(30*k,-8*k,14*k,10*k,"#fff",OUT,3);
+  g.strokeStyle=OUT;g.lineWidth=3*k;g.beginPath();g.moveTo(28*k,-16*k);g.lineTo(26*k,-4*k);g.moveTo(34*k,-16*k);g.lineTo(32*k,-4*k);g.stroke();
+  circ(36*k,-10*k,2*k,OUT)}
+ else if(kind==="monkey"){ell(0,2*k,24*k,20*k,"#8a5a2b",OUT,3);
+  g.strokeStyle="#8a5a2b";g.lineWidth=6*k;g.beginPath();g.moveTo(-20*k,4*k);g.quadraticCurveTo(-38*k,10*k,-30*k,-16*k);g.stroke();
+  circ(24*k,-8*k,13*k,"#f2d3a0",OUT,3);circ(12*k,-16*k,5*k,"#8a5a2b",OUT,2);circ(34*k,-18*k,5*k,"#8a5a2b",OUT,2);
+  circ(22*k,-10*k,2*k,OUT);circ(28*k,-10*k,2*k,OUT)}
+ else{ell(0,2*k,38*k,22*k,"#9a8fb0",OUT,3);leg(-18*k);leg(12*k);
+  ell(30*k,-2*k,20*k,14*k,"#9a8fb0",OUT,3);circ(18*k,-14*k,4*k,"#9a8fb0",OUT,2);circ(30*k,-15*k,4*k,"#9a8fb0",OUT,2);
+  circ(38*k,-6*k,2*k,OUT);circ(46*k,-6*k,2*k,OUT);g.strokeStyle=OUT;g.lineWidth=2;g.beginPath();g.arc(42*k,2*k,5*k,.2*Math.PI,.8*Math.PI);g.stroke()}
+ g.restore()}
+function drawDuck(x,y,s){ell(x,y,s,s*.7,"#ffd23f",OUT,3);circ(x+s*.55,y-s*.55,s*.45,"#ffd23f",OUT,3);
+ g.fillStyle="#ff8a2a";g.beginPath();g.moveTo(x+s*.95,y-s*.55);g.lineTo(x+s*1.35,y-s*.4);g.lineTo(x+s*.95,y-s*.25);g.closePath();g.fill();
+ circ(x+s*.7,y-s*.65,s*.07,OUT);ell(x-s*.1,y,s*.45,s*.25,"#f2b705")}
+function drawRingBuoy(x,y,s){circ(x,y,s,"#e53935",OUT,3);circ(x,y,s*.62,"#fff",OUT,2);circ(x,y,s*.3,"#2f8fd8",OUT,2)}
+function drawPlane(x,y,s,rot){g.save();g.translate(x,y);g.rotate(rot||0);
+ g.fillStyle="#fff";g.beginPath();g.moveTo(s,0);g.lineTo(-s*.8,-s*.5);g.lineTo(-s*.4,0);g.lineTo(-s*.8,s*.5);g.closePath();g.fill();g.lineWidth=3;g.strokeStyle=OUT;g.stroke();
+ g.strokeStyle="#9fb0c7";g.lineWidth=2;g.beginPath();g.moveTo(s,0);g.lineTo(-s*.4,0);g.stroke();g.restore()}
+function drawStar(x,y,s,color,rot){g.save();g.translate(x,y);g.rotate(rot||0);
+ g.fillStyle=color;g.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4-Math.PI/2,r=i%2?s*.38:s;g[i?"lineTo":"moveTo"](Math.cos(a)*r,Math.sin(a)*r)}g.closePath();g.fill();g.lineWidth=3;g.strokeStyle=OUT;g.stroke();
+ circ(-s*.25,-s*.1,s*.08,OUT);circ(s*.25,-s*.1,s*.08,OUT);
+ g.strokeStyle=OUT;g.lineWidth=2;g.beginPath();g.arc(0,s*.12,s*.22,.15*Math.PI,.85*Math.PI);g.stroke();g.restore()}
+
+function drawArrowShape(cx,cy,dir,size,color,glow){ // chunky arrow; base shape points up
+ g.save();g.translate(cx,cy);g.rotate([-Math.PI/2,Math.PI,0,Math.PI/2][dir]);
+ if(glow){g.fillStyle="rgba(255,255,255,.25)";g.beginPath();g.arc(0,0,size*1.3,0,7);g.fill()}
+ g.fillStyle=color;g.beginPath();
+ g.moveTo(0,-size);g.lineTo(size*.8,-size*.1);g.lineTo(size*.35,-size*.1);g.lineTo(size*.35,size*.8);
+ g.lineTo(-size*.35,size*.8);g.lineTo(-size*.35,-size*.1);g.lineTo(-size*.8,-size*.1);g.closePath();g.fill();
+ g.lineWidth=3;g.strokeStyle=OUT;g.stroke();g.restore()}
+function drawDancer(x,y,s,mood,ph){ // original dancing kid: curly hair, pink dress, chunky outlines
+ const bounce=Math.sin(ph)*s*.12,tilt=mood==="wobble"?Math.sin(tt*14)*.12:0;
+ g.save();g.translate(x,y);g.rotate(tilt);g.scale(1,1+Math.sin(ph)*.05);
+ shadow(0,0,s*1.4);
+ const legSwing=Math.sin(ph)*s*.5;
+ g.lineWidth=s*.28;g.strokeStyle="#3a3a5c";g.lineCap="round";
+ g.beginPath();g.moveTo(-s*.25,-s*1.1);g.lineTo(-s*.35+legSwing*.4,0);
+ g.moveTo(s*.25,-s*1.1);g.lineTo(s*.35-legSwing*.4,0);g.stroke();
+ g.fillStyle="#ff5a8a";g.beginPath();g.moveTo(0,-s*2.6);g.lineTo(-s*.85,-s*.9);
+ g.quadraticCurveTo(0,-s*.6,s*.85,-s*.9);g.lineTo(0,-s*2.6);g.closePath();g.fill();
+ g.lineWidth=3;g.strokeStyle=OUT;g.stroke();
+ g.lineWidth=s*.24;g.strokeStyle="#f2c29b";
+ g.beginPath();
+ if(mood==="cheer"){g.moveTo(-s*.3,-s*2.3);g.lineTo(-s*.9,-s*3.4);g.moveTo(s*.3,-s*2.3);g.lineTo(s*.9,-s*3.4)}
+ else if(mood==="pose"){g.moveTo(-s*.3,-s*2.3);g.lineTo(-s*.9,-s*3.2);g.moveTo(s*.3,-s*2.3);g.lineTo(s*.8,-s*1.9)}
+ else if(Math.sin(ph)>0){g.moveTo(-s*.3,-s*2.3);g.lineTo(-s*.9,-s*2.8);g.moveTo(s*.3,-s*2.3);g.lineTo(s*.9,-s*2.0)}
+ else{g.moveTo(-s*.3,-s*2.3);g.lineTo(-s*.9,-s*2.0);g.moveTo(s*.3,-s*2.3);g.lineTo(s*.9,-s*2.8)}
+ g.stroke();
+ circ(0,-s*3.3-bounce*.4,s*.95,"#f2c29b",OUT,3); // head
+ g.fillStyle="#3a2a1a"; // curly hair
+ circ(-s*.6,-s*3.9,s*.45);circ(s*.6,-s*3.9,s*.45);circ(0,-s*4.15,s*.5);circ(-s*.85,-s*3.4,s*.35);circ(s*.85,-s*3.4,s*.35);
+ drawFace(0,-s*3.25,s*.9,mood==="cheer"||mood==="pose",mood==="wobble");
+ g.restore()}
+// ---------- parallax backgrounds ----------
+function drawBG(){const gr=g.createLinearGradient(0,0,0,H);
+ if(mode===0){gr.addColorStop(0,"#bfe6ff");gr.addColorStop(.3,"#8fd0ff");gr.addColorStop(.3,"#2f8fd8");gr.addColorStop(1,"#0c4a8a")}
+ else if(mode===1){gr.addColorStop(0,"#3a1f5d");gr.addColorStop(1,"#14082b")}
+ else if(mode===2){gr.addColorStop(0,"#a8e6ff");gr.addColorStop(1,"#e9fbff")}
+ else if(mode===3){gr.addColorStop(0,"#2b1b3d");gr.addColorStop(1,"#6b2f5c")}
+ else if(mode===4){gr.addColorStop(0,"#bfe8ff");gr.addColorStop(.7,"#d8f2d0");gr.addColorStop(1,"#7cc576")}
+ else if(mode===5){gr.addColorStop(0,"#ffe9b0");gr.addColorStop(.6,"#ffd08a");gr.addColorStop(.6,"#c0583a");gr.addColorStop(1,"#a84428")}
+ else if(mode===6){gr.addColorStop(0,"#ffe3a1");gr.addColorStop(.55,"#ffcf7d");gr.addColorStop(.55,"#e0aa52");gr.addColorStop(1,"#b98a3e")}
+ else if(mode===7){gr.addColorStop(0,"#a8e6ff");gr.addColorStop(.3,"#7dd8ff");gr.addColorStop(.3,"#2f8fd8");gr.addColorStop(1,"#0c5a9a")}
+ else if(mode===8){gr.addColorStop(0,"#2b1b4d");gr.addColorStop(1,"#12082b")}
+ else if(mode===9){gr.addColorStop(0,"#a8e6ff");gr.addColorStop(.7,"#e9fbff");gr.addColorStop(.7,"#cfe8b0");gr.addColorStop(1,"#8fc06a")}
+ else if(mode===10){gr.addColorStop(0,"#3a4a6b");gr.addColorStop(.6,"#2c3a55");gr.addColorStop(.6,"#b98a5a");gr.addColorStop(1,"#8a5f3a")}
+ else if(mode===11){gr.addColorStop(0,"#1b1440");gr.addColorStop(1,"#3d2b6b")}
+ else{gr.addColorStop(0,"#3d1a5c");gr.addColorStop(.6,"#7a2a8a");gr.addColorStop(1,"#2a0a4a")}
+ g.fillStyle=gr;g.fillRect(0,0,W,H);
+ if(mode===0){ // underwater: light rays + seaweed + rising bubbles + sand
+  g.save();g.globalAlpha=.18;g.fillStyle="#fff";
+  for(let i=0;i<4;i++){const rx=((i*260+tt*12)%1100)-80;g.beginPath();g.moveTo(rx,0);g.lineTo(rx+90,0);g.lineTo(rx+200,H);g.lineTo(rx+40,H);g.closePath();g.fill()}
+  g.restore();
+  g.strokeStyle="#2fae4e";g.lineWidth=10;g.lineCap="round";
+  for(let i=0;i<7;i++){const sx=i*150+40,sw=Math.sin(tt*1.5+i)*18;g.beginPath();g.moveTo(sx,H);g.quadraticCurveTo(sx+sw,H-90,sx+sw*1.5,H-170);g.stroke()}
+  g.fillStyle="#f2d3a0";g.fillRect(0,H-26,W,26);
+  for(let i=0;i<8;i++){const bx=(i*137+tt*20)%W,by=H-((tt*30+i*67)%H);drawBubbleB(bx,by,5+i%3*3,200)}
+  g.fillStyle="rgba(255,255,255,.5)";g.fillRect(0,H*.3,W,2)}
+ if(mode===1){ // gym: crowd + banners + ring
+  for(let r=0;r<3;r++)for(let i=0;i<14;i++){const cx=40+i*66,cy=90+r*36+Math.sin(tt*2+i)*3;circ(cx,cy,11,["#ff5a5a","#ffd23f","#2a7de1","#3ddc84","#ff8fd0"][(i+r)%5],OUT,2)}
+  g.fillStyle="#ffd23f";g.fillRect(120,40,180,34);g.fillStyle="#e53935";g.fillRect(660,40,180,34);
+  g.fillStyle="#7a4a2b";g.fillRect(0,430,W,110);
+  g.strokeStyle="#ff5a5a";g.lineWidth=6;for(const y of [150,210,270]){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke()}}
+ if(mode===2){ // sky: sun + drifting clouds + hills
+  circ(840,80,44,"#ffd23f",OUT,3);
+  g.fillStyle="rgba(255,255,255,.9)";
+  for(let i=0;i<4;i++){const cx=((i*300+tt*25)%1100)-80,cy=70+i*45;ell(cx,cy,55,22,"rgba(255,255,255,.9)");ell(cx+40,cy+8,40,18,"rgba(255,255,255,.9)")}
+  g.fillStyle="#7cc576";g.beginPath();g.moveTo(0,470);g.quadraticCurveTo(240,400,480,470);g.quadraticCurveTo(720,530,960,460);g.lineTo(960,540);g.lineTo(0,540);g.fill()}
+ if(mode===3){ // dojo: bamboo + lanterns + mat
+  for(let i=0;i<6;i++){const bx=60+i*170;rr(bx,0,26,H*.85,10,"#3fae5a",OUT,3);g.fillStyle="#2f8a44";for(let y=90;y<H*.8;y+=110)g.fillRect(bx,y,26,8)}
+  circ(830,90,30,"#ff5a5a",OUT,3);g.fillStyle="#ffd23f";g.fillRect(826,122,8,26);
+  g.fillStyle="#c98a4b";g.fillRect(0,440,W,100);g.fillStyle="#8a5a2b";g.fillRect(0,440,W,8)}
+ if(mode===4){ // range: hills + trees + grass
+  g.fillStyle="#5aa84f";g.beginPath();g.moveTo(0,400);g.quadraticCurveTo(300,320,600,400);g.quadraticCurveTo(800,450,960,380);g.lineTo(960,540);g.lineTo(0,540);g.fill();
+  for(let i=0;i<5;i++){const txp=90+i*190;g.fillStyle="#6a4a2a";g.fillRect(txp-8,330,16,70);circ(txp,310,42,"#2f8a44",OUT,3)}
+  g.fillStyle="#8fd06a";g.fillRect(0,470,W,70)}
+ if(mode===5){ // track: stands + flags + lanes
+  g.fillStyle="#5a6a8a";g.fillRect(0,60,W,120);
+  for(let r=0;r<2;r++)for(let i=0;i<16;i++)circ(40+i*58,95+r*40,10,["#ff5a5a","#ffd23f","#2a7de1","#fff"][(i+r)%4],OUT,2);
+  for(let i=0;i<6;i++){const fx2=80+i*160;g.strokeStyle="#8a5a2b";g.lineWidth=4;g.beginPath();g.moveTo(fx2,60);g.lineTo(fx2,20);g.stroke();
+   g.fillStyle=["#ff5a5a","#ffd23f","#2a7de1"][i%3];g.beginPath();g.moveTo(fx2,20);g.lineTo(fx2+34+Math.sin(tt*3+i)*5,30);g.lineTo(fx2,40);g.closePath();g.fill()}
+  g.fillStyle="#c0583a";g.fillRect(0,380,W,160);
+  g.strokeStyle="#fff";g.lineWidth=4;for(let y=0;y<4;y++){g.beginPath();g.moveTo(0,410+y*36);g.lineTo(W,410+y*36);g.stroke()}}
+ if(mode===6){ // savanna: sun + hills + acacia trees + swaying grass
+  circ(830,80,44,"#ffd23f",OUT,3);
+  g.fillStyle="#c98f3d";g.beginPath();g.moveTo(0,330);g.quadraticCurveTo(300,270,600,330);g.quadraticCurveTo(800,370,960,320);g.lineTo(960,540);g.lineTo(0,540);g.fill();
+  for(const txp of [120,700]){g.fillStyle="#6a4a2a";g.fillRect(txp-6,250,12,90);ell(txp,240,90,26,"#3f8a3f",OUT,3);ell(txp-40,255,50,18,"#3f8a3f");ell(txp+40,255,50,18,"#3f8a3f")}
+  g.strokeStyle="#7a9a3a";g.lineWidth=5;g.lineCap="round";
+  for(let i=0;i<24;i++){const gx=i*42+10,sw=Math.sin(tt*1.5+i)*8;g.beginPath();g.moveTo(gx,H);g.quadraticCurveTo(gx+sw,H-30,gx+sw*1.4,H-52);g.stroke()}}
+ if(mode===7){ // pool: deck + lane ropes + shimmer
+  g.fillStyle="#e8d9b0";g.fillRect(0,0,W,54);
+  g.strokeStyle="rgba(255,255,255,.7)";g.lineWidth=3;g.setLineDash([18,14]);
+  for(const ly of [150,270,390]){g.beginPath();g.moveTo(0,ly);g.lineTo(W,ly);g.stroke()}
+  g.setLineDash([]);
+  g.strokeStyle="rgba(255,255,255,.35)";g.lineWidth=2;
+  for(let i=0;i<5;i++){const sy=90+i*90+Math.sin(tt+i)*6;g.beginPath();g.moveTo(0,sy);g.lineTo(W,sy);g.stroke()}}
+ if(mode===8){ // stage: spotlights + crowd + floor
+  g.save();g.globalAlpha=.16;g.fillStyle="#ffd23f";
+  for(let i=0;i<3;i++){const bx=200+i*280;g.beginPath();g.moveTo(bx,0);g.lineTo(bx-90,H);g.lineTo(bx+90,H);g.closePath();g.fill()}
+  g.restore();
+  for(let i=0;i<14;i++){const cx=40+i*66,cy=90+Math.sin(tt*2+i)*3;circ(cx,cy,11,["#ff5a5a","#ffd23f","#2a7de1","#3ddc84","#ff8fd0"][i%5],OUT,2)}
+  g.fillStyle="#7a4a2b";g.fillRect(0,430,W,110)}
+ if(mode===9){ // sky: clouds + mountains + ground with distance flags
+  g.fillStyle="rgba(255,255,255,.9)";
+  for(let i=0;i<4;i++){const cx=((i*300+tt*25)%1100)-80,cy=70+i*45;ell(cx,cy,55,22,"rgba(255,255,255,.9)");ell(cx+40,cy+8,40,18,"rgba(255,255,255,.9)")}
+  g.fillStyle="#5a7a4a";g.beginPath();g.moveTo(0,340);g.lineTo(200,220);g.lineTo(400,340);g.lineTo(600,240);g.lineTo(800,340);g.lineTo(960,260);g.lineTo(960,421);g.lineTo(0,421);g.fill();
+  g.fillStyle="#8fc06a";g.fillRect(0,421,W,119);
+  for(let d=1;d<=9;d++){const fx2=d*96;g.strokeStyle="#5a3a1a";g.lineWidth=3;g.beginPath();g.moveTo(fx2,421);g.lineTo(fx2,386);g.stroke();
+   g.fillStyle="#e53935";g.beginPath();g.moveTo(fx2,386);g.lineTo(fx2+22,392);g.lineTo(fx2,398);g.closePath();g.fill();
+   T(d*10+"m",fx2/960,.76,13,"#33475e")}}
+ if(mode===10){ // hall: wall + scoreboard + table
+  g.fillStyle="#22304a";g.fillRect(0,0,W,60);
+  rr(360,70,240,64,10,"#16202e",OUT,3);T("RALLY",.5,.13,22,"#ffd23f");
+  g.fillStyle="#2f6db3";g.fillRect(0,464,W,76);
+  g.strokeStyle="#fff";g.lineWidth=3;g.beginPath();g.moveTo(0,464);g.lineTo(W,464);g.stroke();
+  g.fillStyle="#fff";g.fillRect(0,300,W,4)}
+ if(mode===11){ // night dojo: moon + stars + bamboo silhouettes + mat
+  circ(830,80,36,"#fff8d0",OUT,3);
+  g.fillStyle="#fff";for(let i=0;i<24;i++){const sx=(i*167)%W,sy=(i*53)%200+20;circ(sx,sy,2.5)}
+  for(let i=0;i<5;i++){const bx=90+i*190;rr(bx,0,24,H*.8,10,"#2a1a4d",OUT,2)}
+  g.fillStyle="#4a3a6b";g.fillRect(0,440,W,100);g.fillStyle="#2a1a4d";g.fillRect(0,440,W,8)}
+ if(mode===13){ // dance stage: disco ball + sweeping spotlights + floor tiles + bobbing crowd
+  for(let r=0;r<2;r++)for(let c=0;c<8;c++){g.fillStyle=(r+c)%2?"rgba(255,255,255,.14)":"rgba(255,210,63,.16)";g.fillRect(c*120,430+r*55,120,55)}
+  g.save();g.globalAlpha=.14;g.fillStyle="#ffd23f";
+  for(let i=0;i<3;i++){const bx=200+i*280+Math.sin(tt*.7+i)*60;g.beginPath();g.moveTo(bx,0);g.lineTo(bx-90,H);g.lineTo(bx+90,H);g.closePath();g.fill()}
+  g.restore();
+  circ(90,64,30,"#e8f4ff",OUT,3);
+  g.fillStyle="#9fb0c7";for(let i=0;i<8;i++){const a=i*Math.PI/4;circ(90+Math.cos(a)*20,64+Math.sin(a)*20,4)}
+  for(let i=0;i<14;i++){const cx=40+i*66,cy=500+Math.sin(tt*2+i)*4;circ(cx,cy,12,["#ff5a5a","#ffd23f","#2a7de1","#3ddc84","#ff8fd0"][i%5],OUT,2)}}}
+
+// ---------- main draw ----------
+function draw(){g.save();
+ if(shake>0)g.translate((R()-.5)*shake,(R()-.5)*shake);
+ drawBG();
+ const ax=aim.x*W,ay=aim.y*H;
+ if(mode===0){
+  drawBoat(boat*W,180,34);
+  if(hook){g.strokeStyle="#fff";g.lineWidth=2;g.beginPath();g.moveTo(boat*W,190);g.lineTo(hook.x*W,hook.y*H);g.stroke();
+   circ(hook.x*W,hook.y*H,10,"#c0c8d8",OUT,2)}
+  else{circ(ax,190,12,"rgba(255,255,255,.7)",OUT,2);T("aim here",aim.x,.34,18,"#fff")}
+  fish.forEach(f=>drawFish(f.x*W,f.y*H,26,f.golden?"#ffd23f":"#ff8a5c",f.v<0))}
+ if(mode===1){
+  const ln=aim.x<.34?0:aim.x<.67?1:2;
+  for(let i=0;i<3;i++){g.fillStyle=i===ln?"rgba(255,255,255,.18)":"rgba(255,255,255,.06)";g.fillRect(i*.333*W+8,380,.333*W-16,130)}
+  if(pad)drawPad((.2+pad.l*.3)*W,230,54+ (power==="bigglove"?14:0),true);
+  drawCub(480,500,30,combo>=3);
+  T("Combo x"+combo,.5,.08,26,"#ffd23f")}
+ if(mode===2){
+  bub.forEach(b=>drawBubbleB(b.x*W,b.y*H,b.r*W*.56,b.h));
+  drawKid(120,500,26,{shirt:"#2a7de1",hat:"cap",pose:"aim",face:combo>=3?"happy":""});
+  g.strokeStyle="#7dd8ff";g.lineWidth=5;g.beginPath();g.moveTo(150,440);g.lineTo(ax,ay);g.stroke();
+  circ(ax,ay,14,"rgba(125,216,255,.5)","#1e78ff",2)}
+ if(mode===3){
+  nj.forEach(o=>{if(o.r)drawRock(o.x*W,o.y*H,26);else drawFruit(o.x*W,o.y*H,28,o.kind)});
+  drawKid(ax,ay,24,{shirt:"#4a3a8a",hat:"headband",pose:"jump",face:"happy"})}
+ if(mode===4){
+  const x=tx();drawTarget(x*W,.45*H,70);
+  drawKid(120,500,26,{shirt:"#3fae5a",hat:"hood",pose:"aim",face:""});
+  g.strokeStyle="#8a5a2b";g.lineWidth=4;g.beginPath();g.moveTo(150,440);g.lineTo(ax,ay);g.stroke();
+  ar.forEach(a=>{circ(a.x*W,a.y*H,5,"#ff8a2a",OUT,2)});
+  circ(ax,ay,16,"rgba(255,255,255,.0)","#e53935",3);g.beginPath();g.moveTo(ax-22,ay);g.lineTo(ax+22,ay);g.moveTo(ax,ay-22);g.lineTo(ax,ay+22);g.strokeStyle="#e53935";g.lineWidth=3;g.stroke()}
+ if(mode===5){
+  const jh=jmp>0?Math.sin(Math.PI*(1-jmp/.7)):0;
+  hd.forEach(h=>drawHurdle(h.x*W,470,26));
+  drawKid(190,470-jh*150,26,{shirt:"#e53935",pose:jh>0?"jump":"",face:stun>0?"surprised":"happy",squash:jh>0?1.1:1});
+  T("Flick or click to jump",.5,.12,24,"#5b2a1a")}
+ if(mode===6){
+  an.forEach(a=>drawAnimal(a.x*W,a.y*H,34,a.kind,a.v<0));
+  const vx=ax-70,vy=ay-70;g.strokeStyle="#fff";g.lineWidth=5;
+  [[vx,vy,1,1],[vx+140,vy,-1,1],[vx,vy+140,1,-1],[vx+140,vy+140,-1,-1]].forEach(c=>{g.beginPath();g.moveTo(c[0]+c[2]*28,c[1]);g.lineTo(c[0],c[1]);g.lineTo(c[0],c[1]+c[3]*28);g.stroke()});
+  circ(ax,ay,6,"rgba(255,255,255,0)","#fff",2);
+  T("Tap to snap a photo",.5,.12,24,"#5b2a1a")}
+ if(mode===7){
+  tg.forEach(t=>{if(t.kind==="duck")drawDuck(t.x*W,t.y*H,26);else drawRingBuoy(t.x*W,t.y*H,26)});
+  circ(ax,ay,16,"rgba(125,216,255,.5)","#1e78ff",2);
+  T("Tap a target to splash it",.5,.12,24,"#0c5a9a")}
+ if(mode===8){
+  const ln=aim.x<.34?0:aim.x<.67?1:2;
+  for(let i=0;i<3;i++){g.fillStyle=i===ln?"rgba(255,255,255,.18)":"rgba(255,255,255,.06)";g.fillRect(i*.333*W+8,380,.333*W-16,130)}
+  if(pad)drawPad((.2+pad.l*.3)*W,230,54,true);
+  for(let i=0;i<4;i++)circ(410+i*50,90,10,i===beatIdx%4?"#ffd23f":"rgba(255,255,255,.3)",OUT,2);
+  drawCub(480,500,30,combo>=3);
+  T("Punch the glowing pad ON the beat!",.5,.12,24,"#fff")}
+ if(mode===9){
+  drawKid(90,430,26,{shirt:"#e53935",pose:"aim",face:plane?"surprised":"happy"});
+  if(plane)drawPlane(plane.x*W,plane.y*H,30,Math.atan2(plane.vy,plane.vx+wind*.25));
+  T("Wind: "+(wind>.08?"blowing right  >>":wind<-.08?"<<  blowing left":"calm"),.82,.1,20,"#33475e");
+  T(plane?"Flying!":"Aim high for distance — tap to throw",.5,.12,24,"#33475e")}
+ if(mode===10){
+  const half=(power==="bigpaddle"?.16:.09)*W;
+  rr(ax-half,.88*H-8,half*2,18,9,"#e53935",OUT,3);
+  if(ball)circ(ball.x*W,ball.y*H,12,"#fff",OUT,3);
+  T("Move the paddle — don't let the ball past!",.5,.28,24,"#fff")}
+ if(mode===11){
+  stars.forEach((s2,i)=>drawStar(s2.x*W,s2.y*H,26,["#ff8fd0","#ffd23f","#7dd8ff","#3ddc84"][i%4],tt*2+i));
+  drawKid(144,ay+70,24,{shirt:"#4a3a8a",hat:"headband",pose:"punch",face:combo>=3?"happy":""});
+  T("Tap a star to deflect it — or dodge out of its path!",.5,.12,20,"#fff")}
+ if(mode===13){
+  const song=DANCE_SONGS[danceSong];
+  if(!run){T(song.name+"  •  "+DIFF_NAMES[danceDiff]+"  •  "+song.bpm+" BPM",.5,.12,22,"#fff");
+   T("Make space and stay safe!",.5,.17,16,"#ffd23f")}
+  for(let d=0;d<4;d++){const cx=(.2+d*.2)*W,cy=.78*H;
+   rr(cx-34,cy-34,68,68,14,"rgba(255,255,255,.18)","#fff",3);
+   drawArrowShape(cx,cy,d,22,LANE_COLORS[d],false)}
+  if(run)danceChart.forEach(a=>{if(a.hit||a.missed)return;const dt2=a.t-danceT;if(dt2>1.5||dt2<-.3)return;
+   const y=.78-(dt2/1.5)*.88;drawArrowShape((.2+a.dir*.2)*W,y*H,a.dir,26,LANE_COLORS[a.dir],dt2<.3)});
+  const ph=(run?danceT:tt)*Math.PI*2/(60/song.bpm);
+  drawDancer(run?.5*W:.82*W,.45*H,run?26:24,danceMood,ph)}
+ // particles
+ parts.forEach(p=>{const px=p.x*W,py=p.y*H;g.save();g.globalAlpha=cl(p.l,0,1);g.translate(px,py);g.rotate(p.rot||0);
+  if(p.shape==="ring"){g.strokeStyle=p.color;g.lineWidth=4;g.beginPath();g.arc(0,0,(1-p.l)*70+10,0,7);g.stroke()}
+  else if(p.shape==="bubble"){drawBubbleB(0,0,p.sz,200)}
+  else if(p.shape==="confetti"){g.fillStyle=p.color;g.fillRect(-p.sz/2,-p.sz/4,p.sz,p.sz/2)}
+  else{g.fillStyle=p.color;g.beginPath();for(let i=0;i<5;i++){const a=i*2*Math.PI/5-Math.PI/2;g[i?"lineTo":"moveTo"](Math.cos(a)*p.sz,Math.sin(a)*p.sz)}g.closePath();g.fill()}
+  g.restore()});
+ // fx popups
+ fx.forEach(f=>{if(f.ring)return;g.globalAlpha=cl(f.l,0,1);T(f.t,f.x,f.y-(1-f.l)*.1,30,"#ffe14d");g.globalAlpha=1});
+ // HUD
+ g.fillStyle="rgba(0,0,0,.45)";g.fillRect(0,0,W,40);
+ g.fillStyle="#fff";g.font="bold 22px system-ui";g.textAlign="left";g.textBaseline="middle";
+ g.fillText("Score "+score,14,22);
+ g.textAlign="center";g.fillText((kgMode?"Kids "+(kgIdx+1)+"/4  ":"")+"Level "+level+(mult>1?"   x"+mult:"")+(power?"   "+POWER_NAME[mode]:""),W/2,22);
+ for(let i=0;i<3;i++)heartPath(W-290+i*34,20,11,i<hearts?"#ff5a7a":"rgba(255,255,255,.25)");
+ g.textAlign="right";g.fillText(Math.ceil(left)+"s  Best "+best[(kgMode||sel===12)?12:mode],W-14,22);
+ if(!run){g.fillStyle="rgba(0,0,0,.5)";g.fillRect(0,0,W,H);
+  const di=sel===12?12:mode;
+  if(score||endMsg){T(endMsg||"Great job!",.5,.34,44);T("Score "+score+"   Best "+best[di],.5,.44,30,"#ffd23f");
+   T("Medal: "+medalFor(score,di)+"    — press Start to play again",.5,.52,22);
+   if(newBest)T("NEW BEST!",.5,.6,30,"#3ddc84")
+   if(mode===13&&score>0)T("Celebration dance video goes here",.5,.68,20,"#fff")}
+  else{T(sel===12?"Kids Games":NAMES[mode],.5,.38,44);T("Best "+best[di]+"  •  Medal "+medalFor(best[di],di),.5,.48,24,"#ffd23f");
+   if(sel===12)T("4 events: "+kgEvents.map(i=>NAMES[i]).join("  •  "),.5,.55,20,"#fff");
+   if(sel===13)T(DANCE_SONGS[danceSong].name+"  •  "+DIFF_NAMES[danceDiff]+"  •  "+DANCE_SONGS[danceSong].bpm+" BPM (measured)  •  Song best "+danceBest[danceSong],.5,.55,20,"#fff");
+   if(sel===13)T("Make space and stay safe before you dance!",.5,.62,20,"#ffd23f");
+   T(sel===12?"Press Start — 4 events, 30 seconds each":sel===13?"Press Start — Dance, 30 seconds":"Press Start — 45 seconds, 3 hearts",.5,sel===13?.7:.62,24)}}
+ g.restore()}
+function loop(t){const dt=Math.min(.05,(t-last)/1000||0);last=t;
+ if(run&&!paused){left-=dt;playSecs+=dt;upd(dt);
+  if(left<=0){left=0;endRound("Time!")}
+  if(playSecs>=breakAt){breakAt+=600;paused=true;$("#breakov").classList.remove("hide")}}
+ draw();requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+// ---------- input: touch/mouse + motion (equal alternatives) ----------
+function setPos(e){const r=cv.getBoundingClientRect(),p=e.touches?e.touches[0]:e;aim.x=cl((p.clientX-r.left)/r.width,0,1);aim.y=cl((p.clientY-r.top)/r.height,0,1)}
+cv.addEventListener("mousemove",setPos);cv.addEventListener("touchmove",e=>{setPos(e);e.preventDefault()},{passive:false});
+cv.addEventListener("click",e=>{setPos(e);fire()});addEventListener("keydown",e=>{if(e.code==="Space"){e.preventDefault();fire()}});
+addEventListener("keydown",e=>{const k={ArrowLeft:0,KeyA:0,ArrowDown:1,KeyS:1,ArrowUp:2,KeyW:2,ArrowRight:3,KeyD:3}[e.code];if(k!=null&&mode===13){e.preventDefault();danceHit(k)}});
+let lf=0,motionOn=false;
+function onOri(e){if(e.gamma==null)return;raw.g=e.gamma;raw.b=e.beta;aim.x=cl(.5+(raw.g-off.g)/60*sens,0,1);aim.y=cl(.5+(raw.b-off.b)/60*sens,0,1)}
+function onMot(e){const a=e.acceleration;let m=0;if(a&&a.x!=null)m=Math.hypot(a.x,a.y,a.z);else if(e.accelerationIncludingGravity){const q=e.accelerationIncludingGravity;m=Math.abs(Math.hypot(q.x,q.y,q.z)-9.8)}
+ const n=performance.now();if(m>14&&n-lf>400){lf=n;fire()}}
+$("#mo").onclick=()=>{if(motionOn)return;$("#warnov").classList.remove("hide")};
+$("#warnok").onclick=async()=>{$("#warnov").classList.add("hide");
+ try{if(window.DeviceMotionEvent&&DeviceMotionEvent.requestPermission){const r=await DeviceMotionEvent.requestPermission();if(r!=="granted"){$("#mo").textContent="Motion blocked";return}}
+  addEventListener("deviceorientation",onOri);addEventListener("devicemotion",onMot);motionOn=true;$("#mo").textContent="Motion on ✓"}catch(e){$("#mo").textContent="Motion not available"}};
+$("#cal").onclick=()=>{off.g=raw.g;off.b=raw.b};
+$("#th").onclick=()=>{const r=document.documentElement,d=getComputedStyle(r).colorScheme.indexOf("dark")>-1;r.setAttribute("data-theme",d?"light":"dark")};
+$("#mute").onclick=()=>{muted=!muted;lsSet("kpa_muted",muted);$("#mute").textContent=muted?"🔇 Muted":"🔊 Sound on"};
+$("#mute").textContent=muted?"🔇 Muted":"🔊 Sound on";
+$("#sens").oninput=e=>{sens=+e.target.value;$("#sensv").textContent=sens.toFixed(1)+"×"};
+$("#go").onclick=()=>{startRun()};
+$("#breakok").onclick=()=>{paused=false;$("#breakov").classList.add("hide")};
+$("#modes").onclick=e=>{const m=e.target.dataset.m;if(m==null)return;sel=+m;run=false;kgMode=false;
+ if(sel===12){kgEvents=pickKg();kgPending=true;mode=kgEvents[0]}else{kgPending=false;mode=sel}
+ reset();score=0;if(sel===13)left=30;
+ document.querySelectorAll("#modes button").forEach(b=>b.classList.toggle("on",+b.dataset.m===sel));
+ $("#go").textContent=sel===12?"▶ Start Kids Games (4 events)":sel===13?"▶ Start Dance (30s)":"▶ Start (45s)";$("#dance").classList.toggle("hide",sel!==13);$("#dancepads").classList.toggle("hide",sel!==13);if(sel===13)renderDanceCard();renderChallenge()};
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("on",x===b));["play","res","plan"].forEach(i=>$("#"+i).classList.toggle("hide",i!==b.dataset.t))});
+renderChallenge();renderMedals();
+// deep link: ?mode=N selects a game, &autostart=1 starts it (handy for previews)
+const QP=new URLSearchParams(location.search);
+if(QP.get("mode")!=null){const dm=document.querySelector('#modes button[data-m="'+QP.get("mode")+'"]');if(dm)dm.click()}
+if(QP.get("autostart")==="1"&&QP.get("selftest")!=="1")setTimeout(startRun,100);
+// ---------- self-test (?selftest=1): drives all 13 modes + Kids Games, writes JSON into #selftest ----------
+const ST={errors:[]};
+window.addEventListener("error",e=>ST.errors.push(String(e.message||e.error)));
+function selftest(){const out={modes:[],errors:ST.errors,ok:false};
+ try{
+  for(const m of [0,1,2,3,4,5,6,7,8,9,10,11,13]){mode=m;sel=m;kgMode=false;reset();run=true;left=m===13?30:45;const before=score;
+   if(m===0){fish.push({x:.5,y:.6,v:0});aim.x=.5;aim.y=.6;fire();for(let i=0;i<40;i++)upd(.05)}
+   if(m===1){pad={l:1,t:5};aim.x=.5;aim.y=.5;fire()}
+   if(m===2){bub.push({x:.5,y:.5,r:.05,v:0,h:200});aim.x=.5;aim.y=.5;fire()}
+   if(m===3){nj.push({x:.5,y:.5,vx:0,vy:0,kind:"apple",r:false});aim.x=.5;aim.y=.5;fire()}
+   if(m===4){aim.x=tx();aim.y=.45;fire()}
+   if(m===5){hd.push({x:.3,d:0});fire();for(let i=0;i<20;i++)upd(.05)}
+   if(m===6){an.push({x:.5,y:.5,v:0,kind:"lion"});aim.x=.5;aim.y=.5;fire()}
+   if(m===7){tg.push({x:.5,y:.5,v:0,kind:"duck"});aim.x=.5;aim.y=.5;fire()}
+   if(m===8){pad={l:1,t:5};aim.x=.5;aim.y=.5;fire()}
+   if(m===9){aim.x=.7;aim.y=.3;fire();for(let i=0;i<80;i++)upd(.05)}
+   if(m===10){ball={x:.5,y:.8,vx:0,vy:.25};aim.x=.5;for(let i=0;i<20;i++)upd(.05)}
+   if(m===11){stars.push({x:.5,y:.5,v:0,ph:0});aim.x=.5;aim.y=.5;fire()}
+   if(m===13){danceSong=0;danceDiff=0;buildDanceChart();danceChart[0].t=danceT;danceHit(danceChart[0].dir);for(let i=0;i<20;i++)upd(.05)}
+   const after=score;endRound("selftest");
+   const saved=lsGet("kpa_best_"+m,-1);
+   out.modes.push({mode:m,name:NAMES[m],scoreBefore:before,scoreAfter:after,scoreIncreased:after>before,bestSaved:saved,medal:medalFor(after,m)})}
+  // Dance Party: every song x every difficulty generates a chart; per-song best saved
+  out.dance={charts:[],bestSaved:lsGet("kpa_best_13",-1),songBestSaved:lsGet("kpa_best_13_0",-1)};
+  for(let s=0;s<DANCE_SONGS.length;s++)for(let d=0;d<3;d++){danceSong=s;danceDiff=d;buildDanceChart();out.dance.charts.push({song:s,diff:d,arrows:danceChart.length})}
+  out.dance.chartsOk=out.dance.charts.every(c=>c.arrows>20);
+  // Kids Games mode: 4 events back to back, combined score, one best entry
+  sel=12;kgEvents=[6,7,8,9];kgPending=true;startRun();const kgBefore=score;
+  an.push({x:.5,y:.5,v:0,kind:"zebra"});aim.x=.5;aim.y=.5;fire();endRound("Time!");
+  tg.push({x:.5,y:.5,v:0,kind:"ring"});aim.x=.5;aim.y=.5;fire();endRound("Time!");
+  pad={l:1,t:5};aim.x=.5;aim.y=.5;fire();endRound("Time!");
+  aim.x=.7;aim.y=.3;fire();for(let i=0;i<80;i++)upd(.05);endRound("Time!");
+  const kgAfter=score,kgSaved=lsGet("kpa_best_12",-1);
+  out.kidsGames={events:kgEvents.map(i=>NAMES[i]),scoreBefore:kgBefore,scoreAfter:kgAfter,scoreIncreased:kgAfter>kgBefore,bestSaved:kgSaved,medal:medalFor(kgAfter,12)};
+  // Kids Games can include Dance Party (mode 13 in the rotation)
+  sel=12;kgEvents=[13,6,7,8];kgPending=true;startRun();const kgDBefore=score;
+  danceChart[0].t=danceT;danceHit(danceChart[0].dir);endRound("Time!");endRound("Time!");endRound("Time!");endRound("Time!");
+  const kgDAfter=score;
+  out.kidsGamesDance={events:["Dance Party","Safari Photo Hunt","Target Splash Range","Rhythm Gloves"],scoreBefore:kgDBefore,scoreAfter:kgDAfter,scoreIncreased:kgDAfter>kgDBefore};
+  out.highScoreSaved=out.modes.every(x=>x.bestSaved>=x.scoreAfter&&x.bestSaved>=0)&&kgSaved>=kgAfter;
+  out.challenge={date:CH.date,game:CH.game,target:CH.target};
+  out.ok=out.modes.every(x=>x.scoreIncreased)&&out.kidsGames.scoreIncreased&&out.kidsGamesDance.scoreIncreased&&out.dance.chartsOk&&out.highScoreSaved&&ST.errors.length===0;
+ }catch(e){out.errors.push("selftest: "+(e&&e.message))}
+ const pre=document.createElement("pre");pre.id="selftest";pre.textContent=JSON.stringify(out,null,2);document.body.appendChild(pre)}
+if(new URLSearchParams(location.search).get("selftest")==="1")setTimeout(selftest,300);
+</script><script src="peerjs.min.js"></script>
+<script src="qrcode.js"></script>
+<script>
+"use strict";
+/* =====================================================================
+   TV PARTY MODE SHIM — appended to a byte-identical copy of
+   kids-phone-arcade-13-games.html (see header comment at top of file).
+   It does NOT change any game code. It only:
+     (a) shows a room code + QR + connection status on the menu screen,
+     (b) hides the on-screen touch controls (dance pads / motion buttons)
+         — the phone is the controller now,
+     (c) maps incoming controller messages onto the game's existing
+         input seams: aim, fire(), danceHit(dir), onOri(e), startRun().
+   Host-authoritative: the TV runs the real game; phones send commands
+   only. Message schema (shared with controller.html and the Supabase
+   relay): {t:"join",slot} {t:"aim",x,y} {t:"fire"} {t:"dance",dir}
+   {t:"tilt",g,b} {t:"key",code} {t:"ping",at}/{t:"pong",at}
+   plus two additive extensions: {t:"start"} and {t:"select",mode}.
+   Every input carries at: performance.now() from the phone.
+   ===================================================================== */
+(function () {
+  var PT_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // no 0/O/1/I
+  var PT_COLORS = ["#ff5a5a", "#2a7de1"]; // P1 red, P2 blue
+  var PT_SLOT_NAMES = ["P1", "P2"];
+  /* --- Supabase Realtime Broadcast fallback (FALLBACK 1) ----------------
+     Ting's project URL is filled in (public, not a secret). The anon key
+     is PUBLIC BY DESIGN (Supabase docs) but this sandbox cannot read it
+     out of the stored connector, so it is left blank on purpose.
+     TO ENABLE: in Ting's Supabase dashboard go to Settings -> API ->
+     Project API keys -> copy the "anon public" key and paste it here,
+     and in controller.html (same block). Then the cloud-relay button
+     below works when PeerJS P2P cannot connect. Nothing is invented. */
+  var PT_SUPABASE = { url: "https://obenmflbwhoumiyoeyjo.supabase.co", anonKey: "" };
+  var PT_RELAY_CDN = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js";
+
+  var ptQP = new URLSearchParams(location.search);
+  var ptCode = (function () {
+    var q = (ptQP.get("room") || "").toUpperCase();
+    if (/^[A-HJKMNP-Z2-9]{6}$/.test(q)) return q;
+    var s = "", buf = new Uint32Array(6), i;
+    if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(buf);
+    else for (i = 0; i < 6; i++) buf[i] = Math.floor(Math.random() * 4294967296);
+    for (i = 0; i < 6; i++) s += PT_ALPHABET[buf[i] % PT_ALPHABET.length];
+    return s;
+  })();
+
+  var ptPeer = null, ptTransport = "none", ptPeerTries = 0, ptPeerLocal = false;
+  var ptSlots = [null, null]; // slot -> {conn, rttMs}
+  var ptDanceLatch = [];      // pulse-latch: taps latch until the host loop reads them
+  var ptLastTilt = 0, ptRelay = null, ptRelayChannel = null;
+  var ptClientId = "tv-" + Math.random().toString(36).slice(2, 10);
+
+  /* ---------- panel ---------- */
+  var panel = document.createElement("div");
+  panel.id = "partyPanel";
+  panel.className = "card";
+  panel.innerHTML =
+    '<h3>\uD83C\uDF89 TV Party Mode \u2014 play with your phone</h3>' +
+    '<div class="row" style="align-items:flex-start;gap:24px">' +
+    '<div><div id="partyQr"></div><div class="mut" id="partyQrCap" style="max-width:230px"></div></div>' +
+    '<div style="min-width:280px"><div class="mut">No camera? Type this code on your phone</div>' +
+    '<div id="partyCode" style="font-size:2.1rem;font-weight:800;letter-spacing:.35em;line-height:1.1">' + ptCode + '</div>' +
+    '<div id="partyStatus" class="mut">Starting party mode\u2026</div>' +
+    '<div id="partySlots" class="mut">P1: waiting &nbsp;\u2022&nbsp; P2: waiting</div>' +
+    '<div id="partyRtt" class="mut"></div>' +
+    '<div id="partyTransport" class="mut"></div></div></div>' +
+    '<p class="mut" style="font-size:1.05rem;font-weight:700;color:var(--ink)">\uD83D\uDCF6 Put your phone on the same Wi-Fi as the TV for the fastest game.</p>' +
+    '<div class="row"><button id="partyRelayBtn" class="hide">Use cloud relay instead (no WebRTC)</button>' +
+    '<button id="partyCopyBtn">Copy controller link</button></div>' +
+    '<p id="partyWarn" class="mut"></p>' +
+    '<p class="mut">On-screen dance pads and motion buttons are hidden \u2014 your phone is the controller now. ' +
+    'Keyboard still works as a fallback. Dance Party is the flagship: two phones can join (P1 red, P2 blue) and play the same chart together.</p>';
+  var tabs = document.querySelector(".tabs");
+  tabs.parentNode.insertBefore(panel, tabs);
+
+  function ptEl(id) { return document.getElementById(id); }
+  function ptSetStatus(t) { var e = ptEl("partyStatus"); if (e) e.textContent = t; }
+  function ptUpdateSlots() {
+    var e = ptEl("partySlots"); if (!e) return;
+    e.innerHTML = PT_SLOT_NAMES.map(function (n, s) {
+      var c = ptSlots[s];
+      var dot = c ? '<span style="color:' + PT_COLORS[s] + '">\u25CF</span> ' + n + ' connected'
+                  : n + ': waiting';
+      return dot;
+    }).join(" &nbsp;\u2022&nbsp; ");
+  }
+  function ptUpdateRtt() {
+    var e = ptEl("partyRtt"); if (!e) return;
+    var bits = [];
+    ptSlots.forEach(function (c, s) {
+      if (c && c.rttMs != null) bits.push(PT_SLOT_NAMES[s] + " " + Math.round(c.rttMs) + " ms");
+    });
+    e.textContent = bits.length ? ("Round-trip: " + bits.join("  \u2022  ") + "  (dance Perfect window is \u00B1150 ms)") : "";
+  }
+  function ptUpdateTransport() {
+    var e = ptEl("partyTransport"); if (!e) return;
+    e.textContent = ptTransport === "peerjs" ? "Transport: PeerJS WebRTC (direct phone \u2194 TV)" + (ptPeerLocal ? " \u2014 local peer server (test)" : " \u2014 public cloud signaling")
+      : ptTransport === "supabase" ? "Transport: Supabase cloud relay"
+      : ptTransport === "none" ? "Transport: not connected yet" : "Transport: " + ptTransport;
+  }
+  function ptControllerUrl() {
+    var ov = ptQP.get("controller");
+    if (ov) return ov.replace(/\/$/, "") + "/controller.html#room=" + ptCode;
+    if (location.protocol === "http:" || location.protocol === "https:") {
+      var base = location.href.split("#")[0].split("?")[0];
+      return base.replace(/[^\/]*$/, "controller.html") + "#room=" + ptCode;
+    }
+    return "controller.html#room=" + ptCode;
+  }
+  function ptRenderQr() {
+    var url = ptControllerUrl(), cap = ptEl("partyQrCap"), box = ptEl("partyQr");
+    if (location.protocol === "http:" || location.protocol === "https:" || ptQP.get("controller")) {
+      try {
+        var qr = qrcode(0, "M"); qr.addData(url); qr.make();
+        box.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 8, scalable: true });
+        box.firstChild.style.width = "200px"; box.firstChild.style.height = "200px";
+        cap.textContent = "Scan with your phone camera \u2014 the fastest way in. No camera? Type the room code instead.";
+      } catch (e) { box.textContent = "QR failed to draw \u2014 type the room code instead."; cap.textContent = url; }
+    } else {
+      box.textContent = "";
+      cap.textContent = "This page was opened as a local file, so the QR cannot point at a phone yet. " +
+        "Host tv.html + controller.html on the same website (same folder), then the QR and link will work. " +
+        "Room code still works if you open controller.html on the phone and type it.";
+    }
+  }
+  ptRenderQr(); ptUpdateSlots(); ptUpdateTransport();
+
+  ptEl("partyCopyBtn").onclick = function () {
+    var url = ptControllerUrl();
+    function done(ok) { ptEl("partyWarn").textContent = ok ? "Controller link copied: " + url : "Copy did not work \u2014 link is: " + url; }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(function () { done(true); }, function () { done(false); });
+    else done(false);
+  };
+  ptEl("partyRelayBtn").onclick = function () { ptStartRelay("button"); };
+
+  /* ---------- input mapping (game seams) ---------- */
+  function ptKey(code) {
+    if (code === "Space") { fire(); return; }
+    var k = { ArrowLeft: 0, KeyA: 0, ArrowDown: 1, KeyS: 1, ArrowUp: 2, KeyW: 2, ArrowRight: 3, KeyD: 3 }[code];
+    if (k != null && mode === 13) danceHit(k);
+  }
+  function ptDropConn(conn) {
+    ptSlots.forEach(function (c, s) { if (c && c.conn === conn) ptSlots[s] = null; });
+    ptUpdateSlots(); ptUpdateRtt();
+    ptSetStatus("A phone disconnected. Room " + ptCode + " is still open \u2014 rejoin with the same code.");
+  }
+  function ptHandle(msg, conn) {
+    if (!msg || typeof msg.t !== "string") return;
+    if (msg.to && msg.to !== "tv" && msg.to !== "all") return; // relay addressing; PeerJS msgs carry no `to`
+    switch (msg.t) {
+      case "join": {
+        var want = (msg.slot === 0 || msg.slot === 1) ? msg.slot : -1, s = -1, i;
+        if (want >= 0 && !ptSlots[want]) s = want;
+        else for (i = 0; i < 2; i++) if (!ptSlots[i]) { s = i; break; }
+        if (s < 0) { try { conn.send({ t: "full", from: ptClientId, to: msg.from || "all" }); } catch (e) {} return; }
+        ptSlots[s] = { conn: conn, rttMs: null };
+        conn.__partySlot = s;
+        try { conn.send({ t: "joined", slot: s, color: PT_COLORS[s], transport: ptTransport, room: ptCode, from: ptClientId, to: msg.from || "all" }); } catch (e) {}
+        ptUpdateSlots();
+        ptSetStatus(PT_SLOT_NAMES[s] + " joined (" + (ptTransport === "peerjs" ? "direct" : ptTransport) + "). " + (ptSlots[0] && ptSlots[1] ? "Both slots full \u2014 have fun!" : "Waiting for another phone? P2 can join with the same code."));
+        break;
+      }
+      case "aim":
+        if (typeof msg.x === "number" && typeof msg.y === "number") { aim.x = cl(msg.x, 0, 1); aim.y = cl(msg.y, 0, 1); }
+        break;
+      case "fire": fire(); break;
+      case "dance": // pulse-latch: latch until the host loop reads it (never lost between frames)
+        if (msg.dir === 0 || msg.dir === 1 || msg.dir === 2 || msg.dir === 3) ptDanceLatch.push(msg.dir);
+        break;
+      case "tilt":
+        if (typeof msg.g === "number" && typeof msg.b === "number") {
+          var now = performance.now();
+          if (now - ptLastTilt > 16) { ptLastTilt = now; onOri({ gamma: msg.g, beta: msg.b }); }
+        }
+        break;
+      case "key": if (typeof msg.code === "string") ptKey(msg.code); break;
+      case "start": if (!run) startRun(); break;
+      case "select": {
+        var m = +msg.mode;
+        if (m >= 0 && m <= 13) { var b = document.querySelector('#modes button[data-m="' + m + '"]'); if (b) b.click(); }
+        break;
+      }
+      case "ping": try { conn.send({ t: "pong", at: msg.at, from: ptClientId, to: msg.from || "all" }); } catch (e) {} break;
+      case "pong": {
+        var rtt = performance.now() - msg.at;
+        if (typeof conn.__partySlot === "number" && ptSlots[conn.__partySlot]) {
+          ptSlots[conn.__partySlot].rttMs = rtt; ptUpdateRtt();
+        }
+        break;
+      }
+    }
+  }
+  // Drain the dance latch on the host frame loop — one read per tap, in order.
+  // rAF is the primary drain; a 16 ms interval is the backup so taps still
+  // land if rAF is throttled (background tab, headless TV, slow frame).
+  function ptDrainLatch() {
+    var d;
+    while ((d = ptDanceLatch.shift()) !== undefined) { try { danceHit(d); } catch (e) {} }
+  }
+  (function ptDrain() { ptDrainLatch(); requestAnimationFrame(ptDrain); })();
+  setInterval(ptDrainLatch, 16);
+  // TV-initiated RTT ping (every 2 s per connected phone).
+  setInterval(function () {
+    ptSlots.forEach(function (c) {
+      if (c && c.conn) { try { c.conn.send({ t: "ping", at: performance.now(), from: ptClientId, to: "all" }); } catch (e) {} }
+    });
+  }, 2000);
+
+  /* ---------- PRIMARY: PeerJS WebRTC ---------- */
+  function ptStartPeer() {
+    /* ?nowebrtc=1 forces the no-WebRTC path (test hook — exercises the
+       graceful-degradation message without needing an old TV). */
+    if (ptQP.get("nowebrtc") === "1" || typeof RTCPeerConnection === "undefined") { ptNoWebRTC(); return; }
+    if (typeof Peer === "undefined") { ptSetStatus("Party Mode failed to load (PeerJS library missing)."); return; }
+    ptPeerTries++;
+    /* Signaling override (test/self-host escape hatch): ?peerhost=HOST
+       &peerport=PORT &peerpath=/ &peersecure=1 — default is the free public
+       PeerJS cloud (0.peerjs.com), no account/key/card. */
+    var ptPeerOpts = { debug: 0 };
+    var ptPeerHost = ptQP.get("peerhost");
+    if (ptPeerHost) {
+      ptPeerOpts.host = ptPeerHost;
+      ptPeerOpts.port = ptQP.get("peerport") ? +ptQP.get("peerport") : 9000;
+      ptPeerOpts.path = ptQP.get("peerpath") || "/";
+      ptPeerOpts.secure = ptQP.get("peersecure") === "1";
+      ptPeerLocal = true;
+    }
+    try { ptPeer = new Peer("arcade-" + ptCode, ptPeerOpts); }
+    catch (e) { ptSetStatus("Party Mode could not start: " + (e && e.message)); return; }
+    ptPeer.on("open", function () {
+      ptTransport = "peerjs"; ptUpdateTransport();
+      ptSetStatus("Waiting for phones \u2014 scan the QR or type room code " + ptCode + ".");
+    });
+    ptPeer.on("connection", function (conn) {
+      conn.on("data", function (d) { ptHandle(d, conn); });
+      conn.on("close", function () { ptDropConn(conn); });
+      conn.on("error", function () { ptDropConn(conn); });
+    });
+    ptPeer.on("error", function (err) {
+      if (err && err.type === "unavailable-id" && ptPeerTries < 3) {
+        // Someone else holds this room code right now — pick a fresh one.
+        try { ptPeer.destroy(); } catch (e) {}
+        ptCode = (function () {
+          var s = "", buf = new Uint32Array(6), i;
+          if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(buf);
+          else for (i = 0; i < 6; i++) buf[i] = Math.floor(Math.random() * 4294967296);
+          for (i = 0; i < 6; i++) s += PT_ALPHABET[buf[i] % PT_ALPHABET.length];
+          return s;
+        })();
+        ptEl("partyCode").textContent = ptCode; ptRenderQr(); ptStartPeer();
+        return;
+      }
+      ptSetStatus("Party link error (" + (err && err.type ? err.type : "unknown") + "). " +
+        "Phones: check the room code and that this page is still open. " +
+        "If it keeps failing, try the cloud relay button below.");
+      ptEl("partyRelayBtn").classList.remove("hide");
+    });
+    ptPeer.on("disconnected", function () { try { ptPeer.reconnect(); } catch (e) {} });
+  }
+  function ptNoWebRTC() {
+    ptTransport = "none"; ptUpdateTransport();
+    ptSetStatus("This TV doesn't support Party Mode \u2014 its browser has no WebRTC. " +
+      "You can still play on the phone itself (open the original game page there).");
+    ptEl("partyWarn").textContent = "Fallback: the Supabase cloud relay works without WebRTC, but it needs " +
+      "Ting's Supabase anon key pasted into PT_SUPABASE at the top of this file's party shim (and controller.html). " +
+      "Find it in the Supabase dashboard: Settings \u2192 API \u2192 Project API keys \u2192 anon public.";
+    ptEl("partyRelayBtn").classList.remove("hide");
+  }
+
+  /* ---------- FALLBACK 1: Supabase Realtime Broadcast (cloud relay) ---------- */
+  function ptStartRelay(reason) {
+    if (!PT_SUPABASE.anonKey) {
+      ptEl("partyWarn").textContent = "Cloud relay is not set up yet: paste Ting's Supabase anon key into " +
+        "PT_SUPABASE.anonKey at the top of the party shim in tv.html (and the same block in controller.html). " +
+        "Supabase dashboard: Settings \u2192 API \u2192 Project API keys \u2192 anon public. " +
+        "The key is public by design \u2014 it only lets a phone join a room code it already knows.";
+      ptSetStatus("Cloud relay not configured \u2014 see the note below the buttons.");
+      return false;
+    }
+    if (ptRelay) { ptSetStatus("Cloud relay already running for room " + ptCode + "."); return true; }
+    ptSetStatus("Starting cloud relay\u2026");
+    function wire() {
+      var client = window.supabase.createClient(PT_SUPABASE.url, PT_SUPABASE.anonKey);
+      var relayConn = {
+        send: function (m) {
+          if (ptRelayChannel) ptRelayChannel.send({ type: "broadcast", event: "input", payload: m });
+        }
+      };
+      ptRelay = client;
+      ptRelayChannel = client.channel("party:" + ptCode)
+        .on("broadcast", { event: "input" }, function (env) {
+          var m = env && env.payload; if (!m) return;
+          if (m.from === ptClientId) return; // our own echo
+          ptHandle(m, relayConn);
+        })
+        .subscribe(function (status) {
+          if (status === "SUBSCRIBED") {
+            ptTransport = "supabase"; ptUpdateTransport();
+            ptSetStatus("Cloud relay live for room " + ptCode + " (fallback \u2014 P2P unavailable). Phones join with the same code.");
+          } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+            ptSetStatus("Cloud relay failed to subscribe (" + status + "). Check the anon key and that the Supabase project is awake.");
+          }
+        });
+    }
+    if (window.supabase && window.supabase.createClient) { wire(); return true; }
+    var s = document.createElement("script");
+    s.src = PT_RELAY_CDN;
+    s.onload = wire;
+    s.onerror = function () { ptSetStatus("Could not load the Supabase library (network?). Party Mode needs the PeerJS path or a network connection for the relay."); };
+    document.head.appendChild(s);
+    return true;
+  }
+
+  /* ---------- boot ---------- */
+  // Hide the on-screen touch controls: the phone is the controller now.
+  var ptStyle = document.createElement("style");
+  ptStyle.textContent = "#dancepads{display:none!important}#mo,#cal{display:none!important}#partyPanel{border:2px solid #1b6ef3}#partyQr svg{display:block}";
+  document.head.appendChild(ptStyle);
+  ptStartPeer();
+
+  /* ---------- party self-test (?selftest=1) ---------- */
+  function ptSelfTest() {
+    var out = {
+      roomCode: ptCode, transport: ptTransport,
+      webRTC: typeof RTCPeerConnection !== "undefined",
+      peerJsLoaded: typeof Peer !== "undefined",
+      qrDrawn: !!(ptEl("partyQr") && ptEl("partyQr").querySelector("svg")),
+      checks: {}, loopback: null, errors: []
+    };
+    var fake = { sent: [], send: function (m) { this.sent.push(m); } };
+    try {
+      ptHandle({ t: "join", slot: 0, from: "selftest" }, fake);
+      out.checks.joinSlot0 = fake.sent.some(function (m) { return m.t === "joined" && m.slot === 0; });
+      ptHandle({ t: "join", slot: 0, from: "selftest2" }, fake);
+      out.checks.joinSlot1Fallback = fake.sent.some(function (m) { return m.t === "joined" && m.slot === 1; });
+      aim.x = 0; aim.y = 0;
+      ptHandle({ t: "aim", x: 0.7, y: 0.3, at: performance.now() }, fake);
+      out.checks.aim = Math.abs(aim.x - 0.7) < 0.001 && Math.abs(aim.y - 0.3) < 0.001;
+      ptLastTilt = 0;
+      ptHandle({ t: "tilt", g: 30, b: 0, at: performance.now() }, fake);
+      out.checks.tiltNoThrow = aim.x >= 0 && aim.x <= 1; // onOri remaps aim from gamma
+      ptHandle({ t: "ping", at: 123, from: "selftest" }, fake);
+      out.checks.pingPong = fake.sent.some(function (m) { return m.t === "pong" && m.at === 123; });
+      // Dance Party through the real remote path: start a dance round, put
+      // the next arrow on the line, send it as a controller message.
+      var danceBtn = document.querySelector('#modes button[data-m="13"]');
+      if (danceBtn) danceBtn.click();
+      startRun();
+      if (danceChart && danceChart.length) {
+        danceChart[0].t = danceT;
+        var before = score, dir = danceChart[0].dir;
+        ptHandle({ t: "dance", dir: dir, at: performance.now() }, fake);
+        out.checks.danceLatched = ptDanceLatch.indexOf(dir) >= 0;
+        setTimeout(function () {
+          out.checks.danceScored = score > before;
+          out.checks.danceLatchDrained = ptDanceLatch.length === 0;
+          // Archery through the remote key path (Space = fire).
+          var archBtn = document.querySelector('#modes button[data-m="4"]');
+          if (archBtn) archBtn.click();
+          startRun();
+          aim.x = tx(); aim.y = 0.45;
+          var b4 = score;
+          ptHandle({ t: "key", code: "Space", at: performance.now() }, fake);
+          out.checks.keySpaceFires = score > b4;
+          ptLoopback(out);
+        }, 300);
+      } else { out.errors.push("no dance chart"); ptLoopback(out); }
+    } catch (e) { out.errors.push("selftest: " + (e && e.message)); ptLoopback(out); }
+    return out;
+  }
+  function ptLoopback(out) {
+    // Real PeerJS loopback: a second peer in this page joins the TV's room.
+    function finish() {
+      var pre = document.createElement("pre");
+      pre.id = "party-selftest";
+      pre.textContent = JSON.stringify(out, null, 2);
+      document.body.appendChild(pre);
+      // Merge into the game's own #selftest JSON when it is already there.
+      try {
+        var main = document.getElementById("selftest");
+        if (main) { var j = JSON.parse(main.textContent); j.party = out; main.textContent = JSON.stringify(j, null, 2); }
+      } catch (e) {}
+      window.__partySelfTest = out;
+    }
+    if (typeof Peer === "undefined" || !ptPeer || ptTransport !== "peerjs") {
+      out.loopback = { attempted: false, reason: "no live PeerJS host (transport=" + ptTransport + ")" };
+      finish(); return;
+    }
+    var done = false, t0 = performance.now();
+    var timer = setTimeout(function () {
+      if (!done) { done = true; out.loopback = { attempted: true, ok: false, error: "timeout after 10s" }; try { lb.destroy(); } catch (e) {} finish(); }
+    }, 10000);
+    var lb;
+    try { lb = new Peer(); } catch (e) { clearTimeout(timer); out.loopback = { attempted: true, ok: false, error: "peer create: " + e.message }; finish(); return; }
+    lb.on("open", function () {
+      var c = lb.connect("arcade-" + ptCode, { reliable: true });
+      c.on("open", function () { c.send({ t: "ping", at: performance.now(), from: "selftest-loopback" }); });
+      c.on("data", function (d) {
+        if (d && d.t === "pong" && !done) {
+          done = true; clearTimeout(timer);
+          out.loopback = { attempted: true, ok: true, rttMs: Math.round((performance.now() - d.at) * 10) / 10, via: "peerjs-cloud-signaling" };
+          try { lb.destroy(); } catch (e) {} finish();
+        }
+      });
+      c.on("error", function (e) {
+        if (!done) { done = true; clearTimeout(timer); out.loopback = { attempted: true, ok: false, error: String(e && e.type || e) }; try { lb.destroy(); } catch (e2) {} finish(); }
+      });
+    });
+    lb.on("error", function (e) {
+      if (!done) { done = true; clearTimeout(timer); out.loopback = { attempted: true, ok: false, error: String(e && e.type || e) }; try { lb.destroy(); } catch (e2) {} finish(); }
+    });
+  }
+  if (ptQP.get("selftest") === "1") setTimeout(ptSelfTest, 1500);
+
+  /* Test / debug handle (also used by the headless end-to-end check). */
+  window.__party = {
+    code: function () { return ptCode; },
+    transport: function () { return ptTransport; },
+    handle: ptHandle, latch: ptDanceLatch,
+    slots: function () { return ptSlots.map(function (c, s) { return c ? { slot: s, rttMs: c.rttMs } : null; }); },
+    startRelay: ptStartRelay, controllerUrl: ptControllerUrl,
+    supabaseConfigured: function () { return !!PT_SUPABASE.anonKey; }
+  };
+})();
+
+</script>
+</body></html>

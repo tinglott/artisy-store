@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Arcade Remote — Kids Phone Arcade TV Party Mode</title>
+<style>
+:root{--bg:#141a2e;--card:#1e2742;--ink:#eef2fb;--mut:#9fb0c7;--acc:#2a7de1;--p1:#ff5a5a;--p2:#2a7de1;color-scheme:dark}
+*{box-sizing:border-box;touch-action:none}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:12px;max-width:560px;margin:0 auto}
+h1{font-size:1.25rem;margin:.2em 0}
+.mut{color:var(--mut);font-size:.9rem}
+.pill{display:inline-block;padding:4px 12px;border-radius:999px;background:#2a3652;font-weight:700;font-size:.9rem}
+.pill.ok{background:#0a7a3d}.pill.bad{background:#a33}.pill.wait{background:#8a6d00}
+.chip{display:inline-block;padding:4px 12px;border-radius:999px;font-weight:800;color:#fff}
+.card{background:var(--card);border:1px solid #2a3652;border-radius:14px;padding:12px;margin:10px 0}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button{font:inherit;border:1px solid #3a4a6b;background:#2a3652;color:var(--ink);padding:12px 14px;border-radius:14px;cursor:pointer;min-height:52px}
+button.on{background:var(--acc);border-color:var(--acc)}
+button.big{flex:1;font-size:1.2rem;font-weight:800;min-height:64px}
+input{font:inherit;font-size:1.4rem;font-weight:800;letter-spacing:.35em;text-transform:uppercase;text-align:center;
+  padding:10px;border-radius:12px;border:2px solid #3a4a6b;background:#0e1420;color:#fff;width:11ch}
+#aimpad{height:150px;border:2px dashed #3a4a6b;border-radius:14px;display:flex;align-items:center;justify-content:center;
+  color:var(--mut);font-weight:700;user-select:none;-webkit-user-select:none;background:#0e1420}
+#aimdot{position:absolute;width:26px;height:26px;border-radius:50%;background:#ffd23f;border:3px solid #fff;
+  transform:translate(-50%,-50%);pointer-events:none;display:none}
+.padgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.padgrid button{min-height:84px;font-size:1.6rem;font-weight:800}
+.padgrid button[data-dir="0"]{background:#7a2a2a}.padgrid button[data-dir="1"]{background:#7a6a1a}
+.padgrid button[data-dir="2"]{background:#1a6a3a}.padgrid button[data-dir="3"]{background:#1a3a7a}
+.padgrid button.pressed{filter:brightness(1.5);transform:scale(.96)}
+select{font:inherit;padding:10px;border-radius:12px;background:#0e1420;color:#fff;border:2px solid #3a4a6b;max-width:100%}
+.hide{display:none}
+</style></head><body>
+<h1>🎮 Arcade Remote</h1>
+<p class="mut">This phone is the controller. The game runs on the TV.</p>
+
+<div class="card">
+  <div class="row"><span id="ctStatus" class="pill wait">Not connected</span>
+  <span id="ctSlot" class="chip hide">P1</span>
+  <span id="ctWake" class="pill ok hide">🔆 Screen stays on</span>
+  <span id="ctTransport" class="mut"></span></div>
+  <p class="mut" id="ctRtt"></p>
+  <div class="row">
+    <input id="ctRoom" maxlength="6" placeholder="CODE" inputmode="text" autocomplete="off">
+    <button id="ctJoin">Join TV</button>
+    <button id="ctP1" class="on">P1</button><button id="ctP2">P2</button>
+  </div>
+  <p class="mut">Scan the TV's QR code — it fills the room code in for you. No camera? Type the 6-letter code from the TV screen. P2 joins the same room for Dance Party.</p>
+  <p class="mut">📶 Put your phone on the same Wi-Fi as the TV for the fastest game — on a different network it may lag.</p>
+</div>
+
+<div class="card">
+  <div class="row"><button id="ctStart" class="big">▶ Start game</button>
+  <button id="ctFire" class="big">🔥 FIRE / tap</button></div>
+  <p class="mut">Start begins the round on the TV. FIRE is the tap / Space action.</p>
+</div>
+
+<div class="card">
+  <h3 style="margin:0 0 8px">Dance arrows</h3>
+  <div class="padgrid">
+    <button data-dir="0">◀ Left</button><button data-dir="1">▼ Down</button>
+    <button data-dir="2">▲ Up</button><button data-dir="3">Right ▶</button>
+  </div>
+  <p class="mut">Tap on the beat — Perfect within 150 ms. Every tap is latched by the TV, so fast taps are never lost.</p>
+</div>
+
+<div class="card">
+  <h3 style="margin:0 0 8px">Aim</h3>
+  <div id="aimpad" style="position:relative">👆 Drag here to aim on the TV<div id="aimdot"></div></div>
+  <div class="row" style="margin-top:10px"><button id="ctTilt">📱 Tilt: off</button>
+  <span class="mut">Tilt steers aim in fishing, archery, table tennis and more.</span></div>
+</div>
+
+<div class="card">
+  <div class="row"><select id="ctGame">
+    <option value="0">Catch &amp; Release</option><option value="1">Pad Boxing</option>
+    <option value="2">Bubble Blaster</option><option value="3">Ninja Slice</option>
+    <option value="4">Archery</option><option value="5">Hurdle Sprint</option>
+    <option value="6">Safari Photo Hunt</option><option value="7">Target Splash Range</option>
+    <option value="8">Rhythm Gloves</option><option value="9">Paper Plane Javelin</option>
+    <option value="10">Table Tennis Rally</option><option value="11">Shuriken Dodge</option>
+    <option value="12">Kids Games (4 events)</option><option value="13" selected>Dance Party</option>
+  </select><button id="ctSwitch">Switch game</button></div>
+  <p class="mut">Switching changes the game on the TV. "Play again" keeps the same room — no re-scan.</p>
+</div>
+
+<p class="mut" id="ctHelp"></p>
+
+<script src="peerjs.min.js"></script>
+<script>
+"use strict";
+/* =====================================================================
+   Kids Phone Arcade — TV Party Mode controller (the remote, not a screen).
+   No game art, no game logic. Sends commands only; the TV is
+   host-authoritative. Message schema (shared with tv.html):
+   {t:"join",slot} {t:"aim",x,y} {t:"fire"} {t:"dance",dir} {t:"tilt",g,b}
+   {t:"key",code} {t:"ping",at}/{t:"pong",at} + {t:"start"} {t:"select",mode}.
+   Transport order: PeerJS WebRTC first, Supabase cloud relay fallback.
+   ===================================================================== */
+(function () {
+  /* --- Supabase Realtime Broadcast fallback (same block as tv.html) -----
+     Paste Ting's Supabase anon key here (and in tv.html) to enable it.
+     Dashboard: Settings -> API -> Project API keys -> anon public.
+     The key is public by design; it only lets a phone join a room code
+     it already knows. Left blank on purpose — never invent a key. */
+  var CT_SUPABASE = { url: "https://obenmflbwhoumiyoeyjo.supabase.co", anonKey: "" };
+  var CT_RELAY_CDN = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js";
+
+  var $ = function (s) { return document.querySelector(s); };
+  var ctQP = new URLSearchParams(location.search);
+  var ctRoom = "", ctSlotWant = 0, ctSlot = -1, ctColor = "#ff5a5a";
+  var ctPeer = null, ctConn = null, ctTransport = "none", ctConnected = false;
+  var ctRttMs = null, ctRetry = 0, ctRetryTimer = null, ctPingTimer = null;
+  var ctTiltOn = false, ctLastAim = 0, ctLastTilt = 0, ctLastTiltSent = { g: null, b: null };
+  var ctWakeLock = null;
+  var ctClientId = "ph-" + Math.random().toString(36).slice(2, 10);
+  var ctRelay = null, ctRelayChannel = null;
+
+  function ctSetStatus(text, cls) {
+    var e = $("#ctStatus"); e.textContent = text; e.className = "pill " + (cls || "wait");
+  }
+  function ctSetTransport() {
+    $("#ctTransport").textContent = ctTransport === "peerjs" ? "via PeerJS (direct)"
+      : ctTransport === "supabase" ? "via Supabase relay"
+      : ctTransport === "none" ? "" : "via " + ctTransport;
+  }
+  function ctSetRtt() {
+    $("#ctRtt").textContent = ctRttMs != null
+      ? ("Round-trip to TV: " + Math.round(ctRttMs) + " ms  (dance Perfect window is \u00B1150 ms)") : "";
+  }
+  function ctSetSlotChip() {
+    var c = $("#ctSlot");
+    if (ctSlot < 0) { c.classList.add("hide"); return; }
+    c.classList.remove("hide");
+    c.textContent = ctSlot === 0 ? "P1" : "P2";
+    c.style.background = ctColor;
+  }
+  function ctRoomFromUrl() {
+    var h = (location.hash || "").match(/room=([A-Za-z2-9]{6})/i);
+    if (h) return h[1].toUpperCase();
+    var q = (ctQP.get("room") || "").toUpperCase();
+    if (/^[A-HJKMNP-Z2-9]{6}$/.test(q)) return q;
+    return "";
+  }
+  /* Send one command. Adds the phone's timestamp; drops (and counts) when
+     not connected instead of queueing stale taps. */
+  var ctDropped = 0;
+  function ctSend(msg) {
+    if (!msg || typeof msg.t !== "string") return false;
+    msg.at = performance.now();
+    msg.from = ctClientId;
+    if (ctConn && ctConnected) { try { ctConn.send(msg); return true; } catch (e) { return false; } }
+    ctDropped++;
+    return false;
+  }
+  function ctOnMessage(d) {
+    if (!d || typeof d.t !== "string") return;
+    if (d.to && d.to !== ctClientId && d.to !== "all") return;
+    if (d.t === "joined") {
+      ctSlot = d.slot; ctColor = d.color || ctColor;
+      ctSetSlotChip();
+      ctSetStatus("Connected as " + (ctSlot === 0 ? "P1" : "P2") + " \u2014 you're the controller!", "ok");
+      ctRetry = 0;
+    } else if (d.t === "pong") {
+      ctRttMs = performance.now() - d.at; ctSetRtt();
+    } else if (d.t === "full") {
+      ctSetStatus("Room is full (P1 + P2 already joined).", "bad");
+    }
+  }
+  function ctWireConn(conn, transport) {
+    ctConn = conn; ctTransport = transport; ctSetTransport();
+    conn.on("open", function () {
+      ctConnected = true;
+      ctSetStatus("Connected \u2014 joining room " + ctRoom + "\u2026", "ok");
+      ctSend({ t: "join", slot: ctSlotWant });
+      ctRequestWakeLock();
+      if (ctPingTimer) clearInterval(ctPingTimer);
+      ctPingTimer = setInterval(function () { ctSend({ t: "ping" }); }, 2000);
+    });
+    conn.on("data", ctOnMessage);
+    conn.on("close", function () { ctOnClose("Connection closed."); });
+    conn.on("error", function () { ctOnClose("Connection error."); });
+  }
+  function ctOnClose(why) {
+    if (!ctConnected && ctRetry === 0 && why) { /* first failure: fall through to retry */ }
+    ctConnected = false; ctSlot = -1; ctSetSlotChip();
+    if (ctPingTimer) { clearInterval(ctPingTimer); ctPingTimer = null; }
+    if (ctRetry >= 10) { ctSetStatus("Could not reach the TV. Check the room code and that the TV page is open.", "bad"); return; }
+    ctRetry++;
+    ctSetStatus("Reconnecting\u2026 (try " + ctRetry + "/10) \u2014 room " + ctRoom + " stays open.", "wait");
+    ctRetryTimer = setTimeout(ctConnect, 2000);
+  }
+  function ctConnect() {
+    if (!ctRoom) { ctSetStatus("Type the 6-letter room code from the TV.", "wait"); return; }
+    ctSetStatus("Connecting to room " + ctRoom + "\u2026", "wait");
+    if (typeof Peer === "undefined") { ctSetStatus("Controller library failed to load.", "bad"); return; }
+    try { if (ctPeer) ctPeer.destroy(); } catch (e) {}
+    /* Signaling override (test/self-host escape hatch): ?peerhost=HOST
+       &peerport=PORT &peerpath=/ &peersecure=1 — default is the free public
+       PeerJS cloud (0.peerjs.com). Must match the TV page's setting. */
+    var ctPeerOpts = {};
+    var ctPeerHost = ctQP.get("peerhost");
+    if (ctPeerHost) {
+      ctPeerOpts.host = ctPeerHost;
+      ctPeerOpts.port = ctQP.get("peerport") ? +ctQP.get("peerport") : 9000;
+      ctPeerOpts.path = ctQP.get("peerpath") || "/";
+      ctPeerOpts.secure = ctQP.get("peersecure") === "1";
+    }
+    ctPeer = new Peer(ctPeerOpts);
+    var joined = false, gaveUp = false;
+    var to = setTimeout(function () {
+      if (joined || gaveUp) return;
+      gaveUp = true;
+      // PeerJS did not connect in 6 s — try the cloud relay if configured.
+      if (CT_SUPABASE.anonKey) { ctSetStatus("Direct link slow \u2014 trying cloud relay\u2026", "wait"); ctStartRelay(); }
+      else ctOnClose("PeerJS timeout");
+    }, 6000);
+    ctPeer.on("open", function () {
+      var conn = ctPeer.connect("arcade-" + ctRoom, { reliable: true });
+      conn.on("open", function () { joined = true; clearTimeout(to); });
+      ctWireConn(conn, "peerjs");
+    });
+    ctPeer.on("error", function (err) {
+      if (err && err.type === "peer-unavailable") {
+        clearTimeout(to); gaveUp = true;
+        if (CT_SUPABASE.anonKey) { ctSetStatus("TV not found by direct link \u2014 trying cloud relay\u2026", "wait"); ctStartRelay(); }
+        else ctSetStatus("TV not found. Is the TV page open with room " + ctRoom + "?", "bad");
+      }
+    });
+  }
+  function ctStartRelay() {
+    if (!CT_SUPABASE.anonKey) return false;
+    if (ctRelay) return true; // already running: a second channel would join twice and take both slots
+    ctSetStatus("Joining room " + ctRoom + " via cloud relay\u2026", "wait");
+    function wire() {
+      var client = window.supabase.createClient(CT_SUPABASE.url, CT_SUPABASE.anonKey);
+      var relayConn = {
+        send: function (m) {
+          if (ctRelayChannel) {
+            var out = {}; for (var k in m) out[k] = m[k];
+            out.to = "tv";
+            ctRelayChannel.send({ type: "broadcast", event: "input", payload: out });
+          }
+        },
+        on: function () {} // relay shim: no per-conn open/close events
+      };
+      ctRelay = client;
+      ctRelayChannel = client.channel("party:" + ctRoom)
+        .on("broadcast", { event: "input" }, function (env) {
+          var m = env && env.payload; if (!m) return;
+          if (m.from === ctClientId) return;
+          ctOnMessage(m);
+        })
+        .subscribe(function (status) {
+          if (status === "SUBSCRIBED") {
+            ctConnected = true; ctTransport = "supabase"; ctSetTransport();
+            ctConn = relayConn;
+            ctSend({ t: "join", slot: ctSlotWant });
+            ctSetStatus("Connected via cloud relay \u2014 joining room " + ctRoom + "\u2026", "ok");
+            ctRequestWakeLock();
+            if (ctPingTimer) clearInterval(ctPingTimer);
+            ctPingTimer = setInterval(function () { ctSend({ t: "ping" }); }, 2000);
+          } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+            ctSetStatus("Cloud relay failed (" + status + "). Check the room code.", "bad");
+          }
+        });
+    }
+    if (window.supabase && window.supabase.createClient) { wire(); return true; }
+    var s = document.createElement("script");
+    s.src = CT_RELAY_CDN;
+    s.onload = wire;
+    s.onerror = function () { ctSetStatus("Could not load the cloud relay library (network?).", "bad"); };
+    document.head.appendChild(s);
+    return true;
+  }
+  /* Wake lock: keeps the phone screen on while connected. The chip
+     (#ctWake) shows ONLY while a lock is actually held — it hides again
+     on release (OS, or the page going hidden) and re-requests when the
+     page becomes visible while still connected. Rejection is silent:
+     the game still works, the screen may just sleep. */
+  function ctSetWakeChip(on) {
+    var e = $("#ctWake"); if (!e) return;
+    e.classList.toggle("hide", !on);
+  }
+  function ctRequestWakeLock() {
+    try {
+      if (navigator.wakeLock && navigator.wakeLock.request) {
+        navigator.wakeLock.request("screen").then(function (l) {
+          ctWakeLock = l; ctSetWakeChip(true);
+          l.addEventListener("release", function () {
+            if (ctWakeLock === l) { ctWakeLock = null; ctSetWakeChip(false); }
+          });
+        }).catch(function () { ctSetWakeChip(false); });
+      }
+    } catch (e) {}
+  }
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden && ctConnected) ctRequestWakeLock();
+  });
+
+  /* ---------- pads & buttons ---------- */
+  function ctPress(el, fn) {
+    el.addEventListener("pointerdown", function (e) {
+      e.preventDefault();
+      el.classList.add("pressed");
+      fn();
+      setTimeout(function () { el.classList.remove("pressed"); }, 120);
+    });
+  }
+  document.querySelectorAll(".padgrid button").forEach(function (b) {
+    ctPress(b, function () { ctSend({ t: "dance", dir: +b.dataset.dir }); });
+  });
+  ctPress($("#ctFire"), function () { ctSend({ t: "fire" }); });
+  $("#ctStart").addEventListener("click", function () { ctSend({ t: "start" }); });
+  $("#ctSwitch").addEventListener("click", function () {
+    ctSend({ t: "select", mode: +$("#ctGame").value });
+    ctSetStatus("Switching the TV to " + $("#ctGame").selectedOptions[0].text + "\u2026", "wait");
+    setTimeout(function () { if (ctConnected) ctSetStatus("Connected as " + (ctSlot === 0 ? "P1" : "P2") + " \u2014 you're the controller!", "ok"); }, 800);
+  });
+  $("#ctJoin").addEventListener("click", function () {
+    var v = ($("#ctRoom").value || "").toUpperCase().replace(/[^A-HJKMNP-Z2-9]/g, "");
+    if (v.length !== 6) { ctSetStatus("Room code is 6 letters (no 0/O/1/I). Check the TV screen.", "bad"); return; }
+    ctRoom = v; ctRetry = 0;
+    ctConnect();
+  });
+  $("#ctP1").addEventListener("click", function () { ctSlotWant = 0; $("#ctP1").classList.add("on"); $("#ctP2").classList.remove("on"); });
+  $("#ctP2").addEventListener("click", function () { ctSlotWant = 1; $("#ctP2").classList.add("on"); $("#ctP1").classList.remove("on"); });
+
+  /* ---------- aim pad ---------- */
+  var aimPad = $("#aimpad"), aimDot = $("#aimdot"), aiming = false;
+  function ctAimFromEvent(e) {
+    var r = aimPad.getBoundingClientRect();
+    var x = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+    var y = Math.max(0, Math.min(1, (e.clientY - r.top) / r.height));
+    aimDot.style.display = "block";
+    aimDot.style.left = (x * 100) + "%"; aimDot.style.top = (y * 100) + "%";
+    var now = performance.now();
+    if (now - ctLastAim > 33) { ctLastAim = now; ctSend({ t: "aim", x: x, y: y }); }
+  }
+  aimPad.addEventListener("pointerdown", function (e) { e.preventDefault(); aiming = true; aimPad.setPointerCapture(e.pointerId); ctAimFromEvent(e); });
+  aimPad.addEventListener("pointermove", function (e) { if (aiming) ctAimFromEvent(e); });
+  aimPad.addEventListener("pointerup", function () { aiming = false; });
+  aimPad.addEventListener("pointercancel", function () { aiming = false; });
+
+  /* ---------- tilt passthrough (max ~30/s, send on change) ---------- */
+  function ctTiltHandler(e) {
+    if (e.gamma == null || e.beta == null) return;
+    var now = performance.now();
+    if (now - ctLastTilt < 33) return;
+    if (ctLastTiltSent.g != null && Math.abs(e.gamma - ctLastTiltSent.g) < 0.5 && Math.abs(e.beta - ctLastTiltSent.b) < 0.5) return;
+    ctLastTilt = now; ctLastTiltSent = { g: e.gamma, b: e.beta };
+    ctSend({ t: "tilt", g: e.gamma, b: e.beta });
+  }
+  $("#ctTilt").addEventListener("click", function () {
+    if (ctTiltOn) {
+      ctTiltOn = false;
+      window.removeEventListener("deviceorientation", ctTiltHandler);
+      $("#ctTilt").textContent = "\uD83D\uDCF1 Tilt: off";
+      return;
+    }
+    function enable() {
+      ctTiltOn = true;
+      window.addEventListener("deviceorientation", ctTiltHandler);
+      $("#ctTilt").textContent = "\uD83D\uDCF1 Tilt: on \u2014 steer by tilting the phone";
+    }
+    if (window.DeviceOrientationEvent && DeviceOrientationEvent.requestPermission) {
+      DeviceOrientationEvent.requestPermission().then(function (r) {
+        if (r === "granted") enable();
+        else $("#ctHelp").textContent = "Tilt permission was not granted \u2014 use the aim pad instead.";
+      }).catch(function () { $("#ctHelp").textContent = "Tilt is not available on this phone \u2014 use the aim pad instead."; });
+    } else if ("DeviceOrientationEvent" in window) enable();
+    else $("#ctHelp").textContent = "Tilt is not available on this phone \u2014 use the aim pad instead.";
+  });
+
+  /* ---------- boot ---------- */
+  ctRoom = ctRoomFromUrl();
+  if (ctRoom) { $("#ctRoom").value = ctRoom; ctConnect(); }
+  else ctSetStatus("Type the 6-letter room code from the TV.", "wait");
+
+  /* ---------- controller self-test (?selftest=1) ---------- */
+  function ctSelfTest() {
+    var out = { roomFromFragment: ctRoom, checks: {}, errors: [], captured: [] };
+    var fake = { sent: [], send: function (m) { this.sent.push(m); } };
+    var realConn = ctConn, realConnected = ctConnected;
+    ctConn = fake; ctConnected = true;
+    try {
+      // Dance pads produce correctly-shaped messages (real pointer events).
+      document.querySelectorAll(".padgrid button").forEach(function (b) {
+        b.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, cancelable: true }));
+      });
+      var dances = fake.sent.filter(function (m) { return m.t === "dance"; });
+      out.checks.dancePads = dances.length === 4 &&
+        [0, 1, 2, 3].every(function (d) { return dances.some(function (m) { return m.dir === d; }); }) &&
+        dances.every(function (m) { return typeof m.at === "number"; });
+      // Fire button.
+      $("#ctFire").dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, cancelable: true }));
+      out.checks.fireButton = fake.sent.some(function (m) { return m.t === "fire" && typeof m.at === "number"; });
+      // Start + game select.
+      $("#ctStart").click();
+      out.checks.startButton = fake.sent.some(function (m) { return m.t === "start"; });
+      $("#ctGame").value = "4"; $("#ctSwitch").click();
+      out.checks.gameSelect = fake.sent.some(function (m) { return m.t === "select" && m.mode === 4; });
+      // Aim pad (direct handler call with a synthetic event).
+      ctAimFromEvent({ clientX: 100, clientY: 50 });
+      out.checks.aimPad = fake.sent.some(function (m) {
+        return m.t === "aim" && typeof m.x === "number" && m.x >= 0 && m.x <= 1 && typeof m.y === "number" && m.y >= 0 && m.y <= 1;
+      });
+      // Tilt passthrough shape.
+      ctLastTilt = 0; ctLastTiltSent = { g: null, b: null };
+      ctTiltHandler({ gamma: 20, beta: -10 });
+      out.checks.tiltMessage = fake.sent.some(function (m) { return m.t === "tilt" && m.g === 20 && m.b === -10 && typeof m.at === "number"; });
+      // Tilt throttle: an immediate second event is dropped.
+      var nBefore = fake.sent.length;
+      ctTiltHandler({ gamma: 21, beta: -10 });
+      out.checks.tiltThrottled = fake.sent.length === nBefore;
+      // Room-code parsing from the fragment.
+      out.checks.roomParse = (function () {
+        var h = "#room=AbC234"; var m = h.match(/room=([A-Za-z2-9]{6})/i);
+        return !!m && m[1].toUpperCase() === "ABC234";
+      })();
+      out.checks.touchActionNone = getComputedStyle(document.body).touchAction === "none";
+      out.checks.wakeLockApi = !!(navigator.wakeLock && navigator.wakeLock.request);
+      out.checks.wakeLockChip = !!document.getElementById("ctWake");
+      out.checks.peerJsLoaded = typeof Peer !== "undefined";
+      out.checks.supabaseConfigured = !!CT_SUPABASE.anonKey;
+      out.captured = fake.sent.map(function (m) { return m.t + (m.dir != null ? ":" + m.dir : "") + (m.mode != null ? ":" + m.mode : ""); });
+      out.ok = Object.keys(out.checks).every(function (k) { return out.checks[k] === true || k === "wakeLockApi" || k === "supabaseConfigured"; }) &&
+        out.checks.dancePads && out.checks.fireButton && out.checks.startButton && out.checks.gameSelect &&
+        out.checks.aimPad && out.checks.tiltMessage && out.checks.tiltThrottled && out.checks.roomParse &&
+        out.checks.touchActionNone && out.checks.peerJsLoaded && out.checks.wakeLockChip;
+    } catch (e) { out.errors.push("selftest: " + (e && e.message)); out.ok = false; }
+    ctConn = realConn; ctConnected = realConnected;
+    var pre = document.createElement("pre");
+    pre.id = "selftest";
+    pre.textContent = JSON.stringify(out, null, 2);
+    document.body.appendChild(pre);
+    window.__controllerSelfTest = out;
+  }
+  if (ctQP.get("selftest") === "1") setTimeout(ctSelfTest, 500);
+
+  /* Test / debug handle (used by the headless end-to-end check). */
+  window.__controller = {
+    send: ctSend, connect: ctConnect,
+    state: function () { return { room: ctRoom, slot: ctSlot, connected: ctConnected, transport: ctTransport, rttMs: ctRttMs, dropped: ctDropped, tiltOn: ctTiltOn }; },
+    setRoom: function (r) { ctRoom = r; $("#ctRoom").value = r; },
+    setSlotWant: function (s) { ctSlotWant = s; },
+    tiltHandler: ctTiltHandler,
+    /* Test-only: inject a fake transport (the virtual-channel E2E check
+       uses this because the sandbox blocks WebRTC UDP entirely) and feed
+       inbound messages straight into the real receive path. */
+    _injectConn: function (conn) { ctConn = conn; ctConnected = true; ctTransport = "virtual"; ctSetTransport(); ctSetStatus("Connected (test channel)", "ok"); },
+    _receive: ctOnMessage,
+    supabaseConfigured: function () { return !!CT_SUPABASE.anonKey; }
+  };
+})();
+</script>
+</body></html>
