@@ -17,7 +17,7 @@ button{font:inherit;border:1px solid #3a4a6b;background:#2a3652;color:var(--ink)
 button.on{background:var(--acc);border-color:var(--acc)}
 button.big{flex:1;font-size:1.2rem;font-weight:800;min-height:64px}
 input{font:inherit;font-size:1.4rem;font-weight:800;letter-spacing:.35em;text-transform:uppercase;text-align:center;
-  padding:10px;border-radius:12px;border:2px solid #3a4a6b;background:#0e1420;color:#fff;width:11ch}
+  padding:10px;border-radius:12px;border:2px solid #3a4a6b;background:#0e1420;color:#fff;width:10em}
 #aimpad{height:150px;border:2px dashed #3a4a6b;border-radius:14px;display:flex;align-items:center;justify-content:center;
   color:var(--mut);font-weight:700;user-select:none;-webkit-user-select:none;background:#0e1420}
 #aimdot{position:absolute;width:26px;height:26px;border-radius:50%;background:#ffd23f;border:3px solid #fff;
@@ -38,6 +38,14 @@ select{font:inherit;padding:10px;border-radius:12px;background:#0e1420;color:#ff
   <span id="ctSlot" class="chip hide">P1</span>
   <span id="ctWake" class="pill ok hide">🔆 Screen stays on</span>
   <span id="ctTransport" class="mut"></span></div>
+  <div style="font-size:1.15rem;line-height:1.6;margin:10px 0">
+    <b>How to join</b>
+    <ol style="margin:6px 0 6px 22px;padding:0">
+      <li>Point your phone camera at the square on the TV, then tap the link that pops up.</li>
+      <li>No camera? Type the 6 letters from the TV and tap Join TV.</li>
+      <li>Tap Start game to play.</li>
+    </ol>
+  </div>
   <p class="mut" id="ctRtt"></p>
   <div class="row">
     <input id="ctRoom" maxlength="6" placeholder="CODE" inputmode="text" autocomplete="off">
@@ -119,9 +127,9 @@ select{font:inherit;padding:10px;border-radius:12px;background:#0e1420;color:#ff
     var e = $("#ctStatus"); e.textContent = text; e.className = "pill " + (cls || "wait");
   }
   function ctSetTransport() {
-    $("#ctTransport").textContent = ctTransport === "peerjs" ? "via PeerJS (direct)"
-      : ctTransport === "supabase" ? "via Supabase relay"
-      : ctTransport === "none" ? "" : "via " + ctTransport;
+    $("#ctTransport").textContent = ctTransport === "peerjs" ? "Direct link"
+      : ctTransport === "supabase" ? "Cloud link"
+      : ctTransport === "none" ? "" : ctTransport;
   }
   function ctSetRtt() {
     $("#ctRtt").textContent = ctRttMs != null
@@ -211,7 +219,7 @@ select{font:inherit;padding:10px;border-radius:12px;background:#0e1420;color:#ff
       if (joined || gaveUp) return;
       gaveUp = true;
       // PeerJS did not connect in 6 s — try the cloud relay if configured.
-      if (CT_SUPABASE.anonKey) { ctSetStatus("Direct link slow \u2014 trying cloud relay\u2026", "wait"); ctStartRelay(); }
+      if (CT_SUPABASE.anonKey) { ctSetStatus("Direct link slow \u2014 trying the cloud link\u2026", "wait"); ctStartRelay(); }
       else ctOnClose("PeerJS timeout");
     }, 6000);
     ctPeer.on("open", function () {
@@ -222,7 +230,7 @@ select{font:inherit;padding:10px;border-radius:12px;background:#0e1420;color:#ff
     ctPeer.on("error", function (err) {
       if (err && err.type === "peer-unavailable") {
         clearTimeout(to); gaveUp = true;
-        if (CT_SUPABASE.anonKey) { ctSetStatus("TV not found by direct link \u2014 trying cloud relay\u2026", "wait"); ctStartRelay(); }
+        if (CT_SUPABASE.anonKey) { ctSetStatus("TV not found by direct link \u2014 trying the cloud link\u2026", "wait"); ctStartRelay(); }
         else ctSetStatus("TV not found. Is the TV page open with room " + ctRoom + "?", "bad");
       }
     });
@@ -230,7 +238,7 @@ select{font:inherit;padding:10px;border-radius:12px;background:#0e1420;color:#ff
   function ctStartRelay() {
     if (!CT_SUPABASE.anonKey) return false;
     if (ctRelay) return true; // already running: a second channel would join twice and take both slots
-    ctSetStatus("Joining room " + ctRoom + " via cloud relay\u2026", "wait");
+    ctSetStatus("Joining room " + ctRoom + " via cloud link\u2026", "wait");
     function wire() {
       var client = window.supabase.createClient(CT_SUPABASE.url, CT_SUPABASE.anonKey);
       var relayConn = {
@@ -255,12 +263,12 @@ select{font:inherit;padding:10px;border-radius:12px;background:#0e1420;color:#ff
             ctConnected = true; ctTransport = "supabase"; ctSetTransport();
             ctConn = relayConn;
             ctSend({ t: "join", slot: ctSlotWant });
-            ctSetStatus("Connected via cloud relay \u2014 joining room " + ctRoom + "\u2026", "ok");
+            ctSetStatus("Connected by cloud link \u2014 joining room " + ctRoom + "\u2026", "ok");
             ctRequestWakeLock();
             if (ctPingTimer) clearInterval(ctPingTimer);
             ctPingTimer = setInterval(function () { ctSend({ t: "ping" }); }, 2000);
           } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
-            ctSetStatus("Cloud relay failed (" + status + "). Check the room code.", "bad");
+            ctSetStatus("Cloud link failed (" + status + "). Check the room code.", "bad");
           }
         });
     }
@@ -268,7 +276,7 @@ select{font:inherit;padding:10px;border-radius:12px;background:#0e1420;color:#ff
     var s = document.createElement("script");
     s.src = CT_RELAY_CDN;
     s.onload = wire;
-    s.onerror = function () { ctSetStatus("Could not load the cloud relay library (network?).", "bad"); };
+    s.onerror = function () { ctSetStatus("Could not load the cloud link (network?).", "bad"); };
     document.head.appendChild(s);
     return true;
   }

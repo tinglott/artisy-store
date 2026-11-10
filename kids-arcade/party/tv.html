@@ -869,6 +869,13 @@ if(new URLSearchParams(location.search).get("selftest")==="1")setTimeout(selftes
   panel.className = "card";
   panel.innerHTML =
     '<h3>\uD83C\uDF89 TV Party Mode \u2014 play with your phone</h3>' +
+    '<div style="font-size:1.3rem;line-height:1.7;margin:10px 0 4px"><b>How to join</b>' +
+    '<ol style="margin:6px 0 6px 24px;padding:0">' +
+    '<li>Point your phone camera at the square picture below.</li>' +
+    '<li>Tap the link that pops up on your phone.</li>' +
+    '<li>Tap Join TV \u2014 you are Player 1!</li></ol>' +
+    '<div>No camera? Type the 6 letters on the TV into your phone, then tap Join TV.</div>' +
+    '<div>After you join: tap Start game on your phone, pick a game, and use the pads.</div></div>' +
     '<div class="row" style="align-items:flex-start;gap:24px">' +
     '<div><div id="partyQr"></div><div class="mut" id="partyQrCap" style="max-width:230px"></div></div>' +
     '<div style="min-width:280px"><div class="mut">No camera? Type this code on your phone</div>' +
@@ -878,7 +885,7 @@ if(new URLSearchParams(location.search).get("selftest")==="1")setTimeout(selftes
     '<div id="partyRtt" class="mut"></div>' +
     '<div id="partyTransport" class="mut"></div></div></div>' +
     '<p class="mut" style="font-size:1.05rem;font-weight:700;color:var(--ink)">\uD83D\uDCF6 Put your phone on the same Wi-Fi as the TV for the fastest game.</p>' +
-    '<div class="row"><button id="partyRelayBtn" class="hide">Use cloud relay instead (no WebRTC)</button>' +
+    '<div class="row"><button id="partyRelayBtn" class="hide">Use the cloud link instead</button>' +
     '<button id="partyCopyBtn">Copy controller link</button></div>' +
     '<p id="partyWarn" class="mut"></p>' +
     '<p class="mut">On-screen dance pads and motion buttons are hidden \u2014 your phone is the controller now. ' +
@@ -907,9 +914,9 @@ if(new URLSearchParams(location.search).get("selftest")==="1")setTimeout(selftes
   }
   function ptUpdateTransport() {
     var e = ptEl("partyTransport"); if (!e) return;
-    e.textContent = ptTransport === "peerjs" ? "Transport: PeerJS WebRTC (direct phone \u2194 TV)" + (ptPeerLocal ? " \u2014 local peer server (test)" : " \u2014 public cloud signaling")
-      : ptTransport === "supabase" ? "Transport: Supabase cloud relay"
-      : ptTransport === "none" ? "Transport: not connected yet" : "Transport: " + ptTransport;
+    e.textContent = ptTransport === "peerjs" ? "Link: direct (phone to TV)" + (ptPeerLocal ? " \u2014 test server" : "")
+      : ptTransport === "supabase" ? "Link: cloud"
+      : ptTransport === "none" ? "Link: not connected yet" : "Link: " + ptTransport;
   }
   function ptControllerUrl() {
     var ov = ptQP.get("controller");
@@ -970,7 +977,7 @@ if(new URLSearchParams(location.search).get("selftest")==="1")setTimeout(selftes
         conn.__partySlot = s;
         try { conn.send({ t: "joined", slot: s, color: PT_COLORS[s], transport: ptTransport, room: ptCode, from: ptClientId, to: msg.from || "all" }); } catch (e) {}
         ptUpdateSlots();
-        ptSetStatus(PT_SLOT_NAMES[s] + " joined (" + (ptTransport === "peerjs" ? "direct" : ptTransport) + "). " + (ptSlots[0] && ptSlots[1] ? "Both slots full \u2014 have fun!" : "Waiting for another phone? P2 can join with the same code."));
+        ptSetStatus(PT_SLOT_NAMES[s] + " joined (" + (ptTransport === "peerjs" ? "direct" : ptTransport === "supabase" ? "cloud link" : ptTransport) + "). " + (ptSlots[0] && ptSlots[1] ? "Both slots full \u2014 have fun!" : "Waiting for another phone? P2 can join with the same code."));
         break;
       }
       case "aim":
@@ -1065,16 +1072,16 @@ if(new URLSearchParams(location.search).get("selftest")==="1")setTimeout(selftes
       }
       ptSetStatus("Party link error (" + (err && err.type ? err.type : "unknown") + "). " +
         "Phones: check the room code and that this page is still open. " +
-        "If it keeps failing, try the cloud relay button below.");
+        "If it keeps failing, try the cloud link button below.");
       ptEl("partyRelayBtn").classList.remove("hide");
     });
     ptPeer.on("disconnected", function () { try { ptPeer.reconnect(); } catch (e) {} });
   }
   function ptNoWebRTC() {
     ptTransport = "none"; ptUpdateTransport();
-    ptSetStatus("This TV doesn't support Party Mode \u2014 its browser has no WebRTC. " +
+    ptSetStatus("This TV doesn't support Party Mode \u2014 its browser can't link to a phone directly. " +
       "You can still play on the phone itself (open the original game page there).");
-    ptEl("partyWarn").textContent = "Fallback: the Supabase cloud relay works without WebRTC, but it needs " +
+    ptEl("partyWarn").textContent = "Fallback: the cloud link works without a direct link, but it needs " +
       "Ting's Supabase anon key pasted into PT_SUPABASE at the top of this file's party shim (and controller.html). " +
       "Find it in the Supabase dashboard: Settings \u2192 API \u2192 Project API keys \u2192 anon public.";
     ptEl("partyRelayBtn").classList.remove("hide");
@@ -1083,15 +1090,15 @@ if(new URLSearchParams(location.search).get("selftest")==="1")setTimeout(selftes
   /* ---------- FALLBACK 1: Supabase Realtime Broadcast (cloud relay) ---------- */
   function ptStartRelay(reason) {
     if (!PT_SUPABASE.anonKey) {
-      ptEl("partyWarn").textContent = "Cloud relay is not set up yet: paste Ting's Supabase anon key into " +
+      ptEl("partyWarn").textContent = "Cloud link is not set up yet: paste Ting's Supabase anon key into " +
         "PT_SUPABASE.anonKey at the top of the party shim in tv.html (and the same block in controller.html). " +
         "Supabase dashboard: Settings \u2192 API \u2192 Project API keys \u2192 anon public. " +
         "The key is public by design \u2014 it only lets a phone join a room code it already knows.";
-      ptSetStatus("Cloud relay not configured \u2014 see the note below the buttons.");
+      ptSetStatus("Cloud link not set up \u2014 see the note below the buttons.");
       return false;
     }
-    if (ptRelay) { ptSetStatus("Cloud relay already running for room " + ptCode + "."); return true; }
-    ptSetStatus("Starting cloud relay\u2026");
+    if (ptRelay) { ptSetStatus("Cloud link already running for room " + ptCode + "."); return true; }
+    ptSetStatus("Starting cloud link\u2026");
     function wire() {
       var client = window.supabase.createClient(PT_SUPABASE.url, PT_SUPABASE.anonKey);
       var relayConn = {
@@ -1109,9 +1116,9 @@ if(new URLSearchParams(location.search).get("selftest")==="1")setTimeout(selftes
         .subscribe(function (status) {
           if (status === "SUBSCRIBED") {
             ptTransport = "supabase"; ptUpdateTransport();
-            ptSetStatus("Cloud relay live for room " + ptCode + " (fallback \u2014 P2P unavailable). Phones join with the same code.");
+            ptSetStatus("Cloud link is live for room " + ptCode + " (the direct link didn't work). Phones join with the same code.");
           } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
-            ptSetStatus("Cloud relay failed to subscribe (" + status + "). Check the anon key and that the Supabase project is awake.");
+            ptSetStatus("Cloud link failed (" + status + "). Check the anon key and that the Supabase project is awake.");
           }
         });
     }
@@ -1119,7 +1126,7 @@ if(new URLSearchParams(location.search).get("selftest")==="1")setTimeout(selftes
     var s = document.createElement("script");
     s.src = PT_RELAY_CDN;
     s.onload = wire;
-    s.onerror = function () { ptSetStatus("Could not load the Supabase library (network?). Party Mode needs the PeerJS path or a network connection for the relay."); };
+    s.onerror = function () { ptSetStatus("Could not load the Supabase library (network?). Party Mode needs the direct link or a network connection for the cloud link."); };
     document.head.appendChild(s);
     return true;
   }
