@@ -724,22 +724,39 @@ function toggleFaq(el) {
   ans.classList.toggle('visible');
 }
 
-const ARTISY_WEBHOOK = 'WEBHOOK_URL_PLACEHOLDER';
+// Email signup wired to Kit (account "Educational treasures").
+// Form: "Newsletter site" (Kit form id 5952310). Public form endpoint —
+// no secret key in this page. A success message is shown ONLY when Kit
+// answers status "success".
+const KIT_SUBSCRIBE_URL = 'https://app.kit.com/forms/5952310/subscriptions';
 async function handleSubmit(e) {
   e.preventDefault();
-  const email = document.getElementById('email-input').value;
+  const email = document.getElementById('email-input').value.trim();
   const msg = document.getElementById('form-msg');
   msg.textContent = 'Sending your free pack... ✨';
   try {
-    await fetch(ARTISY_WEBHOOK, {
+    const body = new FormData();
+    body.append('email_address', email);
+    const res = await fetch(KIT_SUBSCRIBE_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, source: 'homepage', name: '' })
+      headers: { 'Accept': 'application/json' },
+      body: body
     });
-    msg.textContent = '✅ Check your inbox! Your free pack is on the way. 💌';
-    document.getElementById('email-input').value = '';
+    if (!res.ok) throw new Error('Signup failed (HTTP ' + res.status + ')');
+    const data = await res.json();
+    if (data.status === 'success') {
+      msg.textContent = '✅ Check your inbox! Your free pack is on the way. 💌';
+      document.getElementById('email-input').value = '';
+    } else if (data.status === 'quarantined') {
+      msg.textContent = '⚠️ We couldn\'t confirm your signup just now — please try again in a moment.';
+    } else if (data.errors) {
+      const first = Array.isArray(data.errors) ? data.errors[0] : data.errors;
+      msg.textContent = '⚠️ ' + ((first && (first.message || first)) || 'Please check your email and try again.');
+    } else {
+      msg.textContent = '⚠️ Something went wrong signing you up — please try again.';
+    }
   } catch(err) {
-    msg.textContent = '✅ You\'re on the list! Check your email shortly.';
+    msg.textContent = '⚠️ Something went wrong signing you up — please try again.';
   }
 }
 </script>
