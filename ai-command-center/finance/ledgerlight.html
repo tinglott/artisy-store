@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ledgerlight – AI CFO workbench</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;600&family=Source+Serif+4:wght@500;700&display=swap">
+<style>
+:root{--bg:#f4f6f5;--sf:#fff;--ink:#16231f;--mu:#5d6b66;--ln:#d9e0dd;--ac:#0b6b58;--wn:#b4570a;--bd:#a52a2a;--ok:#0b6b58;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101816;--sf:#18221f;--ink:#e6eeeb;--mu:#93a39d;--ln:#2a3733;--ac:#4fc3a6;--wn:#f0a24b;--bd:#ff8a80;--ok:#4fc3a6;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#101816;--sf:#18221f;--ink:#e6eeeb;--mu:#93a39d;--ln:#2a3733;--ac:#4fc3a6;--wn:#f0a24b;--bd:#ff8a80;--ok:#4fc3a6;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Schibsted Grotesk",system-ui,sans-serif}
+h1,h2,.big{font-family:"Source Serif 4",Georgia,serif}
+header{padding:18px 16px 0;max-width:980px;margin:auto}
+h1{margin:0;font-size:26px}
+header p{margin:2px 0 12px;color:var(--mu)}
+header p.sub{font-size:13px}
+nav{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--ln);max-width:980px;margin:auto;padding:0 12px}
+nav button{background:none;border:0;border-bottom:3px solid transparent;color:var(--mu);padding:10px 12px;font:inherit;font-weight:600;white-space:nowrap;cursor:pointer}
+nav button[aria-selected=true]{color:var(--ink);border-color:var(--ac)}
+nav button:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+main{max-width:980px;margin:auto;padding:16px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.k{background:var(--sf);border:1px solid var(--ln);border-radius:6px;padding:12px}
+.k small{color:var(--mu)}.big{font-size:26px;font-weight:700;display:block}
+.card{background:var(--sf);border:1px solid var(--ln);border-radius:6px;padding:14px;margin-bottom:14px}
+h2{font-size:19px;margin:0 0 8px}
+.sc{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:480px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--ln)}
+th{color:var(--mu);font-weight:600}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.pos{color:var(--ok)}.neg{color:var(--bd)}.warn{color:var(--wn)}
+tr.ov td{background:rgba(165,42,42,.07)}
+form,.row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--ln);border-radius:4px;padding:7px}
+textarea{width:100%;min-height:70px}
+.b{background:var(--ac);color:var(--bg);border:0;border-radius:4px;padding:8px 14px;font:inherit;font-weight:600;cursor:pointer}
+.b.g{background:none;color:var(--ink);border:1px solid var(--ln)}
+.b.danger{background:none;color:var(--bd);border:1px solid var(--bd)}
+.ins{border-left:4px solid var(--ac);padding:6px 10px;margin:8px 0;background:var(--bg)}
+.ins.w{border-color:var(--wn)}.ins.d{border-color:var(--bd)}
+.bar{height:10px;background:var(--ln);border-radius:5px;overflow:hidden}.bar i{display:block;height:100%;background:var(--ac)}.bar i.o{background:var(--bd)}
+.tag{display:inline-block;border:1px solid var(--ln);border-radius:10px;padding:0 8px;font-size:12px;color:var(--mu)}
+a{color:var(--ac)}
+svg text{fill:var(--mu);font-size:11px}
+.rep{font-size:13px;margin-top:8px}
+.rep ul{margin:4px 0;padding-left:18px}
+.muted{color:var(--mu);font-size:13px}
+#cfm{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
+#cfm[hidden]{display:none}
+#cfm .dlg{background:var(--sf);color:var(--ink);border:1px solid var(--ln);border-radius:8px;padding:18px;max-width:420px;width:100%}
+#cfmMsg{white-space:pre-line;margin:0 0 14px}
+</style></head><body>
+<header><h1>Ledgerlight</h1><p>A local-first AI CFO workbench. Your numbers stay in this browser.</p><p class="sub">Part of <a href="https://shop.artistrystore.com/ai-command-center/">AI Command Center — Financial Expertise</a> &middot; <a href="https://shop.artistrystore.com">Visit the store</a></p></header>
+<nav role="tablist" id="nav"></nav>
+<main id="m"></main>
+<div id="cfm" hidden><div class="dlg" role="alertdialog" aria-labelledby="cfmMsg"><p id="cfmMsg"></p><div class="row" style="justify-content:flex-end;margin:0"><button class="b g" id="cfmNo">Cancel</button><button class="b" id="cfmYes">Confirm</button></div></div></div>
+<script>
+const $=s=>document.querySelector(s),fm=n=>(n<0?"-":"")+"$"+Math.abs(Math.round(n)).toLocaleString("en-US");
+const CATS=["Revenue","Payroll","Software","Marketing","Rent","Taxes","Other"];
+const iso=d=>d.toISOString().slice(0,10),ago=n=>{const d=new Date();d.setDate(d.getDate()-n);return iso(d)};
+let S=null;
+function seed(){return{open:42000,fc:{r:0,c:0},tx:[
+{d:ago(100),t:"Product sales",c:"Revenue",a:21000},{d:ago(95),t:"Payroll",c:"Payroll",a:-14000},{d:ago(90),t:"Office rent",c:"Rent",a:-3200},{d:ago(88),t:"SaaS stack",c:"Software",a:-1400},
+{d:ago(70),t:"Product sales",c:"Revenue",a:23500},{d:ago(65),t:"Payroll",c:"Payroll",a:-14000},{d:ago(60),t:"Office rent",c:"Rent",a:-3200},{d:ago(58),t:"Ad spend",c:"Marketing",a:-4200},
+{d:ago(40),t:"Product sales",c:"Revenue",a:24800},{d:ago(35),t:"Payroll",c:"Payroll",a:-14500},{d:ago(30),t:"Office rent",c:"Rent",a:-3200},{d:ago(28),t:"Ad spend",c:"Marketing",a:-6100},{d:ago(25),t:"SaaS stack",c:"Software",a:-2100},
+{d:ago(10),t:"Product sales",c:"Revenue",a:22900},{d:ago(6),t:"Payroll",c:"Payroll",a:-14500},{d:ago(4),t:"Ad spend",c:"Marketing",a:-6800}],
+inv:[{p:"Northwind Co",y:"AR",a:8400,due:ago(18),paid:0},{p:"Bright Labs",y:"AR",a:5200,due:ago(-9),paid:0},{p:"Cloud host",y:"AP",a:1900,due:ago(-6),paid:0},{p:"Contractor",y:"AP",a:3600,due:ago(2),paid:0}],
+bud:{Payroll:14500,Software:1800,Marketing:5000,Rent:3200,Taxes:0,Other:800}}}
+function blank(){return{open:0,fc:{r:0,c:0},tx:[],inv:[],bud:{Payroll:0,Software:0,Marketing:0,Rent:0,Taxes:0,Other:0}}}
+let _uid=1;const nid=p=>p+"-"+Date.now().toString(36)+"-"+(_uid++);
+let _seq=0;const nextSeq=()=>++_seq;
+function normalize(s){if(!s||typeof s!=="object")return null;
+if(typeof s.open!=="number")s.open=0;
+if(!Array.isArray(s.tx))s.tx=[];if(!Array.isArray(s.inv))s.inv=[];
+if(!s.bud||typeof s.bud!=="object")s.bud={};
+if(!s.fc||typeof s.fc!=="object")s.fc={r:0,c:0};if(typeof s.fc.r!=="number")s.fc.r=0;if(typeof s.fc.c!=="number")s.fc.c=0;
+s.tx.forEach(x=>{if(!x)return;if(!x.id)x.id=nid("tx");if(typeof x.seq!=="number")x.seq=nextSeq();else _seq=Math.max(_seq,x.seq)});
+s.inv.forEach(x=>{if(x&&!x.id)x.id=nid("inv")});
+return s}
+let _fresh=false;
+try{S=normalize(JSON.parse(localStorage.getItem("ledgerlight")||"null"))}catch(e){}
+if(!S){S=normalize(seed());_fresh=true}
+const save=()=>{try{localStorage.setItem("ledgerlight",JSON.stringify(S))}catch(e){}};
+if(_fresh)save();
+const mk=d=>d.slice(0,7);
+function months(){const m={};S.tx.forEach(x=>{const k=mk(x.d);(m[k]=m[k]||{i:0,e:0});x.a>0?m[k].i+=x.a:m[k].e+=-x.a});return Object.entries(m).sort()}
+function stats(){const cash=S.open+S.tx.reduce((s,x)=>s+x.a,0),ms=months(),l=ms.slice(-3),n=l.length||1,
+inc=l.reduce((s,[,v])=>s+v.i,0)/n,exp=l.reduce((s,[,v])=>s+v.e,0)/n,net=exp-inc;
+return{cash,ms,inc,exp,net,run:net>0?cash/net:Infinity}}
+function insights(){const s=stats(),o=[],t=iso(new Date());
+if(s.run<6)o.push(["d",`Runway is ${s.run.toFixed(1)} months at the current net burn of ${fm(s.net)}/month. Cut spend or pull in receivables before adding costs.`]);
+else if(s.run===Infinity)o.push(["",`You are cash-flow positive (${fm(-s.net)}/month surplus on the 3-month average).`]);
+else o.push(["w",`Runway is ${s.run.toFixed(1)} months. Aim to keep it above 12.`]);
+const cur=mk(t),spent={};S.tx.filter(x=>mk(x.d)===cur&&x.a<0).forEach(x=>spent[x.c]=(spent[x.c]||0)-x.a);
+Object.entries(S.bud).forEach(([c,b])=>{if(b>0&&(spent[c]||0)>b)o.push(["w",`${c} is ${fm(spent[c]-b)} over budget this month (${fm(spent[c])} vs ${fm(b)}).`])});
+const od=S.inv.filter(i=>!i.paid&&i.y==="AR"&&i.due<t);if(od.length)o.push(["d",`${od.length} receivable${od.length>1?"s":""} overdue, ${fm(od.reduce((s,i)=>s+i.a,0))} total. Send reminders today.`]);
+const soon=S.inv.filter(i=>!i.paid&&i.y==="AP"&&i.due<=iso(new Date(Date.now()+14*864e5)));if(soon.length)o.push(["w",`${fm(soon.reduce((s,i)=>s+i.a,0))} of payables fall due within 14 days. Check they fit the cash balance of ${fm(s.cash)}.`]);
+if(s.ms.length>1){const a=s.ms.at(-1)[1].e,b=s.ms.at(-2)[1].e;if(b&&a>b*1.2)o.push(["w",`Spending rose ${Math.round((a/b-1)*100)}% versus last month. Review the largest category.`])}
+const tot={};S.tx.filter(x=>x.a<0).forEach(x=>tot[x.c]=(tot[x.c]||0)-x.a);const top=Object.entries(tot).sort((a,b)=>b[1]-a[1])[0];
+if(top)o.push(["",`${top[0]} is your biggest cost at ${fm(top[1])} overall.`]);return o}
+const tabs={dash:"Overview",led:"Ledger",bud:"Budget",inv:"Invoices",cfo:"AI CFO",res:"Research"};let cur="dash";
+let editId=null,importReport="";
+function nav(){$("#nav").innerHTML=Object.entries(tabs).map(([k,v])=>`<button role="tab" aria-selected="${k===cur}" data-k="${k}">${v}</button>`).join("");
+$("#nav").onclick=e=>{const k=e.target.dataset.k;if(k){cur=k;go()}}}
+function chart(ms){const w=640,h=170,mx=Math.max(1,...ms.flatMap(([,v])=>[v.i,v.e])),bw=w/Math.max(ms.length,1);
+return`<div class="sc"><svg viewBox="0 0 ${w} ${h}" width="100%" style="min-width:420px" role="img" aria-label="Monthly income and expenses">`+ms.map(([k,v],i)=>{const x=i*bw+bw*.15,ih=v.i/mx*120,eh=v.e/mx*120;return`<rect x="${x}" y="${130-ih}" width="${bw*.32}" height="${ih}" fill="var(--ok)"/><rect x="${x+bw*.34}" y="${130-eh}" width="${bw*.32}" height="${eh}" fill="var(--bd)"/><text x="${x}" y="150">${k}</text>`}).join("")+`</svg></div><small>Green: income. Red: expenses.</small>`}
+function dash(){const s=stats();
+const pl=s.ms.length?`<div class="sc"><table><tr><th>Month</th><th class="n">Income</th><th class="n">Expenses</th><th class="n">Net</th></tr>${s.ms.map(([k,v])=>`<tr><td>${k}</td><td class="n pos">${fm(v.i)}</td><td class="n neg">${fm(v.e)}</td><td class="n ${v.i-v.e<0?"neg":"pos"}">${fm(v.i-v.e)}</td></tr>`).join("")}</table></div>`:`<p class="muted">No months yet — add transactions in the Ledger tab.</p>`;
+return`<div class="kpis"><div class="k"><small>Cash</small><span class="big">${fm(s.cash)}</span></div>
+<div class="k"><small>Net burn / month</small><span class="big ${s.net>0?"neg":"pos"}">${s.net>0?fm(s.net):"+"+fm(-s.net)}</span></div>
+<div class="k"><small>Runway</small><span class="big">${s.run===Infinity?"No limit":s.run.toFixed(1)+" mo"}</span></div>
+<div class="k"><small>Avg income / month</small><span class="big">${fm(s.inc)}</span></div></div>
+<div class="card"><h2>Cash flow by month</h2>${chart(s.ms)}</div>
+<div class="card"><h2>Monthly P&amp;L</h2>${pl}</div>
+<div class="card"><h2>Forecast: what if?</h2><div class="row"><label>Revenue change <input id="fr" type="number" value="${S.fc.r}" style="width:80px">%</label><label>Cost change <input id="fc" type="number" value="${S.fc.c}" style="width:80px">%</label></div><div id="fo"></div></div>
+<div class="card"><h2>Starting cash</h2><div class="row"><input id="op" type="number" value="${S.open}"><button class="b g" id="sop">Update</button></div></div>
+<div class="card"><h2>Data</h2><div class="row"><button class="b g" id="rst">Reset sample data</button><button class="b danger" id="clr">Clear all data</button></div><p class="muted">Reset restores the original sample business. Clear empties everything to a blank ledger. Both ask for confirmation first.</p></div>`}
+function fcast(){const s=stats(),r=+($("#fr").value||0),c=+($("#fc").value||0),i=s.inc*(1+r/100),e=s.exp*(1+c/100);let cash=s.cash,rows="";S.fc={r,c};save();
+for(let m=1;m<=12;m++){cash+=i-e;rows+=`<td class="n ${cash<0?"neg":""}">${fm(cash)}</td>`}
+$("#fo").innerHTML=`<p>Monthly net: <b class="${i-e<0?"neg":"pos"}">${fm(i-e)}</b>. ${i-e<0&&s.cash>0?`Cash runs out in about <b>${(s.cash/(e-i)).toFixed(1)}</b> months.`:"Cash does not run out in 12 months."}</p><div class="sc"><table><tr>${Array.from({length:12},(_,k)=>`<th class="n">M${k+1}</th>`).join("")}</tr><tr>${rows}</tr></table></div>`}
+function balances(){const asc=[...S.tx].sort((a,b)=>a.d.localeCompare(b.d)||(a.seq||0)-(b.seq||0));let bal=S.open;const by={};asc.forEach(x=>{bal+=x.a;by[x.id]=bal});return by}
+function led(){const ed=editId?S.tx.find(x=>x.id===editId):null;
+const rows=[...S.tx].sort((a,b)=>b.d.localeCompare(a.d)||(b.seq||0)-(a.seq||0));
+const by=balances();
+return`<div class="card"><h2>${ed?"Edit transaction":"Add a transaction"}</h2><form id="tf"><input type="date" id="td" value="${ed?ed.d:iso(new Date())}" required><input id="tt" placeholder="Description" required value="${ed?esc(ed.t):""}"><select id="tc">${CATS.map(c=>`<option ${ed&&ed.c===c?"selected":""}>${c}</option>`).join("")}</select><input id="ta" type="number" step="0.01" placeholder="Amount" required aria-label="Amount, negative for expenses" value="${ed?ed.a:""}"><button class="b">${ed?"Save changes":"Add"}</button>${ed?`<button type="button" class="b g" id="cx">Cancel</button>`:""}</form><small>Use negative amounts for expenses.</small></div>
+<div class="card"><h2>Import CSV</h2><textarea id="csv" placeholder="date,description,category,amount&#10;2026-11-02,Ad spend,Marketing,-450"></textarea><button class="b g" id="imp">Import rows</button><div class="rep" id="imrep">${importReport}</div><small>One transaction per line: date (YYYY-MM-DD), description, category, amount. Unknown categories are imported as Other and noted.</small></div>
+<div class="card"><h2>Export &amp; backup</h2><div class="row"><button class="b g" id="expCsv">Export transactions (CSV)</button><button class="b g" id="expJson">Export full backup (JSON)</button><button class="b g" id="impJson">Import JSON backup</button></div><input type="file" id="jsonFile" accept=".json,application/json" hidden><small>The JSON backup holds everything — transactions, invoices, budgets and starting cash. Importing a backup replaces all current data after you confirm.</small></div>
+<div class="card"><h2>Transactions</h2><div class="sc"><table><tr><th>Date</th><th>Description</th><th>Category</th><th class="n">Amount</th><th class="n">Balance</th><th></th></tr>${rows.length?rows.map(x=>`<tr><td>${x.d}</td><td>${esc(x.t)}</td><td>${esc(x.c)}</td><td class="n ${x.a<0?"neg":"pos"}">${fm(x.a)}</td><td class="n ${by[x.id]<0?"neg":""}">${fm(by[x.id])}</td><td><button class="b g" data-edit="${x.id}">Edit</button> <button class="b g" data-del="${x.id}" aria-label="Delete">×</button></td></tr>`).join(""):`<tr><td colspan="6" class="muted">No transactions yet.</td></tr>`}</table></div></div>`}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function bud(){const c=mk(iso(new Date())),sp={};S.tx.filter(x=>mk(x.d)===c&&x.a<0).forEach(x=>sp[x.c]=(sp[x.c]||0)-x.a);
+return`<div class="card"><h2>Budget vs actual, ${c}</h2>${CATS.filter(x=>x!=="Revenue").map(k=>{const b=S.bud[k]||0,a=sp[k]||0,p=b?Math.min(a/b*100,100):0,rem=b-a;return`<div style="margin:12px 0"><div class="row" style="justify-content:space-between;margin:0"><b>${k}</b><span>${fm(a)} of <input type="number" data-b="${k}" value="${b}" style="width:90px" aria-label="${k} budget"></span></div><div class="bar"><i class="${b&&a>b?"o":""}" style="width:${p}%"></i></div><div class="muted">${rem>=0?`Remaining this month: <b class="pos">${fm(rem)}</b>`:`Over budget by <b class="neg">${fm(-rem)}</b>`} &middot; ${Math.round(p)}% used</div></div>`}).join("")}</div>`}
+function inv(){const t=iso(new Date()),st=i=>i.paid?"Paid":i.due<t?"Overdue":"Open";
+const sum=y=>S.inv.filter(i=>i.y===y&&!i.paid).reduce((s,i)=>s+i.a,0);
+const od=S.inv.filter(i=>!i.paid&&i.y==="AR"&&i.due<t).reduce((s,i)=>s+i.a,0);
+return`<div class="kpis"><div class="k"><small>Receivable</small><span class="big pos">${fm(sum("AR"))}</span></div><div class="k"><small>Payable</small><span class="big neg">${fm(sum("AP"))}</span></div><div class="k"><small>Overdue receivables</small><span class="big ${od>0?"neg":""}">${fm(od)}</span></div></div>
+<div class="card"><h2>Add an invoice</h2><form id="if"><input id="ip" placeholder="Customer or vendor" required><select id="iy"><option value="AR">Receivable</option><option value="AP">Payable</option></select><input id="ia" type="number" step="0.01" min="0" placeholder="Amount" required><input id="id" type="date" value="${iso(new Date(Date.now()+30*864e5))}" required><button class="b">Add</button></form></div>
+<div class="card"><div class="sc"><table><tr><th>Party</th><th>Type</th><th>Due</th><th class="n">Amount</th><th>Status</th><th></th></tr>${S.inv.length?S.inv.map(i=>`<tr class="${st(i)==="Overdue"?"ov":""}"><td>${esc(i.p)}</td><td>${i.y}</td><td>${i.due}</td><td class="n">${fm(i.a)}</td><td class="${st(i)==="Overdue"?"neg":""}">${st(i)}</td><td>${i.paid?"":`<button class="b g" data-paid="${i.id}">Mark paid</button> `}<button class="b g" data-delinv="${i.id}" aria-label="Delete invoice">×</button></td></tr>`).join(""):`<tr><td colspan="6" class="muted">No invoices yet.</td></tr>`}</table></div></div>`}
+function cfo(){const empty=S.tx.length===0;
+return`<div class="card"><h2>Today’s briefing</h2><p class="muted">Rule-based insights, computed in your browser from your own data. No live AI model is involved and nothing leaves this device.</p>${empty?`<div class="ins">No transactions yet — add some in the Ledger tab, or reset the sample data from the Overview tab, to see a briefing.</div>`:insights().map(([c,t])=>`<div class="ins ${c}">${t}</div>`).join("")}</div>
+<div class="card"><h2>Ask your CFO</h2><div class="row"><input id="q" placeholder="Try: runway, budget status, this month, what if I cut Marketing by 20%" style="flex:1;min-width:200px"><button class="b" id="ask">Ask</button></div><div id="ans"></div><small>Rule-based answers from your data in this browser — no live AI model, nothing leaves this device.</small></div>`}
+function catAvg(cat){const keys=months().slice(-3).map(([k])=>k);if(!keys.length)return 0;let t=0;S.tx.forEach(x=>{if(x.c===cat&&x.a<0&&keys.includes(mk(x.d)))t+=-x.a});return t/keys.length}
+function answer(q){q=q.toLowerCase();const s=stats(),t=iso(new Date());
+const cut=q.match(/cut\s+([a-z]+)\s+by\s+(\d+(?:\.\d+)?)\s*%/);
+if(cut){const cat=CATS.find(c=>c.toLowerCase()===cut[1].toLowerCase());if(!cat)return`I don't have a "${cut[1]}" category. Categories are: ${CATS.join(", ")}.`;
+const pct=+cut[2],avg=catAvg(cat),save=avg*pct/100,newExp=s.exp-save,newNet=s.inc-newExp;
+let r=`Cutting ${cat} by ${pct}% saves about ${fm(save)}/month (3-month average ${cat} spend is ${fm(avg)}/month). Monthly net would move from ${fm(s.inc-s.exp)} to ${fm(newNet)}.`;
+r+=newNet<0?` Runway would be about ${(s.cash/(-newNet)).toFixed(1)} months (now ${s.run===Infinity?"unlimited":s.run.toFixed(1)+" months"}).`:` You would be cash-flow positive.`;
+return r}
+const grow=q.match(/(revenue|income|sales)[^0-9%]*(\d+(?:\.\d+)?)\s*%/)||q.match(/(\d+(?:\.\d+)?)\s*%\s*(more\s+)?(revenue|income|sales)/);
+if(grow){const pct=+(grow[2]||grow[1]),newInc=s.inc*(1+pct/100),newNet=newInc-s.exp;
+let r=`Growing revenue by ${pct}% lifts average monthly income from ${fm(s.inc)} to ${fm(newInc)}. Monthly net would move from ${fm(s.inc-s.exp)} to ${fm(newNet)}.`;
+r+=newNet<0?` Runway would be about ${(s.cash/(-newNet)).toFixed(1)} months (now ${s.run===Infinity?"unlimited":s.run.toFixed(1)+" months"}).`:` You would be cash-flow positive.`;
+return r}
+if(/budget/.test(q)){const c=mk(t),sp={};S.tx.filter(x=>mk(x.d)===c&&x.a<0).forEach(x=>sp[x.c]=(sp[x.c]||0)-x.a);
+const lines=CATS.filter(x=>x!=="Revenue").map(k=>{const b=S.bud[k]||0,a=sp[k]||0;return b>0?`${k}: ${fm(a)} of ${fm(b)} — ${a>b?fm(a-b)+" over":fm(b-a)+" left"}`:`${k}: ${fm(a)} spent, no budget set`});
+return`Budget status for ${c}: `+lines.join("; ")+"."}
+if(/summary|this month/.test(q)){const c=mk(t),m=S.tx.filter(x=>mk(x.d)===c);const inc=m.filter(x=>x.a>0).reduce((s,x)=>s+x.a,0),exp=m.filter(x=>x.a<0).reduce((s,x)=>s-x.a,0);
+const g={};m.filter(x=>x.a<0).forEach(x=>g[x.c]=(g[x.c]||0)-x.a);const top=Object.entries(g).sort((a,b)=>b[1]-a[1])[0];
+return`${c} so far: income ${fm(inc)}, expenses ${fm(exp)}, net ${fm(inc-exp)} across ${m.length} transactions.`+(top?` Biggest cost this month: ${top[0]} at ${fm(top[1])}.`:"")}
+if(/runway|last|cash out/.test(q))return s.run===Infinity?"You are cash-flow positive, so runway is unlimited at today’s pace.":`About ${s.run.toFixed(1)} months of runway (cash ${fm(s.cash)}, net burn ${fm(s.net)}/month).`;
+if(/overdue|late|owe/.test(q)){const o=S.inv.filter(i=>!i.paid&&i.due<t);return o.length?o.map(i=>`${i.p} (${i.y}) ${fm(i.a)} due ${i.due}`).join("; "):"Nothing is overdue."}
+if(/profit|margin|net/.test(q))return`Average over 3 months: income ${fm(s.inc)}, expenses ${fm(s.exp)}, net ${fm(s.inc-s.exp)} per month.`;
+if(/big|top|most|cost|expens/.test(q)){const g={};S.tx.filter(x=>x.a<0).forEach(x=>g[x.c]=(g[x.c]||0)-x.a);return Object.entries(g).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k,v])=>`${k} ${fm(v)}`).join(", ")}
+if(/cash|balance/.test(q))return`Cash balance is ${fm(s.cash)}.`;
+return`I don't understand that question. I can answer questions about: runway, cash balance, overdue invoices, profit, biggest costs, budget status, this month's summary, and what-if questions like "what if I cut Marketing by 20%" or "what if revenue grows 10%".`}
+const R={t:[["Tipalti","Accounts payable and global payouts"],["Stampli","AP collaboration with an AI assistant"],["Vic.ai","AI-first accounts payable"],["Ramp / Brex","Cards and expenses with AI controls"],["Cube / Datarails","Spreadsheet-native FP&A; Cube from about $1,250/mo"],["Planful / Aleph / Drivetrain","AI planning, variance analysis, rolling forecasts"],["Anaplan / Pigment / Vena","Enterprise planning and modeling"],["Zeni / Knolli","AI back office and CFO copilot (Knolli from $39/mo, Zeni from $494/mo)"],["Microsoft Copilot, DataSnipper","Productivity and audit support"]],
+o:[["Actual Budget","MIT","Self-hosted budgeting engine; best MIT base for AI"],["actual-mcp-server","MIT","85 tools so Claude or other LLMs read and manage Actual"],["s-stefanov/actual-mcp","MIT","Lighter MCP server for Actual, write mode optional"],["ezBookkeeping","MIT","Go bookkeeping app; imports CSV, OFX, QIF, GnuCash, Beancount"],["expense-budget-tracker","MIT","Postgres tracker with agent API and MCP"],["Firefly III","AGPL-3.0","Double-entry; not MIT, shown for comparison"],["Ledgr","AGPL-3.0","Plaid sync plus MCP; not MIT"],["Alderfi","Apache-2.0","Early AI-native finance on MCP; not MIT"]]};
+function res(){return`<div class="card"><h2>What the research found</h2><p>Deloitte reports 87% of CFOs expect AI to be very important to finance in 2026, yet one survey found only 23% of FP&A practitioners use it daily. Tools split into planning (FP&A), spend and accounts payable, and productivity. The common advice is to pair automation with human approval.</p></div>
+<div class="card"><h2>Commercial tools AI can run</h2><div class="sc"><table>${R.t.map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td></tr>`).join("")}</table></div></div>
+<div class="card"><h2>Open source to build on</h2><div class="sc"><table>${R.o.map(r=>`<tr><td><b>${r[0]}</b></td><td><span class="tag">${r[1]}</span></td><td>${r[2]}</td></tr>`).join("")}</table></div><p><small>Verify each licence in the repository before you ship. Chosen architecture: Actual Budget as the MIT ledger, an MCP server as the AI bridge, and this workbench as the front end.</small></p></div>`}
+function go(){nav();$("#m").innerHTML={dash,led,bud,inv,cfo,res}[cur]();wire()}
+function parseCSVLine(l){const out=[];let cur="",inQ=false;for(let i=0;i<l.length;i++){const ch=l[i];
+if(inQ){if(ch==='"'){if(l[i+1]==='"'){cur+='"';i++}else inQ=false}else cur+=ch}
+else if(ch==='"')inQ=true;else if(ch===","){out.push(cur);cur=""}else cur+=ch}out.push(cur);return out}
+function validDate(s){if(!/^\d{4}-\d{2}-\d{2}$/.test(s))return false;const d=new Date(s+"T00:00:00");return!isNaN(d.getTime())&&d.toISOString().slice(0,10)===s}
+function csvCell(v){v=String(v);return/[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+function download(name,content,type){const b=new Blob([content],{type});const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
+function wire(){const on=(s,f)=>{const e=$(s);if(e)e.onclick=f};
+if(cur==="dash"){fcast();["#fr","#fc"].forEach(s=>$(s).oninput=fcast);on("#sop",()=>{S.open=+$("#op").value||0;save();go()});
+on("#rst",()=>{askConfirm("Reset to the original sample data? Your current transactions, invoices and budgets will be replaced.",()=>{S=normalize(seed());save();go()})});
+on("#clr",()=>{askConfirm("Clear ALL data? This empties the ledger, invoices and budgets to a blank start. Export a backup first if you want to keep anything.",()=>{S=normalize(blank());save();go()})})}
+if(cur==="led"){
+$("#tf").onsubmit=e=>{e.preventDefault();
+const d=$("#td").value,t=$("#tt").value.trim(),c=$("#tc").value,a=+$("#ta").value;
+if(!validDate(d)){alert("Please enter a valid date.");return}
+if(!t){alert("Please enter a description.");return}
+if(isNaN(a)){alert("Please enter a valid amount.");return}
+if(editId){const x=S.tx.find(v=>v.id===editId);if(x){x.d=d;x.t=t;x.c=c;x.a=a}editId=null}
+else S.tx.push({id:nid("tx"),seq:nextSeq(),d,t,c,a});
+save();go()};
+on("#cx",()=>{editId=null;go()});
+on("#imp",()=>{const lines=$("#csv").value.split("\n");let n=0,notes=[];const fails=[];
+lines.forEach((l,idx)=>{const line=l.trim();if(!line)return;
+const rowNo=idx+1;
+if(rowNo===1&&/^date/i.test(line))return;
+const p=parseCSVLine(line);
+if(p.length<4){fails.push(`Row ${rowNo}: not enough columns (need date, description, category, amount)`);return}
+const d=p[0].trim(),desc=p[1].trim(),catRaw=p[2].trim(),raw=p[3].trim().replace(/[$,]/g,""),amt=Number(raw);
+if(!validDate(d)){fails.push(`Row ${rowNo}: bad date "${p[0].trim()}"`);return}
+if(!desc){fails.push(`Row ${rowNo}: missing description`);return}
+if(raw===""||isNaN(amt)){fails.push(`Row ${rowNo}: bad amount "${p[3].trim()}"`);return}
+let c=catRaw;if(!CATS.includes(c)){c="Other";notes.push(`Row ${rowNo}: category "${catRaw}" is not recognised — saved as Other`)}
+S.tx.push({id:nid("tx"),seq:nextSeq(),d,t:desc,c,a:amt});n++});
+save();
+importReport=`<b>${n} row${n===1?"":"s"} imported.</b>`+(notes.length?`<br>Notes:<ul>${notes.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:"")+(fails.length?`<br>${fails.length} row${fails.length===1?"":"s"} failed:<ul>${fails.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:"");
+go()});
+on("#expCsv",()=>{const rows=[...S.tx].sort((a,b)=>a.d.localeCompare(b.d)||(a.seq||0)-(b.seq||0));
+download("ledgerlight-transactions.csv","date,description,category,amount\n"+rows.map(x=>[x.d,csvCell(x.t),csvCell(x.c),x.a].join(",")).join("\n"),"text/csv")});
+on("#expJson",()=>{download("ledgerlight-backup-"+iso(new Date())+".json",JSON.stringify(S,null,2),"application/json")});
+on("#impJson",()=>{$("#jsonFile").click()});
+const jf=$("#jsonFile");if(jf)jf.onchange=()=>{const f=jf.files[0];if(!f)return;const r=new FileReader();
+r.onload=()=>{let data=null;try{data=JSON.parse(r.result)}catch(e){}
+if(!data||!Array.isArray(data.tx)||!Array.isArray(data.inv)||typeof data.bud!=="object"||typeof data.open!=="number"){alert("That file is not a Ledgerlight backup (it needs transactions, invoices, budgets and starting cash). Nothing was changed.");return}
+askConfirm("Replace ALL current data with this backup?",()=>{S=normalize(data);save();go()})};
+r.readAsText(f);jf.value=""};
+document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>{editId=b.dataset.edit;go();window.scrollTo({top:0,behavior:"smooth"})});
+document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{const x=S.tx.find(v=>v.id===b.dataset.del);if(x)askConfirm(`Delete this transaction?\n${x.d} — ${x.t} (${fm(x.a)})`,()=>{S.tx=S.tx.filter(v=>v.id!==b.dataset.del);save();go()})})}
+if(cur==="bud")document.querySelectorAll("[data-b]").forEach(i=>i.onchange=()=>{S.bud[i.dataset.b]=+i.value||0;save();go()});
+if(cur==="inv"){$("#if").onsubmit=e=>{e.preventDefault();S.inv.push({id:nid("inv"),p:$("#ip").value,y:$("#iy").value,a:+$("#ia").value,due:$("#id").value,paid:0});save();go()};
+document.querySelectorAll("[data-paid]").forEach(b=>b.onclick=()=>{const i=S.inv.find(v=>v.id===b.dataset.paid);if(!i)return;i.paid=1;S.tx.push({id:nid("tx"),seq:nextSeq(),d:iso(new Date()),t:i.p+" (invoice)",c:i.y==="AR"?"Revenue":"Other",a:i.y==="AR"?i.a:-i.a});save();go()});
+document.querySelectorAll("[data-delinv]").forEach(b=>b.onclick=()=>{const i=S.inv.find(v=>v.id===b.dataset.delinv);if(i)askConfirm(`Delete this invoice?\n${i.p} (${i.y}) — ${fm(i.a)} due ${i.due}${i.paid?" (already paid — the ledger entry it posted stays)":""}`,()=>{S.inv=S.inv.filter(v=>v.id!==b.dataset.delinv);save();go()})})}
+if(cur==="cfo"){const f=()=>{$("#ans").innerHTML=`<div class="ins">${esc(answer($("#q").value))}</div>`};on("#ask",f);$("#q").onkeydown=e=>{if(e.key==="Enter")f()}}}
+let _cfmCb=null;
+function askConfirm(msg,cb){const m=$("#cfmMsg");if(m)m.textContent=msg;_cfmCb=cb;const w=$("#cfm");if(w){w.hidden=false;const y=$("#cfmYes");if(y)y.focus()}}
+function _cfmClose(ok){const w=$("#cfm");if(w)w.hidden=true;const cb=_cfmCb;_cfmCb=null;if(ok&&cb)cb()}
+$("#cfmYes").onclick=()=>_cfmClose(true);
+$("#cfmNo").onclick=()=>_cfmClose(false);
+$("#cfm").onclick=e=>{if(e.target.id==="cfm")_cfmClose(false)};
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){const w=$("#cfm");if(w&&!w.hidden)_cfmClose(false)}});
+go();
+</script></body></html>
