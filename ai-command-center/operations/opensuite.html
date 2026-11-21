@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<!--
+OpenSuite ERP – free, local-first business suite with an AI assistant, in one file.
+MIT License. Copyright (c) 2026 Your Name
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Rebuilt for AI Command Center (Nov 21, 2026) — same MIT file, same data, real working features:
+edit and delete for items, customers, vendors and accounts; delete an open document with its
+journal entries reversed and stock restored; CSV export for inventory, sales, purchases and the
+journal; CSV import for items; a receivables aging report; search on every list; in-page confirm
+dialogs and notices instead of browser popups. Data stays in this browser only, under the same
+"opensuite" storage key, so data saved in the original file carries over unchanged.
+-->
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>OpenSuite ERP — AI Command Center</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{--bg:#eef1ef;--sf:#fff;--ink:#17231f;--mu:#5f6f68;--ln:#d6ddd9;--nv:#14332b;--nt:#cfe3da;--ac:#b86e00;--ac2:#fff0d6;--gn:#13744a;--rd:#b3261e;box-sizing:border-box;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px);color-scheme:light}
+@media(prefers-color-scheme:dark){:root{--bg:#101a17;--sf:#18251f;--ink:#e8f0ec;--mu:#9bada5;--ln:#2b3b34;--nv:#0b1f19;--ac:#f0a53a;--ac2:#3a2c10;--gn:#5fd39a;--rd:#ff8b84;color-scheme:dark}}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:14.5px/1.5 "Public Sans",system-ui,sans-serif}
+.app{display:grid;grid-template-columns:210px 1fr;min-height:100vh}
+aside{background:var(--nv);color:var(--nt);padding:16px 10px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
+aside h1{font-size:19px;margin:0 8px 2px;color:#fff}aside h1 span{color:#f0a53a}
+aside .sub{font-size:12px;color:var(--nt);opacity:.75;margin:0 8px 12px}
+aside button{background:none;border:0;color:inherit;text-align:left;padding:8px 10px;border-radius:6px;font:inherit;cursor:pointer}
+aside button[aria-current=true]{background:#ffffff1f;color:#fff;font-weight:600}
+main{padding:20px;max-width:1150px;width:100%}
+h2{font-size:22px;margin:0}h3{margin:0 0 8px;font-size:16px}
+.top{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.top h2{flex:1;min-width:120px}
+button,input,select,textarea{font:inherit;color:var(--ink)}
+input,select,textarea{background:var(--bg);border:1px solid var(--ln);border-radius:5px;padding:7px;width:100%}
+.btn{background:var(--ac);color:#fff;border:0;border-radius:5px;padding:7px 13px;font-weight:600;cursor:pointer}
+.btn.g{background:none;color:var(--ink);border:1px solid var(--ln)}.btn.s{padding:2px 8px;font-size:12.5px}
+.btn.danger{color:var(--rd);border:1px solid var(--rd);background:none}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.c{background:var(--sf);border:1px solid var(--ln);border-radius:7px;padding:12px;margin-bottom:12px}.cards .c{margin:0}
+.c small{color:var(--mu)}.k{font:500 21px "IBM Plex Mono",monospace;display:block}
+.sc{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:520px}
+th,td{padding:7px 9px;text-align:left;border-bottom:1px solid var(--ln);vertical-align:top}th{color:var(--mu);font-weight:600;font-size:13px}
+td.n,th.n{text-align:right;font-family:"IBM Plex Mono",monospace;font-size:13.5px}
+.pos{color:var(--gn)}.neg{color:var(--rd)}.mu{color:var(--mu)}
+.tag{display:inline-block;border-radius:9px;padding:0 8px;font-size:12px;background:var(--ac2);color:var(--ac)}
+.tag.High,.tag.Overdue{background:#b3261e22;color:var(--rd)}.tag.Paid,.tag.Closed{background:#13744a22;color:var(--gn)}
+dialog{background:var(--sf);color:var(--ink);border:1px solid var(--ln);border-radius:8px;padding:18px;width:min(540px,94vw);max-height:90vh;overflow:auto}
+dialog::backdrop{background:#0008}label{display:block;margin:8px 0 2px;color:var(--mu);font-size:13px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.ans{white-space:pre-wrap;border-left:3px solid var(--ac);padding:6px 12px;margin-top:10px;background:var(--bg)}
+.err{color:var(--rd);font-size:13px;margin-top:8px;min-height:1em}
+.search{max-width:280px}
+#toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--nv);color:#fff;padding:10px 16px;border-radius:7px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50;max-width:92vw}
+#toast.show{opacity:1}
+@media(max-width:760px){.app{display:block}aside{position:static;height:auto;flex-direction:row;overflow-x:auto;padding:8px}aside h1{display:none}aside .sub{display:none}aside button{white-space:nowrap}main{padding:14px}}
+</style></head><body>
+<div class="app"><aside id="side"></aside><main id="m"></main></div><dialog id="dlg"></dialog><div id="toast" role="status"></div>
+<script>
+const $=s=>document.querySelector(s),uid=()=>Math.random().toString(36).slice(2,8),
+esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])),
+td=()=>new Date().toISOString().slice(0,10),add=(d,n)=>new Date(Date.parse(d)+n*864e5).toISOString().slice(0,10),days=(a,b)=>Math.round((Date.parse(b)-Date.parse(a))/864e5),
+fm=n=>(n<-.004?"-":"")+"$"+Math.abs(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+let D=null,tab="dash";
+const bal=a=>D.je.reduce((t,j)=>t+j.l.reduce((u,x)=>x.a===a?u+x.dr-x.cr:u,0),0),
+nat=ty=>D.accts.filter(a=>a.t===ty).reduce((s,a)=>s+(ty==="A"||ty==="X"?bal(a.n):-bal(a.n)),0),
+en=id=>(D.ents.find(e=>e.id===id)||{}).name||"–",it=s=>D.items.find(i=>i.sku===s);
+function post(d,memo,l,ref){const dr=l.reduce((t,x)=>t+x.dr,0),cr=l.reduce((t,x)=>t+x.cr,0);if(Math.abs(dr-cr)>.005)throw new Error("Entry is out of balance by "+fm(dr-cr));D.je.push({id:uid(),d,memo,ref,l})}
+const newEnt=(t,name,email)=>{const x={id:uid(),t,name,email:email||""};D.ents.push(x);return x.id},
+newItem=(sku,name,price,cost,min,stock)=>D.items.push({sku,name,price:+price,cost:+cost,qty:0,min:+min||0,stock:stock!==false});
+function mk(kind,ent,lines,date,terms){const L=lines.map(([s,q,p])=>{const i=it(s);return{s,q:+q,p:+p||(i?(kind==="BILL"||kind==="PO"?i.cost:i.price):0)}}),
+total=L.reduce((t,l)=>t+l.q*l.p,0),doc={id:uid(),kind,no:kind+"-"+(D.docs.filter(x=>x.kind===kind).length+1001),d:date,due:add(date,terms||30),ent,l:L,total,st:"Open"};
+if(total<=0)throw new Error("Add at least one line with a price, for example: WID-1, 2, 50");
+if(kind==="INV"){post(date,doc.no,[{a:"1100",dr:total,cr:0},{a:"4000",dr:0,cr:total}],doc.id);
+L.forEach(l=>{const i=it(l.s);if(i&&i.stock){const c=l.q*i.cost;i.qty-=l.q;if(c)post(date,doc.no+" cost of goods",[{a:"5000",dr:c,cr:0},{a:"1300",dr:0,cr:c}],doc.id)}})}
+if(kind==="BILL"){let inv=0;L.forEach(l=>{const i=it(l.s);if(i&&i.stock){i.qty+=l.q;i.cost=l.p;inv+=l.q*l.p}});
+const l2=[];if(inv)l2.push({a:"1300",dr:inv,cr:0});if(total-inv>.004)l2.push({a:"6000",dr:total-inv,cr:0});l2.push({a:"2000",dr:0,cr:total});post(date,doc.no,l2,doc.id)}
+D.docs.push(doc);return doc}
+function pay(id){const x=D.docs.find(d=>d.id===id);x.st="Paid";x.paid=td();post(td(),x.no+" payment",x.kind==="INV"?[{a:"1000",dr:x.total,cr:0},{a:"1100",dr:0,cr:x.total}]:[{a:"2000",dr:x.total,cr:0},{a:"1000",dr:0,cr:x.total}],x.id)}
+function conv(id){const o=D.docs.find(d=>d.id===id);mk(o.kind==="SO"?"INV":"BILL",o.ent,o.l.map(l=>[l.s,l.q,l.p]),td(),30);o.st="Closed"}
+/* Delete an open document and undo everything it did: remove its journal entries
+   (invoice, cost of goods, payment — all carry the document id as ref) and put
+   stock back where it came from. Paid or closed documents are history and cannot
+   be deleted; correct them with a journal entry instead. */
+function delDoc(id){const x=D.docs.find(d=>d.id===id);if(!x)throw new Error("Document not found.");
+if(x.st!=="Open")throw new Error("Only an open document can be deleted. "+x.no+" is "+x.st+".");
+if(x.kind==="INV")x.l.forEach(l=>{const i=it(l.s);if(i&&i.stock)i.qty+=l.q});
+if(x.kind==="BILL")x.l.forEach(l=>{const i=it(l.s);if(i&&i.stock)i.qty-=l.q});
+D.je=D.je.filter(j=>j.ref!==x.id);D.docs=D.docs.filter(d=>d.id!==id)}
+function seed(){D={accts:[["1000","Cash","A"],["1100","Accounts Receivable","A"],["1300","Inventory","A"],["2000","Accounts Payable","L"],["3000","Owner Equity","E"],["4000","Sales Revenue","R"],["5000","Cost of Goods Sold","X"],["6000","Operating Expenses","X"]].map(([n,name,t])=>({n,name,t})),je:[],ents:[],items:[],docs:[],cfg:{model:"llama3.1",url:""}};
+const c1=newEnt("C","Northwind Co","ap@northwind.test"),c2=newEnt("C","Bright Labs","hi@brightlabs.test"),v1=newEnt("V","Supply House","sales@supply.test");
+newItem("WID-1","Widget",50,0,10);newItem("GAD-2","Gadget",120,0,10);newItem("GIZ-3","Gizmo",30,0,5);newItem("SVC-1","Consulting hour",150,0,0,false);
+post(add(td(),-70),"Opening capital",[{a:"1000",dr:25000,cr:0},{a:"3000",dr:0,cr:25000}]);
+const b=mk("BILL",v1,[["WID-1",100,20],["GAD-2",40,60],["GIZ-3",6,15]],add(td(),-60));pay(b.id);
+mk("INV",c1,[["WID-1",30,0],["GAD-2",10,0],["GIZ-3",3,0]],add(td(),-45));
+mk("INV",c2,[["SVC-1",8,0],["WID-1",5,0]],add(td(),-5));
+mk("BILL",v1,[["Office rent",1,1500]],add(td(),-10));mk("BILL",v1,[["Office rent",1,1500]],add(td(),-9));
+mk("SO",c2,[["WID-1",20,0]],add(td(),-2));
+post(add(td(),-20),"Software subscriptions",[{a:"6000",dr:800,cr:0},{a:"1000",dr:0,cr:800}])}
+try{D=JSON.parse(localStorage.getItem("opensuite")||"null")}catch(e){}if(!D)seed();
+const save=()=>{try{localStorage.setItem("opensuite",JSON.stringify(D))}catch(e){}};
+const st=d=>d.st==="Open"&&(d.kind==="INV"||d.kind==="BILL")&&d.due<td()?"Overdue":d.st;
+function snap(){const t=td(),op=k=>D.docs.filter(d=>d.kind===k&&d.st==="Open"),tc={};D.docs.filter(d=>d.kind==="INV").forEach(d=>tc[en(d.ent)]=(tc[en(d.ent)]||0)+d.total);
+return{cash:bal("1000"),receivables:bal("1100"),payables:-bal("2000"),inventoryValue:bal("1300"),revenue:nat("R"),expenses:nat("X"),netIncome:nat("R")-nat("X"),
+overdueInvoices:op("INV").filter(d=>d.due<t).map(d=>({no:d.no,customer:en(d.ent),amount:d.total,daysLate:days(d.due,t)})),
+billsDue:op("BILL").filter(d=>d.due<=add(t,14)).map(d=>({no:d.no,vendor:en(d.ent),amount:d.total,due:d.due})),
+lowStock:D.items.filter(i=>i.stock&&i.qty<=i.min).map(i=>({sku:i.sku,qty:i.qty})),topCustomers:Object.entries(tc).sort((a,b)=>b[1]-a[1]).slice(0,3)}}
+function exc(){const t=td(),s=snap(),o=[];
+s.overdueInvoices.forEach(x=>o.push({p:x.daysLate>30?"High":"Medium",k:"ar",t:`${x.no} (${x.customer}) is ${x.daysLate} days overdue: ${fm(x.amount)}.`}));
+s.billsDue.forEach(x=>o.push({p:x.due<t?"High":"Low",k:"ap",t:`Bill ${x.no} from ${x.vendor}, ${fm(x.amount)}, ${x.due<t?"was due":"is due"} ${x.due}.`}));
+s.lowStock.forEach(x=>o.push({p:x.qty<0?"High":"Medium",k:"stock",t:`${x.sku} stock is ${x.qty}, at or below its reorder level.`}));
+const b=D.docs.filter(d=>d.kind==="BILL");b.forEach((x,i)=>b.slice(i+1).forEach(y=>{if(x.ent===y.ent&&Math.abs(x.total-y.total)<.005&&Math.abs(days(x.d,y.d))<=7)o.push({p:"Medium",k:"dup",t:`Possible duplicate bills ${x.no} and ${y.no}: ${fm(x.total)} from ${en(x.ent)}.`})}));
+if(s.cash<0)o.push({p:"High",k:"cash",t:`Cash is negative (${fm(s.cash)}).`});
+return o.sort((a,b)=>"HighMediumLow".indexOf(a.p)-"HighMediumLow".indexOf(b.p))}
+function local(q){q=q.toLowerCase();const s=snap();
+if(/overdue|late|owe/.test(q))return s.overdueInvoices.length?s.overdueInvoices.map(x=>`${x.no} ${x.customer}: ${fm(x.amount)}, ${x.daysLate} days late`).join("\n"):"No invoices are overdue.";
+if(/profit|income|margin/.test(q))return`Net income is ${fm(s.netIncome)} (revenue ${fm(s.revenue)} less expenses ${fm(s.expenses)}).`;
+if(/revenue|sales/.test(q))return`Revenue is ${fm(s.revenue)}.`;
+if(/cash|bank/.test(q))return`Cash is ${fm(s.cash)}.`;
+if(/receivable/.test(q))return`Receivables total ${fm(s.receivables)}.`;
+if(/payable|bills|owe/.test(q))return`Payables total ${fm(s.payables)}. ${s.billsDue.length} bill(s) due within 14 days.`;
+if(/stock|inventory|reorder/.test(q))return`Inventory is worth ${fm(s.inventoryValue)}. Low stock: ${s.lowStock.map(x=>x.sku+" ("+x.qty+")").join(", ")||"none"}.`;
+if(/customer/.test(q))return s.topCustomers.map(([n,v])=>`${n}: ${fm(v)}`).join("\n")||"No sales yet.";
+return"I can answer questions about cash, overdue invoices, profit, revenue, payables, stock and top customers. Connect a language model in Settings for open-ended questions."}
+async function llm(sys,user){const c=D.cfg;if(!c.url)throw new Error("No language model connected");const r=await fetch(c.url,{method:"POST",headers:{"Content-Type":"application/json",...(c.key?{Authorization:"Bearer "+c.key}:{})},body:JSON.stringify({model:c.model,messages:[{role:"system",content:sys},{role:"user",content:user}]})});if(!r.ok)throw new Error("status "+r.status);return(await r.json()).choices[0].message.content}
+const SYS="You are the finance assistant inside a small-business ERP. Answer only from the JSON books summary provided. Be concise, show figures, and say when the data does not answer the question.";
+const T={dash:"Dashboard",sales:"Sales",buy:"Purchases",inv:"Inventory",par:"Customers & Vendors",gl:"General Ledger",rep:"Reports",ai:"AI Assistant",set:"Settings"};
+const side=()=>$("#side").innerHTML=`<h1>Open<span>Suite</span></h1><p class="sub">Part of AI Command Center — Operations</p>`+Object.entries(T).map(([k,v])=>`<button data-tab="${k}" aria-current="${k===tab}">${v}</button>`).join("");
+let toastT=null;
+function toast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),3600)}
+/* In-page dialogs replace browser popups. dlg() shows a form; errors appear inside
+   the dialog instead of an alert. confirmDlg() asks a yes/no question. */
+function dlg(html,fn){const d=$("#dlg");d.innerHTML=`<form>${html}<div class="err" id="dlgerr"></div></form>`;
+d.querySelector("form").onsubmit=e=>{e.preventDefault();try{fn(Object.fromEntries(new FormData(e.target)));d.close();save();render()}catch(x){const er=$("#dlgerr");if(er)er.textContent=x.message;else toast(x.message)}};d.showModal()}
+function confirmDlg(msg,onYes){const d=$("#dlg");d.innerHTML=`<h2>Are you sure?</h2><p>${esc(msg)}</p><div class="row"><button class="btn" id="cfYes">Yes, do it</button><button class="btn g" id="cfNo">Cancel</button></div>`;
+d.querySelector("#cfYes").onclick=()=>{d.close();onYes()};d.querySelector("#cfNo").onclick=()=>d.close();d.showModal()}
+const cancel=`<button type="button" class="btn g" data-a="x">Cancel</button>`,fld=(k,l,v,x)=>`<label for="f${k}">${l}</label><input id="f${k}" name="${k}" value="${esc(v)}" ${x||""}>`;
+const tbl=(h,rows,e)=>`<div class="sc"><table><tr>${h.map(x=>`<th${x[0]=="#"?' class="n"':""}>${x.replace("#","")}</th>`).join("")}</tr>${rows.join("")||`<tr><td colspan="${h.length}" class="mu">${e||"Nothing here yet."}</td></tr>`}</table></div>`;
+/* Filter the rows of the table in this section as you type, without re-rendering (so focus stays in the box). */
+function filterRows(box){const q=box.value.toLowerCase(),tb=box.closest(".c,main").querySelector("table");if(!tb)return;
+tb.querySelectorAll("tr").forEach((r,i)=>{if(!i)return;r.style.display=r.textContent.toLowerCase().includes(q)?"":"none"})}
+const searchBox=ph=>`<input class="search" type="search" placeholder="${ph}" aria-label="${ph}" oninput="filterRows(this)">`;
+/* CSV helpers: quote-aware parse (handles quoted commas and doubled quotes) and export. */
+function csvParse(text){const rows=[];let row=[],cur="",q=false;
+for(let i=0;i<text.length;i++){const c=text[i];
+if(q){if(c=='"'){if(text[i+1]=='"'){cur+='"';i++}else q=false}else cur+=c}
+else if(c=='"')q=true;else if(c===","){row.push(cur);cur=""}
+else if(c==="\n"||c==="\r"){if(c==="\r"&&text[i+1]==="\n")i++;row.push(cur);rows.push(row);row=[];cur=""}
+else cur+=c}
+if(cur!==""||row.length){row.push(cur);rows.push(row)}return rows.filter(r=>r.some(c=>String(c).trim()!==""))}
+const csvCell=v=>{v=String(v??"");return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+const csvOut=(rows,name)=>{dl(name,rows.map(r=>r.map(csvCell).join(",")).join("\n"),"text/csv");toast(rows.length-1+" rows exported.")};
+function dash(){const s=snap(),ex=exc().slice(0,5);return`<div class="top"><h2>Dashboard</h2></div><div class="cards">${[["Cash",s.cash],["Receivables",s.receivables],["Payables",s.payables],["Inventory",s.inventoryValue],["Net income",s.netIncome]].map(([l,v])=>`<div class="c"><small>${l}</small><span class="k ${l==="Net income"?v<0?"neg":"pos":""}">${fm(v)}</span></div>`).join("")}</div>
+<div class="c"><h3>Needs attention</h3>${ex.map(x=>`<p style="margin:6px 0"><span class="tag ${x.p}">${x.p}</span> ${esc(x.t)}</p>`).join("")||`<span class="mu">All clear.</span>`}</div>`}
+function docs(kinds,title){const rows=D.docs.filter(d=>kinds.includes(d.kind)).sort((a,b)=>b.d.localeCompare(a.d)).map(d=>`<tr><td>${d.no}</td><td>${d.d}</td><td>${esc(en(d.ent))}</td><td class="n">${fm(d.total)}</td><td>${d.kind==="INV"||d.kind==="BILL"?"Due "+d.due:""}</td><td><span class="tag ${st(d)}">${st(d)}</span></td><td>${d.st==="Open"?(d.kind==="SO"||d.kind==="PO"?`<button class="btn g s" data-a="conv" data-id="${d.id}">${d.kind==="SO"?"Invoice it":"Bill it"}</button>`:`<button class="btn g s" data-a="pay" data-id="${d.id}">Mark paid</button>`):""} ${d.st==="Open"?`<button class="btn danger s" data-a="deldoc" data-id="${d.id}">Delete</button>`:""}</td></tr>`);
+return`<div class="top"><h2>${title}</h2>${kinds.map(k=>`<button class="btn ${k==="SO"||k==="PO"?"g":""}" data-a="newdoc" data-k="${k}">New ${{SO:"sales order",INV:"invoice",PO:"purchase order",BILL:"bill"}[k]}</button>`).join("")}<button class="btn g" data-a="expdocs" data-k="${kinds[0]}">Export CSV</button></div><div class="c">${searchBox("Search number, party, or status…")}${tbl(["No.","Date","Party","#Total","Terms","Status",""],rows)}</div>`}
+function dform(k){const t=k==="INV"||k==="SO"?"C":"V";dlg(`<h2>New ${{SO:"sales order",INV:"invoice",PO:"purchase order",BILL:"bill"}[k]}</h2><label for="fe">${t==="C"?"Customer":"Vendor"}</label><select id="fe" name="ent" required>${D.ents.filter(e=>e.t===t).map(e=>`<option value="${e.id}">${esc(e.name)}</option>`).join("")}</select>${fld("d","Date",td(),'type="date" required')}<label for="fl">Lines: SKU or description, quantity, price (price is optional for stocked items)</label><textarea id="fl" name="l" rows="5" required placeholder="WID-1, 2, 50&#10;Consulting, 1, 300"></textarea><div class="row"><button class="btn">Save</button>${cancel}</div>`,v=>{if(!v.ent)throw new Error("Add a "+(t==="C"?"customer":"vendor")+" first, under Customers & Vendors.");mk(k,v.ent,v.l.split("\n").map(l=>l.split(",").map(x=>x.trim())).filter(p=>p[0]).map(p=>[p[0],+p[1]||1,+p[2]||0]),v.d,30)})}
+function inv(){return`<div class="top"><h2>Inventory</h2><button class="btn" data-a="newitem">Add item</button><button class="btn g" data-a="expinv">Export CSV</button><button class="btn g" data-a="impinv">Import CSV</button></div><div class="c">${searchBox("Search SKU or name…")}${tbl(["SKU","Name","#Price","#Cost","#On hand","#Reorder at","#Value",""],D.items.map(i=>`<tr><td>${esc(i.sku)}</td><td>${esc(i.name)}${i.stock?"":' <span class="tag">service</span>'}</td><td class="n">${fm(i.price)}</td><td class="n">${fm(i.cost)}</td><td class="n ${i.qty<=i.min&&i.stock?"neg":""}">${i.stock?i.qty:"–"}</td><td class="n">${i.stock?i.min:"–"}</td><td class="n">${i.stock?fm(i.qty*i.cost):"–"}</td><td><button class="btn g s" data-a="edititem" data-id="${esc(i.sku)}">Edit</button> <button class="btn danger s" data-a="delitem" data-id="${esc(i.sku)}">Delete</button></td></tr>`))}<p class="mu">Stock arrives when you enter a bill for the SKU, and leaves when you invoice it. Import CSV columns: SKU, Name, Price, Cost, Reorder level, Type (stocked or service).</p></div>`}
+const iform=()=>dlg(`<h2>Add item</h2>${fld("sku","SKU","",'required')}${fld("name","Name","",'required')}${fld("price","Sell price","0",'type="number" step="0.01" min="0"')}${fld("cost","Cost","0",'type="number" step="0.01" min="0"')}${fld("min","Reorder level","5",'type="number" min="0"')}<label for="fk">Type</label><select id="fk" name="k"><option value="s">Stocked product</option><option value="v">Service</option></select><div class="row"><button class="btn">Save</button>${cancel}</div>`,v=>{if(it(v.sku))throw new Error("That SKU exists.");newItem(v.sku,v.name,v.price,v.cost,v.min,v.k==="s")});
+function iedit(sku){const i=it(sku);if(!i)return;dlg(`<h2>Edit item ${esc(i.sku)}</h2>${fld("name","Name",i.name,'required')}${fld("price","Sell price",i.price,'type="number" step="0.01" min="0"')}${fld("cost","Cost",i.cost,'type="number" step="0.01" min="0"')}${fld("min","Reorder level",i.min,'type="number" min="0"')}<label for="fk">Type</label><select id="fk" name="k"><option value="s"${i.stock?" selected":""}>Stocked product</option><option value="v"${i.stock?"":" selected"}>Service</option></select><div class="row"><button class="btn">Save</button>${cancel}</div>`,v=>{i.name=v.name;i.price=+v.price;i.cost=+v.cost;i.min=+v.min||0;i.stock=v.k==="s"})}
+function par(){return`<div class="top"><h2>Customers & Vendors</h2><button class="btn" data-a="newpar">Add</button></div><div class="c">${searchBox("Search name or email…")}${tbl(["Name","Type","Email","#Open balance",""],D.ents.map(e=>`<tr><td>${esc(e.name)}</td><td>${e.t==="C"?"Customer":"Vendor"}</td><td>${esc(e.email)}</td><td class="n">${fm(D.docs.filter(d=>d.ent===e.id&&d.st==="Open"&&(d.kind==="INV"||d.kind==="BILL")).reduce((t,d)=>t+d.total,0))}</td><td><button class="btn g s" data-a="editpar" data-id="${e.id}">Edit</button> <button class="btn danger s" data-a="delpar" data-id="${e.id}">Delete</button></td></tr>`))}</div>`}
+const pform=()=>dlg(`<h2>Add customer or vendor</h2><label for="ft">Type</label><select id="ft" name="t"><option value="C">Customer</option><option value="V">Vendor</option></select>${fld("name","Name","",'required')}${fld("email","Email","",'type="email"')}<div class="row"><button class="btn">Save</button>${cancel}</div>`,v=>newEnt(v.t,v.name,v.email));
+function pedit(id){const e=D.ents.find(x=>x.id===id);if(!e)return;dlg(`<h2>Edit ${esc(e.name)}</h2><label for="ft">Type</label><select id="ft" name="t"><option value="C"${e.t==="C"?" selected":""}>Customer</option><option value="V"${e.t==="V"?" selected":""}>Vendor</option></select>${fld("name","Name",e.name,'required')}${fld("email","Email",e.email,'type="email"')}<div class="row"><button class="btn">Save</button>${cancel}</div>`,v=>{e.t=v.t;e.name=v.name;e.email=v.email})}
+function gl(){return`<div class="top"><h2>General Ledger</h2><button class="btn g" data-a="newacct">Add account</button><button class="btn" data-a="newje">Journal entry</button></div>
+<div class="c"><h3>Chart of accounts</h3>${tbl(["No.","Account","Type","#Balance",""],D.accts.map(a=>`<tr><td>${a.n}</td><td>${esc(a.name)}</td><td>${{A:"Asset",L:"Liability",E:"Equity",R:"Revenue",X:"Expense"}[a.t]}</td><td class="n">${fm(a.t==="A"||a.t==="X"?bal(a.n):-bal(a.n))}</td><td><button class="btn g s" data-a="editacct" data-id="${a.n}">Rename</button></td></tr>`))}</div>
+<div class="c"><h3>Journal</h3>${searchBox("Search memo or account…")}${tbl(["Date","Memo","Lines","#Amount"],D.je.slice().reverse().map(j=>`<tr><td>${j.d}</td><td>${esc(j.memo)}</td><td class="mu">${j.l.map(x=>`${x.a} ${x.dr?"Dr "+fm(x.dr):"Cr "+fm(x.cr)}`).join("; ")}</td><td class="n">${fm(j.l.reduce((t,x)=>t+x.dr,0))}</td></tr>`))}<div class="row"><button class="btn g" data-a="expje">Export journal CSV</button></div></div>`}
+const jform=()=>dlg(`<h2>Journal entry</h2>${fld("d","Date",td(),'type="date" required')}${fld("memo","Memo","",'required')}<label for="fl">Lines: account number, debit, credit (must balance)</label><textarea id="fl" name="l" rows="5" required placeholder="6000, 250, 0&#10;1000, 0, 250"></textarea><div class="row"><button class="btn">Post</button>${cancel}</div>`,v=>{const l=v.l.split("\n").map(x=>x.split(",").map(y=>y.trim())).filter(p=>p[0]).map(p=>({a:p[0],dr:+p[1]||0,cr:+p[2]||0}));l.forEach(x=>{if(!D.accts.some(a=>a.n===x.a))throw new Error("No account "+x.a)});if(l.length<2)throw new Error("Use at least two lines");post(v.d,v.memo,l)});
+const aform=()=>dlg(`<h2>Add account</h2>${fld("n","Number","",'required')}${fld("name","Name","",'required')}<label for="fy">Type</label><select id="fy" name="t"><option value="A">Asset</option><option value="L">Liability</option><option value="E">Equity</option><option value="R">Revenue</option><option value="X">Expense</option></select><div class="row"><button class="btn">Save</button>${cancel}</div>`,v=>{if(D.accts.some(a=>a.n===v.n))throw new Error("Number in use");D.accts.push(v);D.accts.sort((a,b)=>a.n.localeCompare(b.n))});
+function rep(){const L=ty=>D.accts.filter(a=>a.t===ty),row=a=>`<tr><td>${a.n} ${esc(a.name)}</td><td class="n">${fm(a.t==="A"||a.t==="X"?bal(a.n):-bal(a.n))}</td></tr>`,
+tot=(l,x)=>`<tr><td><b>${l}</b></td><td class="n"><b>${fm(x)}</b></td></tr>`,rv=nat("R"),ex=nat("X"),ni=rv-ex,
+dr=D.je.reduce((t,j)=>t+j.l.reduce((u,x)=>u+x.dr,0),0),cr=D.je.reduce((t,j)=>t+j.l.reduce((u,x)=>u+x.cr,0),0),
+t=td(),open=D.docs.filter(d=>d.kind==="INV"&&d.st==="Open"),
+age={cur:0,d30:0,d60:0,d61:0};open.forEach(d=>{const late=days(d.due,t);if(late<=0)age.cur+=d.total;else if(late<=30)age.d30+=d.total;else if(late<=60)age.d60+=d.total;else age.d61+=d.total});
+return`<div class="top"><h2>Reports</h2></div><div class="c"><h3>Profit and loss</h3><div class="sc"><table>${L("R").map(row).join("")}${tot("Total revenue",rv)}${L("X").map(row).join("")}${tot("Total expenses",ex)}${tot("Net income",ni)}</table></div></div>
+<div class="c"><h3>Balance sheet</h3><div class="sc"><table>${L("A").map(row).join("")}${tot("Total assets",nat("A"))}${L("L").map(row).join("")}${tot("Total liabilities",nat("L"))}${L("E").map(row).join("")}<tr><td>Current earnings</td><td class="n">${fm(ni)}</td></tr>${tot("Liabilities and equity",nat("L")+nat("E")+ni)}</table></div></div>
+<div class="c"><h3>Receivables aging — open invoices</h3><div class="sc"><table><tr><th>Not yet due</th><th>1–30 days overdue</th><th>31–60 days overdue</th><th>Over 60 days overdue</th></tr><tr><td class="n">${fm(age.cur)}</td><td class="n">${fm(age.d30)}</td><td class="n">${fm(age.d60)}</td><td class="n">${fm(age.d61)}</td></tr></table></div><p class="mu">Aging is counted from each invoice's due date. Chase the right-hand columns first.</p></div>
+<div class="c"><h3>Trial balance</h3>${tbl(["Account","#Debit","#Credit"],[...D.accts.map(a=>{const b=bal(a.n);return`<tr><td>${a.n} ${esc(a.name)}</td><td class="n">${b>0?fm(b):""}</td><td class="n">${b<0?fm(-b):""}</td></tr>`}),`<tr><td><b>Totals</b></td><td class="n"><b>${fm(dr)}</b></td><td class="n"><b>${fm(cr)}</b></td></tr>`])}<p class="${Math.abs(dr-cr)<.005?"pos":"neg"}">${Math.abs(dr-cr)<.005?"Books are in balance.":"Books are out of balance."}</p></div>`}
+function ai(){const ex=exc(),tasks=[["Review overdue receivables","ar"],["Review bills coming due","ap"],["Check stock levels","stock"],["Check for duplicate bills","dup"],["Check cash position","cash"]],ok=tasks.filter(([,k])=>!ex.some(x=>x.k===k)).length,od=snap().overdueInvoices;
+return`<div class="top"><h2>AI Assistant</h2></div><div class="c"><h3>Ask your books</h3><div class="row" style="margin:0"><input id="q" placeholder="e.g. What is overdue? How is profit?" style="flex:1;min-width:200px" aria-label="Question"><button class="btn" data-a="ask">Ask</button></div><div id="ans"></div><p class="mu">${D.cfg.url?"A connected language model answers using a summary of your books.":"Using built-in rules. Connect a language model in Settings for open-ended answers."}</p></div>
+<div class="c"><h3>Intelligent close (${ok} of ${tasks.length} checks clear)</h3>${tasks.map(([l,k])=>`<p style="margin:4px 0">${ex.some(x=>x.k===k)?"⚠":"✓"} ${l}</p>`).join("")}<hr style="border:0;border-top:1px solid var(--ln)">${ex.map(x=>`<p style="margin:6px 0"><span class="tag ${x.p}">${x.p}</span> ${esc(x.t)}</p>`).join("")||`<span class="mu">No exceptions.</span>`}</div>
+<div class="c"><h3>Draft a payment reminder</h3>${od.length?`<select id="rm" aria-label="Overdue invoice">${od.map(x=>`<option value="${x.no}">${x.no} ${esc(x.customer)}, ${fm(x.amount)}</option>`).join("")}</select><div class="row"><button class="btn g" data-a="draft">Draft</button><button class="btn g" data-a="polish">Polish with AI</button></div><textarea id="dt" rows="7" style="margin-top:8px" aria-label="Reminder text"></textarea>`:`<span class="mu">No overdue invoices.</span>`}</div>`}
+function set(){const c=D.cfg;return`<div class="top"><h2>Settings</h2></div><div class="c"><h3>Language model (optional)</h3><p class="mu">Any OpenAI-compatible chat endpoint, for example a local Ollama at http://localhost:11434/v1/chat/completions. Only a summary of your books is sent, never raw records. A local model keeps it all on your machine.</p><label for="cu">Endpoint</label><input id="cu" value="${esc(c.url)}"><label for="cm">Model</label><input id="cm" value="${esc(c.model)}"><label for="ck">API key (if needed)</label><input id="ck" type="password" value="${esc(c.key||"")}"><div class="row"><button class="btn" data-a="cfg">Save</button></div></div>
+<div class="c"><h3>Data</h3><p class="mu">Everything is stored in this browser only. Back up regularly.</p><div class="row"><button class="btn g" data-a="exp">Export backup</button><button class="btn g" data-a="imp">Import backup</button><button class="btn g" data-a="rst">Reset to demo data</button></div><input type="file" id="fi" accept=".json" hidden><input type="file" id="fi2" accept=".csv" hidden></div>`}
+function render(){side();$("#m").innerHTML={dash,sales:()=>docs(["SO","INV"],"Sales"),buy:()=>docs(["PO","BILL"],"Purchases"),inv,par,gl,rep,ai,set}[tab]()}
+async function ask(){const q=$("#q").value.trim(),a=$("#ans");if(!q)return;a.innerHTML=`<div class="ans">Thinking…</div>`;let r;
+try{r=D.cfg.url?await llm(SYS,"Books summary:\n"+JSON.stringify(snap())+"\n\nQuestion: "+q):local(q)}catch(e){r=local(q)+"\n\n(Language model unavailable: "+e.message+")"}a.innerHTML=`<div class="ans">${esc(r)}</div>`}
+function draft(){const x=snap().overdueInvoices.find(o=>o.no===$("#rm").value),d=D.docs.find(o=>o.no===x.no);$("#dt").value=`Hi ${x.customer},\n\nA friendly reminder that invoice ${x.no} for ${fm(x.amount)}, due ${d.due}, is now ${x.daysLate} days past due. Please let us know when to expect payment, or reply if anything needs correcting.\n\nThank you,\nAccounts team`}
+function dl(n,t,ty){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([t],{type:ty}));a.download=n;a.click()}
+function exportDocs(kinds,name){const rows=[["No","Date","Party","Total","Due","Status"]];D.docs.filter(d=>kinds.includes(d.kind)).sort((a,b)=>b.d.localeCompare(a.d)).forEach(d=>rows.push([d.no,d.d,en(d.ent),d.total.toFixed(2),d.due||"",st(d)]));csvOut(rows,name)}
+document.addEventListener("click",async e=>{const t=e.target.closest("[data-tab],[data-a]");if(!t)return;if(t.dataset.tab){tab=t.dataset.tab;render();return}
+const a=t.dataset.a,id=t.dataset.id;
+if(a==="x")$("#dlg").close();if(a==="newdoc")dform(t.dataset.k);if(a==="newitem")iform();if(a==="newpar")pform();if(a==="newje")jform();if(a==="newacct")aform();
+if(a==="edititem")iedit(id);if(a==="editpar")pedit(id);
+if(a==="editacct"){const ac=D.accts.find(x=>x.n===id);if(ac)dlg(`<h2>Rename account ${esc(ac.n)}</h2>${fld("name","Name",ac.name,'required')}<div class="row"><button class="btn">Save</button>${cancel}</div>`,v=>{ac.name=v.name})}
+if(a==="delitem"){const i=it(id);if(i)confirmDlg(`Delete item ${i.sku} (${i.name})?${i.stock&&i.qty!==0?` It still has ${i.qty} on hand — that stock value will be gone with it.`:""} Documents already written keep their lines as typed.`,()=>{D.items=D.items.filter(x=>x.sku!==id);save();render();toast("Item deleted.")})}
+if(a==="delpar"){const en2=D.ents.find(x=>x.id===id);if(en2){const open=D.docs.filter(d=>d.ent===id&&d.st==="Open").length;confirmDlg(`Delete ${en2.name}?${open?` They still have ${open} open document(s) — those will show no party name.`:""}`,()=>{D.ents=D.ents.filter(x=>x.id!==id);save();render();toast("Deleted.")})}}
+if(a==="deldoc"){const d0=D.docs.find(x=>x.id===id);if(d0)confirmDlg(`Delete ${d0.no} (${fm(d0.total)})? Its journal entries will be reversed and any stock it moved will be put back.`,()=>{try{delDoc(id);save();render();toast(d0.no+" deleted and reversed.")}catch(x){toast(x.message)}})}
+try{if(a==="conv"){conv(id);save();render()}if(a==="pay"){pay(id);save();render()}}catch(x){toast(x.message)}
+if(a==="ask")ask();if(a==="draft")draft();
+if(a==="polish"){if(!$("#dt").value)draft();try{$("#dt").value=await llm("Rewrite this payment reminder email to be polite, brief and professional. Keep all figures and dates. Return only the email.",$("#dt").value)}catch(x){toast("Connect a language model in Settings first. ("+x.message+")")}}
+if(a==="cfg"){D.cfg={url:$("#cu").value.trim(),model:$("#cm").value.trim(),key:$("#ck").value};save();render();toast("Settings saved.")}
+if(a==="exp")dl("opensuite-backup.json",JSON.stringify(D,null,2),"application/json");
+if(a==="imp")$("#fi").click();
+if(a==="expinv")csvOut([["SKU","Name","Price","Cost","On hand","Reorder at","Value"],...D.items.map(i=>[i.sku,i.name,i.price.toFixed(2),i.cost.toFixed(2),i.stock?i.qty:"",i.stock?i.min:"",i.stock?(i.qty*i.cost).toFixed(2):""])],"opensuite-inventory.csv");
+if(a==="impinv")$("#fi2").click();
+if(a==="expdocs")exportDocs(t.dataset.k==="SO"?["SO","INV"]:["PO","BILL"],t.dataset.k==="SO"?"opensuite-sales.csv":"opensuite-purchases.csv");
+if(a==="expje"){const rows=[["Date","Memo","Account","Debit","Credit"]];D.je.forEach(j=>j.l.forEach(x=>rows.push([j.d,j.memo,x.a,x.dr?x.dr.toFixed(2):"",x.cr?x.cr.toFixed(2):""])));csvOut(rows,"opensuite-journal.csv")}
+if(a==="rst")confirmDlg("Replace everything with the demo data? Your current books will be gone unless you exported a backup first.",()=>{seed();save();render();toast("Reset to demo data.")})});
+document.addEventListener("change",e=>{
+if(e.target.id==="fi"&&e.target.files[0]){const r=new FileReader();r.onload=()=>{try{const j=JSON.parse(r.result);if(j.accts&&j.je){D=j;save();render();toast("Backup imported.")}else toast("Not an OpenSuite backup.")}catch(x){toast("Could not read that file.")}};r.readAsText(e.target.files[0]);e.target.value=""}
+if(e.target.id==="fi2"&&e.target.files[0]){const r=new FileReader();r.onload=()=>{try{const rows=csvParse(r.result);let n=0,skip=0;rows.forEach((p,i)=>{if(i===0&&/sku/i.test(p[0]||""))return;const sku=(p[0]||"").trim();if(!sku)return;if(it(sku)){skip++;return}newItem(sku,p[1]||sku,+p[2]||0,+p[3]||0,+p[4]||0,/service/i.test(p[5]||"")?false:true);n++});save();render();toast(n+" item(s) imported."+(skip?` ${skip} skipped — SKU already exists.`:""))}catch(x){toast("Could not read that file.")}};r.readAsText(e.target.files[0]);e.target.value=""}});
+document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.id==="q")ask()});
+render();
+</script></body></html>
