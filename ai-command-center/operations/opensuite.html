@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <!--
 OpenSuite ERP – free, local-first business suite with an AI assistant, in one file.
-MIT License. Copyright (c) 2026 Your Name
+MIT License. Copyright (c) 2026 Ting Lott (T. Lott Creative)
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 Rebuilt for AI Command Center (Nov 21, 2026) — same MIT file, same data, real working features:
-edit and delete for items, customers, vendors and accounts; delete an open document with its
-journal entries reversed and stock restored; CSV export for inventory, sales, purchases and the
-journal; CSV import for items; a receivables aging report; search on every list; in-page confirm
-dialogs and notices instead of browser popups. Data stays in this browser only, under the same
+edit and delete for items, customers, vendors and accounts; void an open document by
+reversing entry (history is kept, nothing is deleted); document numbers never reused;
+CSV export for inventory, sales, purchases and the journal; CSV import for items;
+a receivables aging report; search on every list; in-page confirm dialogs and notices
+instead of browser popups. Data stays in this browser only, under the same
 "opensuite" storage key, so data saved in the original file carries over unchanged.
+Money is rounded to cents at write time. Full integer-cents storage is a named
+follow-up, not yet done.
 -->
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -55,19 +58,20 @@ dialog::backdrop{background:#0008}label{display:block;margin:8px 0 2px;color:var
 </style></head><body>
 <div class="app"><aside id="side"></aside><main id="m"></main></div><dialog id="dlg"></dialog><div id="toast" role="status"></div>
 <script>
-const $=s=>document.querySelector(s),uid=()=>Math.random().toString(36).slice(2,8),
-esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])),
+const $=s=>document.querySelector(s),
+uid=()=>{let id;do{id=Math.random().toString(36).slice(2,8)}while(D&&(D.docs.some(d=>d.id===id)||D.je.some(j=>j.id===id)||D.ents.some(e=>e.id===id)));return id},
+esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])),
 td=()=>new Date().toISOString().slice(0,10),add=(d,n)=>new Date(Date.parse(d)+n*864e5).toISOString().slice(0,10),days=(a,b)=>Math.round((Date.parse(b)-Date.parse(a))/864e5),
 fm=n=>(n<-.004?"-":"")+"$"+Math.abs(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
 let D=null,tab="dash";
 const bal=a=>D.je.reduce((t,j)=>t+j.l.reduce((u,x)=>x.a===a?u+x.dr-x.cr:u,0),0),
 nat=ty=>D.accts.filter(a=>a.t===ty).reduce((s,a)=>s+(ty==="A"||ty==="X"?bal(a.n):-bal(a.n)),0),
 en=id=>(D.ents.find(e=>e.id===id)||{}).name||"–",it=s=>D.items.find(i=>i.sku===s);
-function post(d,memo,l,ref){const dr=l.reduce((t,x)=>t+x.dr,0),cr=l.reduce((t,x)=>t+x.cr,0);if(Math.abs(dr-cr)>.005)throw new Error("Entry is out of balance by "+fm(dr-cr));D.je.push({id:uid(),d,memo,ref,l})}
+function post(d,memo,l,ref){l=l.map(x=>({a:x.a,dr:Math.round(x.dr*100)/100,cr:Math.round(x.cr*100)/100}));const dr=l.reduce((t,x)=>t+x.dr,0),cr=l.reduce((t,x)=>t+x.cr,0);if(Math.abs(dr-cr)>.005)throw new Error("Entry is out of balance by "+fm(dr-cr));D.je.push({id:uid(),d,memo,ref,l})}
 const newEnt=(t,name,email)=>{const x={id:uid(),t,name,email:email||""};D.ents.push(x);return x.id},
 newItem=(sku,name,price,cost,min,stock)=>D.items.push({sku,name,price:+price,cost:+cost,qty:0,min:+min||0,stock:stock!==false});
-function mk(kind,ent,lines,date,terms){const L=lines.map(([s,q,p])=>{const i=it(s);return{s,q:+q,p:+p||(i?(kind==="BILL"||kind==="PO"?i.cost:i.price):0)}}),
-total=L.reduce((t,l)=>t+l.q*l.p,0),doc={id:uid(),kind,no:kind+"-"+(D.docs.filter(x=>x.kind===kind).length+1001),d:date,due:add(date,terms||30),ent,l:L,total,st:"Open"};
+function mk(kind,ent,lines,date,terms){const L=lines.map(([s,q,p])=>{const i=it(s);return{s,q:+q,p:Math.round((+p||(i?(kind==="BILL"||kind==="PO"?i.cost:i.price):0))*100)/100}}),
+total=Math.round(L.reduce((t,l)=>t+l.q*l.p,0)*100)/100,doc={id:uid(),kind,no:kind+"-"+(D.seq[kind]++),d:date,due:add(date,terms||30),ent,l:L,total,st:"Open"};
 if(total<=0)throw new Error("Add at least one line with a price, for example: WID-1, 2, 50");
 if(kind==="INV"){post(date,doc.no,[{a:"1100",dr:total,cr:0},{a:"4000",dr:0,cr:total}],doc.id);
 L.forEach(l=>{const i=it(l.s);if(i&&i.stock){const c=l.q*i.cost;i.qty-=l.q;if(c)post(date,doc.no+" cost of goods",[{a:"5000",dr:c,cr:0},{a:"1300",dr:0,cr:c}],doc.id)}})}
@@ -76,16 +80,20 @@ const l2=[];if(inv)l2.push({a:"1300",dr:inv,cr:0});if(total-inv>.004)l2.push({a:
 D.docs.push(doc);return doc}
 function pay(id){const x=D.docs.find(d=>d.id===id);if(!x)throw new Error("Document not found.");if(x.st!=="Open")throw new Error(x.no+" is already "+x.st+" — it cannot be paid again.");x.st="Paid";x.paid=td();post(td(),x.no+" payment",x.kind==="INV"?[{a:"1000",dr:x.total,cr:0},{a:"1100",dr:0,cr:x.total}]:[{a:"2000",dr:x.total,cr:0},{a:"1000",dr:0,cr:x.total}],x.id)}
 function conv(id){const o=D.docs.find(d=>d.id===id);if(!o)throw new Error("Document not found.");if(o.st!=="Open")throw new Error(o.no+" is already "+o.st+" — it cannot be converted again.");mk(o.kind==="SO"?"INV":"BILL",o.ent,o.l.map(l=>[l.s,l.q,l.p]),td(),30);o.st="Closed"}
-/* Delete an open document and undo everything it did: remove its journal entries
-   (invoice, cost of goods, payment — all carry the document id as ref) and put
-   stock back where it came from. Paid or closed documents are history and cannot
-   be deleted; correct them with a journal entry instead. */
-function delDoc(id){const x=D.docs.find(d=>d.id===id);if(!x)throw new Error("Document not found.");
-if(x.st!=="Open")throw new Error("Only an open document can be deleted. "+x.no+" is "+x.st+".");
+/* Void an open document the way proper books do: post a reversing entry for every
+   journal row it created, put the stock back, and keep the document on file marked
+   Void. Nothing is deleted, so the history and the audit trail stay intact. A void
+   that would drive stock negative is refused — those goods were already sold. */
+function voidDoc(id){const x=D.docs.find(d=>d.id===id);if(!x)throw new Error("Document not found.");
+if(x.st!=="Open")throw new Error("Only an open document can be voided. "+x.no+" is "+x.st+".");
+if(x.kind==="BILL")x.l.forEach(l=>{const i=it(l.s);if(i&&i.stock&&i.qty-l.q<0)throw new Error("Cannot void "+x.no+": "+i.sku+" stock would go below zero — those goods were already sold.")});
+D.je.filter(j=>j.ref===x.id).forEach(j=>post(td(),"Reversal of "+j.memo,j.l.map(y=>({a:y.a,dr:y.cr,cr:y.dr})),x.id));
 if(x.kind==="INV")x.l.forEach(l=>{const i=it(l.s);if(i&&i.stock)i.qty+=l.q});
-if(x.kind==="BILL")x.l.forEach(l=>{const i=it(l.s);if(i&&i.stock)i.qty-=l.q});
-D.je=D.je.filter(j=>j.ref!==x.id);D.docs=D.docs.filter(d=>d.id!==id)}
-function seed(){D={accts:[["1000","Cash","A"],["1100","Accounts Receivable","A"],["1300","Inventory","A"],["2000","Accounts Payable","L"],["3000","Owner Equity","E"],["4000","Sales Revenue","R"],["5000","Cost of Goods Sold","X"],["6000","Operating Expenses","X"]].map(([n,name,t])=>({n,name,t})),je:[],ents:[],items:[],docs:[],cfg:{model:"llama3.1",url:""}};
+if(x.kind==="BILL")x.l.forEach(l=>{const i=it(l.s);if(i&&i.stock){i.qty-=l.q;
+const prev=D.docs.filter(d=>d.kind==="BILL"&&d.id!==x.id&&d.st!=="Void"&&d.l.some(z=>z.s===l.s)).sort((a,b)=>b.d.localeCompare(a.d))[0];
+if(prev)i.cost=prev.l.find(z=>z.s===l.s).p}});
+x.st="Void"}
+function seed(){D={accts:[["1000","Cash","A"],["1100","Accounts Receivable","A"],["1300","Inventory","A"],["2000","Accounts Payable","L"],["3000","Owner Equity","E"],["4000","Sales Revenue","R"],["5000","Cost of Goods Sold","X"],["6000","Operating Expenses","X"]].map(([n,name,t])=>({n,name,t})),je:[],ents:[],items:[],docs:[],cfg:{model:"llama3.1",url:""},seq:{SO:1001,INV:1001,PO:1001,BILL:1001}};
 const c1=newEnt("C","Northwind Co","ap@northwind.test"),c2=newEnt("C","Bright Labs","hi@brightlabs.test"),v1=newEnt("V","Supply House","sales@supply.test");
 newItem("WID-1","Widget",50,0,10);newItem("GAD-2","Gadget",120,0,10);newItem("GIZ-3","Gizmo",30,0,5);newItem("SVC-1","Consulting hour",150,0,0,false);
 post(add(td(),-70),"Opening capital",[{a:"1000",dr:25000,cr:0},{a:"3000",dr:0,cr:25000}]);
@@ -96,6 +104,10 @@ mk("BILL",v1,[["Office rent",1,1500]],add(td(),-10));mk("BILL",v1,[["Office rent
 mk("SO",c2,[["WID-1",20,0]],add(td(),-2));
 post(add(td(),-20),"Software subscriptions",[{a:"6000",dr:800,cr:0},{a:"1000",dr:0,cr:800}])}
 try{D=JSON.parse(localStorage.getItem("opensuite")||"null")}catch(e){}if(!D)seed();
+/* Document numbers must never be reused: give older saves a per-kind sequence
+   starting just past their highest existing number. */
+function ensureSeq(){if(!D.seq)D.seq={};["SO","INV","PO","BILL"].forEach(k=>{const nums=D.docs.filter(d=>d.kind===k).map(d=>+String(d.no).split("-")[1]||1000);D.seq[k]=Math.max(D.seq[k]||1001,1001,...nums.map(n=>n+1))})}
+ensureSeq();
 const save=()=>{try{localStorage.setItem("opensuite",JSON.stringify(D))}catch(e){}};
 const st=d=>d.st==="Open"&&(d.kind==="INV"||d.kind==="BILL")&&d.due<td()?"Overdue":d.st;
 function snap(){const t=td(),op=k=>D.docs.filter(d=>d.kind===k&&d.st==="Open"),tc={};D.docs.filter(d=>d.kind==="INV").forEach(d=>tc[en(d.ent)]=(tc[en(d.ent)]||0)+d.total);
@@ -107,7 +119,7 @@ function exc(){const t=td(),s=snap(),o=[];
 s.overdueInvoices.forEach(x=>o.push({p:x.daysLate>30?"High":"Medium",k:"ar",t:`${x.no} (${x.customer}) is ${x.daysLate} days overdue: ${fm(x.amount)}.`}));
 s.billsDue.forEach(x=>o.push({p:x.due<t?"High":"Low",k:"ap",t:`Bill ${x.no} from ${x.vendor}, ${fm(x.amount)}, ${x.due<t?"was due":"is due"} ${x.due}.`}));
 s.lowStock.forEach(x=>o.push({p:x.qty<0?"High":"Medium",k:"stock",t:`${x.sku} stock is ${x.qty}, at or below its reorder level.`}));
-const b=D.docs.filter(d=>d.kind==="BILL");b.forEach((x,i)=>b.slice(i+1).forEach(y=>{if(x.ent===y.ent&&Math.abs(x.total-y.total)<.005&&Math.abs(days(x.d,y.d))<=7)o.push({p:"Medium",k:"dup",t:`Possible duplicate bills ${x.no} and ${y.no}: ${fm(x.total)} from ${en(x.ent)}.`})}));
+const b=D.docs.filter(d=>d.kind==="BILL"&&d.st!=="Void");b.forEach((x,i)=>b.slice(i+1).forEach(y=>{if(x.ent===y.ent&&Math.abs(x.total-y.total)<.005&&Math.abs(days(x.d,y.d))<=7)o.push({p:"Medium",k:"dup",t:`Possible duplicate bills ${x.no} and ${y.no}: ${fm(x.total)} from ${en(x.ent)}.`})}));
 if(s.cash<0)o.push({p:"High",k:"cash",t:`Cash is negative (${fm(s.cash)}).`});
 return o.sort((a,b)=>"HighMediumLow".indexOf(a.p)-"HighMediumLow".indexOf(b.p))}
 function local(q){q=q.toLowerCase();const s=snap();
@@ -150,7 +162,7 @@ const csvCell=v=>{v=String(v??"");return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""
 const csvOut=(rows,name)=>{dl(name,rows.map(r=>r.map(csvCell).join(",")).join("\n"),"text/csv");toast(rows.length-1+" rows exported.")};
 function dash(){const s=snap(),ex=exc().slice(0,5);return`<div class="top"><h2>Dashboard</h2></div><div class="cards">${[["Cash",s.cash],["Receivables",s.receivables],["Payables",s.payables],["Inventory",s.inventoryValue],["Net income",s.netIncome]].map(([l,v])=>`<div class="c"><small>${l}</small><span class="k ${l==="Net income"?v<0?"neg":"pos":""}">${fm(v)}</span></div>`).join("")}</div>
 <div class="c"><h3>Needs attention</h3>${ex.map(x=>`<p style="margin:6px 0"><span class="tag ${x.p}">${x.p}</span> ${esc(x.t)}</p>`).join("")||`<span class="mu">All clear.</span>`}</div>`}
-function docs(kinds,title){const rows=D.docs.filter(d=>kinds.includes(d.kind)).sort((a,b)=>b.d.localeCompare(a.d)).map(d=>`<tr><td>${d.no}</td><td>${d.d}</td><td>${esc(en(d.ent))}</td><td class="n">${fm(d.total)}</td><td>${d.kind==="INV"||d.kind==="BILL"?"Due "+d.due:""}</td><td><span class="tag ${st(d)}">${st(d)}</span></td><td>${d.st==="Open"?(d.kind==="SO"||d.kind==="PO"?`<button class="btn g s" data-a="conv" data-id="${d.id}">${d.kind==="SO"?"Invoice it":"Bill it"}</button>`:`<button class="btn g s" data-a="pay" data-id="${d.id}">Mark paid</button>`):""} ${d.st==="Open"?`<button class="btn danger s" data-a="deldoc" data-id="${d.id}">Delete</button>`:""}</td></tr>`);
+function docs(kinds,title){const rows=D.docs.filter(d=>kinds.includes(d.kind)).sort((a,b)=>b.d.localeCompare(a.d)).map(d=>`<tr><td>${d.no}</td><td>${d.d}</td><td>${esc(en(d.ent))}</td><td class="n">${fm(d.total)}</td><td>${d.kind==="INV"||d.kind==="BILL"?"Due "+d.due:""}</td><td><span class="tag ${st(d)}">${st(d)}</span></td><td>${d.st==="Open"?(d.kind==="SO"||d.kind==="PO"?`<button class="btn g s" data-a="conv" data-id="${d.id}">${d.kind==="SO"?"Invoice it":"Bill it"}</button>`:`<button class="btn g s" data-a="pay" data-id="${d.id}">Mark paid</button>`):""} ${d.st==="Open"?`<button class="btn danger s" data-a="voiddoc" data-id="${d.id}">Void</button>`:""}</td></tr>`);
 return`<div class="top"><h2>${title}</h2>${kinds.map(k=>`<button class="btn ${k==="SO"||k==="PO"?"g":""}" data-a="newdoc" data-k="${k}">New ${{SO:"sales order",INV:"invoice",PO:"purchase order",BILL:"bill"}[k]}</button>`).join("")}<button class="btn g" data-a="expdocs" data-k="${kinds[0]}">Export CSV</button></div><div class="c">${searchBox("Search number, party, or status…")}${tbl(["No.","Date","Party","#Total","Terms","Status",""],rows)}</div>`}
 function dform(k){const t=k==="INV"||k==="SO"?"C":"V";dlg(`<h2>New ${{SO:"sales order",INV:"invoice",PO:"purchase order",BILL:"bill"}[k]}</h2><label for="fe">${t==="C"?"Customer":"Vendor"}</label><select id="fe" name="ent" required>${D.ents.filter(e=>e.t===t).map(e=>`<option value="${e.id}">${esc(e.name)}</option>`).join("")}</select>${fld("d","Date",td(),'type="date" required')}<label for="fl">Lines: SKU or description, quantity, price (price is optional for stocked items)</label><textarea id="fl" name="l" rows="5" required placeholder="WID-1, 2, 50&#10;Consulting, 1, 300"></textarea><div class="row"><button class="btn">Save</button>${cancel}</div>`,v=>{if(!v.ent)throw new Error("Add a "+(t==="C"?"customer":"vendor")+" first, under Customers & Vendors.");mk(k,v.ent,v.l.split("\n").map(l=>l.split(",").map(x=>x.trim())).filter(p=>p[0]).map(p=>[p[0],+p[1]||1,+p[2]||0]),v.d,30)})}
 function inv(){return`<div class="top"><h2>Inventory</h2><button class="btn" data-a="newitem">Add item</button><button class="btn g" data-a="expinv">Export CSV</button><button class="btn g" data-a="impinv">Import CSV</button></div><div class="c">${searchBox("Search SKU or name…")}${tbl(["SKU","Name","#Price","#Cost","#On hand","#Reorder at","#Value",""],D.items.map(i=>`<tr><td>${esc(i.sku)}</td><td>${esc(i.name)}${i.stock?"":' <span class="tag">service</span>'}</td><td class="n">${fm(i.price)}</td><td class="n">${fm(i.cost)}</td><td class="n ${i.qty<=i.min&&i.stock?"neg":""}">${i.stock?i.qty:"–"}</td><td class="n">${i.stock?i.min:"–"}</td><td class="n">${i.stock?fm(i.qty*i.cost):"–"}</td><td><button class="btn g s" data-a="edititem" data-id="${esc(i.sku)}">Edit</button> <button class="btn danger s" data-a="delitem" data-id="${esc(i.sku)}">Delete</button></td></tr>`))}<p class="mu">Stock arrives when you enter a bill for the SKU, and leaves when you invoice it. Import CSV columns: SKU, Name, Price, Cost, Reorder level, Type (stocked or service).</p></div>`}
@@ -192,7 +204,7 @@ if(a==="edititem")iedit(id);if(a==="editpar")pedit(id);
 if(a==="editacct"){const ac=D.accts.find(x=>x.n===id);if(ac)dlg(`<h2>Rename account ${esc(ac.n)}</h2>${fld("name","Name",ac.name,'required')}<div class="row"><button class="btn">Save</button>${cancel}</div>`,v=>{ac.name=v.name})}
 if(a==="delitem"){const i=it(id);if(i)confirmDlg(`Delete item ${i.sku} (${i.name})?${i.stock&&i.qty!==0?` It still has ${i.qty} on hand — that stock value will be gone with it.`:""} Documents already written keep their lines as typed.`,()=>{D.items=D.items.filter(x=>x.sku!==id);save();render();toast("Item deleted.")})}
 if(a==="delpar"){const en2=D.ents.find(x=>x.id===id);if(en2){const open=D.docs.filter(d=>d.ent===id&&d.st==="Open").length;confirmDlg(`Delete ${en2.name}?${open?` They still have ${open} open document(s) — those will show no party name.`:""}`,()=>{D.ents=D.ents.filter(x=>x.id!==id);save();render();toast("Deleted.")})}}
-if(a==="deldoc"){const d0=D.docs.find(x=>x.id===id);if(d0)confirmDlg(`Delete ${d0.no} (${fm(d0.total)})? Its journal entries will be reversed and any stock it moved will be put back.`,()=>{try{delDoc(id);save();render();toast(d0.no+" deleted and reversed.")}catch(x){toast(x.message)}})}
+if(a==="voiddoc"){const d0=D.docs.find(x=>x.id===id);if(d0)confirmDlg(`Void ${d0.no} (${fm(d0.total)})? A reversing entry will be posted, the document stays on file marked Void, and stock is put back. Nothing is deleted.`,()=>{try{voidDoc(id);save();render();toast(d0.no+" voided — reversal posted, history kept.")}catch(x){toast(x.message)}})}
 try{if(a==="conv"){conv(id);save();render()}if(a==="pay"){pay(id);save();render()}}catch(x){toast(x.message)}
 if(a==="ask")ask();if(a==="draft")draft();
 if(a==="polish"){if(!$("#dt").value)draft();try{$("#dt").value=await llm("Rewrite this payment reminder email to be polite, brief and professional. Keep all figures and dates. Return only the email.",$("#dt").value)}catch(x){toast("Connect a language model in Settings first. ("+x.message+")")}}
@@ -205,7 +217,12 @@ if(a==="expdocs")exportDocs(t.dataset.k==="SO"?["SO","INV"]:["PO","BILL"],t.data
 if(a==="expje"){const rows=[["Date","Memo","Account","Debit","Credit"]];D.je.forEach(j=>j.l.forEach(x=>rows.push([j.d,j.memo,x.a,x.dr?x.dr.toFixed(2):"",x.cr?x.cr.toFixed(2):""])));csvOut(rows,"opensuite-journal.csv")}
 if(a==="rst")confirmDlg("Replace everything with the demo data? Your current books will be gone unless you exported a backup first.",()=>{seed();save();render();toast("Reset to demo data.")})});
 document.addEventListener("change",e=>{
-if(e.target.id==="fi"&&e.target.files[0]){const r=new FileReader();r.onload=()=>{try{const j=JSON.parse(r.result);if(j.accts&&j.je){D=j;save();render();toast("Backup imported.")}else toast("Not an OpenSuite backup.")}catch(x){toast("Could not read that file.")}};r.readAsText(e.target.files[0]);e.target.value=""}
+if(e.target.id==="fi"&&e.target.files[0]){const r=new FileReader();r.onload=()=>{try{const j=JSON.parse(r.result);
+const bad=(()=>{if(!j||!Array.isArray(j.accts)||!Array.isArray(j.je)||!Array.isArray(j.docs)||!Array.isArray(j.items)||!Array.isArray(j.ents))return"missing books data";
+for(const en of j.je){const dr=en.l.reduce((t,x)=>t+(+x.dr||0),0),cr=en.l.reduce((t,x)=>t+(+x.cr||0),0);if(Math.abs(dr-cr)>.005)return"an entry is out of balance: "+(en.memo||"");
+for(const x of en.l)if(!j.accts.some(a=>a.n===x.a))return"unknown account "+x.a}return null})();
+if(bad){toast("Backup failed validation: "+bad+". Nothing was changed.");return}
+D=j;ensureSeq();save();render();toast("Backup imported.")}catch(x){toast("Could not read that file.")}};r.readAsText(e.target.files[0]);e.target.value=""}
 if(e.target.id==="fi2"&&e.target.files[0]){const r=new FileReader();r.onload=()=>{try{const rows=csvParse(r.result);let n=0,skip=0;rows.forEach((p,i)=>{if(i===0&&/sku/i.test(p[0]||""))return;const sku=(p[0]||"").trim();if(!sku)return;if(it(sku)){skip++;return}newItem(sku,p[1]||sku,+p[2]||0,+p[3]||0,+p[4]||0,/service/i.test(p[5]||"")?false:true);n++});save();render();toast(n+" item(s) imported."+(skip?` ${skip} skipped — SKU already exists.`:""))}catch(x){toast("Could not read that file.")}};r.readAsText(e.target.files[0]);e.target.value=""}});
 document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.id==="q")ask()});
 render();
