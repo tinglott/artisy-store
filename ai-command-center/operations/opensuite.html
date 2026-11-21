@@ -74,8 +74,8 @@ L.forEach(l=>{const i=it(l.s);if(i&&i.stock){const c=l.q*i.cost;i.qty-=l.q;if(c)
 if(kind==="BILL"){let inv=0;L.forEach(l=>{const i=it(l.s);if(i&&i.stock){i.qty+=l.q;i.cost=l.p;inv+=l.q*l.p}});
 const l2=[];if(inv)l2.push({a:"1300",dr:inv,cr:0});if(total-inv>.004)l2.push({a:"6000",dr:total-inv,cr:0});l2.push({a:"2000",dr:0,cr:total});post(date,doc.no,l2,doc.id)}
 D.docs.push(doc);return doc}
-function pay(id){const x=D.docs.find(d=>d.id===id);x.st="Paid";x.paid=td();post(td(),x.no+" payment",x.kind==="INV"?[{a:"1000",dr:x.total,cr:0},{a:"1100",dr:0,cr:x.total}]:[{a:"2000",dr:x.total,cr:0},{a:"1000",dr:0,cr:x.total}],x.id)}
-function conv(id){const o=D.docs.find(d=>d.id===id);mk(o.kind==="SO"?"INV":"BILL",o.ent,o.l.map(l=>[l.s,l.q,l.p]),td(),30);o.st="Closed"}
+function pay(id){const x=D.docs.find(d=>d.id===id);if(!x)throw new Error("Document not found.");if(x.st!=="Open")throw new Error(x.no+" is already "+x.st+" — it cannot be paid again.");x.st="Paid";x.paid=td();post(td(),x.no+" payment",x.kind==="INV"?[{a:"1000",dr:x.total,cr:0},{a:"1100",dr:0,cr:x.total}]:[{a:"2000",dr:x.total,cr:0},{a:"1000",dr:0,cr:x.total}],x.id)}
+function conv(id){const o=D.docs.find(d=>d.id===id);if(!o)throw new Error("Document not found.");if(o.st!=="Open")throw new Error(o.no+" is already "+o.st+" — it cannot be converted again.");mk(o.kind==="SO"?"INV":"BILL",o.ent,o.l.map(l=>[l.s,l.q,l.p]),td(),30);o.st="Closed"}
 /* Delete an open document and undo everything it did: remove its journal entries
    (invoice, cost of goods, payment — all carry the document id as ref) and put
    stock back where it came from. Paid or closed documents are history and cannot
