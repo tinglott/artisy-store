@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<!--
+OpenLeaf CRM – free, local-first CRM in one file.
+MIT License. Copyright (c) 2026 Your Name
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+-->
+<!-- Rebuilt for AI Command Center by T. Lott Creative, Nov 21, 2026 — based on the MIT-licensed OpenLeaf CRM above (updated version with Subscribers + Autoresponders + OpenLeaf Sender). Local-first: all data stays in the browser. Changes from the original: in-page confirm dialog instead of native confirm()/alert()/prompt(), sample data saved on first load, Reset sample data, Clear all data, Export deals CSV, AI Command Center header. -->
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>OpenLeaf CRM</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Instrument+Sans:wght@400;600&display=swap">
+<style>
+:root{--bg:#f5f4f9;--sf:#fff;--ink:#1c1a2e;--mu:#625f78;--ln:#dedcea;--ac:#4f35e0;--ac2:#e8e4ff;--gn:#157a4a;--rd:#b3261e;--am:#9a5b00;--r:8px;box-sizing:border-box;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px);color-scheme:light}
+@media(prefers-color-scheme:dark){:root{--bg:#14121f;--sf:#1e1b2e;--ink:#ece9fb;--mu:#a29fbb;--ln:#322e48;--ac:#9a89ff;--ac2:#2b2552;--gn:#58d69a;--rd:#ff8b84;--am:#f2b24d;color-scheme:dark}}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Instrument Sans",system-ui,sans-serif}
+h1,h2,h3,.big{font-family:"Bricolage Grotesque",system-ui,sans-serif;margin:0}
+.brand{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 20px;background:var(--sf);border-bottom:1px solid var(--ln);font-size:14px}
+.brand a{color:var(--ac)}
+.app{display:grid;grid-template-columns:200px 1fr;min-height:calc(100vh - 45px)}
+aside{background:var(--sf);border-right:1px solid var(--ln);padding:16px 12px;position:sticky;top:0;height:calc(100vh - 45px);display:flex;flex-direction:column;gap:4px}
+aside h1{font-size:22px;padding:0 8px 12px}
+aside button.t{background:none;border:0;text-align:left;padding:9px 10px;border-radius:var(--r);font:inherit;color:var(--mu);cursor:pointer;font-weight:600}
+aside button.t[aria-current=true]{background:var(--ac2);color:var(--ac)}
+.sp{flex:1}
+main{padding:20px;max-width:1100px;width:100%}
+.top{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}.top h2{font-size:24px;flex:1;min-width:120px}
+button,input,select,textarea{font:inherit;color:var(--ink)}
+input,select,textarea{background:var(--bg);border:1px solid var(--ln);border-radius:6px;padding:8px;width:100%}
+.btn{background:var(--ac);color:var(--bg);border:0;border-radius:6px;padding:8px 14px;font-weight:600;cursor:pointer}
+.btn.g{background:none;color:var(--ink);border:1px solid var(--ln)}.btn.s{padding:3px 9px;font-size:13px}.btn.d{color:var(--rd)}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px}
+.c{background:var(--sf);border:1px solid var(--ln);border-radius:var(--r);padding:12px}.c small{color:var(--mu)}.big{font-size:26px;display:block}
+.sc{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:520px;background:var(--sf);border:1px solid var(--ln);border-radius:var(--r)}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--ln)}th{color:var(--mu);font-weight:600}
+tr[data-open]{cursor:pointer}tr[data-open]:hover{background:var(--ac2)}
+.tag{display:inline-block;background:var(--ac2);color:var(--ac);border-radius:10px;padding:0 8px;font-size:12px;margin-right:4px}
+.board{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(200px,1fr);gap:10px;overflow-x:auto;padding-bottom:8px}
+.col{background:var(--ac2);border-radius:var(--r);padding:8px;min-height:140px}.col h3{font-size:15px;padding:2px 4px 8px}
+.col h3 span{color:var(--mu);font-weight:400;font-size:13px}
+.deal{background:var(--sf);border:1px solid var(--ln);border-radius:6px;padding:8px;margin-bottom:8px}
+.deal b{display:block}.deal .r{display:flex;justify-content:space-between;margin-top:6px}
+.note{border-left:3px solid var(--ac);padding:2px 10px;margin:8px 0}.note small{color:var(--mu)}
+.ok{color:var(--gn)}.od{color:var(--rd)}.mu{color:var(--mu)}
+dialog{background:var(--sf);color:var(--ink);border:1px solid var(--ln);border-radius:var(--r);padding:18px;width:min(520px,94vw);max-height:90vh;overflow:auto}
+dialog::backdrop{background:#0008}label{display:block;margin:8px 0 2px;color:var(--mu);font-size:13px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.bar{height:8px;background:var(--ac2);border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--ac)}
+#toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:6px;display:none;z-index:50;max-width:90vw}
+@media(max-width:700px){.app{display:block}aside{position:static;height:auto;flex-direction:row;overflow-x:auto;padding:8px;border:0;border-bottom:1px solid var(--ln)}aside h1,.sp{display:none}aside button.t{white-space:nowrap}main{padding:14px}}
+</style></head><body>
+<header class="brand"><div><strong>OpenLeaf CRM</strong> · Part of <a href="https://shop.artistrystore.com/ai-command-center/">AI Command Center — Sales &amp; CRM</a></div><a href="https://shop.artistrystore.com/">Visit the store</a></header>
+<div class="app"><aside id="side"></aside><main id="m"></main></div>
+<dialog id="dlg"></dialog>
+<dialog id="cfm"><p id="cfm-msg"></p><div class="row"><button class="btn" id="cfm-yes">Yes, do it</button><button class="btn g" id="cfm-no">Cancel</button></div></dialog>
+<div id="toast" role="status"></div>
+<script>
+const $=s=>document.querySelector(s),uid=()=>Math.random().toString(36).slice(2,9),
+esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])),
+fm=n=>"$"+Math.round(n||0).toLocaleString("en-US"),today=()=>new Date().toISOString().slice(0,10),
+ST=["Lead","Contacted","Proposal","Won","Lost"];
+let D=null,tab="dash",q="",had=null;
+function seed(){const a=uid(),b=uid(),c=uid();return{contacts:[
+{id:a,name:"Maya Ortiz",email:"maya@example.com",phone:"555-0142",co:"Brightside Studio",src:"Instagram",tags:"client,design",notes:[{t:"Asked about the wellness bundle.",d:today()}]},
+{id:b,name:"Dan Whitfield",email:"dan@example.com",phone:"",co:"Whitfield & Co",src:"Referral",tags:"lead",notes:[]},
+{id:c,name:"Priya Nair",email:"priya@example.com",phone:"555-0177",co:"Calm Clinic",src:"Website",tags:"partner",notes:[]}],
+deals:[{id:uid(),title:"Course licence",val:2400,stage:"Proposal",cid:a},{id:uid(),title:"Ebook bundle",val:600,stage:"Lead",cid:b},{id:uid(),title:"Workshop series",val:4200,stage:"Contacted",cid:c},{id:uid(),title:"Logo pack",val:900,stage:"Won",cid:a}],
+tasks:[{id:uid(),title:"Send proposal to Maya",due:today(),cid:a,done:0},{id:uid(),title:"Follow up with Dan",due:"2026-11-10",cid:b,done:0}]}}
+try{had=localStorage.getItem("openleaf");D=JSON.parse(had||"null")}catch(e){}
+D=D||seed();D.seqs=D.seqs||[{id:uid(),name:"Welcome series",tag:"",on:1,steps:[{day:0,sub:"Welcome!",body:"Hi {{name}},\n\nThanks for joining. Here is what to expect."},{day:3,sub:"A quick tip for you",body:"Hi {{name}},\n\nHere is something helpful."}]}];D.cfg=D.cfg||{};D.sent=D.sent||[];const save=()=>{try{localStorage.setItem("openleaf",JSON.stringify(D))}catch(e){}};
+if(!had)save();
+function toast(msg){const t=$("#toast");t.textContent=msg;t.style.display="block";clearTimeout(t._h);t._h=setTimeout(()=>{t.style.display="none"},3500)}
+function askConfirm(msg){return new Promise(res=>{const d=$("#cfm");$("#cfm-msg").textContent=msg;d.showModal();const done=v=>{d.close();$("#cfm-yes").onclick=$("#cfm-no").onclick=null;res(v)};$("#cfm-yes").onclick=()=>done(true);$("#cfm-no").onclick=()=>done(false);d.oncancel=()=>done(false)})}
+const cn=id=>(D.contacts.find(c=>c.id===id)||{}).name||"No contact";
+const copts=sel=>`<option value="">None</option>`+D.contacts.map(c=>`<option value="${c.id}" ${c.id===sel?"selected":""}>${esc(c.name)}</option>`).join("");
+const T={dash:"Dashboard",con:"Contacts",sub:"Subscribers",seq:"Autoresponders",deal:"Deals",task:"Tasks"};
+function side(){$("#side").innerHTML=`<h1>OpenLeaf</h1>`+Object.entries(T).map(([k,v])=>`<button class="t" data-tab="${k}" aria-current="${k===tab}">${v}</button>`).join("")+`<div class="sp"></div><button class="t" data-a="exp">Export backup</button><button class="t" data-a="csv">Export contacts CSV</button><button class="t" data-a="csvdeals">Export deals CSV</button><button class="t" data-a="imp">Import backup</button><button class="t" data-a="reset">Reset sample data</button><button class="t" data-a="clear">Clear all data</button><input type="file" id="fi" accept=".json" hidden>`}
+function dlg(html,fn){const d=$("#dlg");d.innerHTML=`<form>${html}</form>`;d.querySelector("form").onsubmit=e=>{e.preventDefault();fn(Object.fromEntries(new FormData(e.target)));d.close();render()};d.showModal()}
+const close=`<button type="button" class="btn g" data-a="x">Cancel</button>`;
+function dash(){const open=D.deals.filter(d=>!["Won","Lost"].includes(d.stage)),won=D.deals.filter(d=>d.stage==="Won"),lost=D.deals.filter(d=>d.stage==="Lost"),
+sum=a=>a.reduce((s,d)=>s+ +d.val,0),od=D.tasks.filter(t=>!t.done&&t.due<today()).length,dt=D.tasks.filter(t=>!t.done&&t.due===today()).length,
+rate=won.length+lost.length?Math.round(won.length/(won.length+lost.length)*100)+"%":"–",mx=Math.max(1,...ST.map(s=>sum(D.deals.filter(d=>d.stage===s))));
+return`<div class="top"><h2>Dashboard</h2></div><div class="cards"><div class="c"><small>Open pipeline</small><span class="big">${fm(sum(open))}</span></div><div class="c"><small>Won</small><span class="big ok">${fm(sum(won))}</span></div><div class="c"><small>Win rate</small><span class="big">${rate}</span></div><div class="c"><small>Contacts</small><span class="big">${D.contacts.length}</span></div><div class="c"><small>Tasks today / overdue</small><span class="big">${dt} / <span class="${od?"od":""}">${od}</span></span></div></div>
+<div class="c"><h3 style="margin-bottom:10px">Pipeline by stage</h3>${ST.map(s=>{const v=sum(D.deals.filter(d=>d.stage===s));return`<div style="display:grid;grid-template-columns:90px 1fr 80px;gap:8px;align-items:center;margin:6px 0"><span>${s}</span><div class="bar"><i style="width:${v/mx*100}%"></i></div><span style="text-align:right">${fm(v)}</span></div>`}).join("")}</div>
+<p class="mu" style="margin-top:14px">Local-first — your data stays in this browser. Back it up with Export backup.</p>`}
+function con(){const f=D.contacts.filter(c=>(c.name+c.email+c.co+c.tags).toLowerCase().includes(q));
+return`<div class="top"><h2>Contacts</h2><input id="q" placeholder="Search" value="${esc(q)}" style="max-width:220px" aria-label="Search contacts"><button class="btn" data-a="newc">Add contact</button></div><div class="sc"><table><tr><th>Name</th><th>Company</th><th>Email</th><th>Tags</th></tr>${f.map(c=>`<tr data-open="${c.id}"><td><b>${esc(c.name)}</b></td><td>${esc(c.co)}</td><td>${esc(c.email)}</td><td>${(c.tags||"").split(",").filter(x=>x.trim()).map(t=>`<span class="tag">${esc(t.trim())}</span>`).join("")}</td></tr>`).join("")||`<tr><td colspan="4" class="mu">No contacts yet. Add your first one.</td></tr>`}</table></div>`}
+function deal(){return`<div class="top"><h2>Deals</h2><button class="btn" data-a="newd">Add deal</button></div><div class="board">${ST.map(s=>{const ds=D.deals.filter(d=>d.stage===s);return`<div class="col"><h3>${s} <span>${ds.length} · ${fm(ds.reduce((a,d)=>a+ +d.val,0))}</span></h3>${ds.map(d=>{const i=ST.indexOf(d.stage);return`<div class="deal"><b>${esc(d.title)}</b><span class="mu">${esc(cn(d.cid))}</span><div class="r"><b>${fm(d.val)}</b><span>${i>0?`<button class="btn g s" data-mv="${d.id}" data-dir="-1" aria-label="Move back">←</button> `:""}${i<4?`<button class="btn g s" data-mv="${d.id}" data-dir="1" aria-label="Move forward">→</button> `:""}<button class="btn g s" data-ed="${d.id}">Edit</button></span></div></div>`}).join("")}</div>`}).join("")}</div>`}
+function task(){const ts=[...D.tasks].sort((a,b)=>a.done-b.done||a.due.localeCompare(b.due));
+return`<div class="top"><h2>Tasks</h2><button class="btn" data-a="newt">Add task</button></div><div class="sc"><table><tr><th></th><th>Task</th><th>Contact</th><th>Due</th><th></th></tr>${ts.map(t=>`<tr><td><input type="checkbox" style="width:auto" data-chk="${t.id}" ${t.done?"checked":""} aria-label="Done"></td><td style="${t.done?"text-decoration:line-through;opacity:.6":""}">${esc(t.title)}</td><td>${esc(cn(t.cid))}</td><td class="${!t.done&&t.due<today()?"od":""}">${t.due}</td><td><button class="btn g s d" data-dt="${t.id}">Delete</button></td></tr>`).join("")||`<tr><td colspan="5" class="mu">No tasks. Add one to stay on top of follow-ups.</td></tr>`}</table></div>`}
+function cform(c){c=c||{};dlg(`<h2>${c.id?"Edit":"New"} contact</h2>${[["name","Name"],["email","Email"],["phone","Phone"],["co","Company"],["src","Source"],["tags","Tags (comma separated)"]].map(([k,l])=>`<label for="f${k}">${l}</label><input id="f${k}" name="${k}" value="${esc(c[k])}" ${k==="name"?"required":""}>`).join("")}<div class="row"><button class="btn">Save contact</button>${close}</div>`,v=>{if(c.id)Object.assign(c,v);else D.contacts.push({id:uid(),notes:[],...v});save()})}
+function cview(id){const c=D.contacts.find(x=>x.id===id);if(!c)return;
+const html=()=>`<h2>${esc(c.name)}</h2><p class="mu">${esc(c.co)} ${c.email?`· <a href="mailto:${esc(c.email)}">${esc(c.email)}</a>`:""} ${c.phone?`· <a href="tel:${esc(c.phone)}">${esc(c.phone)}</a>`:""}</p><p>${c.src?`Source: ${esc(c.src)}`:""}</p>
+<h3>Deals</h3>${D.deals.filter(d=>d.cid===id).map(d=>`<div>${esc(d.title)} · ${fm(d.val)} · ${d.stage}</div>`).join("")||`<span class="mu">None</span>`}
+<h3 style="margin-top:12px">Notes</h3>${(c.notes||[]).slice().reverse().map(n=>`<div class="note">${esc(n.t)}<br><small>${n.d}</small></div>`).join("")||`<span class="mu">No notes yet.</span>`}
+<label for="nn">Add a note</label><textarea id="nn" rows="2"></textarea><div class="row"><button type="button" class="btn" id="an">Save note</button><button type="button" class="btn g" id="ec">Edit</button><button type="button" class="btn g d" id="dc">Delete</button>${close}</div>`;
+const d=$("#dlg");d.innerHTML=`<form>${html()}</form>`;d.showModal();
+$("#an").onclick=()=>{const t=$("#nn").value.trim();if(!t)return;c.notes=c.notes||[];c.notes.push({t,d:today()});save();cview(id)};
+$("#ec").onclick=()=>{d.close();cform(c)};
+$("#dc").onclick=async()=>{if(await askConfirm("Delete this contact? Their deals and tasks stay but lose the link.")){D.contacts=D.contacts.filter(x=>x.id!==id);save();d.close();render()}}}
+function dform(x){x=x||{};dlg(`<h2>${x.id?"Edit":"New"} deal</h2><label for="dt">Title</label><input id="dt" name="title" value="${esc(x.title)}" required><label for="dv">Value ($)</label><input id="dv" name="val" type="number" min="0" value="${x.val||0}"><label for="ds">Stage</label><select id="ds" name="stage">${ST.map(s=>`<option ${s===x.stage?"selected":""}>${s}</option>`).join("")}</select><label for="dc2">Contact</label><select id="dc2" name="cid">${copts(x.cid)}</select><div class="row"><button class="btn">Save deal</button>${x.id?`<button type="button" class="btn g d" data-a="deld" data-id="${x.id}">Delete</button>`:""}${close}</div>`,v=>{if(x.id)Object.assign(x,v);else D.deals.push({id:uid(),...v});save()})}
+function tform(){dlg(`<h2>New task</h2><label for="tt">Task</label><input id="tt" name="title" required><label for="td">Due date</label><input id="td" name="due" type="date" value="${today()}" required><label for="tc">Contact</label><select id="tc" name="cid">${copts("")}</select><div class="row"><button class="btn">Save task</button>${close}</div>`,v=>{D.tasks.push({id:uid(),done:0,...v});save()})}
+const hasTag=(c,t)=>!t||(c.tags||"").split(",").map(x=>x.trim().toLowerCase()).includes(t.toLowerCase());
+const addDays=(d,n)=>{const x=new Date(d+"T00:00:00Z");x.setUTCDate(x.getUTCDate()+n);return x.toISOString().slice(0,10)};
+function sub(){const f=D.contacts.filter(c=>(c.name+c.email+(c.status||"")).toLowerCase().includes(q)),n=s=>D.contacts.filter(c=>c.status===s).length;
+return`<div class="top"><h2>Subscribers</h2><input id="q" placeholder="Search" value="${esc(q)}" style="max-width:200px" aria-label="Search subscribers"><button class="btn g" data-a="expsub">Export subscribed CSV</button><button class="btn" data-a="impsub">Bulk import</button></div>
+<div class="cards"><div class="c"><small>Subscribed</small><span class="big ok">${n("subscribed")}</span></div><div class="c"><small>Pending</small><span class="big">${n("pending")}</span></div><div class="c"><small>Unsubscribed</small><span class="big mu">${n("unsubscribed")}</span></div></div>
+<div class="sc"><table><tr><th>Contact</th><th>Status</th><th>Consent record</th><th></th></tr>${f.map(c=>`<tr><td><b>${esc(c.name)}</b><br><span class="mu">${esc(c.email)||"No email"}</span></td><td>${c.status||"Not on list"}</td><td class="mu">${esc(c.consent||"")}${c.subAt?` (${c.subAt})`:""}</td><td>${c.status==="subscribed"?`<button class="btn g s" data-a="st" data-id="${c.id}" data-s="unsubscribed">Unsubscribe</button>`:c.email&&c.status!=="unsubscribed"?`<button class="btn s" data-a="st" data-id="${c.id}" data-s="subscribed">Subscribe</button>`:""}</td></tr>`).join("")||`<tr><td colspan="4" class="mu">No contacts yet.</td></tr>`}</table></div><p class="mu">Anyone who unsubscribes by email link cannot be re-subscribed here. Only add people who gave permission.</p>`}
+function queue(){const rows=[];D.seqs.filter(s=>s.on).forEach(s=>D.contacts.filter(c=>c.status==="subscribed"&&c.email&&hasTag(c,s.tag)).forEach(c=>s.steps.forEach((t,i)=>{if(!D.sent.includes(c.id+"|"+s.id+"|"+i))rows.push({due:addDays(c.subAt||today(),+t.day),c,s,t})})));
+rows.sort((a,b)=>a.due.localeCompare(b.due));
+return`<h3 style="margin:14px 0 8px">Upcoming sends</h3><div class="sc"><table><tr><th>Date</th><th>Contact</th><th>Email</th><th>Sequence</th></tr>${rows.slice(0,15).map(r=>`<tr><td class="${r.due<=today()?"od":""}">${r.due<=today()?"Due now":r.due}</td><td>${esc(r.c.name)}</td><td>${esc(r.t.sub)}</td><td>${esc(r.s.name)}</td></tr>`).join("")||`<tr><td colspan="4" class="mu">Nothing queued. Subscribe someone and turn on a sequence.</td></tr>`}</table></div>`}
+function seq(){const c=D.cfg;
+return`<div class="top"><h2>Autoresponders</h2><button class="btn g" data-a="cfg">Sender settings</button><button class="btn g" data-a="sync">Sync to sender</button><button class="btn" data-a="newseq">New sequence</button></div>
+<p class="mu">${c.url?`Sender: ${esc(c.url)}.`:"No sender connected yet. Run the OpenLeaf Sender (server.js), then enter its address in Sender settings."} ${c.last?`Last sync: ${esc(c.last)}`:""}</p>
+${D.seqs.map(s=>`<div class="c" style="margin-bottom:10px"><div class="top" style="margin:0 0 6px"><h3 style="flex:1">${esc(s.name)} <span class="tag">${s.on?"On":"Paused"}</span></h3><button class="btn g s" data-a="eseq" data-id="${s.id}">Edit</button></div><div class="mu">Starts when someone subscribes${s.tag?` with the tag “${esc(s.tag)}”`:""}</div>${s.steps.map(t=>`<div class="note"><b>Day ${t.day}: ${esc(t.sub)}</b><br><small>${esc(t.body.slice(0,110))}${t.body.length>110?"…":""}</small></div>`).join("")}</div>`).join("")||`<p class="mu">No sequences yet. Create a welcome series.</p>`}${queue()}`}
+const s2t=s=>s.steps.map(t=>`Day ${t.day} | ${t.sub}\n${t.body}`).join("\n---\n"),
+t2s=txt=>txt.split(/\n---\n/).map(b=>{const l=b.trim().split("\n"),m=(l[0]||"").match(/^Day\s*(\d+)\s*\|\s*(.+)$/i);return m?{day:+m[1],sub:m[2].trim(),body:l.slice(1).join("\n").trim()}:null}).filter(Boolean);
+function sform(s){s=s||{};dlg(`<h2>${s.id?"Edit":"New"} sequence</h2><label for="sn">Name</label><input id="sn" name="name" value="${esc(s.name)}" required><label for="st">Only subscribers with this tag (blank for everyone)</label><input id="st" name="tag" value="${esc(s.tag)}"><label for="so">Status</label><select id="so" name="on"><option value="1" ${s.on!==0?"selected":""}>On</option><option value="0" ${s.on===0?"selected":""}>Paused</option></select><label for="ss">Emails. Format: “Day 0 | Subject”, then the message. Separate emails with a line of ---. Use {{name}} for first name.</label><textarea id="ss" name="steps" rows="12" required>${esc(s.steps?s2t(s):"Day 0 | Welcome!\nHi {{name}},\n\nThanks for joining. Here is what to expect.\n---\nDay 3 | A quick tip for you\nHi {{name}},\n\nHere is something helpful.")}</textarea><div class="row"><button class="btn">Save sequence</button>${s.id?`<button type="button" class="btn g d" data-a="delseq" data-id="${s.id}">Delete</button>`:""}${close}</div>`,v=>{const st=t2s(v.steps);if(!st.length){toast("Use the format Day 0 | Subject on the first line of each email.");return}const o={name:v.name,tag:v.tag.trim(),on:+v.on,steps:st};if(s.id)Object.assign(s,o);else D.seqs.push({id:uid(),...o});save()})}
+function cfgform(){const c=D.cfg;dlg(`<h2>Sender settings</h2><label for="cu">Sender address (where server.js runs)</label><input id="cu" name="url" value="${esc(c.url)}" placeholder="http://localhost:8787"><label for="ck">API key (same as API_KEY on the sender)</label><input id="ck" name="key" type="password" value="${esc(c.key)}"><label for="cf">From (name and email)</label><input id="cf" name="from" value="${esc(c.from)}" placeholder="Your Name &lt;you@yourdomain.com&gt;"><label for="ca">Postal address (required in every marketing email)</label><input id="ca" name="addr" value="${esc(c.addr)}"><div class="row"><button class="btn">Save</button>${close}</div>`,v=>{Object.assign(D.cfg,v);save()})}
+function impform(){dlg(`<h2>Bulk import subscribers</h2><label for="il">One per line: email, name, tags</label><textarea id="il" name="list" rows="7" required placeholder="sam@example.com, Sam Lee, ebook-buyer"></textarea><label for="is">Where did they give permission?</label><input id="is" name="src" placeholder="e.g. Payhip checkout opt-in, 2026" required><label><input type="checkbox" name="ok" required style="width:auto"> I confirm these people agreed to receive my emails.</label><div class="row"><button class="btn">Import</button>${close}</div>`,v=>{let n=0;v.list.split("\n").forEach(l=>{const p=l.split(",").map(x=>x.trim());if(!/^\S+@\S+\.\S+$/.test(p[0]||""))return;let c=D.contacts.find(x=>(x.email||"").toLowerCase()===p[0].toLowerCase());if(!c){c={id:uid(),name:p[1]||p[0],email:p[0],phone:"",co:"",src:"Import",tags:p[2]||"",notes:[]};D.contacts.push(c)}if(c.status==="unsubscribed")return;if(c.status!=="subscribed"){c.status="subscribed";c.subAt=today()}c.consent=v.src;n++});save();toast(n+" subscribed.")})}
+async function sync(){const c=D.cfg;if(!c.url){toast("Add your sender address in Sender settings first.");return}
+try{const r=await fetch(c.url.replace(/\/$/,"")+"/sync",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+(c.key||"")},body:JSON.stringify({subs:D.contacts.filter(x=>x.status==="subscribed"&&x.email).map(x=>({id:x.id,email:x.email,name:x.name,tags:x.tags||"",joined:x.subAt||today()})),seqs:D.seqs,from:c.from,address:c.addr})});
+if(!r.ok)throw new Error("status "+r.status);const j=await r.json();
+(j.unsubscribed||[]).forEach(e=>{const x=D.contacts.find(k=>(k.email||"").toLowerCase()===e);if(x&&x.status!=="unsubscribed"){x.status="unsubscribed";x.consent="Unsubscribed by email link"}});
+D.sent=j.sent||D.sent;c.last=new Date().toLocaleString();save();render();toast("Synced. The sender now handles the sending schedule.")}catch(e){toast("Could not reach the sender: "+e.message)}}
+function render(){side();$("#m").innerHTML={dash,con,deal,task,sub,seq}[tab]();const s=$("#q");if(s)s.oninput=()=>{q=s.value.toLowerCase();const p=s.selectionStart;render();const n=$("#q");n.focus();n.setSelectionRange(p,p)}}
+function dl(name,text,type){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click()}
+document.addEventListener("click",e=>{const t=e.target,g=k=>t.closest(`[${k}]`);let el;
+if(el=g("data-tab")){tab=el.dataset.tab;render();return}
+if(el=g("data-open")){cview(el.dataset.open);return}
+if(el=g("data-mv")){const d=D.deals.find(x=>x.id===el.dataset.mv);d.stage=ST[ST.indexOf(d.stage)+ +el.dataset.dir];save();render();return}
+if(el=g("data-ed")){dform(D.deals.find(x=>x.id===el.dataset.ed));return}
+if(el=g("data-dt")){D.tasks=D.tasks.filter(x=>x.id!==el.dataset.dt);save();render();return}
+if(el=g("data-a")){const a=el.dataset.a;
+if(a==="x")$("#dlg").close();
+if(a==="impsub")impform();if(a==="newseq")sform();if(a==="cfg")cfgform();if(a==="sync")sync();
+if(a==="eseq")sform(D.seqs.find(x=>x.id===el.dataset.id));
+if(a==="delseq")askConfirm("Delete this sequence?").then(ok=>{if(ok){D.seqs=D.seqs.filter(x=>x.id!==el.dataset.id);save();$("#dlg").close();render()}});
+if(a==="st"){const c=D.contacts.find(x=>x.id===el.dataset.id);if(el.dataset.s==="subscribed"){dlg(`<h2>Subscribe ${esc(c.name)}</h2><label for="how">How did they give permission?</label><input id="how" name="how" placeholder="e.g. signup form, purchase opt-in" required><div class="row"><button class="btn">Subscribe</button>${close}</div>`,v=>{c.consent=v.how;c.subAt=today();c.status="subscribed";save()});return}c.status=el.dataset.s;save();render()}
+if(a==="expsub")dl("subscribers.csv",["email,name,tags,consent,date",...D.contacts.filter(c=>c.status==="subscribed").map(c=>[c.email,c.name,c.tags,c.consent,c.subAt].map(v=>`"${String(v||"").replace(/"/g,'""')}"`).join(","))].join("\n"),"text/csv");
+if(a==="newc")cform();if(a==="newd")dform();if(a==="newt")tform();
+if(a==="deld"){D.deals=D.deals.filter(x=>x.id!==el.dataset.id);save();$("#dlg").close();render()}
+if(a==="exp")dl("openleaf-backup.json",JSON.stringify(D,null,2),"application/json");
+if(a==="csv")dl("contacts.csv",["name,email,phone,company,source,tags",...D.contacts.map(c=>[c.name,c.email,c.phone,c.co,c.src,c.tags].map(v=>`"${String(v||"").replace(/"/g,'""')}"`).join(","))].join("\n"),"text/csv");
+if(a==="imp")$("#fi").click();
+if(a==="csvdeals")dl("deals.csv",["title,value,stage,contact",...D.deals.map(d=>[d.title,d.val,d.stage,cn(d.cid)].map(v=>`"${String(v||"").replace(/"/g,'""')}"`).join(","))].join("\n"),"text/csv");
+if(a==="reset")askConfirm("Reset to the sample data? Your current contacts, deals and tasks will be replaced.").then(ok=>{if(ok){D=seed();D.seqs=[{id:uid(),name:"Welcome series",tag:"",on:1,steps:[{day:0,sub:"Welcome!",body:"Hi {{name}},\n\nThanks for joining. Here is what to expect."},{day:3,sub:"A quick tip for you",body:"Hi {{name}},\n\nHere is something helpful."}]}];D.cfg={};D.sent=[];save();render();toast("Sample data restored.")}});
+if(a==="clear")askConfirm("Clear all data? This erases every contact, deal and task in this browser.").then(ok=>{if(ok){D={contacts:[],deals:[],tasks:[],seqs:[],cfg:{},sent:[]};save();render();toast("All data cleared.")}});}});
+document.addEventListener("change",e=>{const t=e.target;
+if(t.dataset.chk){const x=D.tasks.find(k=>k.id===t.dataset.chk);x.done=t.checked?1:0;save();render()}
+if(t.id==="fi"&&t.files[0]){const r=new FileReader();r.onload=()=>{try{const j=JSON.parse(r.result);if(j.contacts&&j.deals&&j.tasks){D=j;save();render();toast("Backup imported.")}else toast("That file is not an OpenLeaf backup.")}catch(x){toast("Could not read that file.")}};r.readAsText(t.files[0])}});
+render();
+</script></body></html>
