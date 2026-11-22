@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<!--
+E-Signature + Contract Tracker — free, local-first contract board, in one file.
+MIT License. Copyright (c) 2026 Ting Lott (T. Lott Creative)
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Built for AI Command Center (Nov 22, 2026). One file, no account, no server.
+Contracts live in this browser only, under the "aicc-esignature" storage key.
+Sample contracts are clearly labeled SAMPLE and can be cleared in one click —
+they are not real agreements. This records that the named people agreed; it is
+not a lawyer and not legal advice. A typed name here may not count as a legal
+signature where you live. Nothing here sends the contract to anyone.
+-->
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>E-Signature + Contracts — AI Command Center</title>
+<style>
+:root{--bg:#eef1ef;--sf:#fff;--ink:#17231f;--mu:#5f6f68;--ln:#d6ddd9;--nv:#14332b;--nt:#cfe3da;--ac:#b86e00;--ac2:#fff0d6;--gn:#13744a;--rd:#b3261e;box-sizing:border-box;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px);color-scheme:light}
+@media(prefers-color-scheme:dark){:root{--bg:#101a17;--sf:#18251f;--ink:#e8f0ec;--mu:#9bada5;--ln:#2b3b34;--nv:#0b1f19;--ac:#f0a53a;--ac2:#3a2c10;--gn:#5fd39a;--rd:#ff8b84;color-scheme:dark}}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:14.5px/1.5 system-ui,sans-serif}
+.app{display:grid;grid-template-columns:210px 1fr;min-height:100vh}
+aside{background:var(--nv);color:var(--nt);padding:16px 10px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
+aside h1{font-size:19px;margin:0 8px 2px;color:#fff}aside h1 span{color:#f0a53a}
+aside .sub{font-size:12px;color:var(--nt);opacity:.75;margin:0 8px 12px}
+aside button{background:none;border:0;color:inherit;text-align:left;padding:8px 10px;border-radius:6px;font:inherit;cursor:pointer}
+aside button[aria-current=true]{background:#ffffff1f;color:#fff;font-weight:600}
+main{padding:20px;max-width:1150px;width:100%}
+h2{font-size:22px;margin:0}h3{margin:0 0 8px;font-size:16px}
+.top{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.top h2{flex:1;min-width:120px}
+button,input,select,textarea{font:inherit;color:var(--ink)}
+input,select,textarea{background:var(--bg);border:1px solid var(--ln);border-radius:5px;padding:7px;width:100%}
+.btn{background:var(--ac);color:#fff;border:0;border-radius:5px;padding:7px 13px;font-weight:600;cursor:pointer}
+.btn.g{background:none;color:var(--ink);border:1px solid var(--ln)}.btn.s{padding:2px 8px;font-size:12.5px}
+.btn.danger{color:var(--rd);border:1px solid var(--rd);background:none}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.c{background:var(--sf);border:1px solid var(--ln);border-radius:7px;padding:12px;margin-bottom:12px}.cards .c{margin:0}
+.c small{color:var(--mu)}.k{font:500 21px monospace;display:block}
+.sc{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:520px}
+th,td{padding:7px 9px;text-align:left;border-bottom:1px solid var(--ln);vertical-align:top}th{color:var(--mu);font-weight:600;font-size:13px}
+.mu{color:var(--mu)}
+.tag{display:inline-block;border-radius:9px;padding:0 8px;font-size:12px;background:var(--ac2);color:var(--ac)}
+.tag.Signed{background:#13744a22;color:var(--gn)}
+.tag.Draft{background:#6b728022;color:var(--mu)}
+.tag.Expired,.tag.Cancelled{background:#b3261e22;color:var(--rd)}
+.tag.Sent{background:#1d4ed822;color:#1d4ed8}
+dialog{background:var(--sf);color:var(--ink);border:1px solid var(--ln);border-radius:8px;padding:18px;width:min(540px,94vw);max-height:90vh;overflow:auto}
+dialog::backdrop{background:#0008}label{display:block;margin:8px 0 2px;color:var(--mu);font-size:13px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.note{background:var(--ac2);border:1px solid var(--ln);border-radius:7px;padding:10px 12px;margin-bottom:12px}
+.search{max-width:280px}
+#toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--nv);color:#fff;padding:10px 16px;border-radius:7px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50;max-width:92vw}
+#toast.show{opacity:1}
+@media(max-width:760px){.app{display:block}aside{position:static;height:auto;flex-direction:row;overflow-x:auto;padding:8px}aside h1{display:none}aside .sub{display:none}aside button{white-space:nowrap}main{padding:14px}}
+</style></head><body>
+<div class="app"><aside id="side"></aside><main id="m"></main></div><dialog id="dlg"></dialog><div id="toast" role="status"></div>
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)],
+uid=()=>Math.random().toString(36).slice(2,8)+Date.now().toString(36).slice(-3),
+esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])),
+td=()=>new Date().toISOString().slice(0,10),
+daysTo=d=>d?Math.round((Date.parse(d+"T00:00:00")-Date.now())/864e5):null,
+hash=s=>{let h=0;for(let i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h.toString(36).toUpperCase().padStart(7,"0")},
+add=n=>new Date(Date.now()+n*864e5).toISOString().slice(0,10);
+const KEY="aicc-esignature";
+const TYPES=["Service agreement","NDA","Supplier agreement","Client agreement","Lease","Other"];
+const STATUSES=["Draft","Sent for signature","Signed","Expired","Cancelled"];
+let D=null,tab="dash",view=null,fStatus="All",fType="All",q="";
+function seed(){D={seq:3004,contracts:[
+{id:uid(),no:"CT-3001",title:"Website help — monthly care plan",party:"Golden Hare Books (sample)",type:"Service agreement",status:"Signed",value:"197",start:add(-21),expiry:add(344),notes:[{d:add(-21),by:"Ting",text:"Monthly care: updates, backups, small fixes. Renews yearly unless either side ends it with 30 days notice."}],sigs:[
+{name:"Ting Lott",role:"T. Lott Creative",d:add(-21),t:"10:04",code:""},
+{name:"M. Hare",role:"Golden Hare Books",d:add(-20),t:"09:31",code:""}]},
+{id:uid(),no:"CT-3002",title:"Guest post — one article",party:"The Bakehouse Dublin (sample)",type:"Service agreement",status:"Sent for signature",value:"",start:add(-3),expiry:add(24),notes:[],sigs:[
+{name:"Ting Lott",role:"T. Lott Creative",d:add(-3),t:"15:20",code:""}]},
+{id:uid(),no:"CT-3003",title:"Supplier terms — paper and ink",party:"Paper Mill Co. (sample)",type:"Supplier agreement",status:"Draft",value:"",start:"",expiry:"",notes:[{d:add(-1),by:"Ting",text:"Waiting on their standard terms before I send anything back."}],sigs:[]}
+],samples:true};
+D.contracts.forEach(c=>c.sigs.forEach(s=>{if(!s.code)s.code=hash(c.no+"|"+s.name+"|"+s.d+"|"+s.t)}));}
+try{D=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){}if(!D)seed();
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){}};
+if(!localStorage.getItem(KEY))save();
+const toast=m=>{const t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2200)};
+const awaiting=()=>D.contracts.filter(c=>c.status==="Sent for signature"),
+active=()=>D.contracts.filter(c=>c.status==="Signed"||c.status==="Sent for signature"),
+expiring=()=>D.contracts.filter(c=>{const n=daysTo(c.expiry);return c.expiry&&n!==null&&n>=0&&n<=30&&(c.status==="Signed"||c.status==="Sent for signature")}),
+pastDue=()=>D.contracts.filter(c=>{const n=daysTo(c.expiry);return c.expiry&&n!==null&&n<0&&(c.status==="Signed"||c.status==="Sent for signature")});
+function csv(){const rows=[["No","Title","Other party","Type","Status","Value","Start","Expiry","Signatures"]];D.contracts.forEach(c=>rows.push([c.no,c.title,c.party,c.type,c.status,c.value||"",c.start||"",c.expiry||"",c.sigs.map(s=>s.name+" ("+s.d+")").join("; ")]));const s=rows.map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(",")).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([s],{type:"text/csv"}));a.download="contracts.csv";a.click()}
+function side(){$("#side").innerHTML=`<h1>E-<span>Signature</span></h1><p class="sub">AI Command Center · free tool</p>`+[["dash","Dashboard"],["list","Contracts"],["new","New contract"]].map(([k,l])=>`<button data-tab="${k}" aria-current="${tab===k}">${l}</button>`).join("")+`<p class="sub" style="margin-top:auto">Contracts stay in this browser only.</p>`;$$("#side button").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;view=null;render()})}
+function sampleBar(){return D.samples?`<div class="note"><strong>Sample data.</strong> These contracts are examples, not real agreements. <button class="btn s g" onclick="clearSamples()">Clear sample contracts</button></div>`:`<div class="note">Your board is empty. <button class="btn s g" onclick="loadSamples()">Load sample contracts</button> to see how it works.</div>`}
+window.clearSamples=()=>{D.contracts=[];D.samples=false;save();render();toast("Sample contracts cleared.")};
+window.loadSamples=()=>{seed();save();render();toast("Sample contracts loaded.")};
+function statusTag(c){const n=daysTo(c.expiry);if((c.status==="Signed"||c.status==="Sent for signature")&&c.expiry&&n!==null&&n<0)return `<span class="tag ${c.status}">${esc(c.status)}</span> <span class="tag Expired">past expiry</span>`;return `<span class="tag ${c.status}">${esc(c.status)}</span>`}
+function render(){side();const m=$("#m");
+if(tab==="dash"){const aw=awaiting(),ex=expiring(),pd=pastDue();
+m.innerHTML=`<div class="top"><h2>E-Signature + Contracts</h2><button class="btn" onclick="goNew()">+ New contract</button></div>${sampleBar()}
+<div class="cards"><div class="c"><small>Active contracts</small><span class="k">${active().length}</span></div><div class="c"><small>Awaiting signature</small><span class="k">${aw.length}</span></div><div class="c"><small>Signed</small><span class="k">${D.contracts.filter(c=>c.status==="Signed").length}</span></div><div class="c"><small>Expiring in 30 days</small><span class="k">${ex.length}</span></div></div>
+<div class="c"><h3>Needs attention first</h3>${(aw.length||ex.length||pd.length)?[...pd.map(c=>`<p><span class="tag Expired">past expiry</span> <a href="#" onclick="openContract('${c.id}');return false">${esc(c.title)}</a> <span class="mu">— ${esc(c.party)} · expired ${esc(c.expiry)}</span></p>`),...aw.map(c=>`<p><span class="tag Sent">waiting</span> <a href="#" onclick="openContract('${c.id}');return false">${esc(c.title)}</a> <span class="mu">— ${esc(c.party)} · sent, not signed yet</span></p>`),...ex.map(c=>`<p><span class="tag">expiring</span> <a href="#" onclick="openContract('${c.id}');return false">${esc(c.title)}</a> <span class="mu">— ${esc(c.party)} · expires ${esc(c.expiry)}</span></p>`)].join(""):"<p class=\"mu\">Nothing waiting. No contracts need you right now.</p>"}</div>
+<p class="mu">What this does not do: this records that the named people agreed — it is not a lawyer and not legal advice. A typed name here may not count as a legal signature where you live, so for anything that matters, have a lawyer look at the agreement first. It does not send the contract to anyone; share the file yourself, then record the signatures here.</p>`}
+if(tab==="list"){if(view){const c=D.contracts.find(x=>x.id===view);if(!c){view=null;render();return}
+const n=daysTo(c.expiry);
+m.innerHTML=`<div class="top"><h2>${esc(c.no)} — ${esc(c.title)}</h2><button class="btn g" onclick="view=null;render()">← All contracts</button></div>${sampleBar()}
+<div class="c"><p>${statusTag(c)} <span class="tag">${esc(c.type)}</span></p>
+<p><strong>Other party:</strong> ${esc(c.party)}${c.value?` · <strong>Value:</strong> ${esc(c.value)}`:""}</p>
+<p><strong>Start:</strong> ${esc(c.start)||"—"} · <strong>Expiry:</strong> ${esc(c.expiry)||"—"}${c.expiry&&n!==null?` (${n<0?"expired "+Math.abs(n)+" days ago":n===0?"expires today":"expires in "+n+" days"})`:""}</p>
+<div class="row"><label style="flex:1;min-width:160px">Status <select id="f-st">${STATUSES.map(s=>`<option ${s===c.status?"selected":""}>${s}</option>`).join("")}</select></label><label style="flex:1;min-width:160px">Expiry date <input id="f-ex" type="date" value="${esc(c.expiry)}"></label></div>
+<div class="row"><button class="btn" onclick="saveStatus('${c.id}')">Save changes</button><button class="btn danger" onclick="delContract('${c.id}')">Delete contract</button></div></div>
+<div class="c"><h3>Signatures</h3>${c.sigs.length?c.sigs.map(s=>`<p><strong>${esc(s.name)}</strong> <span class="mu">${esc(s.role)} · ${esc(s.d)} ${esc(s.t)} · record ${esc(s.code)}</span></p>`).join(""):"<p class=\"mu\">No signatures recorded yet.</p>"}
+<label>Sign as (full name) <input id="f-sign" placeholder="Type your full name"></label>
+<label>Role <input id="f-role" placeholder="e.g. T. Lott Creative"></label>
+<div class="row"><button class="btn" onclick="addSig('${c.id}')">Sign now</button></div>
+<p class="mu">Signing records the typed name, the date and time, and a record code. It does not send anything anywhere. Set the status to Signed above once everyone has signed.</p></div>
+<div class="c"><h3>Notes</h3>${c.notes.length?c.notes.map(x=>`<p><strong>${esc(x.by)}</strong> <span class="mu">${esc(x.d)}</span><br>${esc(x.text)}</p>`).join(""):"<p class=\"mu\">No notes yet.</p>"}
+<label>Add a note<textarea id="f-note" rows="3" placeholder="What was agreed, what is still open…"></textarea></label><div class="row"><button class="btn" onclick="addNote('${c.id}')">Add note</button></div></div>`;return}
+const list=D.contracts.filter(c=>(fStatus==="All"||c.status===fStatus)&&(fType==="All"||c.type===fType)&&(!q||(c.title+c.party+c.no).toLowerCase().includes(q.toLowerCase())));
+m.innerHTML=`<div class="top"><h2>Contracts</h2><button class="btn" onclick="goNew()">+ New contract</button><button class="btn g" onclick="csv()">Export CSV</button></div>${sampleBar()}
+<div class="row" style="margin:0 0 12px"><input class="search" id="f-q" placeholder="Search contracts…" value="${esc(q)}" oninput="q=this.value;renderList()"><select id="f-s" style="max-width:170px" onchange="fStatus=this.value;renderList()">${["All",...STATUSES].map(s=>`<option ${s===fStatus?"selected":""}>${s}</option>`).join("")}</select><select id="f-t" style="max-width:170px" onchange="fType=this.value;renderList()">${["All",...TYPES].map(s=>`<option ${s===fType?"selected":""}>${s}</option>`).join("")}</select></div>
+<div class="c sc"><table><tr><th>No</th><th>Title</th><th>Other party</th><th>Type</th><th>Status</th><th>Expiry</th><th>Signatures</th></tr>
+${list.length?list.map(c=>`<tr><td>${esc(c.no)}</td><td><a href="#" onclick="openContract('${c.id}');return false">${esc(c.title)}</a></td><td>${esc(c.party)}</td><td>${esc(c.type)}</td><td>${statusTag(c)}</td><td>${esc(c.expiry)||"—"}</td><td>${c.sigs.length}</td></tr>`).join(""):`<tr><td colspan="7" class="mu">No contracts match.</td></tr>`}</table></div>`}
+if(tab==="new"){m.innerHTML=`<div class="top"><h2>New contract</h2></div>${sampleBar()}
+<div class="c"><label>What is it called? <input id="n-title" placeholder="Short, plain title"></label>
+<label>Other party <input id="n-party" placeholder="Person or business name"></label>
+<div class="row"><label style="flex:1">Type <select id="n-type">${TYPES.map(t=>`<option>${t}</option>`).join("")}</select></label>
+<label style="flex:1">Value (optional) <input id="n-value" placeholder="e.g. 197"></label></div>
+<div class="row"><label style="flex:1">Start date <input id="n-start" type="date"></label>
+<label style="flex:1">Expiry date <input id="n-expiry" type="date"></label></div>
+<label>First note (optional) <textarea id="n-note" rows="3" placeholder="What was agreed, in plain words."></textarea></label>
+<div class="row"><button class="btn" onclick="saveNew()">Save contract</button></div></div>`}}
+window.renderList=()=>{tab="list";render()};
+window.openContract=id=>{view=id;render()};
+window.goNew=()=>{tab="new";render()};
+window.saveNew=()=>{const t=$("#n-title").value.trim();if(!t){toast("Give the contract a title first.");return}
+const p=$("#n-party").value.trim();if(!p){toast("Add the other party first.");return}
+const c={id:uid(),no:"CT-"+(D.seq++),title:t,party:p,type:$("#n-type").value,status:"Draft",value:$("#n-value").value.trim(),start:$("#n-start").value,expiry:$("#n-expiry").value,notes:[],sigs:[]};
+const nt=$("#n-note").value.trim();if(nt)c.notes.push({d:td(),by:"Ting",text:nt});
+D.contracts.unshift(c);save();view=c.id;tab="list";render();toast("Contract "+c.no+" saved.")};
+window.saveStatus=id=>{const c=D.contracts.find(x=>x.id===id);c.status=$("#f-st").value;c.expiry=$("#f-ex").value;save();render();toast("Saved.")};
+window.addSig=id=>{const nm=$("#f-sign").value.trim();if(!nm){toast("Type your full name first.");return}
+const c=D.contracts.find(x=>x.id===id);const now=new Date();const hh=String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");
+const s={name:nm,role:$("#f-role").value.trim(),d:td(),t:hh,code:""};s.code=hash(c.no+"|"+s.name+"|"+s.d+"|"+s.t);
+c.sigs.push(s);save();render();toast("Signature recorded — record "+s.code+".")};
+window.addNote=id=>{const v=$("#f-note").value.trim();if(!v){toast("Write the note first.");return}const c=D.contracts.find(x=>x.id===id);c.notes.push({d:td(),by:"Ting",text:v});save();render();toast("Note added.")};
+window.delContract=id=>{const c=D.contracts.find(x=>x.id===id);const d=$("#dlg");d.innerHTML=`<h3>Delete ${esc(c.no)}?</h3><p>This removes the contract, its signatures, and its notes. There is no undo.</p><div class="row"><button class="btn danger" onclick="doDel('${id}')">Yes, delete it</button><button class="btn g" onclick="document.querySelector('#dlg').close()">Keep it</button></div>`;d.showModal()};
+window.doDel=id=>{D.contracts=D.contracts.filter(x=>x.id!==id);$("#dlg").close();save();view=null;render();toast("Contract deleted.")};
+render();
+</script></body></html>
