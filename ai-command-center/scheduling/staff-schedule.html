@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<!--
+Staff Schedule — free, local-first work-schedule page with Google Calendar, in one file.
+MIT License. Copyright (c) 2026 Ting Lott (T. Lott Creative)
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Built for AI Command Center (Nov 22, 2026). One file, no account, no server.
+The roster and shifts live in this browser only, under the "aicc-staff-schedule" storage key.
+Sample staff and shifts are clearly labeled SAMPLE and can be cleared in one click —
+they are a made-up shop (Sunrise Bakery) and fictional people, not real staff.
+What this does NOT do: it does not message your staff (no texts, no emails — share
+the schedule yourself, or send it to Google Calendar and share the calendar). It
+does not track hours worked, pay, or payroll — payroll is a service to buy, not a
+tool to build. It writes shifts to your connected Google Calendar but does not read
+your existing calendar events. The Google connection needs your own client ID (you
+arrange it — see the Google Calendar tab); the sign-in token lives only in this
+browser and is never stored with the schedule.
+-->
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Staff Schedule — AI Command Center</title>
+<style>
+:root{--bg:#eef1ef;--sf:#fff;--ink:#17231f;--mu:#5f6f68;--ln:#d6ddd9;--nv:#14332b;--nt:#cfe3da;--ac:#b86e00;--ac2:#fff0d6;--gn:#13744a;--rd:#b3261e;box-sizing:border-box;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px);color-scheme:light}
+@media(prefers-color-scheme:dark){:root{--bg:#101a17;--sf:#18251f;--ink:#e8f0ec;--mu:#9bada5;--ln:#2b3b34;--nv:#0b1f19;--ac:#f0a53a;--ac2:#3a2c10;--gn:#5fd39a;--rd:#ff8b84;color-scheme:dark}}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:14.5px/1.5 system-ui,sans-serif}
+.app{display:grid;grid-template-columns:210px 1fr;min-height:100vh}
+aside{background:var(--nv);color:var(--nt);padding:16px 10px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
+aside h1{font-size:19px;margin:0 8px 2px;color:#fff}aside h1 span{color:#f0a53a}
+aside .sub{font-size:12px;color:var(--nt);opacity:.75;margin:0 8px 12px}
+aside button{background:none;border:0;color:inherit;text-align:left;padding:8px 10px;border-radius:6px;font:inherit;cursor:pointer}
+aside button[aria-current=true]{background:#ffffff1f;color:#fff;font-weight:600}
+main{padding:20px;max-width:1150px;width:100%}
+h2{font-size:22px;margin:0}h3{margin:0 0 8px;font-size:16px}
+.top{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.top h2{flex:1;min-width:120px}
+button,input,select,textarea{font:inherit;color:var(--ink)}
+input,select,textarea{background:var(--bg);border:1px solid var(--ln);border-radius:5px;padding:7px;width:100%}
+input[type=color]{padding:2px;height:34px}
+.btn{background:var(--ac);color:#fff;border:0;border-radius:5px;padding:7px 13px;font-weight:600;cursor:pointer}
+.btn.g{background:none;color:var(--ink);border:1px solid var(--ln)}.btn.s{padding:2px 8px;font-size:12.5px}
+.btn.danger{color:var(--rd);border:1px solid var(--rd);background:none}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.c{background:var(--sf);border:1px solid var(--ln);border-radius:7px;padding:12px;margin-bottom:12px}.cards .c{margin:0}
+.c small{color:var(--mu)}.k{font:500 21px monospace;display:block}
+.sc{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:640px}
+th,td{padding:7px 9px;text-align:left;border-bottom:1px solid var(--ln);vertical-align:top}th{color:var(--mu);font-weight:600;font-size:13px}
+.mu{color:var(--mu)}
+.dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.chip{display:block;border-radius:6px;padding:5px 8px;font-size:13px;color:#fff;cursor:pointer;border:0;width:100%;text-align:left}
+.celladd{display:block;width:100%;border:1px dashed var(--ln);background:none;border-radius:6px;padding:5px 8px;color:var(--mu);cursor:pointer;font-size:13px;text-align:left}
+.celladd:hover{border-color:var(--ac);color:var(--ac)}
+dialog{background:var(--sf);color:var(--ink);border:1px solid var(--ln);border-radius:8px;padding:18px;width:min(540px,94vw);max-height:90vh;overflow:auto}
+dialog::backdrop{background:#0008}label{display:block;margin:8px 0 2px;color:var(--mu);font-size:13px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.note{background:var(--ac2);border:1px solid var(--ln);border-radius:7px;padding:10px 12px;margin-bottom:12px}
+.steps{margin:8px 0 8px 20px;padding:0}.steps li{margin-bottom:6px}
+#toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--nv);color:#fff;padding:10px 16px;border-radius:7px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50;max-width:92vw}
+#toast.show{opacity:1}
+@media(max-width:760px){.app{display:block}aside{position:static;height:auto;flex-direction:row;overflow-x:auto;padding:8px}aside h1{display:none}aside .sub{display:none}aside button{white-space:nowrap}main{padding:14px}}
+@media print{
+body{background:#fff}.app{display:block}aside,#toast,dialog,.noprint{display:none!important}
+main{padding:0;max-width:none}.c{border:1px solid #999;break-inside:avoid}
+.chip{color:#000!important;border:1px solid #999;background:none!important}
+}
+</style></head><body>
+<div class="app"><aside id="side"></aside><main id="m"></main></div><dialog id="dlg"></dialog><div id="toast" role="status"></div>
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)],
+uid=()=>Math.random().toString(36).slice(2,8)+Date.now().toString(36).slice(-3),
+esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])),
+pad=n=>String(n).padStart(2,"0"),
+iso=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()),
+addD=(d,n)=>{const x=new Date(d+"T00:00:00");x.setDate(x.getDate()+n);return iso(x)},
+mondayOf=d=>{const x=new Date(d+"T00:00:00");const off=(x.getDay()+6)%7;x.setDate(x.getDate()-off);return iso(x)},
+fmtD=d=>{const x=new Date(d+"T00:00:00");return x.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"})},
+fmtDay=d=>{const x=new Date(d+"T00:00:00");return x.toLocaleDateString("en-US",{weekday:"short"})},
+tz=()=>{try{return Intl.DateTimeFormat().resolvedOptions().timeZone||"UTC"}catch(e){return "UTC"}};
+const KEY="aicc-staff-schedule";
+const TEMPLATES={"Morning":["08:00","12:00"],"Afternoon":["12:00","17:00"],"Evening":["17:00","21:00"],"Full day":["08:00","17:00"]};
+const PALETTE=["#b86e00","#1d4ed8","#13744a","#7c3aed","#b3261e","#0e7490","#9d174d","#4d7c0f"];
+let D=null,tab="week",weekStart=mondayOf(iso(new Date())),token="",lastAuthUrl="";
+function seed(){const mon=mondayOf(iso(new Date()));
+const emp=(name,role,color)=>({id:uid(),name,role,color});
+const E=[emp("Maya Chen (sample)","Head Baker","#b86e00"),emp("Jonas Reed (sample)","Cashier","#1d4ed8"),emp("Priya Nair (sample)","Barista","#13744a"),emp("Sam Ortiz (sample)","Delivery Driver","#7c3aed"),emp("June Park (sample)","Cleaner","#b3261e")];
+const sh=(e,off,s,en,note)=>({id:uid(),empId:E[e].id,date:addD(mon,off),start:s,end:en,note:note||""});
+D={employees:E,shifts:[
+sh(0,0,"08:00","17:00",""),sh(0,1,"08:00","17:00",""),sh(0,2,"08:00","12:00",""),sh(0,4,"08:00","17:00",""),
+sh(1,0,"12:00","17:00",""),sh(1,2,"12:00","17:00",""),sh(1,5,"08:00","12:00",""),
+sh(2,1,"08:00","12:00",""),sh(2,3,"08:00","12:00",""),sh(2,5,"12:00","17:00",""),sh(2,6,"08:00","12:00",""),
+sh(3,0,"17:00","21:00",""),sh(3,4,"17:00","21:00",""),
+sh(4,2,"17:00","21:00",""),sh(4,6,"12:00","17:00","")
+],sent:{},samples:true,gcal:{clientId:""}}}
+try{D=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){}if(!D)seed();
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){}};
+if(!localStorage.getItem(KEY))save();
+const toast=m=>{const t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2200)};
+const empById=id=>D.employees.find(e=>e.id===id)||{};
+const weekDates=()=>{const out=[];for(let i=0;i<7;i++)out.push(addD(weekStart,i));return out};
+const shiftsInWeek=()=>D.shifts.filter(s=>s.date>=weekStart&&s.date<=addD(weekStart,6)).sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start));
+const shiftFor=(empId,date)=>D.shifts.find(s=>s.empId===empId&&s.date===date);
+const toMin=t=>{const[a,b]=t.split(":").map(Number);return a*60+b};
+const hoursBetween=(a,b)=>{const m=toMin(b)-toMin(a);return m>0?m/60:0};
+const fmtH=h=>h%1===0?String(h):h.toFixed(1);
+const weekHours=empId=>shiftsInWeek().filter(s=>s.empId===empId).reduce((t,s)=>t+hoursBetween(s.start,s.end),0);
+const totalHours=()=>shiftsInWeek().reduce((t,s)=>t+hoursBetween(s.start,s.end),0);
+const daysCovered=()=>new Set(shiftsInWeek().map(s=>s.date)).size;
+function assignShift(empId,date,start,end,note){if(!empId||!date||!start||!end){toast("Pick a person, a day, and start and end times.");return false}
+if(toMin(end)<=toMin(start)){toast("End time must be after start time.");return false}
+const ex=shiftFor(empId,date);
+if(ex){ex.start=start;ex.end=end;ex.note=note||"";if(D.sent[ex.id])delete D.sent[ex.id]}
+else D.shifts.push({id:uid(),empId,date,start,end,note:note||""});
+save();render();return true}
+window.assignShift=assignShift;
+window.removeShift=id=>{D.shifts=D.shifts.filter(s=>s.id!==id);delete D.sent[id];save();render();toast("Shift removed.")};
+function icsText(){const body=shiftsInWeek().map(s=>{const e=empById(s.empId);
+const dt=s.date.replace(/-/g,"")+"T"+s.start.replace(":","")+"00";
+const en=s.date.replace(/-/g,"")+"T"+s.end.replace(":","")+"00";
+return ["BEGIN:VEVENT","UID:"+s.id+"@aicc","DTSTAMP:"+dt,"DTSTART:"+dt,"DTEND:"+en,"SUMMARY:Shift — "+e.name+" ("+e.role+")","DESCRIPTION:"+(s.note||"").replace(/\r?\n/g," "),"END:VEVENT"].join("\r\n")}).join("\r\n");
+return ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//AI Command Center//Staff Schedule//EN",body,"END:VCALENDAR"].join("\r\n")}
+window.icsText=icsText;
+window.weekHours=weekHours;
+window.totalHours=totalHours;
+window.hoursBetween=hoursBetween;
+window.shiftsInWeek=shiftsInWeek;
+window.weekDates=weekDates;
+window.canSend=()=>gcalStatus()==="connected";
+window.dlIcs=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([icsText()],{type:"text/calendar"}));a.download="staff-schedule-"+weekStart+".ics";a.click();toast("Calendar file downloaded — import it into Google Calendar in two clicks.")};
+function sendableShifts(){return shiftsInWeek().filter(s=>!D.sent[s.id])}
+window.sendableShifts=sendableShifts;
+function gcalStatus(){if(!D.gcal.clientId)return "not-configured";if(!token)return "not-connected";return "connected"}
+window.gcalStatus=gcalStatus;
+function readToken(){
+  try{
+    if(typeof sessionStorage!=="undefined"){token=sessionStorage.getItem("aicc-gcal-token")||""}
+  }catch(e){token=""}
+  if(!token){
+    try{
+      if(typeof location!=="undefined"&&location.hash){
+        const m=location.hash.match(/access_token=([^&]+)/);
+        if(m){
+          token=decodeURIComponent(m[1]);
+          try{if(typeof sessionStorage!=="undefined")sessionStorage.setItem("aicc-gcal-token",token)}catch(e){}
+          try{if(typeof history!=="undefined"&&history.replaceState)history.replaceState(null,"",location.pathname+location.search)}catch(e){}
+        }
+      }
+    }catch(e){}
+  }
+}
+function authUrl(){const u="https://accounts.google.com/o/oauth2/v2/auth";
+const red=typeof location!=="undefined"?location.href.split("#")[0]:"";
+return u+"?client_id="+encodeURIComponent(D.gcal.clientId)+"&redirect_uri="+encodeURIComponent(red)+"&response_type=token&scope="+encodeURIComponent("https://www.googleapis.com/auth/calendar.events")}
+window.connectGoogle=()=>{if(!D.gcal.clientId){tab="gcal";render();toast("Add your Google client ID first — the steps are below.");return ""}
+const url=authUrl();lastAuthUrl=url;
+if(typeof location!=="undefined"){location.href=url}else{toast("Sign-in would open now — the sign-in link is ready.")}
+return url};
+window.lastAuthUrl=()=>lastAuthUrl;
+window.disconnectGoogle=()=>{token="";try{if(typeof sessionStorage!=="undefined")sessionStorage.removeItem("aicc-gcal-token")}catch(e){}save();render();toast("Disconnected — the sign-in token is gone from this browser.")};
+window.saveClientId=()=>{D.gcal.clientId=($("#g-client").value||"").trim();save();render();toast(D.gcal.clientId?"Client ID saved.":"Client ID cleared.")};
+window.sendWeek=async()=>{if(gcalStatus()!=="connected"){tab="gcal";render();toast("Connect Google Calendar first — see the steps on the Google Calendar tab.");return {ok:false,reason:"no-token"}}
+const todo=sendableShifts();let sent=0;const errs=[];
+for(const s of todo){const e=empById(s.empId);
+const body={summary:"Shift — "+e.name+" ("+e.role+")",description:s.note||"",start:{dateTime:s.date+"T"+s.start+":00",timeZone:tz()},end:{dateTime:s.date+"T"+s.end+":00",timeZone:tz()}};
+try{const r=await fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events",{method:"POST",headers:{"Authorization":"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify(body)});
+const j=await r.json();if(!r.ok){errs.push(e.name+" "+s.date+": "+(j.error&&j.error.message||r.status));continue}
+D.sent[s.id]=j.id;sent++}catch(err){errs.push(e.name+" "+s.date+": "+err.message)}}
+save();render();
+toast(errs.length?("Sent "+sent+" shift(s). "+errs.length+" failed: "+errs[0]):("Sent "+sent+" shift(s) to Google Calendar. "+(todo.length-sent)+" were already sent before."));
+return {ok:errs.length===0,sent,errors:errs}};
+function side(){$("#side").innerHTML=`<h1>Staff <span>Schedule</span></h1><p class="sub">AI Command Center · free tool</p>`+[["week","This week"],["staff","Employees"],["gcal","Google Calendar"]].map(([k,l])=>`<button data-tab="${k}" aria-current="${tab===k}">${l}</button>`).join("")+`<p class="sub" style="margin-top:auto">The schedule stays in this browser only.</p>`;$$("#side button").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;render()})}
+function sampleBar(){return D.samples?`<div class="note"><strong>Sample data.</strong> These are example staff and shifts for Sunrise Bakery — a made-up shop, not real people. <button class="btn s g" onclick="clearSamples()">Clear samples</button></div>`:`<div class="note">Nothing here yet. <button class="btn s g" onclick="loadSamples()">Load sample schedule</button> to see how it works.</div>`}
+function notDo(){return `<p class="mu"><strong>What this does not do:</strong> it does not message your staff — no texts, no emails. Share the week with them yourself, or send it to Google Calendar and share the calendar. It does not track hours worked, pay, or payroll — payroll is a service to buy, not a tool to build. It writes shifts to your connected calendar but does not read your existing calendar events. The Google connection needs your own client ID (you arrange it — see the Google Calendar tab), and the sign-in token lives only in this browser.</p>`}
+window.clearSamples=()=>{D.employees=[];D.shifts=[];D.sent={};D.samples=false;save();render();toast("Samples cleared.")};
+window.loadSamples=()=>{seed();save();render();toast("Sample schedule loaded.")};
+function render(){side();const m=$("#m");const wd=weekDates();
+if(tab==="week"){const sw=shiftsInWeek();
+m.innerHTML=`<div class="top"><h2>Week of ${fmtD(weekStart)}</h2><span class="mu">${fmtD(wd[0])} – ${fmtD(wd[6])}</span></div>${sampleBar()}
+<div class="row noprint" style="margin:0 0 12px"><button class="btn g" onclick="prevWeek()">← Last week</button><button class="btn g" onclick="thisWeek()">This week</button><button class="btn g" onclick="nextWeek()">Next week →</button><span style="flex:1"></span><button class="btn g" onclick="dlIcs()">Download this week (.ics)</button><button class="btn g" onclick="window.print()">Print</button></div>
+<div class="cards"><div class="c"><small>Staff on roster</small><span class="k">${D.employees.length}</span></div><div class="c"><small>Shifts this week</small><span class="k">${sw.length}</span></div><div class="c"><small>Hours this week</small><span class="k">${fmtH(totalHours())}</span></div><div class="c"><small>Days covered</small><span class="k">${daysCovered()} of 7</span></div></div>
+<div class="c sc"><table><tr><th>Who</th>${wd.map(d=>`<th>${fmtDay(d)}<br><span class="mu">${fmtD(d).replace(/^... /,"")}</span></th>`).join("")}<th>Hours</th></tr>
+${D.employees.length?D.employees.map(e=>`<tr><td><span class="dot" style="background:${esc(e.color)}"></span><strong>${esc(e.name)}</strong><br><span class="mu">${esc(e.role)}</span></td>${wd.map(d=>{const s=shiftFor(e.id,d);return `<td>${s?`<button class="chip" style="background:${esc(e.color)}" onclick="editShift('${e.id}','${d}')">${esc(s.start)}–${esc(s.end)}${s.note?`<br><small>${esc(s.note)}</small>`:""}${D.sent[s.id]?" ✓":""}</button>`:`<button class="celladd" onclick="editShift('${e.id}','${d}')">+ Add shift</button>`}</td>`}).join("")}<td><strong>${fmtH(weekHours(e.id))} h</strong></td></tr>`).join(""):`<tr><td colspan="9" class="mu">No staff yet — add people on the Employees tab.</td></tr>`}</table></div>
+<div class="c"><h3>Week summary</h3>${D.employees.length?D.employees.map(e=>`<p><span class="dot" style="background:${esc(e.color)}"></span><strong>${esc(e.name)}</strong> — ${fmtH(weekHours(e.id))} hours, ${sw.filter(s=>s.empId===e.id).length} shift(s)</p>`).join(""):"<p class=\"mu\">No staff yet.</p>"}<p class="mu">Total: ${fmtH(totalHours())} hours across ${sw.length} shifts. A ✓ on a shift means it was already sent to Google Calendar.</p></div>${notDo()}`}
+if(tab==="staff"){m.innerHTML=`<div class="top"><h2>Employees</h2></div>${sampleBar()}
+<div class="c sc"><table><tr><th>Who</th><th>Role</th><th>Hours this week</th><th></th></tr>
+${D.employees.length?D.employees.map(e=>`<tr><td><span class="dot" style="background:${esc(e.color)}"></span>${esc(e.name)}</td><td>${esc(e.role)}</td><td>${fmtH(weekHours(e.id))} h</td><td><button class="btn s g" onclick="editEmployee('${e.id}')">Change</button> <button class="btn s danger" onclick="delEmployee('${e.id}')">Remove</button></td></tr>`).join(""):`<tr><td colspan="4" class="mu">No staff yet.</td></tr>`}</table></div>
+<div class="c"><h3>Add a person</h3><label>Name <input id="e-name" placeholder="e.g. Maya Chen"></label><label>Role <input id="e-role" placeholder="e.g. Baker"></label><label>Color <input id="e-color" type="color" value="#1d4ed8"></label><div class="row"><button class="btn" onclick="addEmployee()">Add person</button></div></div>${notDo()}`}
+if(tab==="gcal"){const st=gcalStatus();
+m.innerHTML=`<div class="top"><h2>Google Calendar</h2></div>${sampleBar()}
+<div class="c"><h3>Connection — ${st==="connected"?"Connected ✓":st==="not-connected"?"Client ID saved, not signed in":"Not set up yet"}</h3>
+${st==="connected"?`<p>Google Calendar is connected in this browser. The sign-in token lives only here — it is never saved with the schedule.</p><div class="row"><button class="btn" onclick="sendWeek()">Send this week to Google Calendar</button><button class="btn g" onclick="disconnectGoogle()">Disconnect</button></div><p class="mu">${sendableShifts().length} shift(s) still to send · ${shiftsInWeek().length-sendableShifts().length} already sent. Sending again skips the ones already sent.</p>`:
+st==="not-connected"?`<p>Your client ID is saved. Sign in with Google to connect this browser, then send the week.</p><div class="row"><button class="btn" onclick="connectGoogle()">Connect Google Calendar</button><button class="btn g" onclick="disconnectGoogle()">Disconnect</button></div>`:
+`<p class="mu">Nothing is connected yet. Google Calendar is <strong>you arrange</strong>: it needs your own Google client ID, and it costs nothing. Follow the steps below — about five minutes, once.</p>`}
+<p class="mu">No setup at all? Use <button class="btn s g" onclick="dlIcs()">Download this week (.ics)</button> instead — one file, import it into Google Calendar in two clicks.</p></div>
+<div class="c"><h3>Set it up — your own Google client ID</h3>
+<ol class="steps"><li>Go to <a href="https://console.cloud.google.com/" target="_blank" rel="noreferrer">console.cloud.google.com</a> and sign in with the Google account that owns your calendar. Create a project (any name, e.g. "Staff Schedule").</li><li>In that project, open <strong>APIs &amp; Services → Library</strong>, find <strong>Google Calendar API</strong>, and click <strong>Enable</strong>.</li><li>Open <strong>APIs &amp; Services → Credentials → Create Credentials → OAuth client ID</strong>. Choose <strong>Web application</strong>.</li><li>Under <strong>Authorized redirect URIs</strong>, add this page's address: <code>${esc(typeof location!=="undefined"?location.href.split("#")[0]:"https://shop.artistrystore.com/ai-command-center/scheduling/staff-schedule.html")}</code></li><li>Copy the <strong>Client ID</strong> it shows and paste it below. (The client secret is never needed here — this page signs in directly from your browser.)</li></ol>
+<label>Your Google OAuth client ID <input id="g-client" placeholder="123456789012-abcdefgh.apps.googleusercontent.com" value="${esc(D.gcal.clientId)}"></label>
+<div class="row"><button class="btn" onclick="saveClientId()">Save client ID</button>${D.gcal.clientId?`<button class="btn g" onclick="connectGoogle()">Connect Google Calendar</button>`:""}</div>
+<p class="mu">The client ID is a public identifier, not a password — it is safe to keep in this browser. Your sign-in token is kept in this browser session only and is never stored with the schedule or sent anywhere except to Google.</p></div>${notDo()}`}}
+window.prevWeek=()=>{weekStart=addD(weekStart,-7);render()};
+window.nextWeek=()=>{weekStart=addD(weekStart,7);render()};
+window.thisWeek=()=>{weekStart=mondayOf(iso(new Date()));render()};
+window.addEmployee=()=>{const name=($("#e-name").value||"").trim();if(!name){toast("Give them a name first.");return}
+const role=($("#e-role").value||"").trim()||"Staff";
+const color=($("#e-color").value||"").trim()||PALETTE[D.employees.length%PALETTE.length];
+D.employees.push({id:uid(),name,role,color});save();render();toast(name+" added to the roster.")};
+window.editEmployee=id=>{const e=empById(id);const d=$("#dlg");
+d.innerHTML=`<h3>Change ${esc(e.name)}</h3><label>Name <input id="f-name" value="${esc(e.name)}"></label><label>Role <input id="f-role" value="${esc(e.role)}"></label><label>Color <input id="f-color" type="color" value="${esc(e.color)}"></label><div class="row"><button class="btn" onclick="saveEmployee('${id}')">Save</button><button class="btn g" onclick="document.querySelector('#dlg').close()">Keep it</button></div>`;d.showModal()};
+window.saveEmployee=id=>{const e=empById(id);e.name=($("#f-name").value||"").trim()||e.name;e.role=($("#f-role").value||"").trim()||e.role;e.color=($("#f-color").value||"").trim()||e.color;$("#dlg").close();save();render();toast("Saved.")};
+window.delEmployee=id=>{const e=empById(id);if(D.shifts.some(s=>s.empId===id)){toast(e.name+" still has shifts — remove them first.");return}
+D.employees=D.employees.filter(x=>x.id!==id);save();render();toast(e.name+" removed.")};
+window.editShift=(empId,date)=>{const e=empById(empId);const s=shiftFor(empId,date);
+const d=$("#dlg");
+d.innerHTML=`<h3>${s?"Change shift":"Add shift"} — ${esc(e.name)}</h3><p class="mu">${fmtD(date)} · ${esc(e.role)}</p>
+<label>Shift <select id="s-tpl"><option value="">Custom times</option>${Object.keys(TEMPLATES).map(t=>`<option value="${t}">${t} (${TEMPLATES[t][0]}–${TEMPLATES[t][1]})</option>`).join("")}</select></label>
+<div class="row"><label style="flex:1">Start <input id="s-start" type="time" value="${s?s.start:"08:00"}"></label><label style="flex:1">End <input id="s-end" type="time" value="${s?s.end:"17:00"}"></label></div>
+<label>Note (optional) <input id="s-note" placeholder="e.g. Opening — keys" value="${esc(s?s.note:"")}"></label>
+<div class="row"><button class="btn" onclick="saveShift('${empId}','${date}')">${s?"Save change":"Add shift"}</button>${s?`<button class="btn danger" onclick="removeShift('${s.id}');document.querySelector('#dlg').close()">Remove shift</button>`:""}<button class="btn g" onclick="document.querySelector('#dlg').close()">Keep it</button></div>
+<p class="mu">One shift per person per day — saving here replaces any shift already on this day. Nobody is messaged about the change; tell them yourself.</p>`;
+d.showModal();
+const tpl=$("#s-tpl");tpl.onchange=()=>{const t=TEMPLATES[tpl.value];if(t){$("#s-start").value=t[0];$("#s-end").value=t[1]}}};
+window.saveShift=(empId,date)=>{const st=$("#s-start").value||"08:00",en=$("#s-end").value||"17:00",nt=$("#s-note").value||"";
+if(assignShift(empId,date,st,en,nt))$("#dlg").close()};
+readToken();
+render();
+</script></body></html>
