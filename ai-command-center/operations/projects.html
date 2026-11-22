@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<!--
+Project + Task Board — free, local-first project board, in one file.
+MIT License. Copyright (c) 2026 Ting Lott (T. Lott Creative)
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Built for AI Command Center (Nov 22, 2026). One file, no account, no server.
+Projects and tasks live in this browser only, under the "aicc-projects" storage key.
+Sample projects and tasks are clearly labeled SAMPLE and can be cleared in one
+click — they are not real work. This is a board, not a team chat: it does not
+message anyone, send reminders, or assign work to other people.
+-->
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Projects — AI Command Center</title>
+<style>
+:root{--bg:#eef1ef;--sf:#fff;--ink:#17231f;--mu:#5f6f68;--ln:#d6ddd9;--nv:#14332b;--nt:#cfe3da;--ac:#b86e00;--ac2:#fff0d6;--gn:#13744a;--rd:#b3261e;box-sizing:border-box;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px);color-scheme:light}
+@media(prefers-color-scheme:dark){:root{--bg:#101a17;--sf:#18251f;--ink:#e8f0ec;--mu:#9bada5;--ln:#2b3b34;--nv:#0b1f19;--ac:#f0a53a;--ac2:#3a2c10;--gn:#5fd39a;--rd:#ff8b84;color-scheme:dark}}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:14.5px/1.5 system-ui,sans-serif}
+.app{display:grid;grid-template-columns:210px 1fr;min-height:100vh}
+aside{background:var(--nv);color:var(--nt);padding:16px 10px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
+aside h1{font-size:19px;margin:0 8px 2px;color:#fff}aside h1 span{color:#f0a53a}
+aside .sub{font-size:12px;color:var(--nt);opacity:.75;margin:0 8px 12px}
+aside button{background:none;border:0;color:inherit;text-align:left;padding:8px 10px;border-radius:6px;font:inherit;cursor:pointer}
+aside button[aria-current=true]{background:#ffffff1f;color:#fff;font-weight:600}
+main{padding:20px;max-width:1150px;width:100%}
+h2{font-size:22px;margin:0}h3{margin:0 0 8px;font-size:16px}
+.top{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.top h2{flex:1;min-width:120px}
+button,input,select,textarea{font:inherit;color:var(--ink)}
+input,select,textarea{background:var(--bg);border:1px solid var(--ln);border-radius:5px;padding:7px;width:100%}
+.btn{background:var(--ac);color:#fff;border:0;border-radius:5px;padding:7px 13px;font-weight:600;cursor:pointer}
+.btn.g{background:none;color:var(--ink);border:1px solid var(--ln)}.btn.s{padding:2px 8px;font-size:12.5px}
+.btn.danger{color:var(--rd);border:1px solid var(--rd);background:none}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.c{background:var(--sf);border:1px solid var(--ln);border-radius:7px;padding:12px;margin-bottom:12px}.cards .c{margin:0}
+.c small{color:var(--mu)}.k{font:500 21px monospace;display:block}
+.sc{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:520px}
+th,td{padding:7px 9px;text-align:left;border-bottom:1px solid var(--ln);vertical-align:top}th{color:var(--mu);font-weight:600;font-size:13px}
+.mu{color:var(--mu)}
+.tag{display:inline-block;border-radius:9px;padding:0 8px;font-size:12px;background:var(--ac2);color:var(--ac)}
+.tag.High{background:#b3261e22;color:var(--rd)}
+.tag.Done{background:#13744a22;color:var(--gn)}
+.tag.Doing{background:#1d4ed822;color:#1d4ed8}
+.tag.Overdue{background:#b3261e22;color:var(--rd)}
+dialog{background:var(--sf);color:var(--ink);border:1px solid var(--ln);border-radius:8px;padding:18px;width:min(540px,94vw);max-height:90vh;overflow:auto}
+dialog::backdrop{background:#0008}label{display:block;margin:8px 0 2px;color:var(--mu);font-size:13px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.note{background:var(--ac2);border:1px solid var(--ln);border-radius:7px;padding:10px 12px;margin-bottom:12px}
+.search{max-width:280px}
+.board{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.col{background:var(--sf);border:1px solid var(--ln);border-radius:7px;padding:10px;min-height:120px}
+.col h3{font-size:14px;color:var(--mu)}
+.task{background:var(--bg);border:1px solid var(--ln);border-radius:6px;padding:8px 10px;margin-bottom:8px}
+.task p{margin:0 0 6px}
+#toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--nv);color:#fff;padding:10px 16px;border-radius:7px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50;max-width:92vw}
+#toast.show{opacity:1}
+@media(max-width:760px){.app{display:block}aside{position:static;height:auto;flex-direction:row;overflow-x:auto;padding:8px}aside h1{display:none}aside .sub{display:none}aside button{white-space:nowrap}main{padding:14px}.board{grid-template-columns:1fr}}
+</style></head><body>
+<div class="app"><aside id="side"></aside><main id="m"></main></div><dialog id="dlg"></dialog><div id="toast" role="status"></div>
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)],
+uid=()=>Math.random().toString(36).slice(2,8)+Date.now().toString(36).slice(-3),
+esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])),
+td=()=>new Date().toISOString().slice(0,10),
+add=n=>new Date(Date.now()+n*864e5).toISOString().slice(0,10),
+daysTo=d=>d?Math.round((Date.parse(d+"T00:00:00")-Date.now())/864e5):null;
+const KEY="aicc-projects";
+const COLS=["To do","Doing","Done"];
+const PRIS=["Low","Medium","High"];
+const PSTATUSES=["Active","On hold","Done"];
+let D=null,tab="dash",view=null,current=null,fProject="All",fStatus="All",fPri="All",q="",showNewProject=false;
+function seed(){D={seq:4006,pseq:103,projects:[
+{id:uid(),no:"P-101",name:"Willow Tales — Christmas launch (sample)",goal:"Get Willow Tales ready for the Dec 1 launch.",status:"Active"},
+{id:uid(),no:"P-102",name:"Sacred Cycles — December grid (sample)",goal:"Keep the December daily grid on schedule.",status:"Active"}
+],tasks:[
+{id:uid(),no:"T-4001",project:"P-101",title:"Write the launch email",status:"Doing",priority:"High",owner:"Ting",due:add(2),notes:[{d:add(-1),by:"Ting",text:"Draft is in the email tool. Needs the premiere link before it goes out."}]},
+{id:uid(),no:"T-4002",project:"P-101",title:"Record the premiere intro",status:"To do",priority:"Medium",owner:"Ting",due:add(5),notes:[]},
+{id:uid(),no:"T-4003",project:"P-101",title:"Check the JVZoo page price",status:"Done",priority:"High",owner:"Ting",due:add(-3),notes:[{d:add(-3),by:"Ting",text:"Price is $47, as planned. Done."}]},
+{id:uid(),no:"T-4004",project:"P-101",title:"Schedule the premiere post",status:"To do",priority:"Medium",owner:"Ting",due:add(7),notes:[]},
+{id:uid(),no:"T-4005",project:"P-101",title:"Ask Amy to proof the flyer",status:"Doing",priority:"Low",owner:"Ting",due:add(-1),notes:[]},
+{id:uid(),no:"T-4006",project:"P-102",title:"Post Night 1 teaser",status:"Done",priority:"Medium",owner:"Ting",due:add(-2),notes:[]}
+],samples:true};
+D.seq=4007;current=D.projects[0].id;}
+try{D=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){}if(!D)seed();
+if(!current&&D.projects.length)current=D.projects[0].id;
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){}};
+if(!localStorage.getItem(KEY))save();
+const toast=m=>{const t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2200)};
+const proj=id=>D.projects.find(p=>p.id===id),
+pname=no=>{const p=D.projects.find(x=>x.no===no);return p?p.name:no},
+openTasks=()=>D.tasks.filter(t=>t.status!=="Done"),
+overdue=()=>D.tasks.filter(t=>{const n=daysTo(t.due);return t.due&&n!==null&&n<0&&t.status!=="Done"}),
+dueWeek=()=>D.tasks.filter(t=>{const n=daysTo(t.due);return t.due&&n!==null&&n>=0&&n<=7&&t.status!=="Done"});
+function csv(){const rows=[["No","Title","Project","Status","Priority","Owner","Due"]];D.tasks.forEach(t=>rows.push([t.no,t.title,pname(t.project),t.status,t.priority,t.owner,t.due||""]));const s=rows.map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(",")).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([s],{type:"text/csv"}));a.download="project-tasks.csv";a.click()}
+function side(){$("#side").innerHTML=`<h1>Pro<span>jects</span></h1><p class="sub">AI Command Center · free tool</p>`+[["dash","Dashboard"],["board","Board"],["tasks","All tasks"],["new","New task"]].map(([k,l])=>`<button data-tab="${k}" aria-current="${tab===k}">${l}</button>`).join("")+`<p class="sub" style="margin-top:auto">Projects stay in this browser only.</p>`;$$("#side button").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;view=null;render()})}
+function sampleBar(){return D.samples?`<div class="note"><strong>Sample data.</strong> These projects and tasks are examples, not real work. <button class="btn s g" onclick="clearSamples()">Clear sample projects</button></div>`:`<div class="note">Your board is empty. <button class="btn s g" onclick="loadSamples()">Load sample projects</button> to see how it works.</div>`}
+window.clearSamples=()=>{D.projects=[];D.tasks=[];D.samples=false;current=null;save();render();toast("Sample projects cleared.")};
+window.loadSamples=()=>{seed();save();render();toast("Sample projects loaded.")};
+function dueLabel(t){if(!t.due)return "—";const n=daysTo(t.due);if(t.status==="Done")return esc(t.due);if(n<0)return `<span class="tag Overdue">overdue ${Math.abs(n)}d</span>`;if(n===0)return `<span class="tag">due today</span>`;return "due "+esc(t.due)}
+function taskCard(t){return `<div class="task"><p><a href="#" onclick="openTask('${t.id}');return false">${esc(t.title)}</a></p><p><span class="tag ${t.priority}">${esc(t.priority)}</span> <span class="mu">${esc(t.owner)||"—"} · ${dueLabel(t)}</span></p><div class="row" style="margin-top:4px">${t.status!=="To do"?`<button class="btn s g" onclick="moveTask('${t.id}',-1)">← Back</button>`:""}${t.status!=="Done"?`<button class="btn s g" onclick="moveTask('${t.id}',1)">Forward →</button>`:""}<button class="btn s danger" onclick="delTask('${t.id}')">Delete</button></div></div>`}
+function render(){side();const m=$("#m");
+if(tab==="dash"){const ov=overdue(),dw=dueWeek();
+m.innerHTML=`<div class="top"><h2>Projects</h2><button class="btn" onclick="goNew()">+ New task</button></div>${sampleBar()}
+<div class="cards"><div class="c"><small>Active projects</small><span class="k">${D.projects.filter(p=>p.status==="Active").length}</span></div><div class="c"><small>Open tasks</small><span class="k">${openTasks().length}</span></div><div class="c"><small>Due this week</small><span class="k">${dw.length}</span></div><div class="c"><small>Overdue</small><span class="k">${ov.length}</span></div></div>
+<div class="c"><h3>Needs attention first</h3>${(ov.length||dw.length)?[...ov.map(t=>`<p><span class="tag Overdue">overdue</span> <a href="#" onclick="openTask('${t.id}');return false">${esc(t.title)}</a> <span class="mu">— ${esc(pname(t.project))} · was due ${esc(t.due)}</span></p>`),...dw.filter(t=>!ov.includes(t)).map(t=>`<p><span class="tag">due soon</span> <a href="#" onclick="openTask('${t.id}');return false">${esc(t.title)}</a> <span class="mu">— ${esc(pname(t.project))} · due ${esc(t.due)}</span></p>`)].join(""):"<p class=\"mu\">Nothing overdue, nothing due this week.</p>"}</div>
+<div class="c"><h3>Projects</h3>${D.projects.length?D.projects.map(p=>{const ts=D.tasks.filter(t=>t.project===p.no);const dn=ts.filter(t=>t.status==="Done").length;return `<p><strong>${esc(p.name)}</strong> <span class="mu">— ${dn}/${ts.length} done · ${esc(p.status)}</span></p>`}).join(""):"<p class=\"mu\">No projects yet.</p>"}</div>
+<p class="mu">What this does not do: this is a board, not a team chat — it does not message anyone, send reminders, or assign work to other people. It keeps the list in this browser, and you work through it yourself.</p>`}
+if(tab==="board"){if(view){const t=D.tasks.find(x=>x.id===view);if(!t){view=null;render();return}
+m.innerHTML=`<div class="top"><h2>${esc(t.no)} — ${esc(t.title)}</h2><button class="btn g" onclick="view=null;render()">← Back to board</button></div>${sampleBar()}
+<div class="c"><p><span class="tag ${t.status==="Done"?"Done":t.status==="Doing"?"Doing":""}">${esc(t.status)}</span> <span class="tag ${t.priority}">${esc(t.priority)}</span> <span class="mu">${esc(pname(t.project))}</span></p>
+<p><strong>Owner:</strong> ${esc(t.owner)||"—"} · <strong>Due:</strong> ${dueLabel(t)}</p>
+<div class="row"><label style="flex:1;min-width:140px">Status <select id="f-st">${COLS.map(s=>`<option ${s===t.status?"selected":""}>${s}</option>`).join("")}</select></label><label style="flex:1;min-width:140px">Priority <select id="f-pr">${PRIS.map(s=>`<option ${s===t.priority?"selected":""}>${s}</option>`).join("")}</select></label></div>
+<div class="row"><label style="flex:1;min-width:140px">Owner <input id="f-ow" value="${esc(t.owner)}"></label><label style="flex:1;min-width:140px">Due date <input id="f-due" type="date" value="${esc(t.due)}"></label></div>
+<div class="row"><button class="btn" onclick="saveTask('${t.id}')">Save changes</button><button class="btn danger" onclick="delTask('${t.id}')">Delete task</button></div></div>
+<div class="c"><h3>Notes</h3>${t.notes.length?t.notes.map(n=>`<p><strong>${esc(n.by)}</strong> <span class="mu">${esc(n.d)}</span><br>${esc(n.text)}</p>`).join(""):"<p class=\"mu\">No notes yet.</p>"}
+<label>Add a note<textarea id="f-note" rows="3" placeholder="What changed, what is blocking it…"></textarea></label><div class="row"><button class="btn" onclick="addNote('${t.id}')">Add note</button></div></div>`;return}
+const p=proj(current);
+m.innerHTML=`<div class="top"><h2>Board</h2><select id="f-proj" style="max-width:260px" onchange="current=this.value;render()">${D.projects.map(x=>`<option value="${x.id}" ${x.id===current?"selected":""}>${esc(x.name)}</option>`).join("")}</select><button class="btn g" onclick="toggleNewProject()">+ New project</button></div>${sampleBar()}
+${showNewProject?`<div class="c"><label>Project name <input id="np-name" placeholder="What are you building?"></label><label>Goal (one line) <input id="np-goal" placeholder="What does done look like?"></label><div class="row"><button class="btn" onclick="saveProject()">Save project</button><button class="btn g" onclick="toggleNewProject()">Cancel</button></div></div>`:""}
+${p?`<div class="c"><h3>${esc(p.name)}</h3><p class="mu">${esc(p.goal)} · ${esc(p.status)} · ${D.tasks.filter(t=>t.project===p.no&&t.status==="Done").length}/${D.tasks.filter(t=>t.project===p.no).length} tasks done</p>
+<div class="row"><label style="max-width:180px">Project status <select id="f-ps" onchange="setPStatus('${p.id}',this.value)">${PSTATUSES.map(s=>`<option ${s===p.status?"selected":""}>${s}</option>`).join("")}</select></label><button class="btn danger" onclick="delProject('${p.id}')">Delete project</button></div></div>
+<div class="board">${COLS.map(col=>`<div class="col"><h3>${col} (${D.tasks.filter(t=>t.project===p.no&&t.status===col).length})</h3>${D.tasks.filter(t=>t.project===p.no&&t.status===col).map(taskCard).join("")||'<p class="mu">Empty.</p>'}</div>`).join("")}</div>`:`<div class="c"><p class="mu">No project yet. Create one to start a board.</p></div>`}`}
+if(tab==="tasks"){const list=D.tasks.filter(t=>(fProject==="All"||t.project===fProject)&&(fStatus==="All"||t.status===fStatus)&&(fPri==="All"||t.priority===fPri)&&(!q||(t.title+t.no).toLowerCase().includes(q.toLowerCase())));
+m.innerHTML=`<div class="top"><h2>All tasks</h2><button class="btn" onclick="goNew()">+ New task</button><button class="btn g" onclick="csv()">Export CSV</button></div>${sampleBar()}
+<div class="row" style="margin:0 0 12px"><input class="search" id="f-q" placeholder="Search tasks…" value="${esc(q)}" oninput="q=this.value;renderTasks()"><select id="f-pj" style="max-width:200px" onchange="fProject=this.value;renderTasks()">${["All",...D.projects.map(p=>p.no)].map(s=>`<option ${s===fProject?"selected":""}>${s=== "All"?"All projects":esc(pname(s))}</option>`).join("")}</select><select id="f-s" style="max-width:130px" onchange="fStatus=this.value;renderTasks()">${["All",...COLS].map(s=>`<option ${s===fStatus?"selected":""}>${s}</option>`).join("")}</select><select id="f-pr" style="max-width:130px" onchange="fPri=this.value;renderTasks()">${["All",...PRIS].map(s=>`<option ${s===fPri?"selected":""}>${s}</option>`).join("")}</select></div>
+<div class="c sc"><table><tr><th>No</th><th>Task</th><th>Project</th><th>Status</th><th>Priority</th><th>Owner</th><th>Due</th></tr>
+${list.length?list.map(t=>`<tr><td>${esc(t.no)}</td><td><a href="#" onclick="openTask('${t.id}');return false">${esc(t.title)}</a></td><td>${esc(pname(t.project))}</td><td>${esc(t.status)}</td><td><span class="tag ${t.priority}">${esc(t.priority)}</span></td><td>${esc(t.owner)||"—"}</td><td>${dueLabel(t)}</td></tr>`).join(""):`<tr><td colspan="7" class="mu">No tasks match.</td></tr>`}</table></div>`}
+if(tab==="new"){m.innerHTML=`<div class="top"><h2>New task</h2></div>${sampleBar()}
+<div class="c"><label>What needs doing? <input id="n-title" placeholder="Short, plain task"></label>
+<div class="row"><label style="flex:1">Project <select id="n-proj">${D.projects.map(p=>`<option value="${p.no}">${esc(p.name)}</option>`).join("")}</select></label>
+<label style="flex:1">Priority <select id="n-pr">${PRIS.map(x=>`<option ${x==="Medium"?"selected":""}>${x}</option>`).join("")}</select></label></div>
+<div class="row"><label style="flex:1">Owner <input id="n-ow" placeholder="Who is doing it?"></label><label style="flex:1">Due date <input id="n-due" type="date"></label></div>
+<label>First note (optional) <textarea id="n-note" rows="3" placeholder="Anything the owner needs to know."></textarea></label>
+<div class="row"><button class="btn" onclick="saveNew()">Save task</button></div></div>`}}
+window.renderTasks=()=>{tab="tasks";render()};
+window.openTask=id=>{view=id;tab="board";render()};
+window.goNew=()=>{tab="new";render()};
+window.toggleNewProject=()=>{showNewProject=!showNewProject;render()};
+window.saveProject=()=>{const n=$("#np-name").value.trim();if(!n){toast("Give the project a name first.");return}
+const p={id:uid(),no:"P-"+(D.pseq++),name:n,goal:$("#np-goal").value.trim(),status:"Active"};
+D.projects.push(p);current=p.id;showNewProject=false;save();render();toast("Project "+p.no+" saved.")};
+window.setPStatus=(id,v)=>{const p=proj(id);p.status=v;save();render()};
+window.delProject=id=>{const p=proj(id);const d=$("#dlg");d.innerHTML=`<h3>Delete ${esc(p.name)}?</h3><p>This removes the project and all its tasks. There is no undo.</p><div class="row"><button class="btn danger" onclick="doDelProject('${id}')">Yes, delete it</button><button class="btn g" onclick="document.querySelector('#dlg').close()">Keep it</button></div>`;d.showModal()};
+window.doDelProject=id=>{const p=proj(id);D.tasks=D.tasks.filter(t=>t.project!==p.no);D.projects=D.projects.filter(x=>x.id!==id);if(current===id)current=D.projects.length?D.projects[0].id:null;$("#dlg").close();save();view=null;render();toast("Project deleted.")};
+window.moveTask=(id,dir)=>{const t=D.tasks.find(x=>x.id===id);const i=COLS.indexOf(t.status);const n=Math.min(2,Math.max(0,i+dir));t.status=COLS[n];save();render();toast(t.no+" → "+t.status+".")};
+window.saveNew=()=>{const t=$("#n-title").value.trim();if(!t){toast("Give the task a title first.");return}
+if(!D.projects.length){toast("Create a project first.");return}
+const tk={id:uid(),no:"T-"+(D.seq++),project:$("#n-proj").value,title:t,status:"To do",priority:$("#n-pr").value,owner:$("#n-ow").value.trim(),due:$("#n-due").value,notes:[]};
+const nt=$("#n-note").value.trim();if(nt)tk.notes.push({d:td(),by:tk.owner||"Ting",text:nt});
+D.tasks.unshift(tk);save();view=tk.id;tab="board";render();toast("Task "+tk.no+" saved.")};
+window.saveTask=id=>{const t=D.tasks.find(x=>x.id===id);t.status=$("#f-st").value;t.priority=$("#f-pr").value;t.owner=$("#f-ow").value.trim();t.due=$("#f-due").value;save();render();toast("Saved.")};
+window.addNote=id=>{const v=$("#f-note").value.trim();if(!v){toast("Write the note first.");return}const t=D.tasks.find(x=>x.id===id);t.notes.push({d:td(),by:"Ting",text:v});save();render();toast("Note added.")};
+window.delTask=id=>{const t=D.tasks.find(x=>x.id===id);const d=$("#dlg");d.innerHTML=`<h3>Delete ${esc(t.no)}?</h3><p>This removes the task and its notes. There is no undo.</p><div class="row"><button class="btn danger" onclick="doDel('${id}')">Yes, delete it</button><button class="btn g" onclick="document.querySelector('#dlg').close()">Keep it</button></div>`;d.showModal()};
+window.doDel=id=>{D.tasks=D.tasks.filter(x=>x.id!==id);$("#dlg").close();save();view=null;render();toast("Task deleted.")};
+render();
+</script></body></html>
