@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<!--
+Help Library – a searchable help library in one HTML file. Open source, MIT License.
+Copyright (c) 2026 Ting Lott, T. Lott Creative
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+-->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Help Library</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Literata:wght@400;600&display=swap">
+<style>
+:root{--bg:#f2f6f8;--sf:#fff;--ink:#14232b;--mu:#4f636d;--ln:#d3dde2;--ac:#0a6c8c;--ac2:#e0f0f5;--mk:#fff1c2;--mt:#5c4200;--rd:#a32a22;box-sizing:border-box;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px);color-scheme:light}
+@media(prefers-color-scheme:dark){:root{--bg:#0e191e;--sf:#16252c;--ink:#e6eff2;--mu:#9db1ba;--ln:#2a3d46;--ac:#5cc3e3;--ac2:#18323c;--mk:#4a3a0c;--mt:#ffe08a;--rd:#ff8f86;color-scheme:dark}}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Atkinson Hyperlegible",system-ui,sans-serif}
+#app{max-width:820px;margin:auto;padding:14px 16px 60px}
+header{display:flex;align-items:center;gap:10px;margin-bottom:12px}.brand{flex:1;font-size:22px;font-weight:700;color:var(--ink);text-decoration:none}
+h2{font-size:22px;margin:8px 0}h3{font-size:14px;color:var(--mu);text-transform:uppercase;letter-spacing:.05em;margin:22px 0 8px}
+button,input,textarea{font:inherit;color:var(--ink)}
+input,textarea{background:var(--sf);border:1px solid var(--ln);border-radius:8px;padding:10px 12px;width:100%}
+.btn{background:var(--ac);color:var(--bg);border:0;border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer}
+.btn.g{background:none;color:var(--ink);border:1px solid var(--ln)}.btn.s{padding:3px 10px;font-size:14px}.btn.d{color:var(--rd)}
+:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+#q{font-size:17px;padding:13px 14px}
+.note{background:var(--ac2);border-radius:8px;padding:10px 14px;margin:12px 0;font-size:15px}
+.note.w{background:var(--mk);color:var(--mt)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.chip{border:1px solid var(--ln);background:var(--sf);border-radius:20px;padding:4px 13px;cursor:pointer}.chip[aria-pressed=true]{background:var(--ac);color:var(--bg);border-color:var(--ac)}
+.card{display:block;background:var(--sf);border:1px solid var(--ln);border-radius:10px;padding:12px 14px;margin:8px 0;color:var(--ink);text-decoration:none}
+.card:hover{border-color:var(--ac)}.card .t{font-weight:700;font-size:17px}.card .mu,.mu{color:var(--mu)}.card .mu{display:block;font-size:14.5px}
+.tag{display:inline-block;margin-left:8px;border:1px solid var(--mt);background:var(--mk);color:var(--mt);border-radius:6px;padding:0 7px;font-size:12px;font-weight:700;vertical-align:middle}
+.art{background:var(--sf);border:1px solid var(--ln);border-radius:12px;padding:6px 20px 20px;font-family:Literata,Georgia,serif;line-height:1.7}
+.art h2,.art .meta,.art .note{font-family:"Atkinson Hyperlegible",system-ui,sans-serif}
+.art li{margin:5px 0}mark{background:var(--mk);color:var(--mt);border-radius:3px;padding:0 2px}a{color:var(--ac)}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px;padding:10px;border:1px dashed var(--ln);border-radius:8px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+dialog{background:var(--sf);color:var(--ink);border:1px solid var(--ln);border-radius:12px;padding:18px;width:min(560px,94vw);max-height:90vh;overflow:auto}
+dialog::backdrop{background:#0008}label{display:block;margin:10px 0 3px;color:var(--mu);font-size:14px}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:9}
+#toast:not(:empty){background:var(--ink);color:var(--bg);border-radius:10px;padding:8px 14px}#toast .btn{margin-left:8px}
+</style></head><body>
+<div id="app"></div><dialog id="dlg"></dialog><div id="toast" role="status" aria-live="polite"></div>
+<script type="application/json" id="seed">{"rev":"original","cfg":{"name":"Help Library","helpdesk":"https://shop.artistrystore.com/ai-command-center/support/helpdesk.html"},"arts":[
+{"id":"s-book","sample":true,"cat":"Appointments","title":"How to book an appointment","body":"**Sample article.** The steps below are a template. Replace every bracketed item with your own real details.\n\n1. Open [your booking link].\n2. Choose the service you want.\n3. Pick a date and time that works for you.\n4. Enter your contact details and confirm.\n5. Check for a confirmation at [where confirmations are sent].\n\nIf you cannot find a time that works, see [where to ask for help]."},
+{"id":"s-change","sample":true,"cat":"Appointments","title":"How to reschedule or cancel an appointment","body":"**Sample article.** This sample contains no real policy.\n\n[Explain how customers change or cancel a booking.]\n\n[State your own rescheduling and cancellation policy here.]"},
+{"id":"s-receipt","sample":true,"cat":"Billing","title":"Where to find your receipt or invoice","body":"**Sample article.** This sample contains no prices, fees, or payment terms.\n\n[Explain where customers can find receipts or invoices, for example in an email or an account page.]\n\n[Explain who to ask if a receipt is missing.]"},
+{"id":"s-details","sample":true,"cat":"Account","title":"How to update your contact details","body":"**Sample article.** Replace the placeholders with your real steps.\n\n1. Go to [where customers manage their details].\n2. Change the details you need.\n3. Save your changes.\n\n[Say how long changes take, if that matters.]"},
+{"id":"s-contact","sample":true,"cat":"Getting started","title":"How to contact the business","body":"**Sample article.** This sample contains no real contact details or opening hours.\n\n[List your real contact options here.]\n\n[List your real opening hours here, if you want to share them.]\n\nThis library only holds articles. For personal help, use the help desk."},
+{"id":"s-search","sample":true,"cat":"Getting started","title":"How to use this help library","body":"**Sample article.**\n\n- Type a word in the search box to find articles.\n- Tap a category to see only that group.\n- Open an article to read it.\n\nCan't find an answer? This library cannot take questions. Use the business's help desk."}
+]}</script>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])),
+td=()=>new Date().toISOString().slice(0,10),uid=()=>"a"+Math.random().toString(36).slice(2,8);
+const seed=JSON.parse($("#seed").textContent);let D=null,q="",cat="",manage=false,undoFn=null,tt;
+try{const s=JSON.parse(localStorage.getItem("aicc-help-library")||"null");if(s&&s.base===seed.rev)D=s.data}catch(e){}
+D=D||JSON.parse(JSON.stringify(seed));D.cfg=D.cfg||{name:"Help Library",helpdesk:""};
+const save=()=>{try{localStorage.setItem("aicc-help-library",JSON.stringify({base:seed.rev,data:D}))}catch(e){}};
+const inl=(s,mk)=>{const h=esc(s).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');return mk?h.replace(/\[([^\]<]+)\](?!\()/g,"<mark>[$1]</mark>"):h};
+const md=(t,mk)=>t.split(/\n{2,}/).map(b=>{const L=b.split("\n");
+if(L.every(l=>/^\d+\.\s/.test(l)))return"<ol>"+L.map(l=>`<li>${inl(l.replace(/^\d+\.\s/,""),mk)}</li>`).join("")+"</ol>";
+if(L.every(l=>/^[-*]\s/.test(l)))return"<ul>"+L.map(l=>`<li>${inl(l.slice(2),mk)}</li>`).join("")+"</ul>";
+if(/^##\s/.test(b))return`<h3 style="text-transform:none;font-size:18px;color:inherit">${inl(b.slice(3),mk)}</h3>`;
+return`<p>${inl(L.join(" "),mk)}</p>`}).join("");
+const snip=b=>b.replace(/[*#\[\]]/g,"").replace(/\(https?:[^)]*\)/g,"").replace(/\s+/g," ").trim().slice(0,110)+"…",
+cats=()=>[...new Set(D.arts.map(a=>a.cat))].sort((a,b)=>a.localeCompare(b)),hasS=()=>D.arts.some(a=>a.sample);
+const route=()=>{const m=location.hash.match(/^#article-([\w-]+)$/);return m?D.arts.find(a=>a.id===m[1]):null};
+function hits(){const t=q.toLowerCase().split(/\s+/).filter(Boolean);
+return D.arts.filter(a=>!cat||a.cat===cat).map(a=>{const T=a.title.toLowerCase(),B=a.body.toLowerCase(),C=a.cat.toLowerCase();let s=0;for(const w of t){const m=(T.includes(w)?3:0)+(C.includes(w)?2:0)+(B.includes(w)?1:0);if(!m)return null;s+=m}return{a,s}}).filter(Boolean).sort((x,y)=>y.s-x.s||x.a.cat.localeCompare(y.a.cat)||x.a.title.localeCompare(y.a.title)).map(x=>x.a)}
+const card=(a,c)=>`<a class="card" href="#article-${a.id}"><span class="t">${esc(a.title)}</span>${a.sample?'<span class="tag">SAMPLE</span>':""}<span class="mu">${c?esc(a.cat)+" · ":""}${esc(snip(a.body))}</span></a>`;
+function results(){const r=hits();let h="";
+if(!D.arts.length)h=`<p class="note">This library is empty. Use Manage, then New article, to add your first one.</p>`;
+else if(!r.length)h=`<p class="note">No articles match${q?` “${esc(q)}”`:""}. Try a different word or choose All.</p>`;
+else if(q)h=r.map(a=>card(a,1)).join("");
+else cats().filter(c=>!cat||c===cat).forEach(c=>{h+=`<h3>${esc(c)}</h3>`+r.filter(a=>a.cat===c).map(a=>card(a)).join("")});
+return{h,n:`${r.length} article${r.length===1?"":"s"}${q?` for “${esc(q)}”`:""}`}}
+const helpdesk=()=>{const h=(D.cfg.helpdesk||"").trim();return h?` Help desk: ${/^https?:\/\//.test(h)?`<a href="${esc(h)}" target="_blank" rel="noopener noreferrer">${esc(h)}</a>`:esc(h)}.`:""};
+const about=`<p class="note"><b>What this is:</b> a help library of searchable articles and how-tos, sorted by category. <b>What it isn't:</b> a support inbox. It can't receive or answer questions, so for personal help use the business's help desk.${"HELPDESK"}</p>`;
+function tools(){return manage?`<div class="tools"><button class="btn s" data-a="new">New article</button><button class="btn g s" data-a="cfg">Settings</button><button class="btn g s" data-a="pub">Download publishable copy</button><button class="btn g s" data-a="exp">Export backup</button><button class="btn g s" data-a="imp">Import backup</button><input type="file" id="fi" accept=".json" hidden></div>`:""}
+function view(a){return`<p><a href="#" data-a="home">← All articles</a></p><article class="art"><h2 id="h" tabindex="-1">${esc(a.title)}</h2><p class="meta mu">${esc(a.cat)}${a.updated?` · Updated ${a.updated}`:""}</p>${a.sample?`<p class="note w"><b>SAMPLE.</b> This is placeholder text with no real details. Replace it or clear it.</p>`:""}${md(a.body,a.sample)}</article><p class="note">Didn't find what you need? This library can't take questions. Use the business's help desk.${helpdesk()}</p>${manage?`<div class="row"><button class="btn s" data-a="edit" data-id="${a.id}">Edit this article</button></div>`:""}`}
+function home(){const r=results();return`<input id="q" type="search" placeholder="Search the library (press / to jump here)" value="${esc(q)}" aria-label="Search articles">${about.replace("HELPDESK",helpdesk())}
+${hasS()?`<p class="note w"><b>Sample content:</b> articles marked SAMPLE are placeholders that show how this works. They contain no real details. <button class="btn s" data-a="clear">Clear all samples</button></p>`:""}
+<div class="chips" role="group" aria-label="Categories"><button class="chip" data-cat="" aria-pressed="${!cat}">All</button>${cats().map(c=>`<button class="chip" data-cat="${esc(c)}" aria-pressed="${cat===c}">${esc(c)}</button>`).join("")}</div><p class="mu" id="cnt" aria-live="polite">${r.n}</p><div id="res">${r.h}</div>`}
+function render(){document.title=D.cfg.name||"Help Library";const a=route();
+$("#app").innerHTML=`<header><a class="brand" href="#" data-a="home">${esc(D.cfg.name||"Help Library")}</a><button class="btn g s" data-a="manage" aria-pressed="${manage}">${manage?"Done":"Manage"}</button></header>${tools()}${a?view(a):home()}`}
+function dlg(html,fn){const d=$("#dlg");d.innerHTML=`<form>${html}</form>`;d.querySelector("form").onsubmit=e=>{e.preventDefault();fn(Object.fromEntries(new FormData(e.target)));d.close();save();render()};d.showModal()}
+const cx=`<button type="button" class="btn g" data-a="x">Cancel</button>`;
+function edit(a){a=a||{};dlg(`<h2>${a.id?"Edit":"New"} article</h2><label for="et">Title</label><input id="et" name="title" value="${esc(a.title)}" required><label for="ec">Category</label><input id="ec" name="cat" list="cl" value="${esc(a.cat)}" required><datalist id="cl">${cats().map(c=>`<option value="${esc(c)}">`).join("")}</datalist><label for="eb">Article text</label><textarea id="eb" name="body" rows="12" required>${esc(a.body)}</textarea><p class="mu">Blank line between paragraphs. Lines starting 1. or - make lists. ## makes a heading. **bold**. [link text](https://…). Editing a sample makes it your own article.</p><div class="row"><button class="btn">Save</button>${a.id?`<button type="button" class="btn g d" data-a="del" data-id="${a.id}">Delete</button>`:""}${cx}</div>`,v=>{v.title=v.title.trim();v.cat=v.cat.trim();if(a.id)Object.assign(a,v,{sample:false,updated:td()});else D.arts.push({id:uid(),sample:false,updated:td(),...v})})}
+const cfgf=()=>dlg(`<h2>Settings</h2><label for="cn">Library name</label><input id="cn" name="name" value="${esc(D.cfg.name)}" required><label for="ch">Help desk: a web address or a short instruction (optional)</label><input id="ch" name="helpdesk" value="${esc(D.cfg.helpdesk)}" placeholder="Left blank, nothing is shown"><p class="mu">Nothing is filled in for you. The library never invents contact details.</p><div class="row"><button class="btn">Save</button><button type="button" class="btn g d" data-a="reset">Reset to this file's original articles</button>${cx}</div>`,v=>{D.cfg.name=v.name.trim();D.cfg.helpdesk=v.helpdesk});
+function toast(m,u){clearTimeout(tt);undoFn=u||null;$("#toast").innerHTML=esc(m)+(u?` <button class="btn g s" data-a="undo" style="color:inherit;border-color:currentColor">Undo</button>`:"");tt=setTimeout(()=>$("#toast").innerHTML="",9000)}
+function dl(n,t,ty){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([t],{type:ty}));a.download=n;a.click()}
+function pub(){const c=document.documentElement.cloneNode(true);["#app","#dlg","#toast"].forEach(s=>c.querySelector(s).innerHTML="");c.querySelector("title").textContent=D.cfg.name||"Help Library";
+c.querySelector("#seed").textContent=JSON.stringify({...D,rev:"r"+Date.now()}).replace(/</g,"\\u003c");dl("index.html","<!DOCTYPE html>\n"+c.outerHTML,"text/html");toast("Downloaded index.html with your current articles built in.")}
+document.addEventListener("click",e=>{const t=e.target.closest("[data-a],[data-cat]");if(!t)return;
+if(t.dataset.cat!==undefined&&!t.dataset.a){cat=t.dataset.cat;render();return}
+const a=t.dataset.a,id=t.dataset.id;
+if(a==="home"){e.preventDefault();history.pushState("",document.title,location.pathname+location.search);render();window.scrollTo(0,0)}
+if(a==="manage"){manage=!manage;render()}
+if(a==="x")$("#dlg").close();if(a==="new")edit();if(a==="edit")edit(D.arts.find(x=>x.id===id));if(a==="cfg")cfgf();if(a==="pub")pub();
+if(a==="exp")dl("help-library-backup.json",JSON.stringify(D,null,2),"application/json");if(a==="imp")$("#fi").click();
+if(a==="clear"){const old=D.arts.filter(x=>x.sample);D.arts=D.arts.filter(x=>!x.sample);save();render();toast(old.length+" samples cleared.",()=>{D.arts.push(...old);save();render()})}
+if(a==="undo"&&undoFn){undoFn();undoFn=null;$("#toast").innerHTML=""}
+if(a==="del"&&confirm("Delete this article?")){D.arts=D.arts.filter(x=>x.id!==id);save();$("#dlg").close();history.pushState("",document.title,location.pathname);render()}
+if(a==="reset"&&confirm("Replace everything with the articles that came with this file?")){try{localStorage.removeItem("aicc-help-library")}catch(x){}location.hash="";location.reload()}});
+document.addEventListener("input",e=>{if(e.target.id==="q"){q=e.target.value;const r=results();$("#res").innerHTML=r.h;$("#cnt").innerHTML=r.n}});
+document.addEventListener("change",e=>{if(e.target.id==="fi"&&e.target.files[0]){const r=new FileReader();r.onload=()=>{try{const j=JSON.parse(r.result);if(Array.isArray(j.arts)){D=j;D.cfg=D.cfg||{name:"Help Library",helpdesk:""};save();render();toast("Backup imported.")}else alert("That is not a Help Library backup.")}catch(x){alert("Could not read that file.")}};r.readAsText(e.target.files[0])}});
+document.addEventListener("keydown",e=>{if(e.key==="/"&&!/INPUT|TEXTAREA/.test(e.target.tagName)&&$("#q")){e.preventDefault();$("#q").focus()}});
+window.addEventListener("hashchange",()=>{render();window.scrollTo(0,0);const h=$("#h");if(h)h.focus()});
+render();
+</script></body></html>
