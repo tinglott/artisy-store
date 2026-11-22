@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<!--
+Help Desk — free, local-first support ticket board, in one file.
+MIT License. Copyright (c) 2026 Ting Lott (T. Lott Creative)
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Built for AI Command Center (Nov 22, 2026). One file, no account, no server.
+Tickets live in this browser only, under the "aicc-helpdesk" storage key.
+Sample tickets are clearly labeled SAMPLE and can be cleared in one click —
+they are not real customers. Nothing here sends email; it is the queue, not the inbox.
+-->
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Help Desk — AI Command Center</title>
+<style>
+:root{--bg:#eef1ef;--sf:#fff;--ink:#17231f;--mu:#5f6f68;--ln:#d6ddd9;--nv:#14332b;--nt:#cfe3da;--ac:#b86e00;--ac2:#fff0d6;--gn:#13744a;--rd:#b3261e;box-sizing:border-box;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px);color-scheme:light}
+@media(prefers-color-scheme:dark){:root{--bg:#101a17;--sf:#18251f;--ink:#e8f0ec;--mu:#9bada5;--ln:#2b3b34;--nv:#0b1f19;--ac:#f0a53a;--ac2:#3a2c10;--gn:#5fd39a;--rd:#ff8b84;color-scheme:dark}}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:14.5px/1.5 system-ui,sans-serif}
+.app{display:grid;grid-template-columns:210px 1fr;min-height:100vh}
+aside{background:var(--nv);color:var(--nt);padding:16px 10px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
+aside h1{font-size:19px;margin:0 8px 2px;color:#fff}aside h1 span{color:#f0a53a}
+aside .sub{font-size:12px;color:var(--nt);opacity:.75;margin:0 8px 12px}
+aside button{background:none;border:0;color:inherit;text-align:left;padding:8px 10px;border-radius:6px;font:inherit;cursor:pointer}
+aside button[aria-current=true]{background:#ffffff1f;color:#fff;font-weight:600}
+main{padding:20px;max-width:1150px;width:100%}
+h2{font-size:22px;margin:0}h3{margin:0 0 8px;font-size:16px}
+.top{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.top h2{flex:1;min-width:120px}
+button,input,select,textarea{font:inherit;color:var(--ink)}
+input,select,textarea{background:var(--bg);border:1px solid var(--ln);border-radius:5px;padding:7px;width:100%}
+.btn{background:var(--ac);color:#fff;border:0;border-radius:5px;padding:7px 13px;font-weight:600;cursor:pointer}
+.btn.g{background:none;color:var(--ink);border:1px solid var(--ln)}.btn.s{padding:2px 8px;font-size:12.5px}
+.btn.danger{color:var(--rd);border:1px solid var(--rd);background:none}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.c{background:var(--sf);border:1px solid var(--ln);border-radius:7px;padding:12px;margin-bottom:12px}.cards .c{margin:0}
+.c small{color:var(--mu)}.k{font:500 21px monospace;display:block}
+.sc{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:520px}
+th,td{padding:7px 9px;text-align:left;border-bottom:1px solid var(--ln);vertical-align:top}th{color:var(--mu);font-weight:600;font-size:13px}
+.mu{color:var(--mu)}
+.tag{display:inline-block;border-radius:9px;padding:0 8px;font-size:12px;background:var(--ac2);color:var(--ac)}
+.tag.High,.tag.Urgent{background:#b3261e22;color:var(--rd)}.tag.Resolved,.tag.Done{background:#13744a22;color:var(--gn)}
+.tag.New{background:#1d4ed822;color:#1d4ed8}.tag.Pending{background:#6b728022;color:var(--mu)}
+dialog{background:var(--sf);color:var(--ink);border:1px solid var(--ln);border-radius:8px;padding:18px;width:min(540px,94vw);max-height:90vh;overflow:auto}
+dialog::backdrop{background:#0008}label{display:block;margin:8px 0 2px;color:var(--mu);font-size:13px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.note{background:var(--ac2);border:1px solid var(--ln);border-radius:7px;padding:10px 12px;margin-bottom:12px}
+.search{max-width:280px}
+#toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--nv);color:#fff;padding:10px 16px;border-radius:7px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50;max-width:92vw}
+#toast.show{opacity:1}
+@media(max-width:760px){.app{display:block}aside{position:static;height:auto;flex-direction:row;overflow-x:auto;padding:8px}aside h1{display:none}aside .sub{display:none}aside button{white-space:nowrap}main{padding:14px}}
+</style></head><body>
+<div class="app"><aside id="side"></aside><main id="m"></main></div><dialog id="dlg"></dialog><div id="toast" role="status"></div>
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)],
+uid=()=>Math.random().toString(36).slice(2,8)+Date.now().toString(36).slice(-3),
+esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])),
+td=()=>new Date().toISOString().slice(0,10),
+hrs=(a,b)=>{const h=(Date.parse(b)-Date.parse(a))/36e5;return h<1?Math.round(h*60)+"m":(Math.round(h*10)/10)+"h"},
+age=d=>{const n=Math.round((Date.now()-Date.parse(d+"T00:00:00"))/864e5);return n<=0?"today":n===1?"1 day":n+" days"};
+const KEY="aicc-helpdesk";
+let D=null,tab="dash",view=null,fStatus="All",fPri="All",q="";
+function seed(){D={seq:1001,tickets:[
+{id:uid(),no:"HD-1001",title:"Where is my order?",requester:"Marta S. (sample)",email:"marta@example.test",channel:"Email",priority:"High",status:"Open",assignee:"Ting",created:add(-2),resolved:"",notes:[{d:add(-2),by:"Ting",text:"Checked the shop — order went out yesterday. Told Marta the tracking link."}]},
+{id:uid(),no:"HD-1002",title:"Can I change my delivery address?",requester:"Jon P. (sample)",email:"jon@example.test",channel:"Chat",priority:"Medium",status:"New",assignee:"",created:add(-1),resolved:"",notes:[]},
+{id:uid(),no:"HD-1003",title:"The download link did not arrive",requester:"Aisha B. (sample)",email:"aisha@example.test",channel:"Store",priority:"Medium",status:"Resolved",assignee:"Ting",created:add(-6),resolved:add(-5),notes:[{d:add(-5),by:"Ting",text:"Resent the link by email. Aisha confirmed it arrived."}]}
+],samples:true}};
+function add(n){return new Date(Date.now()+n*864e5).toISOString().slice(0,10)}
+try{D=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){}if(!D)seed();
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){}};
+if(!localStorage.getItem(KEY))save();
+const toast=m=>{const t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2200)};
+const openT=()=>D.tickets.filter(t=>t.status!=="Resolved"),
+avgRes=()=>{const r=D.tickets.filter(t=>t.status==="Resolved"&&t.resolved);if(!r.length)return "—";const h=r.reduce((s,t)=>s+(Date.parse(t.resolved)-Date.parse(t.created))/36e5,0)/r.length;return h<1?Math.round(h*60)+"m":(Math.round(h*10)/10)+"h"};
+function csv(){const rows=[["No","Title","Requester","Email","Channel","Priority","Status","Assignee","Created","Resolved"]];D.tickets.forEach(t=>rows.push([t.no,t.title,t.requester,t.email,t.channel,t.priority,t.status,t.assignee,t.created,t.resolved||""]));const s=rows.map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(",")).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([s],{type:"text/csv"}));a.download="help-desk-tickets.csv";a.click()}
+function side(){$("#side").innerHTML=`<h1>Help <span>Desk</span></h1><p class="sub">AI Command Center · free tool</p>`+[["dash","Dashboard"],["list","Tickets"],["new","New ticket"]].map(([k,l])=>`<button data-tab="${k}" aria-current="${tab===k}">${l}</button>`).join("")+`<p class="sub" style="margin-top:auto">Tickets stay in this browser only.</p>`;$$("#side button").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;view=null;render()})}
+function sampleBar(){return D.samples?`<div class="note"><strong>Sample data.</strong> These tickets are examples, not real customers. <button class="btn s g" onclick="clearSamples()">Clear sample tickets</button></div>`:`<div class="note">Your board is empty. <button class="btn s g" onclick="loadSamples()">Load sample tickets</button> to see how it works.</div>`}
+window.clearSamples=()=>{D.tickets=[];D.samples=false;save();render();toast("Sample tickets cleared.")};
+window.loadSamples=()=>{seed();save();render();toast("Sample tickets loaded.")};
+function render(){side();const m=$("#m");
+if(tab==="dash"){const o=openT();m.innerHTML=`<div class="top"><h2>Help Desk</h2><button class="btn" onclick="goNew()">+ New ticket</button></div>${sampleBar()}
+<div class="cards"><div class="c"><small>Open tickets</small><span class="k">${o.length}</span></div><div class="c"><small>New, waiting</small><span class="k">${D.tickets.filter(t=>t.status==="New").length}</span></div><div class="c"><small>Resolved</small><span class="k">${D.tickets.filter(t=>t.status==="Resolved").length}</span></div><div class="c"><small>Average time to resolve</small><span class="k">${avgRes()}</span></div></div>
+<div class="c"><h3>Needs attention first</h3>${o.length?o.slice().sort((a,b)=>({Urgent:0,High:1,Medium:2,Low:3}[a.priority]-{Urgent:0,High:1,Medium:2,Low:3}[b.priority])).slice(0,5).map(t=>`<p><span class="tag ${t.priority}">${esc(t.priority)}</span> <a href="#" onclick="openTicket('${t.id}');return false">${esc(t.title)}</a> <span class="mu">— ${esc(t.requester)} · ${age(t.created)} old</span></p>`).join(""):"<p class=\"mu\">Nothing open. Nice and quiet.</p>"}</div>
+<p class="mu">This is the queue, not the inbox and not a live chat — it does not read or send email, and customers cannot chat here in real time. When a customer writes in, add the ticket here and work it until it is resolved.</p>`}
+if(tab==="list"){if(view){const t=D.tickets.find(x=>x.id===view);if(!t){view=null;render();return}
+m.innerHTML=`<div class="top"><h2>${esc(t.no)} — ${esc(t.title)}</h2><button class="btn g" onclick="view=null;render()">← All tickets</button></div>${sampleBar()}
+<div class="c"><p><span class="tag ${t.status}">${esc(t.status)}</span> <span class="tag ${t.priority}">${esc(t.priority)}</span></p>
+<p><strong>From:</strong> ${esc(t.requester)} ${t.email?`&lt;${esc(t.email)}&gt;`:""} · <strong>Channel:</strong> ${esc(t.channel)} · <strong>Assigned to:</strong> ${esc(t.assignee)||"—"}</p>
+<p><strong>Opened:</strong> ${esc(t.created)} (${age(t.created)} old)${t.resolved?` · <strong>Resolved:</strong> ${esc(t.resolved)} — took ${hrs(t.created,t.resolved)}`:""}</p>
+<div class="row"><label style="flex:1;min-width:140px">Status <select id="f-st">${["New","Open","Pending","Resolved"].map(s=>`<option ${s===t.status?"selected":""}>${s}</option>`).join("")}</select></label><label style="flex:1;min-width:140px">Assignee <input id="f-as" value="${esc(t.assignee)}" placeholder="Who is on it?"></label></div>
+<div class="row"><button class="btn" onclick="saveStatus('${t.id}')">Save changes</button>${t.status==="Resolved"?`<button class="btn g" onclick="reopenTicket('${t.id}')">Reopen</button>`:`<button class="btn g" onclick="resolveTicket('${t.id}')">Mark resolved</button>`}<button class="btn danger" onclick="delTicket('${t.id}')">Delete ticket</button></div></div>
+<div class="c"><h3>Notes</h3>${t.notes.length?t.notes.map(n=>`<p><strong>${esc(n.by)}</strong> <span class="mu">${esc(n.d)}</span><br>${esc(n.text)}</p>`).join(""):"<p class=\"mu\">No notes yet.</p>"}
+<label>Add a note<textarea id="f-note" rows="3" placeholder="What happened, what you told them…"></textarea></label><div class="row"><button class="btn" onclick="addNote('${t.id}')">Add note</button></div></div>`;return}
+const list=D.tickets.filter(t=>(fStatus==="All"||t.status===fStatus)&&(fPri==="All"||t.priority===fPri)&&(!q||(t.title+t.requester+t.no).toLowerCase().includes(q.toLowerCase())));
+m.innerHTML=`<div class="top"><h2>Tickets</h2><button class="btn" onclick="goNew()">+ New ticket</button><button class="btn g" onclick="csv()">Export CSV</button></div>${sampleBar()}
+<div class="row" style="margin:0 0 12px"><input class="search" id="f-q" placeholder="Search tickets…" value="${esc(q)}" oninput="q=this.value;renderList()"><select id="f-s" style="max-width:150px" onchange="fStatus=this.value;renderList()">${["All","New","Open","Pending","Resolved"].map(s=>`<option ${s===fStatus?"selected":""}>${s}</option>`).join("")}</select><select id="f-p" style="max-width:150px" onchange="fPri=this.value;renderList()">${["All","Low","Medium","High","Urgent"].map(s=>`<option ${s===fPri?"selected":""}>${s}</option>`).join("")}</select></div>
+<div class="c sc"><table><tr><th>No</th><th>Title</th><th>From</th><th>Channel</th><th>Priority</th><th>Status</th><th>Age</th><th>Assigned</th></tr>
+${list.length?list.map(t=>`<tr><td>${esc(t.no)}</td><td><a href="#" onclick="openTicket('${t.id}');return false">${esc(t.title)}</a></td><td>${esc(t.requester)}</td><td>${esc(t.channel)}</td><td><span class="tag ${t.priority}">${esc(t.priority)}</span></td><td><span class="tag ${t.status}">${esc(t.status)}</span></td><td>${t.status==="Resolved"?hrs(t.created,t.resolved):age(t.created)}</td><td>${esc(t.assignee)||"—"}</td></tr>`).join(""):`<tr><td colspan="8" class="mu">No tickets match.</td></tr>`}</table></div>`}
+if(tab==="new"){m.innerHTML=`<div class="top"><h2>New ticket</h2></div>${sampleBar()}
+<div class="c"><label>What is it about? <input id="n-title" placeholder="Short, plain title"></label>
+<label>Who asked? <input id="n-req" placeholder="Name"></label>
+<label>Their email (optional) <input id="n-email" placeholder="name@example.com"></label>
+<div class="row"><label style="flex:1">Channel <select id="n-ch">${["Email","Phone","Chat","Store","Other"].map(c=>`<option>${c}</option>`).join("")}</select></label>
+<label style="flex:1">Priority <select id="n-pr">${["Low","Medium","High","Urgent"].map(c=>`<option ${c==="Medium"?"selected":""}>${c}</option>`).join("")}</select></label></div>
+<label>Assigned to (optional) <input id="n-as" placeholder="Your name, or a helper's"></label>
+<label>First note (optional) <textarea id="n-note" rows="3" placeholder="What they said, in their own words if you can."></textarea></label>
+<div class="row"><button class="btn" onclick="saveNew()">Save ticket</button></div></div>`}}
+window.renderList=()=>{tab="list";render()};
+window.openTicket=id=>{view=id;render()};
+window.goNew=()=>{tab="new";render()};
+window.saveNew=()=>{const t=$("#n-title").value.trim();if(!t){toast("Give the ticket a title first.");return}
+const tk={id:uid(),no:"HD-"+(D.seq++),title:t,requester:$("#n-req").value.trim()||"—",email:$("#n-email").value.trim(),channel:$("#n-ch").value,priority:$("#n-pr").value,status:"New",assignee:$("#n-as").value.trim(),created:td(),resolved:"",notes:[]};
+const nt=$("#n-note").value.trim();if(nt)tk.notes.push({d:td(),by:tk.assignee||"Ting",text:nt});
+D.tickets.unshift(tk);save();view=tk.id;tab="list";render();toast("Ticket "+tk.no+" saved.")};
+window.saveStatus=id=>{const t=D.tickets.find(x=>x.id===id);t.status=$("#f-st").value;t.assignee=$("#f-as").value.trim();if(t.status==="Resolved"&&!t.resolved)t.resolved=td();if(t.status!=="Resolved")t.resolved="";save();render();toast("Saved.")};
+window.resolveTicket=id=>{const t=D.tickets.find(x=>x.id===id);t.status="Resolved";t.resolved=td();save();render();toast(t.no+" resolved in "+hrs(t.created,t.resolved)+".")};
+window.reopenTicket=id=>{const t=D.tickets.find(x=>x.id===id);t.status="Open";t.resolved="";save();render()};
+window.addNote=id=>{const v=$("#f-note").value.trim();if(!v){toast("Write the note first.");return}const t=D.tickets.find(x=>x.id===id);t.notes.push({d:td(),by:"Ting",text:v});save();render();toast("Note added.")};
+window.delTicket=id=>{const t=D.tickets.find(x=>x.id===id);const d=$("#dlg");d.innerHTML=`<h3>Delete ${esc(t.no)}?</h3><p>This removes the ticket and its notes. There is no undo.</p><div class="row"><button class="btn danger" onclick="doDel('${id}')">Yes, delete it</button><button class="btn g" onclick="document.querySelector('#dlg').close()">Keep it</button></div>`;d.showModal()};
+window.doDel=id=>{D.tickets=D.tickets.filter(x=>x.id!==id);$("#dlg").close();save();view=null;render();toast("Ticket deleted.")};
+render();
+</script></body></html>
