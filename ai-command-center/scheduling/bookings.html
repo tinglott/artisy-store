@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<!--
+Bookings — free, local-first booking page with reminders, in one file.
+MIT License. Copyright (c) 2026 Ting Lott (T. Lott Creative)
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Built for AI Command Center (Nov 22, 2026). One file, no account, no server.
+Bookings live in this browser only, under the "aicc-bookings" storage key.
+Sample services and bookings are clearly labeled SAMPLE and can be cleared in
+one click — they are not real customers.
+What this does NOT do: it sends no emails and no texts. There is no email or
+texting service connected. Reminders live here as a list for you to work through;
+contact each person yourself, or download the calendar file (.ics) for a booking
+and add it to your own calendar.
+-->
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bookings — AI Command Center</title>
+<style>
+:root{--bg:#eef1ef;--sf:#fff;--ink:#17231f;--mu:#5f6f68;--ln:#d6ddd9;--nv:#14332b;--nt:#cfe3da;--ac:#b86e00;--ac2:#fff0d6;--gn:#13744a;--rd:#b3261e;box-sizing:border-box;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px);color-scheme:light}
+@media(prefers-color-scheme:dark){:root{--bg:#101a17;--sf:#18251f;--ink:#e8f0ec;--mu:#9bada5;--ln:#2b3b34;--nv:#0b1f19;--ac:#f0a53a;--ac2:#3a2c10;--gn:#5fd39a;--rd:#ff8b84;color-scheme:dark}}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:14.5px/1.5 system-ui,sans-serif}
+.app{display:grid;grid-template-columns:210px 1fr;min-height:100vh}
+aside{background:var(--nv);color:var(--nt);padding:16px 10px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
+aside h1{font-size:19px;margin:0 8px 2px;color:#fff}aside h1 span{color:#f0a53a}
+aside .sub{font-size:12px;color:var(--nt);opacity:.75;margin:0 8px 12px}
+aside button{background:none;border:0;color:inherit;text-align:left;padding:8px 10px;border-radius:6px;font:inherit;cursor:pointer}
+aside button[aria-current=true]{background:#ffffff1f;color:#fff;font-weight:600}
+main{padding:20px;max-width:1150px;width:100%}
+h2{font-size:22px;margin:0}h3{margin:0 0 8px;font-size:16px}
+.top{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.top h2{flex:1;min-width:120px}
+button,input,select,textarea{font:inherit;color:var(--ink)}
+input,select,textarea{background:var(--bg);border:1px solid var(--ln);border-radius:5px;padding:7px;width:100%}
+.btn{background:var(--ac);color:#fff;border:0;border-radius:5px;padding:7px 13px;font-weight:600;cursor:pointer}
+.btn.g{background:none;color:var(--ink);border:1px solid var(--ln)}.btn.s{padding:2px 8px;font-size:12.5px}
+.btn.danger{color:var(--rd);border:1px solid var(--rd);background:none}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.c{background:var(--sf);border:1px solid var(--ln);border-radius:7px;padding:12px;margin-bottom:12px}.cards .c{margin:0}
+.c small{color:var(--mu)}.k{font:500 21px monospace;display:block}
+.sc{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:520px}
+th,td{padding:7px 9px;text-align:left;border-bottom:1px solid var(--ln);vertical-align:top}th{color:var(--mu);font-weight:600;font-size:13px}
+.mu{color:var(--mu)}
+.tag{display:inline-block;border-radius:9px;padding:0 8px;font-size:12px;background:var(--ac2);color:var(--ac)}
+.tag.Cancelled,.tag.No-show{background:#b3261e22;color:var(--rd)}.tag.Completed{background:#13744a22;color:var(--gn)}
+.tag.Booked{background:#1d4ed822;color:#1d4ed8}
+dialog{background:var(--sf);color:var(--ink);border:1px solid var(--ln);border-radius:8px;padding:18px;width:min(540px,94vw);max-height:90vh;overflow:auto}
+dialog::backdrop{background:#0008}label{display:block;margin:8px 0 2px;color:var(--mu);font-size:13px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.note{background:var(--ac2);border:1px solid var(--ln);border-radius:7px;padding:10px 12px;margin-bottom:12px}
+#toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--nv);color:#fff;padding:10px 16px;border-radius:7px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50;max-width:92vw}
+#toast.show{opacity:1}
+@media(max-width:760px){.app{display:block}aside{position:static;height:auto;flex-direction:row;overflow-x:auto;padding:8px}aside h1{display:none}aside .sub{display:none}aside button{white-space:nowrap}main{padding:14px}}
+</style></head><body>
+<div class="app"><aside id="side"></aside><main id="m"></main></div><dialog id="dlg"></dialog><div id="toast" role="status"></div>
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)],
+uid=()=>Math.random().toString(36).slice(2,8)+Date.now().toString(36).slice(-3),
+esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])),
+td=()=>new Date().toISOString().slice(0,10),
+add=(d,n)=>new Date(Date.parse(d)+n*864e5).toISOString().slice(0,10),
+fmt=d=>{const x=new Date(d+"T00:00:00");return x.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"})};
+const KEY="aicc-bookings";
+let D=null,tab="up";
+function seed(){D={services:[
+{id:uid(),name:"Free 15-minute intro call",mins:15,note:"A first hello — what they need, and whether we can help."},
+{id:uid(),name:"Product walkthrough",mins:30,note:"Show them the tool on a call, answer questions live."},
+{id:uid(),name:"Setup session",mins:60,note:"Get their account and first workflow set up together."}
+],bookings:[
+{id:uid(),name:"Marta S. (sample)",contact:"marta@example.test",service:"Product walkthrough",date:add(td(),1),time:"10:00",status:"Booked",notes:"Wants to see the CRM first."},
+{id:uid(),name:"Jon P. (sample)",contact:"jon@example.test",service:"Free 15-minute intro call",date:add(td(),3),time:"14:30",status:"Booked",notes:""},
+{id:uid(),name:"Aisha B. (sample)",contact:"aisha@example.test",service:"Setup session",date:add(td(),-2),time:"11:00",status:"Completed",notes:"All set — she will try it for a week."}
+],samples:true}}
+try{D=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){}if(!D)seed();
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){}};
+if(!localStorage.getItem(KEY))save();
+const toast=m=>{const t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2200)};
+const svc=id=>(D.services.find(s=>s.id===id)||{});
+const upcoming=()=>D.bookings.filter(b=>b.status==="Booked"&&b.date>=td()).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+const past=()=>D.bookings.filter(b=>b.status!=="Booked"||b.date<td()).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+function ics(b){const mins=(D.services.find(x=>x.name===b.service)||{}).mins||30;
+const dt=b.date.replace(/-/g,"")+ "T"+b.time.replace(":","")+"00";
+const end=new Date(Date.parse(b.date+"T"+b.time+":00")+mins*6e4);const pad=n=>String(n).padStart(2,"0");
+const de=end.getFullYear()+pad(end.getMonth()+1)+pad(end.getDate())+"T"+pad(end.getHours())+pad(end.getMinutes())+"00";
+return ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//AI Command Center//Bookings//EN","BEGIN:VEVENT","UID:"+b.id+"@aicc","DTSTAMP:"+dt,"DTSTART:"+dt,"DTEND:"+de,"SUMMARY:"+b.service+" — "+b.name,"DESCRIPTION:"+(b.notes||"").replace(/\n/g," "),"END:VEVENT","END:VCALENDAR"].join("\r\n")}
+window.dlIcs=id=>{const b=D.bookings.find(x=>x.id===id);const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([ics(b)],{type:"text/calendar"}));a.download="booking-"+b.date+"-"+b.time.replace(":","")+".ics";a.click();toast("Calendar file downloaded.")};
+function side(){$("#side").innerHTML=`<h1>Book<span>ings</span></h1><p class="sub">AI Command Center · free tool</p>`+[["up","Upcoming"],["new","Book a visit"],["svc","Services"],["past","Past"]].map(([k,l])=>`<button data-tab="${k}" aria-current="${tab===k}">${l}</button>`).join("")+`<p class="sub" style="margin-top:auto">Bookings stay in this browser only.</p>`;$$("#side button").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;render()})}
+function sampleBar(){return D.samples?`<div class="note"><strong>Sample data.</strong> These services and bookings are examples, not real customers. <button class="btn s g" onclick="clearSamples()">Clear samples</button></div>`:`<div class="note">Nothing here yet. <button class="btn s g" onclick="loadSamples()">Load sample bookings</button> to see how it works.</div>`}
+function notDo(){return `<p class="mu"><strong>What this does not do:</strong> it sends no emails and no texts — there is no email or texting service connected. Reminders live here as a list for you to work through. Contact each person yourself, or download the calendar file (.ics) for a booking and add it to your own calendar.</p>`}
+window.clearSamples=()=>{D.services=[];D.bookings=[];D.samples=false;save();render();toast("Samples cleared.")};
+window.loadSamples=()=>{seed();save();render();toast("Sample bookings loaded.")};
+function render(){side();const m=$("#m");
+if(tab==="up"){const u=upcoming();const soon=u.filter(b=>b.date<=add(td(),7));
+m.innerHTML=`<div class="top"><h2>Upcoming bookings</h2><button class="btn" onclick="goNew()">+ Book a visit</button></div>${sampleBar()}
+<div class="cards"><div class="c"><small>Booked ahead</small><span class="k">${u.length}</span></div><div class="c"><small>In the next 7 days</small><span class="k">${soon.length}</span></div><div class="c"><small>Completed so far</small><span class="k">${D.bookings.filter(b=>b.status==="Completed").length}</span></div><div class="c"><small>No-shows</small><span class="k">${D.bookings.filter(b=>b.status==="No-show").length}</span></div></div>
+<div class="c"><h3>Reminders — who to contact</h3>${soon.length?soon.map(b=>`<p><strong>${fmt(b.date)} ${esc(b.time)}</strong> — ${esc(b.name)} · ${esc(b.service)}<br><span class="mu">Reach them at ${esc(b.contact)}${b.notes?` · ${esc(b.notes)}`:""}</span> <button class="btn s g" onclick="dlIcs('${b.id}')">.ics</button></p>`).join(""):"<p class=\"mu\">Nothing in the next 7 days.</p>"}</div>
+<div class="c sc"><table><tr><th>Date</th><th>Time</th><th>Who</th><th>Service</th><th>Contact</th><th></th></tr>
+${u.length?u.map(b=>`<tr><td>${fmt(b.date)}</td><td>${esc(b.time)}</td><td>${esc(b.name)}</td><td>${esc(b.service)}</td><td>${esc(b.contact)}</td><td><button class="btn s g" onclick="dlIcs('${b.id}')">.ics</button> <button class="btn s g" onclick="editBooking('${b.id}')">Change</button> <button class="btn s g" onclick="doneBooking('${b.id}')">Done</button> <button class="btn s g" onclick="noshowBooking('${b.id}')">No-show</button> <button class="btn s danger" onclick="cancelBooking('${b.id}')">Cancel</button></td></tr>`).join(""):`<tr><td colspan="6" class="mu">No upcoming bookings.</td></tr>`}</table></div>${notDo()}`}
+if(tab==="new"){m.innerHTML=`<div class="top"><h2>Book a visit</h2></div>${sampleBar()}
+<div class="c"><label>Who is coming? <input id="n-name" placeholder="Name"></label>
+<label>How do you reach them? <input id="n-contact" placeholder="Email or phone"></label>
+<label>Service <select id="n-svc">${D.services.map(s=>`<option value="${s.id}">${esc(s.name)} — ${s.mins} min</option>`).join("")||"<option value=\"\">Add a service first</option>"}</select></label>
+<div class="row"><label style="flex:1">Date <input id="n-date" type="date" value="${td()}"></label><label style="flex:1">Time <input id="n-time" type="time" value="10:00"></label></div>
+<label>Notes (optional) <textarea id="n-notes" rows="2" placeholder="What they want to talk about."></textarea></label>
+<div class="row"><button class="btn" onclick="saveNew()">Save booking</button></div>
+<p class="mu">The booking is confirmed on this page. Nothing is emailed to them automatically — send your own confirmation from your email if you want one.</p></div>${notDo()}`}
+if(tab==="svc"){m.innerHTML=`<div class="top"><h2>Services</h2></div>${sampleBar()}
+<div class="c sc"><table><tr><th>Service</th><th>Length</th><th>About it</th><th></th></tr>
+${D.services.length?D.services.map(s=>`<tr><td>${esc(s.name)}</td><td>${s.mins} min</td><td>${esc(s.note)}</td><td><button class="btn s danger" onclick="delService('${s.id}')">Remove</button></td></tr>`).join(""):`<tr><td colspan="4" class="mu">No services yet.</td></tr>`}</table></div>
+<div class="c"><h3>Add a service</h3><label>Name <input id="s-name" placeholder="e.g. Free 15-minute intro call"></label><div class="row"><label style="flex:1">Length (minutes) <input id="s-mins" type="number" min="5" step="5" value="30"></label></div><label>About it <input id="s-note" placeholder="One plain line."></label><div class="row"><button class="btn" onclick="saveService()">Add service</button></div></div>`}
+if(tab==="past"){const p=past();m.innerHTML=`<div class="top"><h2>Past bookings</h2></div>${sampleBar()}
+<div class="c sc"><table><tr><th>Date</th><th>Who</th><th>Service</th><th>Status</th><th>Notes</th></tr>
+${p.length?p.map(b=>`<tr><td>${fmt(b.date)} ${esc(b.time)}</td><td>${esc(b.name)}</td><td>${esc(b.service)}</td><td><span class="tag ${b.status}">${esc(b.status)}</span></td><td>${esc(b.notes)}</td></tr>`).join(""):`<tr><td colspan="5" class="mu">Nothing in the past yet.</td></tr>`}</table></div>`}}
+window.goNew=()=>{tab="new";render()};
+window.saveNew=()=>{const name=$("#n-name").value.trim();if(!name){toast("Whose visit is it? Add a name first.");return}
+const s=svc($("#n-svc").value);if(!s.id){toast("Add a service first.");return}
+const b={id:uid(),name,contact:$("#n-contact").value.trim(),service:s.name,date:$("#n-date").value||td(),time:$("#n-time").value||"10:00",status:"Booked",notes:$("#n-notes").value.trim()};
+D.bookings.push(b);save();tab="up";render();toast("Booked: "+s.name+" on "+fmt(b.date)+" at "+b.time+".")};
+window.saveService=()=>{const name=$("#s-name").value.trim();if(!name){toast("Name the service first.");return}
+D.services.push({id:uid(),name,mins:Math.max(5,+$("#s-mins").value||30),note:$("#s-note").value.trim()});save();render();toast("Service added.")};
+window.delService=id=>{if(D.bookings.some(b=>b.status==="Booked"&&D.services.find(s=>s.id===id)&&b.service===D.services.find(s=>s.id===id).name)){toast("That service still has bookings — move or cancel them first.");return}
+D.services=D.services.filter(s=>s.id!==id);save();render();toast("Service removed.")};
+window.doneBooking=id=>{const b=D.bookings.find(x=>x.id===id);b.status="Completed";save();render();toast("Marked completed.")};
+window.noshowBooking=id=>{const b=D.bookings.find(x=>x.id===id);b.status="No-show";save();render();toast("Marked no-show.")};
+window.cancelBooking=id=>{const b=D.bookings.find(x=>x.id===id);const d=$("#dlg");d.innerHTML=`<h3>Cancel the booking with ${esc(b.name)}?</h3><p>${esc(b.service)} on ${fmt(b.date)} at ${esc(b.time)}. They are not told automatically — you will need to let them know yourself.</p><div class="row"><button class="btn danger" onclick="doCancel('${id}')">Yes, cancel it</button><button class="btn g" onclick="document.querySelector('#dlg').close()">Keep it</button></div>`;d.showModal()};
+window.doCancel=id=>{const b=D.bookings.find(x=>x.id===id);b.status="Cancelled";$("#dlg").close();save();render();toast("Booking cancelled.")};
+window.editBooking=id=>{const b=D.bookings.find(x=>x.id===id);const d=$("#dlg");
+d.innerHTML=`<h3>Change booking</h3><p>${esc(b.name)} · ${esc(b.service)}</p><div class="row"><label style="flex:1">Date <input id="e-date" type="date" value="${b.date}"></label><label style="flex:1">Time <input id="e-time" type="time" value="${b.time}"></label></div><div class="row"><button class="btn" onclick="doEdit('${id}')">Save new time</button><button class="btn g" onclick="document.querySelector('#dlg').close()">Keep it</button></div><p class="mu">They are not told automatically — let them know about the new time yourself.</p>`;d.showModal()};
+window.doEdit=id=>{const b=D.bookings.find(x=>x.id===id);b.date=$("#e-date").value||b.date;b.time=$("#e-time").value||b.time;$("#dlg").close();save();render();toast("Booking moved to "+fmt(b.date)+" at "+b.time+".")};
+render();
+</script></body></html>
