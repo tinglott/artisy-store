@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-AetherSheet Grid — a spreadsheet for your small business, in one file.
+AetherSheet — Inventory Grid. Check your inventory at a glance, in one file.
 MIT License. Copyright (c) 2026 Ting Lott (T. Lott Creative)
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
@@ -11,11 +11,13 @@ no pivot tables, no charts in v1. AI fill does nothing without your own
 AetherSheet AI service running — your own machine or host. It is YOU ARRANGE:
 no key is stored in this file, and nothing is sent anywhere by default.
 Your data stays in this browser unless you export it (CSV) or point AI fill
-at your own service.
+at your own service. The low-stock watch reads the Product, SKU, Qty on hand,
+Reorder level and Unit price columns — if your sheet uses different headers,
+it says so instead of guessing.
 -->
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>AetherSheet Grid — AI Command Center</title>
+<title>AetherSheet — Inventory Grid — AI Command Center</title>
 <style>
 :root{--bg:#eef1ef;--sf:#fff;--ink:#17231f;--mu:#5f6f68;--ln:#d6ddd9;--nv:#14332b;--nt:#cfe3da;--ac:#b86e00;--ac2:#fff0d6;--gn:#13744a;--rd:#b3261e;box-sizing:border-box;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px);color-scheme:light}
 @media(prefers-color-scheme:dark){:root{--bg:#101a17;--sf:#18251f;--ink:#e8f0ec;--mu:#9bada5;--ln:#2b3b34;--nv:#0b1f19;--ac:#f0a53a;--ac2:#3a2c10;--gn:#5fd39a;--rd:#ff8b84;color-scheme:dark}}
@@ -33,6 +35,9 @@ input,select,textarea{background:var(--sf);border:1px solid var(--ln);border-rad
 :focus-visible{outline:2px solid var(--ac);outline-offset:2px}
 .c{background:var(--sf);border:1px solid var(--ln);border-radius:7px;padding:12px;margin-bottom:12px}
 .mu{color:var(--mu)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:6px}
+.card{background:var(--bg);border:1px solid var(--ln);border-radius:7px;padding:10px 12px}
+.card small{color:var(--mu)}.k{font:500 21px monospace;display:block}
 .note{background:var(--ac2);border:1px solid var(--ln);border-radius:7px;padding:10px 12px;margin-bottom:12px}
 .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .fbar{display:flex;gap:8px;align-items:center;margin-bottom:12px}
@@ -63,14 +68,19 @@ esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'
 const KEY="aicc-aethersheet";
 const BASE="https://shop.artistrystore.com/ai-command-center/";
 const DEFAULT_URL="http://localhost:8000";
-const DEFAULT_PROMPT="Fill the Industry and a rough Revenue Estimate (in millions USD) based on the company name. Be concise.";
-const SAMPLE_HEADERS=["Name","Email","Company","Industry","Revenue Estimate","Employees (sample)"];
+const DEFAULT_PROMPT="Write a one-line product description for this product";
+const SAMPLE_HEADERS=["Product","SKU","Category","Qty on hand","Reorder level","Unit cost","Unit price","Supplier","Value","Description"];
 const SAMPLE_ROWS=[
-["Alice Chen","alice@acme.io","Acme Corp","","",120],
-["Bob Smith","bob@globex.com","Globex","","",45],
-["Carol Lee","carol@initech.co","Initech","","",200],
-["David Kim","david@umbrella.org","Umbrella","","",350],
-["Eva Martinez","eva@stark.industries","Stark Industries","","",90]];
+["Handmade Soy Candle","CND-001","Home & Living",24,10,4.50,12.99,"Willow Creek Crafts","",""],
+["Ceramic Coffee Mug","MUG-002","Kitchen",8,12,3.20,9.99,"Stoneware Studio","",""],
+["Linen Tea Towel Set","LIN-003","Kitchen",15,10,5.00,14.50,"Meadow Textiles","",""],
+["Wooden Toy Train","TOY-004","Toys",5,8,6.75,16.99,"Timber Play Co","",""],
+["Dried Flower Bouquet","FLW-005","Home & Living",30,10,2.80,8.99,"Petal & Stem","",""],
+["Leather Journal","JRN-006","Stationery",11,10,7.50,19.99,"Bound & Co","",""],
+["Herbal Tea Sampler","TEA-007","Pantry",3,10,4.00,11.50,"Highland Blends","",""],
+["Knitted Baby Blanket","KNT-008","Baby",18,6,9.00,24.99,"Woolly Hollow","",""],
+["Glass Storage Jar Set","JAR-009","Kitchen",0,5,6.00,15.99,"Clearline Goods","",""],
+["Scented Bath Salts","BTH-010","Bath & Body",22,10,3.50,10.99,"Saltwater Apothecary","",""]];
 function colLetter(n){let s="";n++;while(n>0){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26)}return s}
 function addr(c,r){return colLetter(c)+(r+1)}
 function parseAddr(a){const m=/^\$?([A-Za-z]{1,3})\$?([1-9][0-9]*)$/.exec(String(a));if(!m)return null;let c=0;const L=m[1].toUpperCase();for(let i=0;i<L.length;i++)c=c*26+(L.charCodeAt(i)-64);c--;const r=parseInt(m[2],10)-1;if(c>701)return null;return{c,r}}
@@ -78,11 +88,12 @@ function sampleData(){
   const cells={};
   SAMPLE_HEADERS.forEach((h,i)=>{cells[addr(i,0)]=h});
   SAMPLE_ROWS.forEach((row,r)=>{row.forEach((v,c)=>{if(v!==""&&v!==null&&v!==undefined)cells[addr(c,r+1)]=v})});
-  cells["A7"]="TOTAL (sample)";
-  cells["F7"]="=SUM(F2:F6)";
-  cells["G1"]="Avg employees (sample)";
-  cells["G2"]="=AVERAGE(F2:F6)";
-  return{cols:10,rows:30,cells:cells,notes:{},samples:true,aiUrl:DEFAULT_URL,aiModel:"auto",aiPrompt:DEFAULT_PROMPT,aiTarget:"Industry"};
+  for(let r=2;r<=11;r++)cells["I"+r]="=D"+r+"*G"+r;
+  cells["A12"]="TOTAL (sample)";
+  cells["I12"]="=SUM(I2:I11)";
+  cells["A13"]="ITEMS (sample)";
+  cells["D13"]="=COUNT(D2:D11)";
+  return{cols:10,rows:30,cells:cells,notes:{},samples:true,aiUrl:DEFAULT_URL,aiModel:"auto",aiPrompt:DEFAULT_PROMPT,aiTarget:"Description"};
 }
 let D=null;
 try{D=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){}
@@ -364,16 +375,67 @@ function saveAISettings(){
   D.aiTarget=(($("#ai-target").value)||"").trim()||"Industry";
   save();
 }
-function headersOf(){
-  const V=computeAll();
+function cellVal(V,ad){
+  if(V[ad])return V[ad];
+  const raw=D.cells[ad];
+  if(raw===undefined||raw===null||raw==="")return{v:"",num:false};
+  if(typeof raw==="number")return{v:raw,num:true};
+  return{v:raw,num:false};
+}
+function headersOf(V){
   const h=[];
-  for(let c=0;c<D.cols;c++){const v=V[addr(c,0)];h.push(v?fmt(v):"")}
+  for(let c=0;c<D.cols;c++){h.push(fmt(cellVal(V,addr(c,0))))}
   return h;
+}
+function numOf(x){
+  if(!x||x.err)return null;
+  if(x.num)return x.v;
+  if(typeof x.v==="string"&&x.v.trim()!==""&&!isNaN(Number(x.v)))return Number(x.v);
+  return null;
+}
+function inventorySummary(V){
+  const headers=headersOf(V);
+  const idx={};
+  headers.forEach((h,c)=>{const k=String(h).trim().toLowerCase();if(k&&idx[k]===undefined)idx[k]=c});
+  const need=["product","sku","qty on hand","reorder level","unit price"];
+  const missing=need.filter(k=>idx[k]===undefined);
+  if(missing.length)return{missing:missing};
+  const items=[];
+  for(let r=1;r<=lastContentRow();r++){
+    const prod=cellVal(V,addr(idx["product"],r));
+    const sku=cellVal(V,addr(idx["sku"],r));
+    if(fmt(prod)===""||fmt(sku)==="")continue;
+    const qn=numOf(cellVal(V,addr(idx["qty on hand"],r)));
+    const ron=numOf(cellVal(V,addr(idx["reorder level"],r)));
+    const prn=numOf(cellVal(V,addr(idx["unit price"],r)));
+    if(qn===null||ron===null)continue;
+    items.push({row:r+1,product:fmt(prod),qty:qn,reorder:ron,value:prn===null?0:qn*prn,low:qn<=ron,out:qn===0});
+  }
+  return{items:items,total:items.reduce((s,x)=>s+x.value,0),low:items.filter(x=>x.low)};
+}
+function dashHTML(V){
+  const inv=inventorySummary(V);
+  if(inv.missing){
+    return `<div class="c"><h3>Inventory at a glance</h3><p class="mu">The low-stock watch needs Product, SKU, Qty on hand, Reorder level and Unit price columns — this sheet does not have them (missing: ${esc(inv.missing.join(", "))}). Add those headers to row 1 and the watch appears here.</p></div>`;
+  }
+  return `<div class="c"><h3>Inventory at a glance</h3><div class="cards">
+<div class="card"><small>Total inventory value</small><span class="k">${esc(fmt({v:inv.total,num:true}))}</span></div>
+<div class="card"><small>Items</small><span class="k">${inv.items.length}</span></div>
+<div class="card"><small>Low stock</small><span class="k">${inv.low.length}</span></div>
+</div><h3 style="margin-top:12px">Low-stock watch</h3>
+${inv.low.length?inv.low.map(x=>`<div>${esc(x.product)} — ${x.qty} on hand · reorder at ${x.reorder}${x.out?" · <strong>Out of stock</strong>":""}</div>`).join(""):'<p class="mu">Nothing at or below its reorder level. Good.</p>'}
+</div>`;
 }
 function lastContentRow(){
   let lr=0;
   for(const ad in D.cells){const p=parseAddr(ad);if(p&&p.r>lr)lr=p.r}
   return lr;
+}
+function setAIPrompt(p,t){
+  D.aiPrompt=p;D.aiTarget=t;save();
+  const pr=$("#ai-prompt");if(pr)pr.value=p;
+  const tg=$("#ai-target");if(tg)tg.value=t;
+  toast("Example prompt loaded — press Fill the column when ready.");
 }
 async function runAIFill(){
   const url=(($("#ai-url").value)||"").trim()||DEFAULT_URL;
@@ -386,7 +448,7 @@ async function runAIFill(){
   if(!prompt.trim()){st.textContent="Write a prompt first — tell the service what to fill in.";st.className="status err";return}
   if(!target){st.textContent="Pick a target column first.";st.className="status err";return}
   const V=computeAll();
-  const headers=headersOf();
+  const headers=headersOf(V);
   let tIdx=headers.indexOf(target);
   if(tIdx<0){
     if(D.cols>=26){st.textContent="The target column does not exist and the sheet is already at 26 columns — add the column header to row 1 first.";st.className="status err";return}
@@ -475,11 +537,12 @@ function gridHTML(V){
 }
 function render(){
   const V=computeAll();
-  const headers=headersOf().filter(h=>h!=="");
+  const headers=headersOf(V).filter(h=>h!=="");
   const m=$("#m");
-  m.innerHTML=`<div class="top"><h2>AetherSheet Grid</h2><a class="btn g" href="${BASE}launcher.html">← Back to the launcher</a></div>
-<p class="mu" style="margin-top:-8px">A spreadsheet for your small business — formulas in the browser, CSV in and out, and AI column fill with your own service.</p>
-${D.samples?`<div class="note"><strong>Sample data.</strong> Five fictional companies (Acme Corp, Globex, Initech, Umbrella, Stark Industries) — nothing here is real. Industry and Revenue Estimate are empty on purpose: point AI Fill at them, or fill them in yourself. <button class="btn s" onclick="clearSamples()">Clear samples</button></div>`:""}
+  m.innerHTML=`<div class="top"><h2>AetherSheet — Inventory Grid</h2><a class="btn g" href="${BASE}launcher.html">← Back to the launcher</a></div>
+<p class="mu" style="margin-top:-8px">Check your inventory at a glance. Formulas in the browser, CSV in and out, and AI column fill with your own service.</p>
+${D.samples?`<div class="note"><strong>Sample data.</strong> Ten fictional products for a small shop — nothing here is real, and no real brands are named. Value is a live formula (Qty on hand × Unit price). Description is empty on purpose: point AI Fill at it, or fill it in yourself. <button class="btn s" onclick="clearSamples()">Clear samples</button></div>`:""}
+${dashHTML(V)}
 <div class="row" style="margin-bottom:12px">
 <button class="btn" onclick="addRow()">+ Row</button>
 <button class="btn" onclick="addCol()">+ Column</button>
@@ -499,16 +562,21 @@ ${D.samples?`<div class="note"><strong>Sample data.</strong> Five fictional comp
 <input id="ai-model" value="${esc(D.aiModel)}" onchange="saveAISettings()" placeholder="auto">
 <label for="ai-prompt">What should the AI fill in?</label>
 <textarea id="ai-prompt" rows="2" onchange="saveAISettings()">${esc(D.aiPrompt)}</textarea>
+<div class="row">
+<button class="btn g s" onclick="setAIPrompt('Suggest a category for this product','Category')">Suggest a category</button>
+<button class="btn g s" onclick="setAIPrompt('Write a one-line product description for this product','Description')">Write a product description</button>
+<button class="btn g s" onclick="setAIPrompt('Flag items that need reordering and why','Description')">Flag items that need reordering</button>
+</div>
 <label for="ai-target">Target column (a header from row 1 — a missing column is added for you)</label>
 <input id="ai-target" list="hdrlist" value="${esc(D.aiTarget)}" onchange="saveAISettings()"><datalist id="hdrlist">${headers.map(h=>`<option value="${esc(h)}">`).join("")}</datalist>
 <div class="row"><button class="btn" id="ai-run" onclick="runAIFill()">Fill the column</button></div>
 <div class="status" id="ai-status"></div>
 <p class="mu">AI fill sends the rows you see to the service URL above — your own service, not ours. A confidence note is added to each filled cell when the service returns one.</p></div>
-<p class="mu">What this does not do: this is not Excel — CSV only, no .xlsx in or out, no pivot tables, no charts in v1. Formulas run in this browser. Your data stays in this browser unless you export it (CSV) or point AI fill at your own service. CSV export writes the values you see, not the formulas.</p>`;
+<p class="mu">What this does not do: this is not Excel — CSV only, no .xlsx in or out, no pivot tables, no charts in v1. Formulas run in this browser. Your data stays in this browser unless you export it (CSV) or point AI fill at your own service. CSV export writes the values you see, not the formulas. The low-stock watch reads the Product, SKU, Qty on hand, Reorder level and Unit price columns — if your sheet uses different headers, it says so instead of guessing.</p>`;
 }
 window.setCell=setCell;window.setBar=setBar;window.cellFocus=cellFocus;window.selectCell=selectCell;
 window.addRow=addRow;window.addCol=addCol;window.clearSamples=clearSamples;window.loadSamples=loadSamples;
 window.askReset=askReset;window.doReset=doReset;window.csv=csv;window.importCsv=importCsv;window.importFile=importFile;
-window.saveAISettings=saveAISettings;window.runAIFill=runAIFill;window.calc=calc;window.disp=disp;
+window.saveAISettings=saveAISettings;window.setAIPrompt=setAIPrompt;window.runAIFill=runAIFill;window.calc=calc;window.disp=disp;
 render();
 </script></body></html>
