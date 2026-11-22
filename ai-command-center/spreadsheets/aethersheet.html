@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<!--
+AetherSheet Grid — a spreadsheet for your small business, in one file.
+MIT License. Copyright (c) 2026 Ting Lott (T. Lott Creative)
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Built for AI Command Center (Nov 22, 2026). One file, no account, no server.
+Your sheet lives in this browser only, under the "aicc-aethersheet" storage key.
+Formulas run in this browser. This is not Excel: CSV only, no .xlsx in or out,
+no pivot tables, no charts in v1. AI fill does nothing without your own
+AetherSheet AI service running — your own machine or host. It is YOU ARRANGE:
+no key is stored in this file, and nothing is sent anywhere by default.
+Your data stays in this browser unless you export it (CSV) or point AI fill
+at your own service.
+-->
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AetherSheet Grid — AI Command Center</title>
+<style>
+:root{--bg:#eef1ef;--sf:#fff;--ink:#17231f;--mu:#5f6f68;--ln:#d6ddd9;--nv:#14332b;--nt:#cfe3da;--ac:#b86e00;--ac2:#fff0d6;--gn:#13744a;--rd:#b3261e;box-sizing:border-box;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px);color-scheme:light}
+@media(prefers-color-scheme:dark){:root{--bg:#101a17;--sf:#18251f;--ink:#e8f0ec;--mu:#9bada5;--ln:#2b3b34;--nv:#0b1f19;--ac:#f0a53a;--ac2:#3a2c10;--gn:#5fd39a;--rd:#ff8b84;color-scheme:dark}}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:14.5px/1.5 system-ui,sans-serif}
+main{padding:20px;max-width:1200px;margin:auto}
+h2{font-size:22px;margin:0}h3{margin:0 0 8px;font-size:16px}
+.top{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.top h2{flex:1;min-width:140px}
+button,input,select,textarea{font:inherit;color:var(--ink)}
+input,select,textarea{background:var(--sf);border:1px solid var(--ln);border-radius:5px;padding:7px;width:100%}
+.btn{background:var(--ac);color:#fff;border:0;border-radius:5px;padding:7px 13px;font-weight:600;cursor:pointer}
+.btn.g{background:none;color:var(--ink);border:1px solid var(--ln)}.btn.s{padding:2px 8px;font-size:12.5px}
+.btn.danger{color:var(--rd);border:1px solid var(--rd);background:none}
+.btn:disabled{opacity:.5;cursor:default}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.c{background:var(--sf);border:1px solid var(--ln);border-radius:7px;padding:12px;margin-bottom:12px}
+.mu{color:var(--mu)}
+.note{background:var(--ac2);border:1px solid var(--ln);border-radius:7px;padding:10px 12px;margin-bottom:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.fbar{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.fbar .cell{flex:none;width:64px;text-align:center;font-weight:700}
+.fbar input{flex:1;font-family:monospace}
+.gridwrap{overflow:auto;max-height:62vh;border:1px solid var(--ln);border-radius:7px;background:var(--sf)}
+table.grid{border-collapse:collapse;width:100%}
+table.grid th,table.grid td{border:1px solid var(--ln);padding:0;text-align:left}
+table.grid th{background:var(--bg);color:var(--mu);font-size:12.5px;padding:4px 6px;white-space:nowrap}
+table.grid th.rn{width:36px;text-align:center}
+table.grid td input{width:120px;border:0;background:transparent;padding:5px 6px;border-radius:0}
+table.grid td input:focus{background:#fff;outline:2px solid var(--ac);outline-offset:-2px}
+table.grid td.err input{color:var(--rd);font-weight:700}
+table.grid td.noted input{border-bottom:2px dotted var(--ac)}
+label{display:block;margin:8px 0 2px;color:var(--mu);font-size:13px}
+dialog{background:var(--sf);color:var(--ink);border:1px solid var(--ln);border-radius:8px;padding:18px;width:min(540px,94vw);max-height:90vh;overflow:auto}
+dialog::backdrop{background:#0008}
+#toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--nv);color:#fff;padding:10px 16px;border-radius:7px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50;max-width:92vw}
+#toast.show{opacity:1}
+.status{margin-top:8px;min-height:20px}
+.status.err{color:var(--rd);font-weight:600}
+@media(max-width:760px){main{padding:14px}table.grid td input{width:96px}}
+</style></head><body>
+<main id="m"></main><dialog id="dlg"></dialog><div id="toast" role="status"></div>
+<script>
+const $=s=>document.querySelector(s),
+esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const KEY="aicc-aethersheet";
+const BASE="https://shop.artistrystore.com/ai-command-center/";
+const DEFAULT_URL="http://localhost:8000";
+const DEFAULT_PROMPT="Fill the Industry and a rough Revenue Estimate (in millions USD) based on the company name. Be concise.";
+const SAMPLE_HEADERS=["Name","Email","Company","Industry","Revenue Estimate","Employees (sample)"];
+const SAMPLE_ROWS=[
+["Alice Chen","alice@acme.io","Acme Corp","","",120],
+["Bob Smith","bob@globex.com","Globex","","",45],
+["Carol Lee","carol@initech.co","Initech","","",200],
+["David Kim","david@umbrella.org","Umbrella","","",350],
+["Eva Martinez","eva@stark.industries","Stark Industries","","",90]];
+function colLetter(n){let s="";n++;while(n>0){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26)}return s}
+function addr(c,r){return colLetter(c)+(r+1)}
+function parseAddr(a){const m=/^\$?([A-Za-z]{1,3})\$?([1-9][0-9]*)$/.exec(String(a));if(!m)return null;let c=0;const L=m[1].toUpperCase();for(let i=0;i<L.length;i++)c=c*26+(L.charCodeAt(i)-64);c--;const r=parseInt(m[2],10)-1;if(c>701)return null;return{c,r}}
+function sampleData(){
+  const cells={};
+  SAMPLE_HEADERS.forEach((h,i)=>{cells[addr(i,0)]=h});
+  SAMPLE_ROWS.forEach((row,r)=>{row.forEach((v,c)=>{if(v!==""&&v!==null&&v!==undefined)cells[addr(c,r+1)]=v})});
+  cells["A7"]="TOTAL (sample)";
+  cells["F7"]="=SUM(F2:F6)";
+  cells["G1"]="Avg employees (sample)";
+  cells["G2"]="=AVERAGE(F2:F6)";
+  return{cols:10,rows:30,cells:cells,notes:{},samples:true,aiUrl:DEFAULT_URL,aiModel:"auto",aiPrompt:DEFAULT_PROMPT,aiTarget:"Industry"};
+}
+let D=null;
+try{D=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){}
+if(!D||typeof D.cols!=="number"||typeof D.rows!=="number"||!D.cells||typeof D.cells!=="object")D=sampleData();
+if(!D.notes)D.notes={};
+if(!D.aiUrl)D.aiUrl=DEFAULT_URL;
+if(!D.aiModel)D.aiModel="auto";
+if(!D.aiPrompt)D.aiPrompt=DEFAULT_PROMPT;
+if(!D.aiTarget)D.aiTarget="Industry";
+let sel="A1";
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){}};
+if(!localStorage.getItem(KEY))save();
+const toast=m=>{const t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2600)};
+
+/* ---------- formula engine: tokenizer, parser, evaluator (no eval) ---------- */
+function tokenize(s){
+  const toks=[];let i=0;
+  while(i<s.length){
+    const ch=s[i];
+    if(ch===" "||ch==="\t"){i++;continue}
+    if((ch>="0"&&ch<="9")||(ch==="."&&i+1<s.length&&s[i+1]>="0"&&s[i+1]<="9")){
+      let j=i;while(j<s.length&&((s[j]>="0"&&s[j]<="9")||s[j]==="."))j++;
+      const num=Number(s.slice(i,j));if(isNaN(num))return{err:"#VALUE!"};toks.push({t:"num",v:num});i=j;continue;
+    }
+    if(ch==='"'){
+      let j=i+1,out="",closed=false;
+      while(j<s.length){
+        if(s[j]==='"'){if(s[j+1]==='"'){out+='"';j+=2}else{closed=true;j++;break}}
+        else{out+=s[j];j++}
+      }
+      if(!closed)return{err:"#VALUE!"};toks.push({t:"str",v:out});i=j;continue;
+    }
+    if(/[A-Za-z_$]/.test(ch)){
+      let j=i;while(j<s.length&&/[A-Za-z0-9_.$]/.test(s[j]))j++;
+      const word=s.slice(i,j);
+      if(j<s.length&&s[j]===":"){
+        let k=j+1;while(k<s.length&&/[A-Za-z0-9_.$]/.test(s[k]))k++;
+        const word2=s.slice(j+1,k);
+        const a=parseAddr(word),b=parseAddr(word2);
+        if(!a||!b)return{err:"#REF!"};
+        toks.push({t:"range",a:a,b:b});i=k;continue;
+      }
+      if(j<s.length&&s[j]==="("){toks.push({t:"fn",v:word.toUpperCase()});i=j;continue}
+      const a=parseAddr(word);
+      if(a){toks.push({t:"ref",a:a});i=j;continue}
+      if(/^[A-Za-z]{1,3}0+$/.test(word))return{err:"#REF!"};
+      return{err:"#NAME?"};
+    }
+    if("+-*/(),".indexOf(ch)>=0){toks.push({t:ch});i++;continue}
+    return{err:"#VALUE!"};
+  }
+  toks.push({t:"end"});
+  return{toks:toks};
+}
+function parseFormula(expr){
+  const tk=tokenize(expr);
+  if(tk.err)return tk;
+  const toks=tk.toks;let p=0;
+  const peek=()=>toks[p];
+  const next=()=>toks[p++];
+  function parseE(){let n=parseT();if(n.err)return n;while(peek().t==="+"||peek().t==="-"){const op=next().t;const r=parseT();if(r.err)return r;n={t:"bin",op:op,l:n,r:r}}return n}
+  function parseT(){let n=parseF();if(n.err)return n;while(peek().t==="*"||peek().t==="/"){const op=next().t;const r=parseF();if(r.err)return r;n={t:"bin",op:op,l:n,r:r}}return n}
+  function parseF(){if(peek().t==="-"){next();const n=parseF();if(n.err)return n;return{t:"neg",x:n}}return parseP()}
+  function parseArg(){if(peek().t==="range"){const t=next();return{t:"range",a:t.a,b:t.b}}return parseE()}
+  function parseP(){
+    const t=next();
+    if(t.t==="num")return{t:"num",v:t.v};
+    if(t.t==="str")return{t:"str",v:t.v};
+    if(t.t==="ref")return{t:"ref",a:t.a};
+    if(t.t==="range")return{err:"#VALUE!"};
+    if(t.t==="fn"){
+      if(next().t!=="(")return{err:"#VALUE!"};
+      const args=[];
+      if(peek().t!==")"){while(true){const a=parseArg();if(a.err)return a;args.push(a);if(peek().t===","){next();continue}break}}
+      if(next().t!==")")return{err:"#VALUE!"};
+      return{t:"fn",name:t.v,args:args};
+    }
+    if(t.t==="("){const n=parseE();if(n.err)return n;if(next().t!==")")return{err:"#VALUE!"};return n}
+    return{err:"#VALUE!"};
+  }
+  const ast=parseE();
+  if(ast.err)return ast;
+  if(peek().t!=="end")return{err:"#VALUE!"};
+  return{ast:ast};
+}
+function toNum(x){
+  if(x.num)return x.v;
+  if(typeof x.v==="string"){const s=x.v.trim();if(s!==""&&!isNaN(Number(s)))return Number(s)}
+  return null;
+}
+function rangeCells(a,b){
+  const c1=Math.min(a.c,b.c),c2=Math.max(a.c,b.c),r1=Math.min(a.r,b.r),r2=Math.max(a.r,b.r);
+  const out=[];for(let r=r1;r<=r2;r++)for(let c=c1;c<=c2;c++)out.push(addr(c,r));return out;
+}
+function evalFn(n,get){
+  if(["SUM","AVERAGE","MIN","MAX","COUNT"].indexOf(n.name)<0)return{err:"#NAME?"};
+  const vals=[];let count=0;
+  for(const a of n.args){
+    if(a.t==="range"){
+      for(const ad of rangeCells(a.a,a.b)){
+        const x=get(ad);if(x.err)return x;
+        const num=toNum(x);if(num!==null){vals.push(num);count++}
+      }
+    }else{
+      const x=evalNode(a,get);if(x.err)return x;
+      const num=toNum(x);if(num!==null){vals.push(num);count++}
+    }
+  }
+  if(n.name==="COUNT")return{v:count,num:true};
+  if(n.name==="SUM")return{v:vals.reduce((s,x)=>s+x,0),num:true};
+  if(n.name==="AVERAGE"){if(!vals.length)return{err:"#DIV/0!"};return{v:vals.reduce((s,x)=>s+x,0)/vals.length,num:true}}
+  if(n.name==="MIN")return{v:vals.length?Math.min.apply(null,vals):0,num:true};
+  if(n.name==="MAX")return{v:vals.length?Math.max.apply(null,vals):0,num:true};
+  return{err:"#VALUE!"};
+}
+function evalNode(n,get){
+  if(n.err)return n;
+  switch(n.t){
+    case "num":return{v:n.v,num:true};
+    case "str":return{v:n.v,num:false};
+    case "ref":{const x=get(addr(n.a.c,n.a.r));if(!x.err&&!x.num&&x.v==="")return{v:0,num:true};return x}
+    case "neg":{const x=evalNode(n.x,get);if(x.err)return x;const num=toNum(x);if(num===null)return{err:"#VALUE!"};return{v:-num,num:true}}
+    case "bin":{
+      const l=evalNode(n.l,get);if(l.err)return l;
+      const r=evalNode(n.r,get);if(r.err)return r;
+      const a=toNum(l),b=toNum(r);
+      if(a===null||b===null)return{err:"#VALUE!"};
+      if(n.op==="+")return{v:a+b,num:true};
+      if(n.op==="-")return{v:a-b,num:true};
+      if(n.op==="*")return{v:a*b,num:true};
+      if(b===0)return{err:"#DIV/0!"};
+      return{v:a/b,num:true};
+    }
+    case "fn":return evalFn(n,get);
+  }
+  return{err:"#VALUE!"};
+}
+function evalFormula(expr,get){
+  const p=parseFormula(expr);
+  if(p.err)return{err:p.err};
+  return evalNode(p.ast,get);
+}
+function fmt(v){
+  if(v.err)return v.err;
+  if(v.num){const n=v.v;if(!isFinite(n))return"#DIV/0!";if(Number.isInteger(n))return String(n);return String(Math.round(n*1e10)/1e10)}
+  return String(v.v);
+}
+function computeAll(){
+  const vals={};
+  const visiting=new Set();
+  function get(ad){
+    if(vals[ad])return vals[ad];
+    const raw=D.cells[ad];
+    if(raw===undefined||raw===null||raw===""){vals[ad]={v:"",num:false};return vals[ad]}
+    if(typeof raw==="number"){vals[ad]={v:raw,num:true};return vals[ad]}
+    if(typeof raw==="string"&&raw.charAt(0)==="="){
+      if(visiting.has(ad))return{err:"#CIRCULAR!"};
+      visiting.add(ad);
+      const res=evalFormula(raw.slice(1),get);
+      visiting.delete(ad);
+      vals[ad]=res;return res;
+    }
+    vals[ad]={v:raw,num:false};return vals[ad];
+  }
+  for(const ad in D.cells){if(typeof D.cells[ad]==="string"&&D.cells[ad].charAt(0)==="=")get(ad)}
+  return vals;
+}
+
+/* ---------- sheet operations ---------- */
+function norm(raw){
+  raw=String(raw==null?"":raw).trim();
+  if(raw==="")return undefined;
+  if(raw.charAt(0)==="=")return raw;
+  if(/^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(raw))return Number(raw);
+  return raw;
+}
+function setCellRaw(ad,raw){
+  const v=norm(raw);
+  if(v===undefined){delete D.cells[ad];delete D.notes[ad]}
+  else D.cells[ad]=v;
+}
+function setCell(ad,raw){setCellRaw(ad,raw);save();render();refocus(ad)}
+function refocus(ad){
+  const el=document.querySelector('[data-addr="'+ad+'"]');
+  if(el)el.focus();
+}
+function rawOf(ad){const v=D.cells[ad];return v===undefined?"":String(v)}
+function selectCell(ad){
+  sel=ad;
+  const f=$("#fbar");if(f)f.value=rawOf(ad);
+  const l=$("#faddr");if(l)l.textContent=ad;
+}
+function cellFocus(input,ad){
+  selectCell(ad);
+  const raw=D.cells[ad];
+  if(typeof raw==="string"&&raw.charAt(0)==="=")input.value=raw;
+}
+function setBar(v){setCell(sel,v)}
+function addRow(){
+  if(D.rows>=200){toast("200 rows is the limit in v1.");return}
+  D.rows++;save();render();toast("Row added.");
+}
+function addCol(){
+  if(D.cols>=26){toast("26 columns (A–Z) is the limit in v1.");return}
+  D.cols++;save();render();toast("Column "+colLetter(D.cols-1)+" added.");
+}
+function clearSamples(){
+  const keep={aiUrl:D.aiUrl,aiModel:D.aiModel,aiPrompt:D.aiPrompt,aiTarget:D.aiTarget};
+  D={cols:10,rows:30,cells:{},notes:{},samples:false,aiUrl:keep.aiUrl,aiModel:keep.aiModel,aiPrompt:keep.aiPrompt,aiTarget:keep.aiTarget};
+  save();render();toast("Samples cleared — the sheet is empty.");
+}
+function loadSamples(){
+  const keep={aiUrl:D.aiUrl,aiModel:D.aiModel,aiPrompt:D.aiPrompt,aiTarget:D.aiTarget};
+  D=sampleData();D.aiUrl=keep.aiUrl;D.aiModel=keep.aiModel;D.aiPrompt=keep.aiPrompt;D.aiTarget=keep.aiTarget;
+  save();render();toast("Sample data restored.");
+}
+function askReset(){
+  const d=$("#dlg");
+  d.innerHTML=`<h3>Reset to the sample sheet?</h3><p>This replaces everything in the sheet with the sample data (five fictional companies). Your AI service settings stay as they are. There is no undo.</p><div class="row"><button class="btn danger" onclick="doReset()">Yes, reset it</button><button class="btn g" onclick="document.querySelector('#dlg').close()">Keep my sheet</button></div>`;
+  d.showModal();
+}
+function doReset(){loadSamples();const d=$("#dlg");if(d&&d.close)d.close()}
+function parseCSV(text){
+  const rows=[];let row=[],cur="",q=false;
+  for(let i=0;i<text.length;i++){
+    const ch=text[i];
+    if(q){
+      if(ch==='"'){if(text[i+1]==='"'){cur+='"';i++}else q=false}
+      else cur+=ch;
+      continue;
+    }
+    if(ch==='"'){q=true;continue}
+    if(ch===","){row.push(cur);cur="";continue}
+    if(ch==="\n"||ch==="\r"){if(ch==="\r"&&text[i+1]==="\n")i++;row.push(cur);cur="";rows.push(row);row=[];continue}
+    cur+=ch;
+  }
+  if(cur!==""||row.length){row.push(cur);rows.push(row)}
+  return rows.filter(r=>r.length>1||r[0]!=="");
+}
+function importCsv(text){
+  const rows=parseCSV(text);
+  if(!rows.length){toast("That file has no rows.");return}
+  const nc=Math.max(10,Math.max.apply(null,rows.map(r=>r.length)));
+  const nr=Math.max(30,rows.length);
+  const cells={};
+  rows.forEach((row,r)=>{row.forEach((v,c)=>{const n=norm(v);if(n!==undefined)cells[addr(c,r)]=n})});
+  D.cols=nc;D.rows=nr;D.cells=cells;D.notes={};D.samples=false;
+  save();render();toast("Imported "+rows.length+" rows. Import replaces the sheet.");
+}
+function importFile(input){
+  const f=input.files&&input.files[0];
+  if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>importCsv(String(r.result||""));
+  r.readAsText(f);
+  input.value="";
+}
+function csvCell(s){s=String(s);return/[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}
+function dl(n,t,ty){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([t],{type:ty}));a.download=n;a.click()}
+function csv(){
+  const V=computeAll();
+  let lr=0,lc=0;
+  for(const ad in D.cells){const p=parseAddr(ad);if(p){if(p.r>lr)lr=p.r;if(p.c>lc)lc=p.c}}
+  const lines=[];
+  for(let r=0;r<=lr;r++){
+    const out=[];
+    for(let c=0;c<=lc;c++){const ad=addr(c,r);const v=V[ad];out.push(csvCell(v?fmt(v):""))}
+    lines.push(out.join(","));
+  }
+  dl("aethersheet.csv",lines.join("\n"),"text/csv");
+  toast("CSV downloaded — it holds the values you see, not the formulas.");
+}
+
+/* ---------- AI Fill (buyer's own service) ---------- */
+function saveAISettings(){
+  D.aiUrl=(($("#ai-url").value)||"").trim()||DEFAULT_URL;
+  D.aiModel=(($("#ai-model").value)||"").trim()||"auto";
+  D.aiPrompt=$("#ai-prompt").value;
+  D.aiTarget=(($("#ai-target").value)||"").trim()||"Industry";
+  save();
+}
+function headersOf(){
+  const V=computeAll();
+  const h=[];
+  for(let c=0;c<D.cols;c++){const v=V[addr(c,0)];h.push(v?fmt(v):"")}
+  return h;
+}
+function lastContentRow(){
+  let lr=0;
+  for(const ad in D.cells){const p=parseAddr(ad);if(p&&p.r>lr)lr=p.r}
+  return lr;
+}
+async function runAIFill(){
+  const url=(($("#ai-url").value)||"").trim()||DEFAULT_URL;
+  const model=(($("#ai-model").value)||"").trim()||"auto";
+  const prompt=$("#ai-prompt").value||"";
+  const target=(($("#ai-target").value)||"").trim();
+  const st=$("#ai-status");
+  const btn=$("#ai-run");
+  saveAISettings();
+  if(!prompt.trim()){st.textContent="Write a prompt first — tell the service what to fill in.";st.className="status err";return}
+  if(!target){st.textContent="Pick a target column first.";st.className="status err";return}
+  const V=computeAll();
+  const headers=headersOf();
+  let tIdx=headers.indexOf(target);
+  if(tIdx<0){
+    if(D.cols>=26){st.textContent="The target column does not exist and the sheet is already at 26 columns — add the column header to row 1 first.";st.className="status err";return}
+    tIdx=D.cols;D.cols++;
+    D.cells[addr(tIdx,0)]=target;headers.push(target);
+    save();render();
+  }
+  const last=lastContentRow();
+  if(last<1){st.textContent="There are no data rows to fill — add some rows first.";st.className="status err";return}
+  const rows=[];
+  for(let r=1;r<=last;r++){
+    const obj={};
+    headers.forEach((h,c)=>{if(h!==""){const v=V[addr(c,r)];obj[h]=v?fmt(v):""}});
+    rows.push(obj);
+  }
+  btn.disabled=true;
+  st.className="status";
+  st.textContent="Contacting your AI service at "+url+" …";
+  let resp;
+  try{
+    resp=await fetch(url.replace(/\/+$/,"")+"/v1/bulk-fill",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt:prompt,rows:rows,target_column:target,model:model,provider:"auto",batch_size:5})});
+  }catch(e){
+    st.textContent="Could not reach your AetherSheet AI service at "+url+". Start the service on your own machine (or fix the URL above) — nothing was filled in.";
+    st.className="status err";btn.disabled=false;return;
+  }
+  let body=null;
+  try{body=await resp.json()}catch(e){}
+  if(!resp.ok){
+    st.textContent="Your AI service answered with an error (HTTP "+resp.status+")"+(body&&body.detail?": "+body.detail:"")+". Nothing was filled in.";
+    st.className="status err";btn.disabled=false;return;
+  }
+  const results=(body&&body.results)||[];
+  const errs=(body&&body.errors)||[];
+  let filled=0;
+  results.forEach((res,i)=>{
+    const r=i+1;
+    if(r>last)return;
+    const val=res?res[target]:undefined;
+    if(val===undefined||val===null||val==="")return;
+    const ad=addr(tIdx,r);
+    setCellRaw(ad,val);
+    if(typeof res.confidence==="number")D.notes[ad]="AI fill · confidence "+Math.round(res.confidence*100)+"% · "+(body.model_used||model);
+    filled++;
+  });
+  save();render();
+  st.className="status";
+  st.textContent="Filled "+target+" for "+filled+" row"+(filled===1?"":"s")+(body.model_used?" with "+body.model_used:"")+(errs.length?" — "+errs.length+" row(s) errored; their cells were left as they were.":"");
+  btn.disabled=false;
+}
+
+/* ---------- test helpers (used by the smoke harness) ---------- */
+function calc(expr){
+  if(expr.charAt(0)==="=")expr=expr.slice(1);
+  const V=computeAll();
+  const get=function(ad){return V[ad]||{v:"",num:false}};
+  const p=parseFormula(expr);
+  if(p.err)return p.err;
+  const r=evalNode(p.ast,get);
+  return r.err?r.err:fmt(r);
+}
+function disp(ad){
+  const V=computeAll();
+  const v=V[ad];
+  return v?fmt(v):"";
+}
+
+/* ---------- render ---------- */
+function gridHTML(V){
+  let h='<table class="grid"><thead><tr><th class="rn"></th>';
+  for(let c=0;c<D.cols;c++)h+="<th>"+colLetter(c)+"</th>";
+  h+="</tr></thead><tbody>";
+  for(let r=0;r<D.rows;r++){
+    h+='<tr><th class="rn">'+(r+1)+"</th>";
+    for(let c=0;c<D.cols;c++){
+      const ad=addr(c,r);
+      const v=V[ad];
+      const d=v?fmt(v):"";
+      const raw=D.cells[ad];
+      const noted=D.notes[ad]?' data-note="1" title="'+esc(D.notes[ad])+'"':"";
+      const cls=v&&v.err?' class="err"':(D.notes[ad]?' class="noted"':"");
+      h+="<td"+cls+'><input data-addr="'+ad+'" value="'+esc(d)+'"'+noted+' onfocus="cellFocus(this,\''+ad+'\')" onchange="setCell(\''+ad+'\',this.value)"></td>';
+    }
+    h+="</tr>";
+  }
+  return h+"</tbody></table>";
+}
+function render(){
+  const V=computeAll();
+  const headers=headersOf().filter(h=>h!=="");
+  const m=$("#m");
+  m.innerHTML=`<div class="top"><h2>AetherSheet Grid</h2><a class="btn g" href="${BASE}launcher.html">← Back to the launcher</a></div>
+<p class="mu" style="margin-top:-8px">A spreadsheet for your small business — formulas in the browser, CSV in and out, and AI column fill with your own service.</p>
+${D.samples?`<div class="note"><strong>Sample data.</strong> Five fictional companies (Acme Corp, Globex, Initech, Umbrella, Stark Industries) — nothing here is real. Industry and Revenue Estimate are empty on purpose: point AI Fill at them, or fill them in yourself. <button class="btn s" onclick="clearSamples()">Clear samples</button></div>`:""}
+<div class="row" style="margin-bottom:12px">
+<button class="btn" onclick="addRow()">+ Row</button>
+<button class="btn" onclick="addCol()">+ Column</button>
+<button class="btn g" onclick="document.querySelector('#fi').click()">Import CSV</button>
+<button class="btn g" onclick="csv()">Export CSV</button>
+<button class="btn g" onclick="askReset()">Reset to samples</button>
+<input type="file" id="fi" accept=".csv" hidden onchange="importFile(this)">
+</div>
+<div class="fbar"><span class="cell" id="faddr">${esc(sel)}</span><input id="fbar" value="${esc(rawOf(sel))}" onchange="setBar(this.value)" aria-label="Formula bar: contents of the selected cell"><span class="mu">Type = to start a formula.</span></div>
+<div class="gridwrap">${gridHTML(V)}</div>
+<p class="mu">Formulas: =SUM(A1:A5) · =AVERAGE(B2:B9) · =MIN(...) · =MAX(...) · =COUNT(...) · + - * / ( ) · "text in quotes". Errors: #CIRCULAR! for a formula that points back at itself · #REF! for a bad cell reference · #DIV/0! for divide by zero · #NAME? for an unknown function · #VALUE! for anything else the formula cannot do. Cells that change recompute everything that depends on them.</p>
+<div class="c"><h3>AI Fill — fill a whole column with your own AetherSheet AI service</h3>
+<p class="mu">AI fill does nothing without your own AetherSheet AI service running — your own machine or host. It is YOU ARRANGE. Nothing is sent anywhere by default, and no key is stored in this file: the service itself holds any model keys. If the service is not running, you get a clear error and nothing is filled in.</p>
+<label for="ai-url">Your AetherSheet AI service URL</label>
+<input id="ai-url" value="${esc(D.aiUrl)}" onchange="saveAISettings()" placeholder="http://localhost:8000">
+<label for="ai-model">Model</label>
+<input id="ai-model" value="${esc(D.aiModel)}" onchange="saveAISettings()" placeholder="auto">
+<label for="ai-prompt">What should the AI fill in?</label>
+<textarea id="ai-prompt" rows="2" onchange="saveAISettings()">${esc(D.aiPrompt)}</textarea>
+<label for="ai-target">Target column (a header from row 1 — a missing column is added for you)</label>
+<input id="ai-target" list="hdrlist" value="${esc(D.aiTarget)}" onchange="saveAISettings()"><datalist id="hdrlist">${headers.map(h=>`<option value="${esc(h)}">`).join("")}</datalist>
+<div class="row"><button class="btn" id="ai-run" onclick="runAIFill()">Fill the column</button></div>
+<div class="status" id="ai-status"></div>
+<p class="mu">AI fill sends the rows you see to the service URL above — your own service, not ours. A confidence note is added to each filled cell when the service returns one.</p></div>
+<p class="mu">What this does not do: this is not Excel — CSV only, no .xlsx in or out, no pivot tables, no charts in v1. Formulas run in this browser. Your data stays in this browser unless you export it (CSV) or point AI fill at your own service. CSV export writes the values you see, not the formulas.</p>`;
+}
+window.setCell=setCell;window.setBar=setBar;window.cellFocus=cellFocus;window.selectCell=selectCell;
+window.addRow=addRow;window.addCol=addCol;window.clearSamples=clearSamples;window.loadSamples=loadSamples;
+window.askReset=askReset;window.doReset=doReset;window.csv=csv;window.importCsv=importCsv;window.importFile=importFile;
+window.saveAISettings=saveAISettings;window.runAIFill=runAIFill;window.calc=calc;window.disp=disp;
+render();
+</script></body></html>
