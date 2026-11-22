@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<!--
+MIT License — Copyright (c) 2026 Ting Lott / T. Lott Creative
+BizBlog — Blog Series Studio, part of AI Command Center.
+Based on BizBlog AI (MIT). Free for commercial and personal use.
+Your work stays in this browser. Your API key stays in this browser.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BizBlog — Blog Series Studio · AI Command Center</title>
+  <script src="bizblog/marked.min.js"></script>
+  <script src="bizblog/purify.min.js"></script>
+  <style>
+:root {
+  --bg: #FAF7F2; --bg2: #F0EBE3; --card: #fff; --accent: #E85D26; --accent2: #D4502A;
+  --text: #1C1714; --text2: #6B5E52; --muted: #A39585; --border: #E0D8CE;
+  --success: #27AE60; --danger: #E74C3C; --side: #1C1714; --side-h: #2A241E;
+  --side-t: #E8DFD4; --side-m: #8C7D6D; --on-a: #fff;
+  --sh: 0 4px 16px rgba(28,23,20,0.08); --page: #FFFDF8; --page-sh: 0 2px 12px rgba(28,23,20,.08);
+}
+html.dark {
+  --bg: #0F0D0B; --bg2: #1A1715; --card: #221E1A; --accent: #F06A30; --accent2: #E05520;
+  --text: #F0EBE3; --text2: #A39585; --muted: #6B5E52; --border: #2E2923;
+  --success: #5DBF5D; --danger: #E74C3C; --side: #0A0908; --side-h: #1A1715;
+  --side-t: #D4C8B8; --side-m: #6B5E52; --on-a: #fff;
+  --sh: 0 4px 16px rgba(0,0,0,0.3); --page: #1A1715; --page-sh: 0 2px 12px rgba(0,0,0,.2);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
+button { cursor: pointer; border: none; background: none; color: inherit; font: inherit; }
+input, textarea, select { font: inherit; font-size: 16px; background: var(--card); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; outline: none; transition: .2s; }
+input:focus, textarea:focus, select:focus { box-shadow: 0 0 0 3px rgba(232,93,38,.2); border-color: var(--accent); }
+::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+.wrap { display: flex; height: 100%; }
+.side { width: 260px; min-width: 260px; background: var(--side); color: var(--side-t);
+  display: flex; flex-direction: column; border-right: 1px solid rgba(255,255,255,.05); }
+.side-hd { padding: 16px; border-bottom: 1px solid rgba(255,255,255,.06); }
+.side-list { flex: 1; overflow-y: auto; padding: 8px; }
+.s-item { padding: 10px 12px; border-radius: 6px; cursor: pointer; display: flex; align-items: center;
+  gap: 10px; margin-bottom: 2px; position: relative; transition: .15s; }
+.s-item .s-lbl { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; color: var(--side-m); }
+.s-item:hover { background: var(--side-h); } .s-item:hover .s-lbl { color: var(--side-t); }
+.s-item.active { background: var(--accent); color: white; } .s-item.active .s-lbl { color: white; }
+.s-item .s-del { position: absolute; right: 6px; width: 22px; height: 22px; border-radius: 50%;
+  font-size: 10px; display: flex; align-items: center; justify-content: center; opacity: 0; transition: .15s; color: var(--side-m); }
+.s-item:hover .s-del { opacity: 1; } .s-item .s-del:hover { background: rgba(192,57,43,.8); color: #fff; }
+.s-cat { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--side-m); padding: 14px 12px 6px; display: flex; align-items: center; justify-content: space-between; }
+.side-foot { display: flex; gap: 8px; padding: 12px; border-top: 1px solid rgba(255,255,255,.06); }
+.side-foot button { flex: 1; padding: 10px; border: 1px dashed rgba(255,255,255,.12); border-radius: 6px;
+  color: var(--side-m); font-size: 13px; transition: .2s; }
+.side-foot button:hover { border-color: var(--accent); color: var(--accent); }
+
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.topbar { display: flex; align-items: center; gap: 8px; padding: 12px 20px; background: var(--card);
+  border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.topbar input { flex: 1; font-size: 1.1rem; font-weight: 600; border: none; background: transparent; }
+.topbar input:focus { box-shadow: none; }
+.tb-grp { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.content-area { flex: 1; padding: 24px; padding-bottom: 72px; overflow-y: auto; line-height: 1.7; }
+
+.editor textarea { width: 100%; min-height: 320px; resize: vertical; line-height: 1.7; padding: 16px; }
+.preview { padding: 24px; background: var(--page); border-radius: 10px; border: 1px solid var(--border);
+  box-shadow: var(--page-sh); max-width: 800px; margin: 0 auto; font-size: 15px; line-height: 1.8; }
+.preview h1, .preview h2, .preview h3 { margin: 18px 0 10px; }
+.preview h1 { font-size: 1.8em; color: var(--accent); } .preview h2 { font-size: 1.4em; } .preview h3 { font-size: 1.15em; }
+.preview code { background: var(--bg2); padding: 2px 6px; border-radius: 4px; font-size: .9em; }
+.preview pre { background: var(--bg2); padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0; }
+.preview pre code { background: none; padding: 0; }
+.preview blockquote { border-left: 3px solid var(--accent); padding-left: 14px; color: var(--text2); margin: 10px 0; font-style: italic; }
+.preview p { margin-bottom: 10px; } .preview ul, .preview ol { margin-left: 20px; margin-bottom: 10px; }
+
+.vtog { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.vtog button { padding: 8px 14px; font-size: 13px; font-weight: 500; background: var(--card); color: var(--muted); transition: .15s; }
+.vtog button.on { background: var(--accent); color: var(--on-a); }
+.vtog button:not(.on):hover { background: var(--bg2); color: var(--text); }
+
+.sec-tabs { display: flex; gap: 6px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 6px; flex-wrap: wrap; align-items: center; }
+.sec-tab { display: inline-flex; align-items: center; gap: 5px; padding: 7px 14px; font-size: 13px; font-weight: 600;
+  border: 1.5px solid var(--border); border-radius: 8px; cursor: pointer; transition: .15s; white-space: nowrap;
+  background: var(--bg); color: var(--text2); }
+.sec-tab:hover { border-color: var(--accent); color: var(--accent); }
+.sec-tab.on { border-color: var(--accent); background: var(--accent); color: #fff; }
+.sec-tab .sn { width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,.1);
+  display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
+.sec-tab.on .sn { background: rgba(255,255,255,.25); }
+.sec-add { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px;
+  border: 1.5px dashed var(--border); border-radius: 8px; cursor: pointer; color: var(--muted); font-size: 12px; transition: .15s; }
+.sec-add:hover { border-color: var(--accent); color: var(--accent); }
+
+.pg-bar { display: flex; gap: 4px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+.pg-dot { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--border); display: flex;
+  align-items: center; justify-content: center; font-size: 10px; font-weight: 700; cursor: pointer;
+  transition: .15s; color: var(--muted); background: var(--bg); }
+.pg-dot:hover { border-color: var(--accent); color: var(--accent); }
+.pg-dot.on { border-color: var(--accent); background: var(--accent); color: #fff; }
+.pg-dot.filled { border-color: var(--success); background: rgba(46,139,87,.1); color: var(--success); }
+.pg-dot.filled.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+.pg-add { width: 28px; height: 28px; border-radius: 50%; border: 1.5px dashed var(--border); display: flex;
+  align-items: center; justify-content: center; font-size: 10px; cursor: pointer; color: var(--muted); transition: .15s; }
+.pg-add:hover { border-color: var(--accent); color: var(--accent); }
+.pg-info { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-left: 8px; }
+
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px);
+  background: var(--side); color: var(--side-t); padding: 12px 24px; border-radius: 10px; font-size: 14px;
+  box-shadow: var(--sh); transition: transform .3s; z-index: 1000; display: flex; align-items: center; gap: 8px; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.success { border-left: 4px solid var(--success); }
+.toast.error { border-left: 4px solid var(--danger); }
+.toast.info { border-left: 4px solid var(--accent); }
+
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: flex; align-items: center;
+  justify-content: center; z-index: 500; padding: 20px; animation: fi .2s; }
+.modal { background: var(--card); padding: 24px; border-radius: 14px; max-width: 480px; width: 100%;
+  box-shadow: 0 8px 32px rgba(0,0,0,.3); animation: si .25s; }
+.modal h4 { font-size: 18px; margin-bottom: 8px; } .modal p { color: var(--text2); font-size: 14px; line-height: 1.5; margin-bottom: 20px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+.gen-ov { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 350; display: flex;
+  flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: #fff; }
+.spinner { width: 44px; height: 44px; border: 3px solid #444; border-top-color: var(--accent);
+  border-radius: 50%; animation: spin .8s linear infinite; }
+
+.btn-a { background: var(--accent); color: var(--on-a); padding: 8px 16px; border-radius: 8px;
+  font-size: 14px; font-weight: 600; transition: .15s; display: inline-flex; align-items: center; gap: 6px; }
+.btn-a:hover { filter: brightness(1.1); } .btn-a:disabled { opacity: .5; cursor: not-allowed; }
+.btn-s { background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 8px 16px;
+  border-radius: 8px; font-size: 14px; transition: .15s; }
+.btn-s:hover { border-color: var(--accent); color: var(--accent); }
+.btn-d { background: var(--danger); color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 14px; }
+.btn-d:hover { filter: brightness(1.1); }
+.btn-gold { background: var(--accent); color: #fff; padding: 7px 14px; border-radius: 8px;
+  font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; transition: .15s; }
+.btn-gold:hover { filter: brightness(1.1); }
+
+.stat-row { display: flex; gap: 10px; margin-top: 20px; padding: 16px; background: var(--bg2); border-radius: 10px; flex-wrap: wrap; }
+.stat-item { flex: 1; min-width: 80px; text-align: center; }
+.stat-item .sv { font-size: 1.4rem; font-weight: 700; color: var(--accent); }
+.stat-item .sl { font-size: 10px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); }
+
+.notes-area, .media-block, .research-block, .quiz-build { margin-top: 16px; padding: 16px; background: var(--bg2); border-radius: 10px; }
+.notes-area label, .media-block label, .research-block label, .quiz-build > label {
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--muted);
+  margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+.notes-area label i, .media-block label i, .research-block label i, .quiz-build > label i { color: var(--accent); }
+.notes-area textarea { width: 100%; min-height: 80px; resize: vertical; font-size: 14px; margin-top: 8px; }
+
+.tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 56px; background: var(--card);
+  border-top: 1px solid var(--border); display: flex; z-index: 100; box-shadow: 0 -2px 12px rgba(0,0,0,.06); }
+.tab-bar button { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px; font-size: 10px; font-weight: 600; color: var(--muted); transition: .15s; letter-spacing: .3px; }
+.tab-bar button i { font-size: 18px; } .tab-bar button.tab-on { color: var(--accent); }
+.tab-bar button:not(.tab-on):hover { color: var(--text2); }
+
+.home-search { display: flex; gap: 8px; max-width: 600px; width: 100%; margin-bottom: 12px; align-items: center; }
+.home-search input { flex: 1; min-width: 0; }
+.home-filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; max-width: 600px; }
+.hf-btn { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; border: 1.5px solid var(--border);
+  background: var(--card); color: var(--text2); transition: .15s; }
+.hf-btn:hover { border-color: var(--accent); color: var(--accent); } .hf-btn.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+.tpl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-bottom: 16px; }
+.tpl-card { padding: 16px; border-radius: 10px; border: 2px solid var(--border); background: var(--card);
+  cursor: pointer; transition: .15s; text-align: center; }
+.tpl-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.tpl-card.on { border-color: var(--accent); background: rgba(232,93,38,.06); }
+.tpl-card i { font-size: 28px; margin-bottom: 8px; color: var(--accent); }
+.tpl-card .tpl-name { font-size: 13px; font-weight: 700; } .tpl-card .tpl-desc { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+.proj-progress { height: 3px; background: var(--border); border-radius: 2px; margin-top: 10px; overflow: hidden; }
+.proj-progress-fill { height: 100%; background: var(--success); border-radius: 2px; transition: width .3s; }
+
+.flip-overlay, .pres-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 400;
+  display: none; flex-direction: column; align-items: center; justify-content: center; }
+.flip-overlay.open, .pres-overlay.open { display: flex; }
+.flip-book { width: 90vw; max-width: 700px; aspect-ratio: 4/3; background: var(--page); border-radius: 4px;
+  box-shadow: 0 8px 40px rgba(0,0,0,.4); padding: 40px 48px; overflow-y: auto; position: relative;
+  font-size: 16px; line-height: 1.9; }
+.flip-book .preview { border: none; box-shadow: none; padding: 0; background: transparent; max-width: none; }
+.flip-ctrl, .pres-foot { display: flex; align-items: center; gap: 20px; margin-top: 20px; color: #fff; }
+.flip-ctrl button, .pres-foot button { background: rgba(255,255,255,.15); color: #fff; width: 44px; height: 44px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: .15s; }
+.flip-ctrl button:hover, .pres-foot button:hover { background: rgba(255,255,255,.25); }
+.flip-close, .pres-close { position: absolute; top: 20px; right: 20px; color: #fff; font-size: 20px; z-index: 410;
+  background: rgba(255,255,255,.1); width: 36px; height: 36px; border-radius: 50%; display: flex;
+  align-items: center; justify-content: center; }
+.flip-close:hover, .pres-close:hover { background: rgba(255,255,255,.2); }
+.pres-slide { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; overflow-y: auto; }
+.pres-card { background: var(--page); width: 100%; max-width: 960px; min-height: 60vh; border-radius: 12px;
+  padding: 60px 64px; box-shadow: 0 8px 40px rgba(0,0,0,.3); font-size: 18px; line-height: 1.9; }
+.pres-card .preview { border: none; box-shadow: none; padding: 0; background: transparent; max-width: none; font-size: 18px; }
+
+.mob-btn { display: none; position: fixed; bottom: 18px; left: 18px; z-index: 90; width: 44px; height: 44px;
+  border-radius: 50%; background: var(--accent); color: #fff; font-size: 16px; box-shadow: var(--sh);
+  align-items: center; justify-content: center; }
+
+@keyframes fi { from { opacity: 0; } to { opacity: 1; } }
+@keyframes si { from { opacity: 0; transform: scale(.95); } to { opacity: 1; transform: scale(1); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 768px) {
+  .side { position: fixed; left: -270px; top: 0; height: 100%; z-index: 80; transition: left .3s; }
+  .side.mob { left: 0; }
+  .mob-btn { display: flex; }
+  .content-area { padding: 16px; } .topbar { padding: 10px 14px; flex-wrap: wrap; gap: 6px; }
+  #home { padding: 24px 16px !important; padding-bottom: 80px !important; }
+  .flip-book { width: 95vw; padding: 24px 20px; aspect-ratio: auto; min-height: 60vh; }
+  .pres-card { padding: 30px 24px; }
+}
+  </style>
+  <script>
+    if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.classList.add("dark");
+    }
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function(e) {
+      e.matches ? document.documentElement.classList.add("dark") : document.documentElement.classList.remove("dark");
+    });
+  </script>
+</head>
+<body>
+
+<div id="toast" class="toast"></div>
+<div id="modal-root"></div>
+<div id="gen-ov" class="gen-ov" style="display:none">
+  <div class="spinner"></div>
+  <div id="gen-msg" style="font-size:14px">Generating...</div>
+</div>
+
+<!-- HOME -->
+<div id="home" style="display:flex;flex-direction:column;padding:40px;padding-bottom:72px;height:100vh;overflow-y:auto">
+  <h1 style="font-size:2.6rem;margin-bottom:6px;word-break:break-word">Biz<span style="color:var(--accent)">Blog</span> AI</h1>
+  <p style="color:var(--muted);margin-bottom:6px;font-size:15px">Blog Series Studio · AI Command Center — write a whole series about your business, in your voice.</p>
+  <p style="color:var(--muted);margin-bottom:16px;font-size:13px">AI drafts the words; you check every fact before you publish. Your key stays in this browser and is sent only to the AI service you choose. Without a key the app shows honest demo text. Quiz generation is not built yet.</p>
+
+  <button class="btn-a" onclick="autoGenerateBusinessSeries()" style="width:100%;max-width:480px;margin-bottom:20px;padding:16px;font-size:16px">
+     Auto-Generate Full Business Blog Series
+  </button>
+
+  <div id="ai-settings" style="max-width:600px;width:100%;margin-bottom:14px;padding:14px;border:1px solid var(--border);border-radius:10px;background:var(--card)">
+    <div style="font-weight:700;margin-bottom:4px">AI settings — your free key</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:10px">Real AI writing needs a key from a free AI service. Your key stays in this browser and is sent only to the service you choose. Without a key the app shows honest demo text instead.</p>
+    <label style="font-size:12px;color:var(--muted)">AI service address</label>
+    <input id="set-endpoint" style="width:100%;margin:2px 0 8px" value="">
+    <label style="font-size:12px;color:var(--muted)">Model</label>
+    <input id="set-model" style="width:100%;margin:2px 0 8px" value="">
+    <label style="font-size:12px;color:var(--muted)">API key (free Groq key: console.groq.com — no card; or OpenRouter)</label>
+    <input id="set-key" type="password" style="width:100%;margin:2px 0 8px" value="" placeholder="gsk_...">
+    <button class="btn-a" onclick="saveAISettings()">Save AI settings</button>
+    <span id="set-status" style="font-size:13px;color:var(--muted);margin-left:8px"></span>
+  </div>
+
+  <div style="display:flex;gap:10px;max-width:600px;width:100%;margin-bottom:14px;flex-wrap:wrap">
+    <input id="new-title" placeholder="Series title (e.g. How We Scaled to $1M ARR)" style="flex:1;min-width:180px" onkeydown="if(event.key==='Enter')createProject()">
+    <select id="new-type" style="width:160px">
+      <option value="narrative">Narrative Series</option>
+      <option value="professional">Pro Posts</option>
+    </select>
+    <button class="btn-a" onclick="createProject()"> Create</button>
+  </div>
+
+  <div id="tpl-area" style="max-width:600px;width:100%;margin-bottom:14px">
+    <button class="btn-s" onclick="toggleTemplates()" style="font-size:12px;margin-bottom:8px">
+       Business Templates
+    </button>
+    <div id="tpl-grid" class="tpl-grid" style="display:none"></div>
+  </div>
+
+  <div class="home-search">
+    <input id="home-search" placeholder="Search your blog series..." oninput="renderHome()">
+    
+  </div>
+  <div class="home-filters" id="home-filters">
+    <button class="hf-btn on" onclick="setHomeFilter('all')">All</button>
+    <button class="hf-btn" onclick="setHomeFilter('narrative')"> Narrative</button>
+    <button class="hf-btn" onclick="setHomeFilter('professional')"> Professional</button>
+  </div>
+  <div id="proj-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;width:100%;max-width:1000px"></div>
+</div>
+
+<!-- EDITOR -->
+<div id="editor" class="wrap" style="display:none">
+  <div id="sidebar" class="side">
+    <div class="side-hd">
+      <button onclick="goHome()" style="color:var(--side-m);font-size:13px"> All Series</button>
+      <div id="proj-name" style="font-size:1.1rem;font-weight:600;margin-top:10px"></div>
+      <div id="proj-type-badge" style="font-size:11px;margin-top:4px;color:var(--side-m)"></div>
+    </div>
+    <div id="side-list" class="side-list"></div>
+    <div class="side-foot">
+      <button onclick="addSection()">Section</button>
+      <button onclick="addPage()">Page</button>
+      <button onclick="clearAllProjects()">Clear all</button>
+    </div>
+  </div>
+  <div class="main">
+    <div id="topbar" class="topbar" style="display:none">
+      <input id="page-title" placeholder="Page title..." onchange="updatePageTitle(this.value)">
+      <div class="tb-grp">
+        <button class="btn-gold" onclick="openAIPanel()" title="AI Generate"> AI</button>
+        <button class="btn-s" onclick="aiEnhanceContent()" title="Enhance" style="font-size:13px;padding:7px 12px;color:var(--success)">Enhance</button>
+        <button class="btn-s" onclick="openViewer()" title="View">View</button>
+        <button class="btn-s" onclick="exportProject()" title="Export Markdown">Export</button>
+        <button class="btn-s" onclick="publishToGitHub()" title="Publish to GitHub">Publish</button>
+      </div>
+    </div>
+    <div id="content-area" class="content-area">
+      <div style="text-align:center;padding:60px 20px;color:var(--muted)">
+        
+        <p style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px">Select a page to begin</p>
+        <p style="font-size:13px">Add sections and pages from the sidebar</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AI PANEL -->
+<div id="ai-bg" style="position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:299;opacity:0;pointer-events:none;transition:.25s" onclick="closeAIPanel()"></div>
+<div id="ai-panel" style="position:fixed;top:0;right:-420px;width:400px;max-width:92vw;height:100%;background:var(--card);box-shadow:-4px 0 20px rgba(0,0,0,.4);transition:right .3s;z-index:300;display:flex;flex-direction:column">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)">
+    <h3 style="font-size:16px"> AI Generate</h3>
+    <button onclick="closeAIPanel()" style="font-size:18px;color:var(--muted)">✕</button>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:20px">
+    <div style="margin-bottom:18px">
+      <label style="display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px">Style</label>
+      <select id="ai-style" style="width:100%">
+        <option value="narrative">Rich Narrative</option>
+        <option value="educational">Educational</option>
+        <option value="professional">Professional / Corporate</option>
+        <option value="story">Customer Story</option>
+      </select>
+    </div>
+    <div style="margin-bottom:18px">
+      <label style="display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px">Tone</label>
+      <select id="ai-tone" style="width:100%">
+        <option value="engaging">Engaging</option>
+        <option value="formal">Formal</option>
+        <option value="conversational">Conversational</option>
+        <option value="authoritative">Authoritative</option>
+      </select>
+    </div>
+    <div style="margin-bottom:18px">
+      <label style="display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px">Extra Instructions</label>
+      <textarea id="ai-instr" rows="3" style="width:100%" placeholder="e.g. Include SEO keywords, stats, CTA..."></textarea>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button class="btn-a" onclick="genPage()" style="justify-content:center"> Generate This Page</button>
+      <button class="btn-a" onclick="genSection()" style="justify-content:center;background:var(--success)"> Generate Section</button>
+      <button class="btn-s" onclick="genEntire()" style="justify-content:center"> Generate Entire Series</button>
+    </div>
+  </div>
+</div>
+
+<!-- VIEWERS -->
+<div id="flip-ov" class="flip-overlay">
+  <button class="flip-close" onclick="closeFlip()">✕</button>
+  <div id="flip-book" class="flip-book"></div>
+  <div class="flip-ctrl">
+    <button onclick="flipPrev()">‹</button>
+    <span id="flip-num" style="font-size:14px;min-width:100px;text-align:center"></span>
+    <button onclick="flipNext()">›</button>
+  </div>
+</div>
+<div id="pres-ov" class="pres-overlay">
+  <button class="pres-close" onclick="closePres()">✕</button>
+  <div class="pres-slide"><div id="pres-card" class="pres-card"></div></div>
+  <div class="pres-foot">
+    <button onclick="presPrev()"> Prev</button>
+    <span id="pres-num" style="color:rgba(255,255,255,.6);font-size:13px;min-width:120px;text-align:center"></span>
+    <button onclick="presNext()">Next </button>
+  </div>
+</div>
+
+<button class="mob-btn" id="mob-toggle" onclick="toggleSide()">☰</button>
+
+<script>
+/* ============================================================
+   BizBlog AI 2026 — Fully Functional Business Blog Series App
+   Copilot-friendly, modular, well-commented
+   ============================================================ */
+
+// ---------- CONFIG (set API key in console) ----------
+window.LLM_CONFIG = {
+  endpoint: "https://api.groq.com/openai/v1/chat/completions",
+  model: "openai/gpt-oss-120b",
+  apiKey: "" // set it in AI settings on the home page — saved in this browser only
+};
+
+// ---------- AI SETTINGS (stored in this browser only) ----------
+const SETTINGS_KEY = "aicc-bizblog-settings";
+function loadAISettings() {
+  try {
+    const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "null");
+    if (s) {
+      if (s.endpoint) window.LLM_CONFIG.endpoint = s.endpoint;
+      if (s.model) window.LLM_CONFIG.model = s.model;
+      if (s.apiKey) window.LLM_CONFIG.apiKey = s.apiKey;
+    }
+  } catch (e) {}
+  const e1 = document.getElementById("set-endpoint"); if (e1) e1.value = window.LLM_CONFIG.endpoint;
+  const e2 = document.getElementById("set-model"); if (e2) e2.value = window.LLM_CONFIG.model;
+  const e3 = document.getElementById("set-key"); if (e3) e3.value = window.LLM_CONFIG.apiKey || "";
+}
+function saveAISettings() {
+  const endpoint = (document.getElementById("set-endpoint").value || "").trim();
+  const model = (document.getElementById("set-model").value || "").trim();
+  const apiKey = (document.getElementById("set-key").value || "").trim();
+  if (endpoint) window.LLM_CONFIG.endpoint = endpoint;
+  if (model) window.LLM_CONFIG.model = model;
+  window.LLM_CONFIG.apiKey = apiKey;
+  try { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ endpoint: window.LLM_CONFIG.endpoint, model: window.LLM_CONFIG.model, apiKey })); } catch (e) {}
+  const st = document.getElementById("set-status"); if (st) st.textContent = apiKey ? "Saved — real AI is on." : "Saved — no key, demo mode.";
+  toast("AI settings saved", "success");
+}
+function clearAllProjects() {
+  if (!projects.length) return toast("Nothing to clear", "info");
+  if (!confirm("Delete ALL blog series in this browser? This cannot be undone.")) return;
+  projects = [];
+  save(); goHome();
+  toast("All projects cleared", "success");
+}
+
+// ---------- STATE ----------
+let projects = [];
+let activeProject = null;
+let activeSecIdx = 0;
+let activePageIdx = 0;
+let viewMode = "edit";
+let generating = false;
+let _homeFilter = "all";
+let _selectedTpl = null;
+let _tplOpen = false;
+let _flipPages = [];
+let _flipIdx = 0;
+let _presPages = [];
+let _presIdx = 0;
+
+// ---------- INDEXEDDB ----------
+let _db = null;
+function dbOpen() {
+  return new Promise((ok, fail) => {
+    if (_db) { ok(_db); return; }
+    const r = indexedDB.open("aicc-bizblog", 2);
+    r.onupgradeneeded = e => e.target.result.createObjectStore("data");
+    r.onsuccess = e => { _db = e.target.result; ok(_db); };
+    r.onerror = () => fail(r.error);
+  });
+}
+function dbSave(data) {
+  return dbOpen().then(db => new Promise((ok, fail) => {
+    const t = db.transaction("data", "readwrite");
+    t.objectStore("data").put(data, "projects");
+    t.oncomplete = ok;
+    t.onerror = () => fail(t.error);
+  }));
+}
+function dbLoad() {
+  return dbOpen().then(db => new Promise(ok => {
+    const t = db.transaction("data", "readonly");
+    const r = t.objectStore("data").get("projects");
+    r.onsuccess = () => ok(r.result);
+    r.onerror = () => ok(null);
+  }));
+}
+let _saveTimer = null;
+function save() {
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(() => {
+    dbSave(projects).catch(() => { _db = null; setTimeout(() => dbSave(projects).catch(() => {}), 2000); });
+  }, 300);
+}
+
+// ---------- UTILITIES ----------
+function uid() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 8); }
+function esc(s) {
+  if (!s) return "";
+  const d = document.createElement("div");
+  d.textContent = String(s);
+  return d.innerHTML;
+}
+function san(h) {
+  return typeof DOMPurify !== "undefined" ? DOMPurify.sanitize(h, { ADD_ATTR: ["target"], USE_PROFILES: { html: true } }) : h;
+}
+function renderMd(txt) {
+  if (!txt) return "<p style='color:var(--muted)'>No content yet</p>";
+  return typeof marked !== "undefined" ? san(marked.parse(txt)) : "<p>" + esc(txt) + "</p>";
+}
+function toast(msg, type) {
+  const t = document.getElementById("toast");
+  t.className = "toast " + (type || "info");
+  t.innerHTML = ' ' + esc(msg);
+  t.classList.add("show");
+  clearTimeout(t._tid);
+  t._tid = setTimeout(() => t.classList.remove("show"), 3200);
+}
+function confirmDlg(msg, onYes) {
+  const root = document.getElementById("modal-root");
+  root.innerHTML = '<div class="modal-bg"><div class="modal"><h4>Confirm</h4><p>' + esc(msg) + '</p><div class="modal-actions"><button class="btn-s" onclick="document.getElementById(\'modal-root\').innerHTML=\'\'">Cancel</button><button class="btn-d" id="m-yes">Confirm</button></div></div></div>';
+  document.getElementById("m-yes").onclick = () => { root.innerHTML = ""; onYes(); };
+}
+function setGen(on, msg) {
+  generating = on;
+  const el = document.getElementById("gen-ov");
+  el.style.display = on ? "flex" : "none";
+  if (msg) document.getElementById("gen-msg").textContent = msg;
+}
+
+// ---------- AI CALL ----------
+async function callAI(prompt) {
+  const cfg = window.LLM_CONFIG;
+  if (!cfg.apiKey) {
+    // Demo fallback so the app is usable offline
+    await new Promise(r => setTimeout(r, 900));
+    return `# ${prompt.slice(0, 50).replace(/\n/g, " ")}...\n\nThis is **demo content**. Add your free key in AI settings on the home page to enable real AI generation (a free Groq key at console.groq.com works — no card — or use OpenRouter).\n\n> “Real AI content will appear here once you add your key.”\n\n### Key Takeaways\n- Describe your business clearly\n- Use the Auto-Generate button for full series\n- Edit and refine any page\n\n---\n*Demo mode active*`;
+  }
+  try {
+    const res = await fetch(cfg.endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + cfg.apiKey,
+        "HTTP-Referer": location.href,
+        "X-Title": "BizBlog — AI Command Center"
+      },
+      body: JSON.stringify({
+        model: cfg.model,
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.7,
+        max_tokens: 1800
+      })
+    });
+    if (!res.ok) throw new Error("API " + res.status);
+    const data = await res.json();
+    return data.choices?.[0]?.message?.content || "Generation failed.";
+  } catch (err) {
+    console.error(err);
+    toast("AI error: " + (err.message || "check key/endpoint"), "error");
+    return "AI generation failed. Check console and API key.";
+  }
+}
+
+// ---------- TEMPLATES ----------
+const _templates = [
+  { id: "launch", icon: "fa-rocket", name: "Product Launch", type: "narrative", desc: "Turn a launch into a multi-post series",
+    sections: [
+      { title: "The Problem", pages: [{ title: "Market Gap", content: "" }, { title: "Customer Pain", content: "" }] },
+      { title: "The Solution", pages: [{ title: "Our Approach", content: "" }, { title: "Key Features", content: "" }] },
+      { title: "The Launch", pages: [{ title: "Go-to-Market", content: "" }, { title: "Results So Far", content: "" }] }
+    ]},
+  { id: "customer", icon: "fa-users", name: "Customer Success", type: "professional", desc: "Case-study style posts",
+    sections: [
+      { title: "The Challenge", pages: [{ title: "Before", content: "" }] },
+      { title: "The Journey", pages: [{ title: "Implementation", content: "" }] },
+      { title: "The Outcome", pages: [{ title: "Results & ROI", content: "" }] }
+    ]},
+  { id: "growth", icon: "fa-chart-line", name: "Growth Story", type: "narrative", desc: "How we scaled",
+    sections: [
+      { title: "Origins", pages: [{ title: "Day One", content: "" }] },
+      { title: "Tactics", pages: [{ title: "What Worked", content: "" }, { title: "What Failed", content: "" }] },
+      { title: "Lessons", pages: [{ title: "Key Takeaways", content: "" }] }
+    ]},
+  { id: "trends", icon: "fa-fire", name: "Industry Trends", type: "professional", desc: "Thought leadership",
+    sections: [
+      { title: "Current Landscape", pages: [{ title: "State of the Market", content: "" }] },
+      { title: "Emerging Shifts", pages: [{ title: "What's Next", content: "" }] },
+      { title: "How to Prepare", pages: [{ title: "Action Plan", content: "" }] }
+    ]},
+  { id: "blank", icon: "fa-file", name: "Blank Canvas", type: "narrative", desc: "Start from scratch", sections: [] }
+];
+
+function toggleTemplates() {
+  _tplOpen = !_tplOpen;
+  const grid = document.getElementById("tpl-grid");
+  if (_tplOpen) {
+    grid.style.display = "grid";
+    grid.innerHTML = _templates.map(t =>
+      `<div class="tpl-card${_selectedTpl === t.id ? " on" : ""}" onclick="selectTemplate('${t.id}')">
+        <div class="tpl-name">${t.name}</div><div class="tpl-desc">${t.desc}</div>
+      </div>`).join("");
+  } else {
+    grid.style.display = "none";
+    _selectedTpl = null;
+  }
+}
+function selectTemplate(id) {
+  const tpl = _templates.find(t => t.id === id);
+  if (!tpl) return;
+  _selectedTpl = id;
+  document.getElementById("new-type").value = tpl.type;
+  if (tpl.id !== "blank") document.getElementById("new-title").value = tpl.name;
+  toggleTemplates();
+  toggleTemplates(); // re-render selected
+  toast("Template selected: " + tpl.name, "info");
+}
+
+// ---------- HOME ----------
+function setHomeFilter(f) { _homeFilter = f; renderHome(); }
+
+function renderHome() {
+  const g = document.getElementById("proj-grid");
+  const q = (document.getElementById("home-search")?.value || "").toLowerCase().trim();
+  const filtered = projects.filter(p => {
+    if (_homeFilter !== "all" && p.type !== _homeFilter) return false;
+    if (q && p.title.toLowerCase().indexOf(q) === -1) return false;
+    return true;
+  });
+  document.querySelectorAll(".hf-btn").forEach(b => b.classList.remove("on"));
+  document.querySelectorAll(".hf-btn").forEach(b => {
+    const txt = b.textContent.trim().toLowerCase();
+    if (_homeFilter === "all" && txt === "all") b.classList.add("on");
+    else if (_homeFilter === "narrative" && txt.indexOf("narrative") > -1) b.classList.add("on");
+    else if (_homeFilter === "professional" && txt.indexOf("professional") > -1) b.classList.add("on");
+  });
+
+  if (!filtered.length) {
+    g.innerHTML = `<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:40px">
+      
+      ${projects.length ? "No series match your search" : "No series yet. Click the big orange button or create one!"}
+    </p>`;
+    return;
+  }
+  g.innerHTML = filtered.map(p => {
+    let sc = p.sections?.length || 0, pc = 0, filled = 0;
+    (p.sections || []).forEach(s => (s.pages || []).forEach(pg => { pc++; if (pg.content?.trim()) filled++; }));
+    const pct = pc > 0 ? Math.round((filled / pc) * 100) : 0;
+    const icon = p.type === "narrative" ? "fa-book" : "fa-briefcase";
+    return `<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;cursor:pointer;transition:.15s;box-shadow:var(--sh)"
+      onclick="openProject('${p.id}')" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="font-size:28px;line-height:1">✎</div>
+        <div style="flex:1"><div style="font-weight:700">${esc(p.title)}</div>
+        <div style="font-size:12px;color:var(--muted);text-transform:capitalize">${esc(p.type)}</div></div>
+        <div style="display:flex;gap:4px">
+          <button onclick="event.stopPropagation();duplicateProject('${p.id}')" style="color:var(--muted);font-size:12px;padding:4px" title="Duplicate"></button>
+          <button onclick="event.stopPropagation();deleteProject('${p.id}')" style="color:var(--muted);font-size:12px;padding:4px" title="Delete"></button>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--text2)">${sc} section${sc !== 1 ? "s" : ""} · ${pc} page${pc !== 1 ? "s" : ""}</div>
+      <div class="proj-progress"><div class="proj-progress-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join("");
+}
+
+function createProject() {
+  const t = document.getElementById("new-title").value.trim();
+  if (!t) return toast("Enter a series title", "error");
+  let type = document.getElementById("new-type").value;
+  let defSecs;
+  if (_selectedTpl && _selectedTpl !== "blank") {
+    const tpl = _templates.find(tp => tp.id === _selectedTpl);
+    if (tpl) {
+      type = tpl.type;
+      defSecs = tpl.sections.map(ts => ({
+        id: uid(), title: ts.title,
+        pages: (ts.pages || [{ title: "Page 1", content: "" }]).map(tp => ({
+          id: uid(), title: tp.title, content: tp.content || "", notes: "", imageUrl: "", quiz: []
+        }))
+      }));
+    }
+  }
+  if (!defSecs) {
+    defSecs = [
+      { id: uid(), title: "Section 1: Introduction", pages: [{ id: uid(), title: "Page 1", content: "", notes: "", imageUrl: "", quiz: [] }] },
+      { id: uid(), title: "Section 2: Core Content", pages: [{ id: uid(), title: "Page 1", content: "", notes: "", imageUrl: "", quiz: [] }] },
+      { id: uid(), title: "Section 3: Conclusion", pages: [{ id: uid(), title: "Page 1", content: "", notes: "", imageUrl: "", quiz: [] }] }
+    ];
+  }
+  const proj = { id: uid(), title: t, type, created: Date.now(), sections: defSecs, businessDesc: "" };
+  projects.push(proj);
+  save();
+  document.getElementById("new-title").value = "";
+  _selectedTpl = null;
+  if (_tplOpen) toggleTemplates();
+  openProject(proj.id);
+  toast("Series created!", "success");
+}
+
+function deleteProject(id) {
+  confirmDlg("Delete this series permanently?", () => {
+    projects = projects.filter(p => p.id !== id);
+    save();
+    renderHome();
+    toast("Deleted", "success");
+  });
+}
+
+function duplicateProject(id) {
+  const orig = projects.find(p => p.id === id);
+  if (!orig) return;
+  const clone = JSON.parse(JSON.stringify(orig));
+  clone.id = uid();
+  clone.title = orig.title + " (Copy)";
+  clone.created = Date.now();
+  clone.sections.forEach(s => { s.id = uid(); s.pages.forEach(pg => pg.id = uid()); });
+  projects.push(clone);
+  save();
+  renderHome();
+  toast("Duplicated!", "success");
+}
+
+// ---------- NAVIGATION ----------
+function openProject(id) {
+  const p = projects.find(x => x.id === id);
+  if (!p) return;
+  activeProject = p;
+  activeSecIdx = 0;
+  activePageIdx = 0;
+  document.getElementById("home").style.display = "none";
+  document.getElementById("editor").style.display = "flex";
+  document.getElementById("proj-name").textContent = p.title;
+  document.getElementById("proj-type-badge").innerHTML = ` ${p.type.charAt(0).toUpperCase() + p.type.slice(1)}`;
+  renderSidebar();
+  if (p.sections.length && p.sections[0].pages.length) selectPage(0, 0);
+  else renderEmpty();
+}
+
+function goHome() {
+  activeProject = null;
+  document.getElementById("editor").style.display = "none";
+  document.getElementById("home").style.display = "flex";
+  renderHome();
+}
+
+function toggleSide() { document.getElementById("sidebar").classList.toggle("mob"); }
+
+// ---------- SIDEBAR & CRUD ----------
+function renderSidebar() {
+  if (!activeProject) return;
+  const el = document.getElementById("side-list");
+  let h = "";
+  activeProject.sections.forEach((sec, si) => {
+    h += `<div class="s-cat"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(sec.title)}</span>
+      <span style="display:flex;gap:4px">
+        <button onclick="event.stopPropagation();renameSection(${si})" title="Rename"></button>
+        ${activeProject.sections.length > 1 ? `<button onclick="event.stopPropagation();deleteSection(${si})" title="Delete"></button>` : ""}
+      </span></div>`;
+    (sec.pages || []).forEach((pg, pi) => {
+      const isAct = si === activeSecIdx && pi === activePageIdx;
+      h += `<div class="s-item${isAct ? " active" : ""}" onclick="selectPage(${si},${pi})" style="position:relative">
+        
+        <span class="s-lbl">${esc(pg.title)}</span>
+        <span class="s-del" onclick="event.stopPropagation();deletePage(${si},${pi})"></span>
+      </div>`;
+    });
+  });
+  el.innerHTML = h;
+}
+
+function addSection() {
+  if (!activeProject) return;
+  if (activeProject.sections.length >= 8) return toast("Maximum 8 sections", "error");
+  const n = activeProject.sections.length + 1;
+  activeProject.sections.push({
+    id: uid(), title: "Section " + n,
+    pages: [{ id: uid(), title: "Page 1", content: "", notes: "", imageUrl: "", quiz: [] }]
+  });
+  save();
+  renderSidebar();
+  toast("Section added", "success");
+}
+
+function deleteSection(si) {
+  if (!activeProject || activeProject.sections.length <= 1) return toast("Need at least one section", "error");
+  confirmDlg(`Delete "${activeProject.sections[si].title}" and all its pages?`, () => {
+    activeProject.sections.splice(si, 1);
+    if (activeSecIdx >= activeProject.sections.length) activeSecIdx = activeProject.sections.length - 1;
+    activePageIdx = 0;
+    save();
+    renderSidebar();
+    selectPage(activeSecIdx, 0);
+    toast("Section deleted", "success");
+  });
+}
+
+function renameSection(si) {
+  if (!activeProject) return;
+  const sec = activeProject.sections[si];
+  const root = document.getElementById("modal-root");
+  root.innerHTML = `<div class="modal-bg"><div class="modal"><h4>Rename Section</h4>
+    <input id="ren-inp" value="${esc(sec.title)}" style="width:100%;margin-bottom:16px">
+    <div class="modal-actions"><button class="btn-s" onclick="document.getElementById('modal-root').innerHTML=''">Cancel</button>
+    <button class="btn-a" id="ren-ok">Save</button></div></div></div>`;
+  setTimeout(() => document.getElementById("ren-inp").focus(), 80);
+  document.getElementById("ren-ok").onclick = () => {
+    const v = document.getElementById("ren-inp").value.trim();
+    if (v) { sec.title = v; save(); renderSidebar(); }
+    root.innerHTML = "";
+  };
+}
+
+function addPage() {
+  if (!activeProject) return;
+  const sec = activeProject.sections[activeSecIdx];
+  if (!sec) return;
+  if (sec.pages.length >= 20) return toast("Maximum 20 pages per section", "error");
+  const n = sec.pages.length + 1;
+  sec.pages.push({ id: uid(), title: "Page " + n, content: "", notes: "", imageUrl: "", quiz: [] });
+  save();
+  renderSidebar();
+  selectPage(activeSecIdx, sec.pages.length - 1);
+  toast("Page added", "success");
+}
+
+function deletePage(si, pi) {
+  if (!activeProject) return;
+  const sec = activeProject.sections[si];
+  if (sec.pages.length <= 1) return toast("Need at least one page", "error");
+  confirmDlg("Delete this page?", () => {
+    sec.pages.splice(pi, 1);
+    if (si === activeSecIdx && activePageIdx >= sec.pages.length) activePageIdx = Math.max(0, sec.pages.length - 1);
+    save();
+    renderSidebar();
+    if (si === activeSecIdx) selectPage(activeSecIdx, activePageIdx);
+    toast("Page deleted", "success");
+  });
+}
+
+function selectPage(si, pi) {
+  activeSecIdx = si;
+  activePageIdx = pi;
+  document.getElementById("topbar").style.display = "flex";
+  const sb = document.getElementById("sidebar");
+  if (sb.classList.contains("mob")) sb.classList.remove("mob");
+  renderSidebar();
+  renderEditor();
+}
+
+function renderEmpty() {
+  document.getElementById("topbar").style.display = "none";
+  document.getElementById("content-area").innerHTML = `<div style="text-align:center;padding:60px 20px;color:var(--muted)">
+    
+    <p style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px">Select a page to begin</p>
+    <p style="font-size:13px">Choose from the sidebar or add a new page</p></div>`;
+}
+
+function getPage() {
+  if (!activeProject) return null;
+  const sec = activeProject.sections[activeSecIdx];
+  return sec ? sec.pages[activePageIdx] : null;
+}
+
+function updatePageTitle(v) {
+  const pg = getPage();
+  if (!pg) return;
+  pg.title = v;
+  save();
+  renderSidebar();
+}
+
+function updateContent(v) {
+  const pg = getPage();
+  if (!pg) return;
+  pg.content = v;
+  save();
+}
+
+function updateNotes(v) {
+  const pg = getPage();
+  if (!pg) return;
+  pg.notes = v;
+  save();
+}
+
+// ---------- EDITOR ----------
+function renderEditor() {
+  const el = document.getElementById("content-area");
+  const pg = getPage();
+  if (!pg) { renderEmpty(); return; }
+  document.getElementById("page-title").value = pg.title;
+
+  let h = `<div class="sec-tabs">`;
+  activeProject.sections.forEach((s, i) => {
+    h += `<div class="sec-tab${i === activeSecIdx ? " on" : ""}" onclick="selectPage(${i},0)">
+      <span class="sn">${i + 1}</span> ${esc(s.title)}</div>`;
+  });
+  if (activeProject.sections.length < 8) h += `<div class="sec-add" onclick="addSection()" title="Add section"></div>`;
+  h += `</div>`;
+
+  const sec = activeProject.sections[activeSecIdx];
+  h += `<div class="pg-bar">`;
+  sec.pages.forEach((p, i) => {
+    const cls = "pg-dot" + (i === activePageIdx ? " on" : (p.content?.trim() ? " filled" : ""));
+    h += `<div class="${cls}" onclick="selectPage(${activeSecIdx},${i})" title="${esc(p.title)}">${i + 1}</div>`;
+  });
+  if (sec.pages.length < 20) h += `<div class="pg-add" onclick="addPage()" title="Add page"></div>`;
+  h += `<span class="pg-info">Page ${activePageIdx + 1} of ${sec.pages.length}</span></div>`;
+
+  h += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+    <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">${esc(sec.title)} — ${esc(pg.title)}</span>
+    <div class="vtog">
+      <button class="${viewMode === "edit" ? "on" : ""}" onclick="viewMode='edit';renderEditor()"> Edit</button>
+      <button class="${viewMode === "preview" ? "on" : ""}" onclick="viewMode='preview';renderEditor()"> Preview</button>
+    </div></div>`;
+
+  if (viewMode === "edit") {
+    h += `<div class="editor"><textarea id="ed-ta" placeholder="Write your business content here... (Markdown supported)" oninput="updateContent(this.value)">${esc(pg.content || "")}</textarea></div>`;
+  } else {
+    h += `<div class="preview">${renderMd(pg.content)}</div>`;
+  }
+
+  h += `<div class="notes-area"><label> Author / Speaker Notes</label>
+    <textarea placeholder="Private notes for this page..." oninput="updateNotes(this.value)">${esc(pg.notes || "")}</textarea></div>`;
+
+  // Stats
+  let allWords = 0, allPages = 0, filledPages = 0;
+  activeProject.sections.forEach(s => s.pages.forEach(p => {
+    allPages++;
+    const wc = p.content ? p.content.split(/\s+/).filter(w => w.length > 0).length : 0;
+    allWords += wc;
+    if (p.content?.trim()) filledPages++;
+  }));
+  const currentWc = pg.content ? pg.content.split(/\s+/).filter(w => w.length > 0).length : 0;
+  h += `<div class="stat-row">
+    <div class="stat-item"><div class="sv">${currentWc}</div><div class="sl">Page Words</div></div>
+    <div class="stat-item"><div class="sv">${allWords}</div><div class="sl">Total Words</div></div>
+    <div class="stat-item"><div class="sv">${filledPages}/${allPages}</div><div class="sl">Pages Done</div></div>
+    <div class="stat-item"><div class="sv">${Math.max(1, Math.ceil(allWords / 200))}m</div><div class="sl">Read Time</div></div>
+  </div>`;
+
+  el.innerHTML = h;
+}
+
+// ---------- AI PANEL ----------
+function openAIPanel() {
+  document.getElementById("ai-panel").style.right = "0";
+  document.getElementById("ai-bg").style.opacity = "1";
+  document.getElementById("ai-bg").style.pointerEvents = "all";
+}
+function closeAIPanel() {
+  document.getElementById("ai-panel").style.right = "-420px";
+  document.getElementById("ai-bg").style.opacity = "0";
+  document.getElementById("ai-bg").style.pointerEvents = "none";
+}
+
+function buildPrompt(proj, sec, pg, extra) {
+  const style = document.getElementById("ai-style")?.value || "narrative";
+  const tone = document.getElementById("ai-tone")?.value || "engaging";
+  const instr = document.getElementById("ai-instr")?.value.trim() || "";
+  const biz = proj.businessDesc ? `Business context: ${proj.businessDesc}\n` : "";
+  return `You are an expert business content strategist and blog writer.
+${biz}Project: "${proj.title}" (${proj.type})
+Style: ${style} | Tone: ${tone}
+Section: "${sec.title}" | Page: "${pg.title}"
+${extra || ""}
+${instr ? "Additional instructions: " + instr + "\n" : ""}
+Write a high-quality, SEO-friendly business blog post in clean Markdown.
+Include vivid examples, practical takeaways, and a clear CTA where appropriate.
+Return Markdown only.`;
+}
+
+async function genPage() {
+  if (!activeProject) return;
+  const pg = getPage();
+  if (!pg) return;
+  const sec = activeProject.sections[activeSecIdx];
+  closeAIPanel();
+  if (pg.content?.trim()) {
+    confirmDlg(`Replace content in "${pg.title}"?`, () => doGenPage(pg, sec));
+  } else {
+    doGenPage(pg, sec);
+  }
+}
+
+async function doGenPage(pg, sec) {
+  setGen(true, `Generating "${pg.title}"...`);
+  const prompt = buildPrompt(activeProject, sec, pg);
+  pg.content = await callAI(prompt);
+  save();
+  setGen(false);
+  viewMode = "preview";
+  renderEditor();
+  toast("Page generated!", "success");
+}
+
+async function genSection() {
+  if (!activeProject) return;
+  const sec = activeProject.sections[activeSecIdx];
+  closeAIPanel();
+  const empty = sec.pages.filter(p => !p.content?.trim()).length;
+  confirmDlg(empty === sec.pages.length
+    ? `Generate all ${sec.pages.length} pages in "${sec.title}"?`
+    : `Generate ${empty} empty page(s)? (existing content kept)`, async () => {
+    for (let i = 0; i < sec.pages.length; i++) {
+      const pg = sec.pages[i];
+      if (pg.content?.trim()) continue;
+      setGen(true, `Generating page ${i + 1}/${sec.pages.length}...`);
+      pg.content = await callAI(buildPrompt(activeProject, sec, pg));
+      save();
+    }
+    setGen(false);
+    renderEditor();
+    toast("Section complete!", "success");
+  });
+}
+
+async function genEntire() {
+  if (!activeProject) return;
+  closeAIPanel();
+  let total = 0;
+  activeProject.sections.forEach(s => total += s.pages.length);
+  confirmDlg(`Generate content for all ${total} pages across the series?`, async () => {
+    let done = 0;
+    for (const sec of activeProject.sections) {
+      for (const pg of sec.pages) {
+        if (pg.content?.trim()) { done++; continue; }
+        done++;
+        setGen(true, `Generating ${done}/${total}: "${pg.title}"`);
+        pg.content = await callAI(buildPrompt(activeProject, sec, pg));
+        save();
+      }
+    }
+    setGen(false);
+    renderEditor();
+    toast("Entire series generated!", "success");
+  });
+}
+
+async function aiEnhanceContent() {
+  const pg = getPage();
+  if (!pg) return toast("Select a page first", "error");
+  if (!pg.content?.trim()) return toast("Write some content first", "error");
+  setGen(true, "Enhancing content...");
+  const prompt = `You are an expert business editor. Improve the following content for clarity, engagement, structure, and SEO while keeping the original intent. Do not invent facts, numbers, names, or results that are not in the original. Return only the enhanced Markdown.\n\n${pg.content}`;
+  pg.content = await callAI(prompt);
+  save();
+  setGen(false);
+  renderEditor();
+  toast("Content enhanced!", "success");
+}
+
+// ---------- AUTO BUSINESS SERIES ----------
+async function autoGenerateBusinessSeries() {
+  const biz = prompt("Describe your business in 1–2 sentences (e.g. “We sell premium coffee subscriptions to busy offices across the US”):");
+  if (!biz || !biz.trim()) return;
+
+  const title = "How " + biz.split(" ").slice(0, 3).join(" ") + " Grew — Our Story";
+  const proj = {
+    id: uid(),
+    title: title,
+    type: "narrative",
+    created: Date.now(),
+    businessDesc: biz.trim(),
+    sections: [
+      { id: uid(), title: "Our Origin Story", pages: [
+        { id: uid(), title: "The Spark", content: "", notes: "", imageUrl: "", quiz: [] },
+        { id: uid(), title: "Early Days", content: "", notes: "", imageUrl: "", quiz: [] }
+      ]},
+      { id: uid(), title: "Growth Strategies", pages: [
+        { id: uid(), title: "What Worked", content: "", notes: "", imageUrl: "", quiz: [] },
+        { id: uid(), title: "What We Learned", content: "", notes: "", imageUrl: "", quiz: [] }
+      ]},
+      { id: uid(), title: "Results & Takeaways", pages: [
+        { id: uid(), title: "The Numbers", content: "", notes: "", imageUrl: "", quiz: [] },
+        { id: uid(), title: "Advice for Others", content: "", notes: "", imageUrl: "", quiz: [] }
+      ]}
+    ]
+  };
+
+  projects.push(proj);
+  save();
+  openProject(proj.id);
+  toast("Series created. Generating content with AI...", "success");
+
+  let total = 0, done = 0;
+  proj.sections.forEach(s => total += s.pages.length);
+
+  for (const sec of proj.sections) {
+    for (const pg of sec.pages) {
+      done++;
+      setGen(true, `Writing ${done}/${total}: "${pg.title}"`);
+      const prompt = `You are a world-class business storyteller and content strategist.
+Business description: ${biz}
+Write a compelling, SEO-optimized blog post for the section "${sec.title}" and page titled "${pg.title}".
+Style: engaging narrative with practical insights. Use only facts from the business description. Never invent numbers, customer names, testimonials, or results — if a fact is missing, write [add your fact here] instead of guessing. End with a soft CTA.
+Return clean Markdown only.`;
+      pg.content = await callAI(prompt);
+      save();
+    }
+  }
+  setGen(false);
+  viewMode = "preview";
+  renderEditor();
+  toast("✅ Full business blog series generated!", "success");
+}
+
+// ---------- VIEWERS ----------
+function getAllPages() {
+  const pages = [];
+  if (!activeProject) return pages;
+  activeProject.sections.forEach(sec => {
+    sec.pages.forEach(pg => {
+      pages.push({ title: pg.title, section: sec.title, content: pg.content || "", imageUrl: pg.imageUrl || "" });
+    });
+  });
+  return pages;
+}
+
+function openViewer() {
+  if (!activeProject) return;
+  if (activeProject.type === "narrative") openFlipbook();
+  else openPresentation();
+}
+
+function openFlipbook() {
+  _flipPages = getAllPages();
+  if (!_flipPages.length) return toast("No pages to view", "error");
+  _flipIdx = 0;
+  document.getElementById("flip-ov").classList.add("open");
+  renderFlipPage();
+  document.addEventListener("keydown", flipKey);
+}
+function closeFlip() {
+  document.getElementById("flip-ov").classList.remove("open");
+  document.removeEventListener("keydown", flipKey);
+}
+function renderFlipPage() {
+  const pg = _flipPages[_flipIdx];
+  const el = document.getElementById("flip-book");
+  el.innerHTML = `<div style="text-align:center;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--muted)">${esc(pg.section)}</div>
+    <h2 style="font-weight:700;color:var(--accent);font-size:1.3em;margin-top:4px">${esc(pg.title)}</h2></div>
+    <div class="preview">${renderMd(pg.content)}</div>`;
+  document.getElementById("flip-num").textContent = `Page ${_flipIdx + 1} of ${_flipPages.length}`;
+}
+function flipPrev() { if (_flipIdx > 0) { _flipIdx--; renderFlipPage(); } }
+function flipNext() { if (_flipIdx < _flipPages.length - 1) { _flipIdx++; renderFlipPage(); } }
+function flipKey(e) {
+  if (e.key === "ArrowLeft") flipPrev();
+  else if (e.key === "ArrowRight") flipNext();
+  else if (e.key === "Escape") closeFlip();
+}
+
+function openPresentation() {
+  _presPages = getAllPages();
+  if (!_presPages.length) return toast("No slides to view", "error");
+  _presIdx = 0;
+  document.getElementById("pres-ov").classList.add("open");
+  renderPresSlide();
+  document.addEventListener("keydown", presKey);
+}
+function closePres() {
+  document.getElementById("pres-ov").classList.remove("open");
+  document.removeEventListener("keydown", presKey);
+}
+function renderPresSlide() {
+  const pg = _presPages[_presIdx];
+  const el = document.getElementById("pres-card");
+  el.innerHTML = `<div style="text-align:center;margin-bottom:30px">
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:3px;color:var(--muted);margin-bottom:8px">${esc(pg.section)}</div>
+    <h1 style="font-weight:700;color:var(--accent);font-size:2em">${esc(pg.title)}</h1></div>
+    <div class="preview">${renderMd(pg.content)}</div>`;
+  document.getElementById("pres-num").textContent = `Slide ${_presIdx + 1} of ${_presPages.length}`;
+}
+function presPrev() { if (_presIdx > 0) { _presIdx--; renderPresSlide(); } }
+function presNext() { if (_presIdx < _presPages.length - 1) { _presIdx++; renderPresSlide(); } }
+function presKey(e) {
+  if (e.key === "ArrowLeft") presPrev();
+  else if (e.key === "ArrowRight") presNext();
+  else if (e.key === "Escape") closePres();
+}
+
+// ---------- EXPORT & GITHUB ----------
+function exportProject() {
+  if (!activeProject) return toast("No series open", "error");
+  let out = `# ${activeProject.title}\n`;
+  out += `> Type: ${activeProject.type}\n`;
+  if (activeProject.businessDesc) out += `> Business: ${activeProject.businessDesc}\n`;
+  out += `\n---\n\n`;
+  activeProject.sections.forEach(sec => {
+    out += `## ${sec.title}\n\n`;
+    sec.pages.forEach(pg => {
+      out += `### ${pg.title}\n\n`;
+      out += (pg.content || "*(empty)*") + "\n\n";
+      if (pg.notes) out += `> **Notes:** ${pg.notes}\n\n`;
+      out += `---\n\n`;
+    });
+  });
+  const blob = new Blob([out], { type: "text/markdown" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = activeProject.title.replace(/[^a-zA-Z0-9 _-]/g, "").replace(/\s+/g, "_") + ".md";
+  a.style.display = "none";
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(a.href); }, 200);
+  toast("Exported as Markdown!", "success");
+}
+
+async function publishToGitHub() {
+  if (!activeProject) return toast("Open a series first", "error");
+  const token = prompt("GitHub Personal Access Token (classic, repo scope):");
+  if (!token) return;
+  const repo = prompt("Repository (username/repo):", "username/my-business-blog");
+  if (!repo) return;
+
+  setGen(true, "Publishing to GitHub...");
+  let success = 0, fail = 0;
+
+  for (const sec of activeProject.sections) {
+    for (const pg of sec.pages) {
+      const slug = pg.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      const path = `content/posts/${slug}.md`;
+      const front = `---\ntitle: "${pg.title.replace(/"/g, '\\"')}"\ndate: "${new Date().toISOString()}"\nsection: "${sec.title}"\n---\n\n`;
+      const body = front + (pg.content || "# Draft\n\n");
+      const encoded = btoa(unescape(encodeURIComponent(body)));
+
+      try {
+        // Check if file exists to get SHA (for update)
+        let sha = null;
+        try {
+          const check = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+            headers: { "Authorization": "Bearer " + token, "Accept": "application/vnd.github.v3+json" }
+          });
+          if (check.ok) {
+            const data = await check.json();
+            sha = data.sha;
+          }
+        } catch (_) {}
+
+        const payload = {
+          message: `Publish: ${pg.title}`,
+          content: encoded,
+          branch: "main"
+        };
+        if (sha) payload.sha = sha;
+
+        const res = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+          method: "PUT",
+          headers: {
+            "Authorization": "Bearer " + token,
+            "Accept": "application/vnd.github.v3+json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) success++;
+        else fail++;
+      } catch (e) {
+        console.error(e);
+        fail++;
+      }
+    }
+  }
+  setGen(false);
+  if (success) toast(`Published ${success} file(s) to GitHub!` + (fail ? ` (${fail} failed)` : ""), "success");
+  else toast("Publish failed. Check token, repo name, and permissions.", "error");
+}
+
+// ---------- INIT ----------
+(async function init() {
+  try {
+    const saved = await dbLoad();
+    if (saved && Array.isArray(saved) && saved.length) {
+      const ok = saved.every(p => p && typeof p.id === "string" && typeof p.title === "string" && Array.isArray(p.sections));
+      if (ok) projects = saved;
+    }
+  } catch (e) { console.warn(e); }
+  loadAISettings();
+  renderHome();
+  // Welcome hint
+  if (projects.length === 0) {
+    setTimeout(() => toast("Welcome! Click the big orange button to auto-create your first business series", "info"), 800);
+  }
+})();
+</script>
+</body>
+</html>
