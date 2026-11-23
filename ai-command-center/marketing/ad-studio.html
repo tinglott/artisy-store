@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<!--
+ARTISY Ad Studio — MIT License
+Copyright (c) 2026 Ting Lott / T. Lott Creative
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARTISY Ad Studio</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=DM+Sans:wght@400;500;600;700&display=swap');
+
+:root{
+  --navy:#14213D;
+  --navy-deep:#0B1526;
+  --gold:#C9A227;
+  --gold-deep:#8B6914;
+  --cream:#F8F3E7;
+  --forest:#33503E;
+  --plum:#5A3B5D;
+  --ink:#1B1B1B;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;height:100%;background:var(--cream);font-family:'DM Sans',sans-serif;color:var(--ink);}
+
+.app{
+  display:flex;
+  min-height:100vh;
+}
+
+/* ---------- RAIL ---------- */
+.rail{
+  width:340px;
+  min-width:340px;
+  background:var(--navy);
+  color:var(--cream);
+  padding:28px 24px 32px;
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+  overflow-y:auto;
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:4px;
+}
+.brand .seal{
+  width:34px;height:34px;border-radius:50%;
+  border:1.5px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;color:var(--gold);font-weight:700;flex-shrink:0;
+}
+.brand h1{
+  font-family:'Cormorant Garamond',serif;
+  font-weight:700;
+  font-size:24px;
+  letter-spacing:0.02em;
+  margin:0;
+}
+.brand p{
+  margin:0;
+  font-size:11px;
+  letter-spacing:0.14em;
+  text-transform:uppercase;
+  color:var(--gold);
+  opacity:.85;
+}
+
+.field label{
+  display:block;
+  font-size:11px;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  color:var(--gold);
+  margin-bottom:7px;
+  opacity:.9;
+}
+select, input, textarea{
+  width:100%;
+  background:rgba(248,243,231,0.07);
+  border:1px solid rgba(248,243,231,0.25);
+  color:var(--cream);
+  border-radius:8px;
+  padding:10px 12px;
+  font-family:'DM Sans',sans-serif;
+  font-size:14px;
+  outline:none;
+}
+select:focus, input:focus, textarea:focus{
+  border-color:var(--gold);
+}
+select option{ color:#111; }
+textarea{resize:vertical;min-height:56px;}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px;}
+.chip{
+  padding:6px 12px;
+  border-radius:999px;
+  border:1px solid rgba(248,243,231,0.25);
+  font-size:12px;
+  cursor:pointer;
+  background:transparent;
+  color:var(--cream);
+  transition:all .15s ease;
+}
+.chip:hover{border-color:var(--gold);}
+.chip.active{
+  background:var(--gold);
+  border-color:var(--gold);
+  color:var(--navy-deep);
+  font-weight:600;
+}
+
+.seg{
+  display:flex;
+  border-radius:8px;
+  overflow:hidden;
+  border:1px solid rgba(248,243,231,0.25);
+}
+.seg button{
+  flex:1;
+  padding:10px 6px;
+  background:transparent;
+  color:var(--cream);
+  border:none;
+  font-family:'DM Sans',sans-serif;
+  font-size:12.5px;
+  cursor:pointer;
+  border-right:1px solid rgba(248,243,231,0.25);
+}
+.seg button:last-child{border-right:none;}
+.seg button.active{background:var(--gold);color:var(--navy-deep);font-weight:700;}
+
+.stepper{
+  display:flex;align-items:center;gap:14px;
+}
+.stepper button{
+  width:30px;height:30px;border-radius:50%;
+  border:1px solid rgba(248,243,231,0.35);
+  background:transparent;color:var(--cream);
+  font-size:16px;cursor:pointer;line-height:1;
+}
+.stepper span{font-size:15px;font-weight:600;}
+
+.divider{height:1px;background:rgba(248,243,231,0.15);margin:2px 0;}
+
+.custom-toggle{
+  background:transparent;
+  border:1px dashed rgba(248,243,231,0.4);
+  color:var(--gold);
+  border-radius:8px;
+  padding:10px;
+  font-size:13px;
+  cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+}
+.custom-form{
+  display:flex;flex-direction:column;gap:10px;
+  background:rgba(0,0,0,0.15);
+  padding:14px;border-radius:10px;
+}
+.custom-form .row{display:flex;gap:8px;}
+.btn-primary{
+  background:var(--gold);
+  color:var(--navy-deep);
+  border:none;
+  padding:10px;
+  border-radius:8px;
+  font-weight:700;
+  font-size:13px;
+  cursor:pointer;
+}
+
+.dl-group{display:flex;flex-direction:column;gap:10px;margin-top:auto;padding-top:6px;}
+.btn-download{
+  background:transparent;
+  border:1.5px solid var(--gold);
+  color:var(--gold);
+  padding:12px;
+  border-radius:8px;
+  font-weight:700;
+  font-size:13.5px;
+  cursor:pointer;
+  letter-spacing:0.02em;
+}
+.btn-download.solid{
+  background:var(--gold);
+  color:var(--navy-deep);
+}
+.btn-download:hover{opacity:.9;}
+
+/* ---------- STAGE ---------- */
+.stage{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:22px;
+  padding:36px 20px;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(20,33,61,0.05), transparent 45%),
+    var(--cream);
+  position:relative;
+}
+.canvas-wrap{
+  position:relative;
+  box-shadow:0 30px 60px -20px rgba(11,21,38,0.35);
+  border-radius:4px;
+  overflow:hidden;
+}
+canvas{
+  display:block;
+  max-height:74vh;
+  width:auto;
+  height:74vh;
+  background:var(--navy);
+}
+.nav-arrow{
+  position:absolute;
+  top:50%;transform:translateY(-50%);
+  width:44px;height:44px;border-radius:50%;
+  background:rgba(20,33,61,0.85);
+  color:var(--cream);
+  border:1px solid rgba(248,243,231,0.3);
+  font-size:18px;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.nav-arrow.left{left:-58px;}
+.nav-arrow.right{right:-58px;}
+.nav-arrow:disabled{opacity:.25;cursor:default;}
+
+.filmstrip{
+  display:flex;
+  gap:10px;
+  max-width:90vw;
+  overflow-x:auto;
+  padding:6px 2px;
+}
+.thumb{
+  width:64px;height:64px;
+  border-radius:6px;
+  border:2px solid transparent;
+  cursor:pointer;
+  flex-shrink:0;
+  object-fit:cover;
+  background:var(--navy);
+}
+.thumb.active{border-color:var(--gold);}
+
+.hint{
+  font-size:12.5px;
+  color:rgba(27,27,27,0.55);
+  max-width:520px;
+  text-align:center;
+  line-height:1.5;
+}
+
+::-webkit-scrollbar{height:8px;width:8px;}
+::-webkit-scrollbar-thumb{background:rgba(248,243,231,0.25);border-radius:4px;}
+
+@media (max-width: 860px){
+  .app{flex-direction:column;}
+  .rail{width:100%;min-width:0;}
+  .nav-arrow.left{left:6px;}
+  .nav-arrow.right{right:6px;}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="rail">
+    <div class="brand">
+      <div class="seal">✦</div>
+      <div>
+        <h1>ARTISY Ad Studio</h1>
+        <p>Nurse-designed creative, on tap</p>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Category</label>
+      <div class="chips" id="categoryChips"></div>
+    </div>
+
+    <div class="field">
+      <label>Product (sample list)</label>
+      <select id="productSelect"></select>
+    </div>
+
+    <div class="field">
+      <label>Format</label>
+      <div class="seg" id="formatSeg">
+        <button data-fmt="square" class="active">Square Ad</button>
+        <button data-fmt="story">Story Ad</button>
+        <button data-fmt="carousel">Carousel</button>
+      </div>
+    </div>
+
+    <div class="field" id="slideCountField" style="display:none;">
+      <label>Number of slides</label>
+      <div class="stepper">
+        <button id="slideMinus">–</button>
+        <span id="slideCount">4</span>
+        <button id="slidePlus">+</button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <button class="custom-toggle" id="toggleCustom">+ Add a product not listed here</button>
+    <div class="custom-form" id="customForm" style="display:none;">
+      <input id="cTitle" placeholder="Product title">
+      <div class="row">
+        <input id="cPrice" placeholder="Price, e.g. 19.99" style="flex:1;">
+        <select id="cCategory" style="flex:1;"></select>
+      </div>
+      <input id="cTag" placeholder="Badge, e.g. New">
+      <textarea id="cDesc" placeholder="One-line description"></textarea>
+      <button class="btn-primary" id="addProductBtn">Add to my list</button>
+    </div>
+
+    <div class="dl-group">
+      <button class="btn-download solid" id="downloadCurrent">Download this slide (PNG)</button>
+      <button class="btn-download" id="downloadAll" style="display:none;">Download all slides</button>
+      <button class="btn-download" id="resetSamples">Reset sample products</button>
+    </div>
+  </aside>
+
+  <main class="stage">
+    <div class="canvas-wrap">
+      <button class="nav-arrow left" id="prevSlide" style="display:none;">‹</button>
+      <canvas id="canvas"></canvas>
+      <button class="nav-arrow right" id="nextSlide" style="display:none;">›</button>
+    </div>
+    <div class="filmstrip" id="filmstrip" style="display:none;"></div>
+    <p class="hint">Sample products included — pick one, choose a format, and download. Add your own products on the rail; they stay in this browser. Everything renders on-brand automatically: no photos needed, so nothing to license or wait on. This page tracks nothing; downloads are PNGs of the canvas.</p>
+  </main>
+</div>
+
+<script>
+/* ---------------- PRODUCT CATALOG (sample list — verified real ARTISY products; add your own on the rail) ---------------- */
+const CATEGORY_META = {
+  wellness: { label:'Wellness', accent:'#33503E', icon:'🌿', pain:'running on empty?' },
+  faith:    { label:'Faith',    accent:'#8B6914', icon:'🙏', pain:'searching for peace in the chaos?' },
+  fiction:  { label:'Fiction',  accent:'#5A3B5D', icon:'📖', pain:'craving a story that actually stays with you?' },
+  aiTools:  { label:'AI Tools', accent:'#14213D', icon:'🤖', pain:'drowning in busywork?' },
+  marketing:{ label:'Marketing',accent:'#14213D', icon:'📣', pain:'posting into total silence?' }
+};
+const SAMPLE_PRODUCTS = [
+  { title:'Sleep Sanctuary', price:'39.99', tag:'Sleep Program', category:'wellness', desc:'A sleep program by Ting Lott.' },
+  { title:'Supplement Evidence Guide', price:'29.99', tag:'Evidence Guide', category:'wellness', desc:'The evidence guide for supplements.' },
+  { title:'Skin Longevity', price:'29.99', tag:'Skin Guide', category:'wellness', desc:'A skin longevity guide by Ting Lott.' },
+  { title:'Habits', price:'69.99', tag:'Habits Program', category:'wellness', desc:'A habits program by Ting Lott.' },
+  { title:'Sacred Cycles', price:'97.00', tag:'Complete Journey', category:'faith', desc:'The complete Sacred Cycles journey.' },
+  { title:'The Forgotten Christmas Toys', price:'9.99', tag:'Christmas Story', category:'fiction', desc:'A Christmas story book for children. PDF + ePub.' },
+  { title:"Annie's Christmas", price:'9.99', tag:'Christmas Story', category:'fiction', desc:'A Christmas story book for children. PDF + ePub.' },
+  { title:"Grandma's Christmas Cookies", price:'9.99', tag:'Christmas Story', category:'fiction', desc:'A Christmas story book for children. PDF + ePub.' },
+  { title:'Enchanted Tales', price:'9.99', tag:'Story Book', category:'fiction', desc:'A story book for children by Ting Lott. PDF + ePub.' },
+  { title:'Sea Glass Heart', price:'14.99', tag:'Story Book', category:'fiction', desc:"Ting's story book. PDF + ePub." },
+  { title:'Captain Davie Sterling \u2014 Book 1: The Sea\'s Heart', price:'7.99', tag:'Book 1', category:'fiction', desc:'Book 1 of the Captain Davie Sterling series. PDF + MP3 audiobook.' },
+  { title:'AI Command Center', price:'197.00', tag:'Complete Edition', category:'aiTools', desc:'The complete AI Command Center with tools and AI employees.' },
+  { title:'Willow Tales', price:'47.00', tag:'Reading App', category:'aiTools', desc:"The kids' reading app with gentle tales and read-aloud warmth." }
+];
+const AD_STUDIO_KEY = 'aicc-ad-studio';
+function loadProducts(){
+  try{
+    var r = localStorage.getItem(AD_STUDIO_KEY);
+    if(r){
+      var o = JSON.parse(r);
+      if(Array.isArray(o) && o.length && o.every(function(p){ return p && p.title && p.category; })){
+        return o;
+      }
+    }
+  }catch(e){}
+  return JSON.parse(JSON.stringify(SAMPLE_PRODUCTS));
+}
+function saveProducts(){
+  try{ localStorage.setItem(AD_STUDIO_KEY, JSON.stringify(PRODUCTS)); }catch(e){}
+}
+let PRODUCTS = loadProducts();
+
+/* ---------------- STATE ---------------- */
+let state = {
+  categoryFilter: 'all',
+  productIndex: 0,
+  format: 'square',
+  slideCount: 4,
+  currentSlide: 0
+};
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+/* ---------------- UI BUILD ---------------- */
+function buildCategoryChips(){
+  const wrap = document.getElementById('categoryChips');
+  wrap.innerHTML = '';
+  const all = document.createElement('button');
+  all.className = 'chip' + (state.categoryFilter==='all' ? ' active':'');
+  all.textContent = 'All';
+  all.onclick = () => { state.categoryFilter='all'; state.productIndex=0; refreshAll(); };
+  wrap.appendChild(all);
+  Object.keys(CATEGORY_META).forEach(key=>{
+    const b = document.createElement('button');
+    b.className = 'chip' + (state.categoryFilter===key ? ' active':'');
+    b.textContent = CATEGORY_META[key].icon + ' ' + CATEGORY_META[key].label;
+    b.onclick = () => { state.categoryFilter=key; state.productIndex=0; refreshAll(); };
+    wrap.appendChild(b);
+  });
+}
+
+function filteredProducts(){
+  return state.categoryFilter==='all' ? PRODUCTS : PRODUCTS.filter(p=>p.category===state.categoryFilter);
+}
+
+function buildProductSelect(){
+  const sel = document.getElementById('productSelect');
+  sel.innerHTML = '';
+  filteredProducts().forEach((p, i)=>{
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = `${p.title} — $${p.price}`;
+    sel.appendChild(opt);
+  });
+  sel.value = state.productIndex;
+  sel.onchange = () => { state.productIndex = parseInt(sel.value); state.currentSlide=0; render(); };
+}
+
+function buildCategoryDropdownForCustomForm(){
+  const sel = document.getElementById('cCategory');
+  sel.innerHTML = '';
+  Object.keys(CATEGORY_META).forEach(key=>{
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = CATEGORY_META[key].label;
+    sel.appendChild(opt);
+  });
+}
+
+document.getElementById('formatSeg').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  [...document.querySelectorAll('#formatSeg button')].forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  state.format = btn.dataset.fmt;
+  state.currentSlide = 0;
+  document.getElementById('slideCountField').style.display = state.format==='carousel' ? 'block' : 'none';
+  document.getElementById('downloadAll').style.display = state.format==='carousel' ? 'block' : 'none';
+  render();
+});
+
+document.getElementById('slideMinus').onclick = ()=>{ state.slideCount = Math.max(3, state.slideCount-1); document.getElementById('slideCount').textContent = state.slideCount; state.currentSlide=0; render(); };
+document.getElementById('slidePlus').onclick = ()=>{ state.slideCount = Math.min(6, state.slideCount+1); document.getElementById('slideCount').textContent = state.slideCount; state.currentSlide=0; render(); };
+
+document.getElementById('toggleCustom').onclick = ()=>{
+  const f = document.getElementById('customForm');
+  f.style.display = f.style.display==='none' ? 'flex' : 'none';
+};
+
+document.getElementById('addProductBtn').onclick = ()=>{
+  const title = document.getElementById('cTitle').value.trim();
+  const price = document.getElementById('cPrice').value.trim() || '0.00';
+  const category = document.getElementById('cCategory').value;
+  const tag = document.getElementById('cTag').value.trim() || 'New';
+  const desc = document.getElementById('cDesc').value.trim() || 'Nurse-designed, made with care.';
+  if(!title){ document.getElementById('cTitle').focus(); return; }
+  PRODUCTS.push({ title, price, tag, category, desc });
+  saveProducts();
+  state.categoryFilter = category;
+  state.productIndex = filteredProducts().length - 1;
+  document.getElementById('cTitle').value='';
+  document.getElementById('cPrice').value='';
+  document.getElementById('cTag').value='';
+  document.getElementById('cDesc').value='';
+  document.getElementById('customForm').style.display='none';
+  refreshAll();
+};
+
+document.getElementById('prevSlide').onclick = ()=>{ if(state.currentSlide>0){ state.currentSlide--; render(); } };
+document.getElementById('nextSlide').onclick = ()=>{ if(state.currentSlide < state.slideCount-1){ state.currentSlide++; render(); } };
+
+document.getElementById('downloadCurrent').onclick = ()=> downloadCanvasSlide(state.currentSlide);
+document.getElementById('downloadAll').onclick = async ()=>{
+  for(let i=0;i<state.slideCount;i++){
+    drawSlide(i);
+    await downloadCanvasSlide(i, true);
+    await new Promise(r=>setTimeout(r, 350));
+  }
+  drawSlide(state.currentSlide);
+};
+document.getElementById('resetSamples').onclick = ()=>{
+  try{ localStorage.removeItem(AD_STUDIO_KEY); }catch(e){}
+  PRODUCTS = JSON.parse(JSON.stringify(SAMPLE_PRODUCTS));
+  state.categoryFilter = 'all';
+  state.productIndex = 0;
+  state.currentSlide = 0;
+  refreshAll();
+};
+
+function downloadCanvasSlide(index, silent){
+  return new Promise(resolve=>{
+    drawSlide(index);
+    canvas.toBlob(blob=>{
+      const p = filteredProducts()[state.productIndex];
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const safeName = (p ? p.title : 'artisy-ad').toLowerCase().replace(/[^a-z0-9]+/g,'-').slice(0,40);
+      a.href = url;
+      a.download = state.format==='carousel' ? `${safeName}-slide-${index+1}.png` : `${safeName}-${state.format}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      resolve();
+    }, 'image/png');
+  });
+}
+
+/* ---------------- CANVAS DRAWING ---------------- */
+function dims(){
+  if(state.format==='square') return {w:1080,h:1080};
+  if(state.format==='story') return {w:1080,h:1920};
+  return {w:1080,h:1350}; // carousel, 4:5
+}
+
+function setCanvasSize(){
+  const {w,h} = dims();
+  canvas.width = w; canvas.height = h;
+  canvas.style.height = '74vh';
+  canvas.style.width = (w/h*74) + 'vh';
+}
+
+function wrapText(text, maxWidth){
+  const words = text.split(' ');
+  const lines = [];
+  let line = '';
+  words.forEach(word=>{
+    const test = line ? line + ' ' + word : word;
+    if(ctx.measureText(test).width > maxWidth && line){
+      lines.push(line);
+      line = word;
+    } else {
+      line = test;
+    }
+  });
+  if(line) lines.push(line);
+  return lines;
+}
+
+function roundRect(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+
+const PALETTE = { navy:'#14213D', navyDeep:'#0B1526', gold:'#C9A227', cream:'#F8F3E7', forest:'#33503E', plum:'#5A3B5D' };
+
+function slideContent(product, index, total){
+  const meta = CATEGORY_META[product.category] || CATEGORY_META.wellness;
+  if(state.format !== 'carousel'){
+    return { kind:'offer', eyebrow: meta.label.toUpperCase(), headline: product.title, sub: product.desc, price: product.price, tag: product.tag, meta };
+  }
+  // carousel narrative arc
+  if(index===0) return { kind:'hook', eyebrow:'BEFORE ARTISY', headline:`Still ${meta.pain}`, sub:'There\'s a better way, nurse-approved.', meta };
+  if(index===total-1) return { kind:'offer', eyebrow: meta.label.toUpperCase(), headline: product.title, sub:`Starting at $${product.price}`, price: product.price, tag:'Get it today', meta };
+  if(index===total-2) return { kind:'proof', eyebrow:'WHY IT WORKS', headline:'Nurse-Designed. Not guessed.', sub:'Built by Ting Lott, RN — from real clinical experience, not a template.', meta };
+  return { kind:'feature', eyebrow: `SLIDE ${index+1}`, headline: product.title, sub: product.desc, meta };
+}
+
+function drawSlide(index){
+  const list = filteredProducts();
+  if(list.length===0) return;
+  const product = list[state.productIndex] || list[0];
+  const total = state.slideCount;
+  const c = slideContent(product, index, total);
+  const {w,h} = dims();
+  const accent = c.meta.accent;
+
+  // background gradient
+  const grad = ctx.createLinearGradient(0,0,w,h);
+  grad.addColorStop(0, PALETTE.navy);
+  grad.addColorStop(1, PALETTE.navyDeep);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0,0,w,h);
+
+  // soft accent glow corner
+  const glow = ctx.createRadialGradient(w*0.85,h*0.12,20, w*0.85,h*0.12, w*0.55);
+  glow.addColorStop(0, hexToRgba(accent,0.35));
+  glow.addColorStop(1, hexToRgba(accent,0));
+  ctx.fillStyle = glow;
+  ctx.fillRect(0,0,w,h);
+
+  // top accent bar
+  ctx.fillStyle = accent;
+  ctx.fillRect(0,0,w,10);
+
+  const pad = w*0.09;
+
+  // wordmark top-left
+  ctx.fillStyle = PALETTE.cream;
+  ctx.font = `600 ${w*0.028}px 'DM Sans'`;
+  ctx.textBaseline = 'top';
+  ctx.fillText('ARTISY', pad, h*0.055);
+  ctx.fillStyle = PALETTE.gold;
+  ctx.font = `500 ${w*0.016}px 'DM Sans'`;
+  ctx.fillText('T. LOTT CREATIVE', pad, h*0.055 + w*0.038);
+
+  // seal top-right
+  const sealR = w*0.045;
+  const sealX = w - pad - sealR;
+  const sealY = h*0.05 + sealR;
+  ctx.strokeStyle = PALETTE.gold;
+  ctx.lineWidth = w*0.004;
+  ctx.beginPath(); ctx.arc(sealX, sealY, sealR, 0, Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(sealX, sealY, sealR*0.78, 0, Math.PI*2); ctx.stroke();
+  ctx.fillStyle = PALETTE.gold;
+  ctx.font = `700 ${sealR*0.62}px 'DM Sans'`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('RN', sealX, sealY - sealR*0.14);
+  ctx.font = `500 ${sealR*0.28}px 'DM Sans'`;
+  ctx.fillText('EST.', sealX, sealY + sealR*0.32);
+  ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+
+  // eyebrow badge
+  let cursorY = h*0.30;
+  ctx.font = `700 ${w*0.024}px 'DM Sans'`;
+  const eyebrowText = (c.tag ? c.tag.toUpperCase() + '  ·  ' : '') + c.eyebrow;
+  const ebWidth = ctx.measureText(eyebrowText).width + w*0.06;
+  ctx.fillStyle = hexToRgba(accent, 0.9);
+  roundRect(pad, cursorY, ebWidth, w*0.05, w*0.025);
+  ctx.fill();
+  ctx.fillStyle = PALETTE.cream;
+  ctx.textBaseline = 'middle';
+  ctx.fillText(eyebrowText, pad + w*0.03, cursorY + w*0.025);
+  ctx.textBaseline = 'alphabetic';
+
+  cursorY += w*0.05 + w*0.06;
+
+  // headline
+  ctx.fillStyle = PALETTE.cream;
+  ctx.font = `700 italic ${w*0.078}px 'Cormorant Garamond'`;
+  const headlineLines = wrapText(c.headline, w - pad*2);
+  headlineLines.slice(0,3).forEach(line=>{
+    ctx.fillText(line, pad, cursorY);
+    cursorY += w*0.082;
+  });
+
+  cursorY += w*0.02;
+
+  // subhead
+  ctx.fillStyle = hexToRgba('#F8F3E7', 0.82);
+  ctx.font = `400 ${w*0.028}px 'DM Sans'`;
+  const subLines = wrapText(c.sub, w - pad*2);
+  subLines.slice(0,4).forEach(line=>{
+    ctx.fillText(line, pad, cursorY);
+    cursorY += w*0.038;
+  });
+
+  // price / CTA pill (offer slides only)
+  if(c.kind==='offer'){
+    const pillY = h - h*0.155;
+    ctx.fillStyle = PALETTE.gold;
+    const ctaText = c.price ? `$${c.price}  ·  Get It →` : 'Get It →';
+    ctx.font = `700 ${w*0.03}px 'DM Sans'`;
+    const ctaW = ctx.measureText(ctaText).width + w*0.07;
+    roundRect(pad, pillY, ctaW, w*0.068, w*0.034);
+    ctx.fill();
+    ctx.fillStyle = PALETTE.navyDeep;
+    ctx.textBaseline = 'middle';
+    ctx.fillText(ctaText, pad + w*0.035, pillY + w*0.034);
+    ctx.textBaseline = 'alphabetic';
+  }
+
+  // footer line
+  ctx.fillStyle = hexToRgba('#F8F3E7', 0.55);
+  ctx.font = `500 ${w*0.017}px 'DM Sans'`;
+  ctx.fillText('shop.artistrystore.com', pad, h - h*0.04);
+
+  // carousel page dots
+  if(state.format==='carousel'){
+    const dotR = w*0.008;
+    const gap = w*0.026;
+    const totalW = (total-1)*gap;
+    let dx = w/2 - totalW/2;
+    const dy = h - h*0.04;
+    for(let i=0;i<total;i++){
+      ctx.beginPath();
+      ctx.arc(dx, dy, dotR, 0, Math.PI*2);
+      ctx.fillStyle = i===index ? PALETTE.gold : hexToRgba('#F8F3E7',0.3);
+      ctx.fill();
+      dx += gap;
+    }
+  }
+}
+
+function hexToRgba(hex, alpha){
+  const h = hex.replace('#','');
+  const r = parseInt(h.substring(0,2),16);
+  const g = parseInt(h.substring(2,4),16);
+  const b = parseInt(h.substring(4,6),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+/* ---------------- FILMSTRIP / NAV ---------------- */
+function buildFilmstrip(){
+  const strip = document.getElementById('filmstrip');
+  const isCarousel = state.format==='carousel';
+  strip.style.display = isCarousel ? 'flex' : 'none';
+  document.getElementById('prevSlide').style.display = isCarousel ? 'flex' : 'none';
+  document.getElementById('nextSlide').style.display = isCarousel ? 'flex' : 'none';
+  document.getElementById('prevSlide').disabled = state.currentSlide===0;
+  document.getElementById('nextSlide').disabled = state.currentSlide===state.slideCount-1;
+  if(!isCarousel) return;
+
+  strip.innerHTML = '';
+  const off = document.createElement('canvas');
+  const {w,h} = dims();
+  off.width = w; off.height = h;
+  const offCtx = off.getContext('2d');
+
+  for(let i=0;i<state.slideCount;i++){
+    // render thumbnail using main draw routine against offscreen canvas by temporarily swapping ctx target
+    const img = document.createElement('canvas');
+    img.width = 64; img.height = 64 * (h/w);
+    const imgCtx = img.getContext('2d');
+    // draw main slide then scale down
+    drawSlide(i);
+    imgCtx.drawImage(canvas, 0, 0, img.width, img.height);
+    const thumbImg = document.createElement('canvas');
+    thumbImg.className = 'thumb' + (i===state.currentSlide ? ' active' : '');
+    thumbImg.width = img.width; thumbImg.height = img.height;
+    thumbImg.getContext('2d').drawImage(img,0,0);
+    thumbImg.style.cursor='pointer';
+    thumbImg.onclick = ()=>{ state.currentSlide = i; render(); };
+    strip.appendChild(thumbImg);
+  }
+  drawSlide(state.currentSlide);
+}
+
+function render(){
+  setCanvasSize();
+  if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(()=>{
+      drawSlide(state.currentSlide);
+      buildFilmstrip();
+    });
+  } else {
+    drawSlide(state.currentSlide);
+    buildFilmstrip();
+  }
+}
+
+function refreshAll(){
+  buildCategoryChips();
+  buildProductSelect();
+  render();
+}
+
+/* ---------------- INIT ---------------- */
+buildCategoryDropdownForCustomForm();
+document.getElementById('slideCountField').style.display = 'none';
+refreshAll();
+</script>
+</body>
+</html>
