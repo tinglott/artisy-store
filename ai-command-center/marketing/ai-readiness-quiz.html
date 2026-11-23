@@ -107,6 +107,7 @@ body{display:flex;flex-direction:column;align-items:center;}
 .btn-gold{background:var(--gold);border:1.5px solid var(--gold);color:var(--navy-deep);}
 .btn-outline{background:transparent;border:1.5px solid var(--navy);color:var(--navy);}
 .btn:hover{opacity:.9;}
+.btn-link{display:block;text-align:center;text-decoration:none;margin-top:6px;}
 .copy-status{font-size:13px;color:var(--forest);margin:10px 0 0;min-height:18px;}
 
 .honest{
@@ -171,6 +172,9 @@ body{display:flex;flex-direction:column;align-items:center;}
     <button class="btn btn-outline" id="retakeBtn" type="button">Take it again</button>
   </div>
   <p class="copy-status" id="copyStatus"></p>
+  <p class="tools-title">Your answers</p>
+  <ul class="tools-list" id="resultAnswers"></ul>
+  <a class="btn btn-gold btn-link" id="funnelCta" href="https://shop.artistrystore.com/funnels/ai-command-center-funnel.html">See the $197 offer — AI Command Center →</a>
 </main>
 
 <p class="honest">This is a self-check, not a test — and not a diagnosis of your business. There are no right or wrong answers, and nothing here promises income or results. Your answers stay in this browser; only your last result is saved, and you can clear it any time. No email needed, no demo call, nothing tracked.</p>
@@ -246,7 +250,7 @@ var TIERS = [
 ];
 
 var QUIZ_KEY = 'aicc-ai-readiness-quiz';
-var state = { i: 0, score: 0, finished: false };
+var state = { i: 0, score: 0, finished: false, answers: [] };
 
 function $(id){ return document.getElementById(id); }
 
@@ -270,14 +274,15 @@ function renderQuestion(){
     b.type = 'button';
     b.className = 'answer';
     b.textContent = a.t;
-    b.addEventListener('click', function(){ answer(a.pts); });
+    b.addEventListener('click', function(){ answer(a); });
     box.appendChild(b);
   });
 }
 
-function answer(pts){
+function answer(a){
   if (state.finished) return;
-  state.score += pts;
+  state.score += a.pts;
+  state.answers.push({ q: QUESTIONS[state.i].q, a: a.t });
   state.i++;
   if (state.i >= QUESTIONS.length) { showResult(); }
   else { renderQuestion(); }
@@ -300,6 +305,13 @@ function showResult(){
     li.textContent = t;
     ul.appendChild(li);
   });
+  var al = $('resultAnswers');
+  al.innerHTML = '';
+  state.answers.forEach(function(r){
+    var li = document.createElement('li');
+    li.textContent = r.q + ' — ' + r.a;
+    al.appendChild(li);
+  });
   $('copyStatus').textContent = '';
   saveResult(tier);
 }
@@ -307,6 +319,7 @@ function showResult(){
 function resultText(){
   var tier = tierFor(state.score);
   var lines = ['My AI-readiness result: ' + tier.title + ' — ' + state.score + ' out of 12 AI-ready points.',
+    'My answers: ' + state.answers.map(function(r){ return r.q + ' ' + r.a; }).join(' | ') + '.',
     'Tools that fit: ' + tier.tools.join('; ') + '.',
     'AI Command Center is $197 once — the ten tools cost $309 a month bought separately ($3,708 a year).',
     'https://shop.artistrystore.com/ai-command-center/'];
@@ -353,10 +366,11 @@ function fallbackCopy(text){
 }
 
 $('retakeBtn').addEventListener('click', function(){
-  state = { i: 0, score: 0, finished: false };
+  state = { i: 0, score: 0, finished: false, answers: [] };
   $('resultCard').style.display = 'none';
   $('quizCard').style.display = 'block';
   $('copyStatus').textContent = '';
+  $('resultAnswers').innerHTML = '';
   renderQuestion();
 });
 
