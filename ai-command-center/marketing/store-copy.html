@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<!--
+StoreCopy — MIT License
+Copyright (c) 2026 Ting Lott / T. Lott Creative
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>StoreCopy</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap">
+<style>
+:root{--bg:#f4f6fa;--surface:#fff;--ink:#1d2140;--mute:#5d6385;--line:#dde1ee;--acc:#0f8b8d;--on:#fff;--gold:#e0a526;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12142a;--surface:#1b1e3a;--ink:#eceefb;--mute:#a3a9cf;--line:#2c3058;--acc:#3cc4c6;--on:#0d1022;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#12142a;--surface:#1b1e3a;--ink:#eceefb;--mute:#a3a9cf;--line:#2c3058;--acc:#3cc4c6;--on:#0d1022;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Bricolage Grotesque",system-ui,sans-serif}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--surface);z-index:10}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--surface);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+h1{font-size:1.25rem;margin:0;font-weight:800;letter-spacing:-.01em;flex:1 1 auto}
+nav{display:flex;gap:4px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.tab{background:none;border:0;padding:8px 12px;border-radius:8px;font-weight:600;color:var(--mute)}
+.tab[aria-selected=true]{background:var(--acc);color:var(--on)}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+main{max-width:1100px;margin:0 auto;padding:16px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+input[type=text],input[type=url],input[type=number],textarea{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 12px;width:100%}
+textarea{min-height:90px}
+label{display:block;font-weight:600;margin-bottom:10px}
+label .hint{display:block;font-weight:400;color:var(--mute);font-size:.85rem}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:560px){.two{grid-template-columns:1fr}}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 10px;font-size:.9rem}
+.btn.pri{background:var(--acc);color:var(--on);border-color:var(--acc);font-weight:600;padding:9px 14px}
+.note{color:var(--mute);font-size:.9rem}
+.toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:99px;z-index:20}
+[hidden]{display:none!important}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+/* ---- store preview (also used inside the downloaded store page) ---- */
+.store{max-width:720px;margin:0 auto}
+.store .hero{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.store .tile{height:180px;display:grid;place-items:center;font-size:3rem;font-weight:800;color:#fff}
+.store .tile img{width:100%;height:100%;object-fit:cover;display:block}
+.store .sbody{padding:18px}
+.store .sbody h2{margin:0 0 6px;font-size:1.5rem}
+.store .sprice{font-weight:800;font-size:1.4rem;margin:8px 0}
+.store .sbuy{display:inline-block;background:var(--acc);color:var(--on);border-radius:10px;padding:12px 22px;font-weight:700;text-decoration:none;margin-top:10px}
+.store ul{margin:10px 0;padding-left:20px}
+.store .sfoot{color:var(--mute);font-size:.85rem;text-align:center;margin-top:16px}
+.store .ssec{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:14px}
+.store .ssec h3{margin:0 0 8px}
+</style>
+</head>
+<body>
+<header>
+<h1 id="brandTitle">StoreCopy</h1>
+<nav role="tablist">
+<button class="tab" role="tab" data-t="preview" aria-selected="true">Store preview</button>
+<button class="tab" role="tab" data-t="build" aria-selected="false">Build your store</button>
+</nav>
+</header>
+<main>
+<section id="preview">
+<div id="storeOut"></div>
+<p class="note" style="margin-top:14px">Sample store: one real ARTISY product — The Forgotten Christmas Toys, $9.99 — so you can see it work. Replace it with your own product on the Build tab. Honest limits: this page tracks nothing — no views, no clicks, no analytics. There is no Shopify here — the downloaded page IS the store; host it free on your own site. The "Fetch from link" button only works when the other site allows your browser to read it; most sites block that, so fill in the details by hand when it can't. Nothing is invented here: no fake reviews, no fake guarantee, no fake numbers — the guarantee and FAQ sections stay empty unless you write them.</p>
+</section>
+
+<section id="build" hidden>
+<div class="panel">
+<div class="two">
+<label>Store name<input type="text" id="storeName"></label>
+<label>Brand color<input type="color" id="brandColor" style="width:100%;height:42px;border-radius:10px"></label>
+</div>
+</div>
+<div class="panel">
+<label>Product link <span class="hint">Paste a Gumroad, JVZoo, or any product URL, then try Fetch. Most sites block the read — if it fails, fill in the fields below by hand.</span>
+<span style="display:flex;gap:8px"><input type="url" id="prodLink" placeholder="https://…"><button class="btn" id="fetchBtn" type="button" style="white-space:nowrap">Fetch from link</button></span></label>
+<label>Product name<input type="text" id="prodName"></label>
+<div class="two">
+<label>Price (numbers only, e.g. 9.99)<input type="number" id="prodPrice" min="0" step="0.01"></label>
+<label>Buy link <span class="hint">The real checkout page — where the Buy button goes.</span><input type="url" id="buyLink" placeholder="https://…"></label>
+</div>
+<label>Image URL (optional) <span class="hint">A direct link to a product picture. Leave blank for a colored tile.</span><input type="url" id="imgUrl" placeholder="https://…"></label>
+<label>Description<textarea id="prodDesc" style="min-height:70px"></textarea></label>
+<label>Benefits — one per line<textarea id="benefits" placeholder="One true benefit per line"></textarea></label>
+<label>Guarantee note (optional — stays empty unless you write it)<textarea id="guarantee" style="min-height:60px" placeholder="e.g. Your own refund or delivery promise, in your own words"></textarea></label>
+<label>FAQ (optional — one per line, "Question :: Answer")<textarea id="faq" style="min-height:60px" placeholder="How do I get the book? :: You get a download link right after checkout"></textarea></label>
+<div class="bar" style="margin:10px 0 0">
+<button class="btn pri" id="dl">Download store page</button>
+<button class="btn" id="copyBuy">Copy buy link</button>
+<button class="btn" id="reset">Reset sample product</button>
+<button class="btn" id="clear">Clear all</button>
+</div>
+<p class="note">Your data stays in this browser — nothing is uploaded. The downloaded page carries your current product inside it, so you can share or host it as-is.</p>
+</div>
+</section>
+</main>
+<div class="toast" id="toast" hidden></div>
+<script>
+var SAMPLE={store:"ARTISY",color:"#0f8b8d",link:"https://tlott12.gumroad.com/l/bbkthf",name:"The Forgotten Christmas Toys",price:9.99,buy:"https://tlott12.gumroad.com/l/bbkthf",img:"",desc:"A Christmas story book for children. PDF + ePub.",benefits:["A Christmas story book for children","PDF + ePub formats included","From Ting Lott, author of the Christmas story books"],guarantee:"",faq:[]};
+var S=null;
+var $=function(i){return document.getElementById(i)};
+function load(){var had=false;try{var r=localStorage.getItem("aicc-storecopy");if(r){var o=JSON.parse(r);if(o&&o.name!==undefined){S=o;had=true}}}catch(e){}
+if(!S)S=JSON.parse(JSON.stringify(SAMPLE));
+if(!had)save()}
+function save(){try{localStorage.setItem("aicc-storecopy",JSON.stringify(S))}catch(e){}}
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function money(n){return n||n===0?"$"+Number(n).toFixed(2).replace(/\.00$/,""):""}
+function hue(s){var h=0;s=String(s||"");for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))%360;return h}
+function toast(m){var t=$("toast");t.textContent=m;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(function(){t.hidden=true},2600)}
+function storeBody(d){
+if(!d.name)return'<div class="panel"><p class="note">No product yet. Go to the Build tab and fill in your product details — the store preview appears here as you type.</p></div>';
+var b="";
+b+='<div class="store"><div class="hero"><div class="tile" style="background:hsl('+hue(d.name)+',45%,38%)" aria-hidden="true">'+(d.img?'<img src="'+esc(d.img)+'" alt="">':esc(d.name.charAt(0)))+'</div>';
+b+='<div class="sbody"><h2>'+esc(d.name)+'</h2>';
+if(d.desc)b+='<div>'+esc(d.desc)+'</div>';
+if(d.price||d.price===0)b+='<div class="sprice">'+money(d.price)+'</div>';
+if(d.benefits&&d.benefits.length)b+='<ul>'+d.benefits.map(function(x){return"<li>"+esc(x)+"</li>"}).join("")+"</ul>";
+if(d.buy)b+='<a class="sbuy" href="'+esc(d.buy)+'" target="_blank" rel="noopener">Buy now — '+money(d.price)+'</a>';
+b+='</div></div>';
+if(d.guarantee)b+='<div class="ssec"><h3>Our promise</h3><div>'+esc(d.guarantee)+'</div></div>';
+if(d.faq&&d.faq.length)b+='<div class="ssec"><h3>Questions</h3>'+d.faq.map(function(f){return"<p><b>"+esc(f.q)+"</b><br>"+esc(f.a)+"</p>"}).join("")+"</div>";
+b+='<div class="sfoot">'+esc(d.store||"")+'</div></div>';
+return b}
+function storeDoc(d){
+var css="body{margin:0;background:#f4f6fa;color:#1d2140;font:16px/1.5 system-ui,sans-serif}main{max-width:760px;margin:0 auto;padding:24px 16px}.hero{background:#fff;border:1px solid #dde1ee;border-radius:14px;overflow:hidden}.tile{height:220px;display:grid;place-items:center;font-size:3rem;font-weight:800;color:#fff}.tile img{width:100%;height:100%;object-fit:cover;display:block}.sbody{padding:20px}.sbody h2{margin:0 0 6px;font-size:1.6rem}.sprice{font-weight:800;font-size:1.4rem;margin:8px 0}.sbuy{display:inline-block;background:"+d.color+";color:#fff;border-radius:10px;padding:12px 22px;font-weight:700;text-decoration:none;margin-top:10px}ul{margin:10px 0;padding-left:20px}.sfoot{color:#5d6385;font-size:.85rem;text-align:center;margin-top:16px}.ssec{background:#fff;border:1px solid #dde1ee;border-radius:14px;padding:14px;margin-top:14px}.ssec h3{margin:0 0 8px}";
+return"<!DOCTYPE html>\n<!--\nStoreCopy store page — MIT License\nCopyright (c) 2026 Ting Lott / T. Lott Creative\n-->\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>"+esc(d.name||d.store||"Store")+"</title>\n<style>"+css+"</style>\n</head>\n<body>\n<main>"+storeBody(d)+"</main>\n</body>\n</html>"}
+function render(){
+document.documentElement.style.setProperty("--acc",S.color);
+$("brandTitle").textContent="StoreCopy";
+$("storeOut").innerHTML=storeBody(S);
+$("storeName").value=S.store||"";$("brandColor").value=S.color||"#0f8b8d";
+$("prodLink").value=S.link||"";$("prodName").value=S.name||"";
+$("prodPrice").value=(S.price===undefined||S.price===null)?"":S.price;
+$("buyLink").value=S.buy||"";$("imgUrl").value=S.img||"";
+$("prodDesc").value=S.desc||"";$("benefits").value=(S.benefits||[]).join("\n");
+$("guarantee").value=S.guarantee||"";
+$("faq").value=(S.faq||[]).map(function(f){return f.q+" :: "+f.a}).join("\n")}
+function readForm(){
+S.store=$("storeName").value.trim()||"My Store";S.color=$("brandColor").value||"#0f8b8d";
+S.link=$("prodLink").value.trim();S.name=$("prodName").value.trim();
+var p=parseFloat($("prodPrice").value);S.price=isNaN(p)?null:p;
+S.buy=$("buyLink").value.trim();S.img=$("imgUrl").value.trim();S.desc=$("prodDesc").value.trim();
+S.benefits=$("benefits").value.split("\n").map(function(x){return x.trim()}).filter(Boolean);
+S.guarantee=$("guarantee").value.trim();
+S.faq=$("faq").value.split("\n").map(function(x){return x.trim()}).filter(Boolean).map(function(x){var i=x.indexOf("::");return i>-1?{q:x.slice(0,i).trim(),a:x.slice(i+2).trim()}:{q:x,a:""}}).filter(function(f){return f.q});
+save();render()}
+function slug(s){return String(s||"store").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")||"store"}
+function dlf(txt,name,type){var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:type}));a.download=name;a.click()}
+function fetchFromLink(){
+var u=$("prodLink").value.trim();
+if(!u){toast("Paste a product link first.");return Promise.resolve(false)}
+var done=false;
+var ctrl;try{ctrl=new AbortController();setTimeout(function(){try{ctrl.abort()}catch(e){}},8000)}catch(e){}
+var p=fetch(u,{signal:ctrl?ctrl.signal:undefined}).then(function(r){return r.text()}).then(function(t){
+var g=function(re){var m=t.match(re);return m?m[1].trim():""};
+var title=g(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i)||g(/<title>([^<]+)<\/title>/i);
+var img=g(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
+var pr=g(/\$([0-9]+(?:\.[0-9]{2})?)/);
+if(title)$("prodName").value=title;
+if(img)$("imgUrl").value=img;
+if(pr)$("prodPrice").value=pr;
+readForm();toast("Filled in what the page shared. Check the details, then fix anything wrong.");done=true;return true}).catch(function(){
+if(!done)toast("That site would not let this page read it — fill in the details by hand below.");return false});
+return p}
+document.addEventListener("click",function(e){var t=e.target.closest("button");if(!t)return;
+if(t.dataset.t){document.querySelectorAll(".tab").forEach(function(b){b.setAttribute("aria-selected",b==t)});["preview","build"].forEach(function(s){$(s).hidden=s!=t.dataset.t});return}
+if(t.id=="fetchBtn"){fetchFromLink();return}
+if(t.id=="dl"){readForm();dlf(storeDoc(S),slug(S.store||S.name)+"-store.html","text/html");toast("Store page downloaded with your current product.");return}
+if(t.id=="copyBuy"){var x=S.buy||"";if(!x){toast("No buy link to copy yet.");return}(navigator.clipboard?navigator.clipboard.writeText(x):Promise.reject()).then(function(){toast("Buy link copied")},function(){toast("Copy did not work here — select the buy link and copy it by hand.")});return}
+if(t.id=="reset"){S=JSON.parse(JSON.stringify(SAMPLE));save();render();toast("Sample product loaded.");return}
+if(t.id=="clear"){S={store:S.store,color:S.color,link:"",name:"",price:null,buy:"",img:"",desc:"",benefits:[],guarantee:"",faq:[]};save();render();toast("Cleared — add your product.");return}
+});
+["storeName","brandColor","prodLink","prodName","prodPrice","buyLink","imgUrl","prodDesc","benefits","guarantee","faq"].forEach(function(id){var el=$(id);if(el)el.addEventListener("input",readForm)});
+load();render();
+</script>
+</body>
+</html>
