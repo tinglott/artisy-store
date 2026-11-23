@@ -208,6 +208,20 @@ textarea{resize:vertical;min-height:56px;}
 }
 .btn-download:hover{opacity:.9;}
 
+.load-status{
+  font-size:12px;
+  color:var(--gold);
+  line-height:1.5;
+  margin:8px 0 0;
+  min-height:16px;
+}
+.load-note{
+  font-size:11px;
+  color:rgba(248,243,231,0.55);
+  line-height:1.5;
+  margin:6px 0 0;
+}
+
 /* ---------- STAGE ---------- */
 .stage{
   flex:1;
@@ -307,6 +321,12 @@ canvas{
     <div class="field">
       <label>Product (sample list)</label>
       <select id="productSelect"></select>
+    </div>
+
+    <div class="field">
+      <button class="btn-download" id="loadCatalogBtn">Load products from Catalog Studio</button>
+      <p class="load-status" id="loadCatalogStatus"></p>
+      <p class="load-note">Reads the products saved in this browser by Catalog Studio — nothing is fetched from the live store.</p>
     </div>
 
     <div class="field">
@@ -496,6 +516,68 @@ document.getElementById('addProductBtn').onclick = ()=>{
   document.getElementById('cDesc').value='';
   document.getElementById('customForm').style.display='none';
   refreshAll();
+};
+
+/* ---------------- LOAD FROM CATALOG STUDIO ----------------
+   Catalog Studio saves under key 'aicc-catalog-studio' as
+   {items:[{id,name,category,price,sku,description,link}],brand,color,wish}.
+   Price there is a number; categories are Books / Christmas / Courses / Tools.
+   This reads that saved list from THIS browser only — nothing is fetched
+   from the live store. */
+function mapCatalogCategory(cp){
+  var cat = String(cp.category || '').trim();
+  var name = String(cp.name || '').trim().toLowerCase();
+  if(cat === 'Books' || cat === 'Christmas') return 'fiction';
+  if(cat === 'Tools') return 'aiTools';
+  if(cat === 'Courses'){
+    if(name === 'sacred cycles') return 'faith';
+    if(name === 'ai command center' || name === 'willow tales') return 'aiTools';
+    return 'wellness';
+  }
+  if(name === 'sacred cycles') return 'faith';
+  if(name === 'ai command center' || name === 'willow tales') return 'aiTools';
+  return 'wellness';
+}
+
+document.getElementById('loadCatalogBtn').onclick = ()=>{
+  var status = document.getElementById('loadCatalogStatus');
+  var raw = null;
+  try{ raw = localStorage.getItem('aicc-catalog-studio'); }catch(e){}
+  if(!raw){
+    status.textContent = 'No Catalog Studio products saved in this browser yet — open Catalog Studio and add products first.';
+    return;
+  }
+  var items = null;
+  try{ var o = JSON.parse(raw); items = o && Array.isArray(o.items) ? o.items : null; }catch(e){}
+  if(!items || !items.length){
+    status.textContent = 'No Catalog Studio products saved in this browser yet — open Catalog Studio and add products first.';
+    return;
+  }
+  var have = {};
+  PRODUCTS.forEach(function(p){ have[String(p.title).toLowerCase()] = true; });
+  var added = 0;
+  items.forEach(function(cp){
+    var title = String(cp.name || '').trim();
+    if(!title || have[title.toLowerCase()]) return;
+    var price = (typeof cp.price === 'number' && isFinite(cp.price)) ? cp.price.toFixed(2) : String(cp.price || '0.00').trim();
+    var desc = String(cp.description || '').trim() || 'Nurse-designed, made with care.';
+    PRODUCTS.push({
+      title: title,
+      price: price,
+      tag: String(cp.category || 'Catalog').trim() || 'Catalog',
+      category: mapCatalogCategory(cp),
+      desc: desc
+    });
+    have[title.toLowerCase()] = true;
+    added++;
+  });
+  saveProducts();
+  state.categoryFilter = 'all';
+  state.productIndex = 0;
+  refreshAll();
+  status.textContent = added > 0
+    ? 'Loaded ' + added + ' product' + (added === 1 ? '' : 's') + ' from Catalog Studio.'
+    : 'No new products — all ' + items.length + ' already in your list.';
 };
 
 document.getElementById('prevSlide').onclick = ()=>{ if(state.currentSlide>0){ state.currentSlide--; render(); } };
